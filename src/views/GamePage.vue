@@ -1,0 +1,761 @@
+<template>
+  <div class="game" v-if="game">
+
+    <!-- Body: left leaderboard + right entry -->
+    <div class="game-body">
+
+    <!-- LEFT: Game leaderboard -->
+    <div class="leaderboard-panel">
+      <div class="lb-header">
+        <div>
+          <div class="game-type-badge">{{ GAME_TYPE_LABELS[game.gameType] }}</div>
+          <div class="round-label">Round {{ game.round }}</div>
+        </div>
+        <button class="btn btn-sm btn-danger" @click="confirmQuit = true">Quit</button>
+      </div>
+
+      <div class="lb-players scroll" ref="lbPlayersEl">
+        <div
+          v-for="p in game.players"
+          :key="p.id"
+          class="lb-player-row"
+          :class="{ active: p.id === currentPlayer.id }"
+          :style="p.id === currentPlayer.id ? { '--active-color': p.color, background: p.color + '12', boxShadow: `0 0 20px ${p.color}20` } : {}"
+        >
+          <!-- Active indicator -->
+          <div class="active-dot" :style="{ background: p.color, opacity: p.id === currentPlayer.id ? 1 : 0 }" />
+
+          <div class="lb-avatar" :style="{ background: p.color, boxShadow: p.id === currentPlayer.id ? `0 0 14px ${p.color}99` : '0 0 0 transparent' }">
+            <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
+            <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+          </div>
+
+          <div class="lb-player-info">
+            <span class="lb-player-name" :style="p.id === currentPlayer.id ? { color: p.color } : {}">
+              {{ p.name }}
+              <span v-if="p.id === currentPlayer.id" class="throwing-tag">throwing</span>
+            </span>
+
+            <!-- Cricket marks on second row, full width -->
+            <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'" class="cricket-mini">
+              <div v-for="t in CRICKET_TARGETS" :key="t" class="mini-target">
+                <span class="mini-label">{{ t === 'bull' ? 'B' : t }}</span>
+                <div class="mini-marks">
+                  <span v-for="n in 3" :key="n" class="mini-pip"
+                    :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lb-score">
+            <span class="lb-score-val" :style="p.id === currentPlayer.id ? { color: p.color } : {}">
+              {{ displayScore(p.id) }}
+            </span>
+            <span class="lb-score-label">
+              {{ scoreLabel }}
+            </span>
+          </div>
+
+          <button
+            v-if="game.players.length > 2"
+            class="remove-player-btn"
+            @click.stop="gameStore.removePlayerFromGame(p.id)"
+            title="Remove from game"
+          >✕</button>
+        </div>
+      </div>
+
+      <!-- Up next -->
+      <div class="up-next-strip" v-if="upNext.length > 0">
+        <span class="up-next-title">UP NEXT</span>
+        <div class="up-next-chips">
+          <div v-for="p in upNext" :key="p.id" class="up-next-chip" :style="{ borderColor: p.color }">
+            <div class="chip-avatar" :style="{ background: p.color }">{{ p.avatarUrl ?? '🎯' }}</div>
+            <span>{{ p.name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Entry panel -->
+    <div class="entry-panel" :style="entryPanelStyle">
+      <div class="turn-header" :style="{ '--player-color': currentPlayer.color }">
+        <div class="turn-avatar" :style="{ background: currentPlayer.color, boxShadow: `0 0 20px ${currentPlayer.color}99` }">
+          <img v-if="isPhoto(currentPlayer.avatarUrl)" :src="currentPlayer.avatarUrl!" alt="" />
+          <span v-else>{{ currentPlayer.avatarUrl ?? '🎯' }}</span>
+        </div>
+        <div class="turn-player-info">
+          <span class="turn-label">THROWING NOW</span>
+          <span class="turn-name display" :style="{ color: currentPlayer.color, filter: `drop-shadow(0 0 12px ${currentPlayer.color}80)` }">{{ currentPlayer.name }}</span>
+        </div>
+      </div>
+
+      <!-- Throw timer bar — tap to pause/resume -->
+      <div v-if="throwTimerDuration > 0" class="throw-timer-bar" @click="toggleThrowPause">
+        <div
+          class="throw-timer-fill"
+          :class="{ urgent: throwTimeLeft <= 10, paused: throwPaused }"
+          :style="{ width: `${(throwTimeLeft / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }"
+        />
+        <span class="throw-timer-text" :class="{ urgent: throwTimeLeft <= 10 }">
+          {{ throwPaused ? '⏸ PAUSED' : throwTimeLeft + 's' }}
+        </span>
+      </div>
+
+      <!-- Score entry component -->
+      <div class="entry-body">
+        <CricketEntry
+          v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'"
+          :key="currentPlayer.id"
+          :playerId="currentPlayer.id"
+          :scores="game.scores"
+          :isCutThroat="game.gameType === 'cutThroat'"
+          @submit="handleCricketSubmit"
+        />
+        <NumpadEntry
+          v-else-if="['301','501','701','1001'].includes(game.gameType)"
+          :key="currentPlayer.id"
+          :remaining="(game.scores[currentPlayer.id] as OhOneScore).data.remaining"
+          @submit="handleNumpadSubmit"
+        />
+        <SimpleEntry
+          v-else
+          :key="currentPlayer.id"
+          :gameType="game.gameType"
+          :round="game.round"
+          @submit="handleNumpadSubmit"
+        />
+      </div>
+    </div>
+
+    </div><!-- end .game-body -->
+
+    <!-- Quit confirm overlay -->
+    <div v-if="confirmQuit" class="overlay">
+      <div class="confirm-dialog">
+        <h3>Quit this game?</h3>
+        <p>Progress will be lost.</p>
+        <div class="confirm-btns">
+          <button class="btn btn-surface" @click="confirmQuit = false">Cancel</button>
+          <button class="btn btn-danger" @click="quitGame">Quit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div v-else class="no-game">
+    <p>No active game.</p>
+    <button class="btn btn-gold btn-lg" @click="router.push('/')">Go Home</button>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useGameStore } from '../stores/game'
+import { GAME_TYPE_LABELS, CRICKET_TARGETS, type PlayerScore, type CricketTarget } from '../types/index'
+import CricketEntry from '../components/CricketEntry.vue'
+import NumpadEntry from '../components/NumpadEntry.vue'
+import SimpleEntry from '../components/SimpleEntry.vue'
+
+type OhOneScore = Extract<PlayerScore, { kind: 'ohOne' }>
+type CricketHits = Record<string | number, number>
+
+const router = useRouter()
+const gameStore = useGameStore()
+const game = computed(() => gameStore.game)
+const confirmQuit = ref(false)
+const lbPlayersEl = ref<HTMLElement | null>(null)
+
+const currentPlayer = computed(() => game.value!.players[game.value!.currentPlayerIndex]!)
+
+const upNext = computed(() => {
+  if (!game.value) return []
+  const { players, currentPlayerIndex } = game.value
+  const result = []
+  for (let i = 1; i < players.length; i++) {
+    result.push(players[(currentPlayerIndex + i) % players.length]!)
+  }
+  return result
+})
+
+const scoreLabel = computed(() => {
+  const gt = game.value?.gameType
+  if (!gt) return ''
+  if (gt === 'cricket' || gt === 'cutThroat') return 'pts'
+  if (['301','501','701','1001'].includes(gt)) return 'left'
+  return 'total'
+})
+
+function isPhoto(url: string | null) {
+  return url?.startsWith('data:') || url?.startsWith('http')
+}
+
+function getCricketMarks(playerId: string) {
+  const s = game.value?.scores[playerId]
+  return s?.kind === 'cricket' ? s.data.marks : null
+}
+
+function displayScore(playerId: string): string {
+  const s = game.value?.scores[playerId]
+  if (!s) return '—'
+  if (s.kind === 'ohOne') return String(s.data.remaining)
+  if (s.kind === 'cricket') return String(s.data.points)
+  if (s.kind === 'simple') return String(s.data.total)
+  return '—'
+}
+
+function handleCricketSubmit(marks: CricketHits) {
+  gameStore.submitScore(currentPlayer.value.id, marks as Record<CricketTarget, number>)
+}
+
+function handleNumpadSubmit(score: number) {
+  gameStore.submitScore(currentPlayer.value.id, score)
+}
+
+function quitGame() {
+  gameStore.endGame()
+  router.push('/')
+}
+
+// ── Throw timer ──────────────────────────────────────────────
+const throwTimerDuration = computed(() => game.value?.throwTimerDuration ?? 0)
+const throwTimeLeft = ref(0)
+const throwPaused = ref(false)
+let throwInterval: ReturnType<typeof setInterval> | null = null
+
+function clearThrowTimer() {
+  if (throwInterval) { clearInterval(throwInterval); throwInterval = null }
+}
+
+function toggleThrowPause() { throwPaused.value = !throwPaused.value }
+
+function startThrowTimer() {
+  clearThrowTimer()
+  throwPaused.value = false
+  if (!throwTimerDuration.value) return
+  throwTimeLeft.value = throwTimerDuration.value
+  throwInterval = setInterval(() => {
+    if (throwPaused.value) return
+    throwTimeLeft.value--
+    if (throwTimeLeft.value <= 0) {
+      clearThrowTimer()
+      const gt = game.value?.gameType
+      if (gt === 'cricket' || gt === 'cutThroat') {
+        handleCricketSubmit({} as Record<CricketTarget, number>)
+      } else {
+        handleNumpadSubmit(0)
+      }
+    }
+  }, 1000)
+}
+
+const entryPanelStyle = computed(() => {
+  const bg = currentPlayer.value.playerBackground
+  // Only apply gradient themes on the score panel — images go on the loading screen
+  if (!bg || bg.startsWith('data:') || bg.startsWith('http')) return {}
+  return { background: bg }
+})
+
+function scrollActivePlayerIntoView() {
+  nextTick(() => {
+    lbPlayersEl.value?.querySelector('.lb-player-row.active')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  })
+}
+
+onMounted(() => {
+  if (game.value?.status === 'playing') startThrowTimer()
+  scrollActivePlayerIntoView()
+})
+onUnmounted(() => clearThrowTimer())
+
+watch(
+  () => game.value?.status,
+  (status) => {
+    if (status === 'between_turns') { clearThrowTimer(); router.push('/between') }
+    if (status === 'finished') { clearThrowTimer(); router.push('/win') }
+    if (status === 'playing') startThrowTimer()
+  }
+)
+
+watch(() => game.value?.currentPlayerIndex, () => {
+  if (game.value?.status === 'playing') startThrowTimer()
+  scrollActivePlayerIntoView()
+})
+</script>
+
+<style scoped>
+.game {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.game-body {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── LEFT: Leaderboard ── */
+.leaderboard-panel {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+  background: rgba(255,255,255,0.02);
+}
+
+.lb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.game-type-badge {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pink);
+  font-family: var(--font-display);
+}
+.round-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.lb-players {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  overflow-y: auto;
+}
+
+/* Expand player rows to fill all available height */
+.lb-players > .lb-player-row { flex: 1; }
+
+.lb-player-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-left: 4px solid transparent;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+.lb-player-row.active {
+  border-left-color: var(--active-color, var(--pink));
+}
+
+.active-dot {
+  display: none;
+}
+
+.lb-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.1);
+  transition: box-shadow 0.2s;
+}
+.lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.lb-player-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.lb-player-name {
+  font-size: 22px;
+  font-weight: 900;
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: color 0.2s;
+  color: #fff;
+}
+
+.throwing-tag {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.12);
+  border-radius: 3px;
+  padding: 2px 5px;
+  color: inherit;
+  font-family: var(--font-body);
+}
+
+/* Cricket mini marks — full width second row */
+.cricket-mini {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+.mini-target {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 5px;
+  padding: 6px 2px;
+}
+.mini-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 0.02em;
+  font-family: var(--font-display);
+}
+.mini-marks {
+  display: flex;
+  gap: 3px;
+}
+.mini-pip {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.05);
+  transition: background 0.1s, box-shadow 0.1s;
+  flex-shrink: 0;
+}
+.mini-pip.filled {
+  background: var(--pink);
+  border-color: var(--pink);
+  box-shadow: 0 0 6px rgba(255,45,120,0.8);
+}
+
+.remove-player-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  color: rgba(255,255,255,0.3);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 7px;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  align-self: flex-start;
+  margin-top: 2px;
+  -webkit-tap-highlight-color: transparent;
+}
+.remove-player-btn:hover { border-color: #ef4444; color: #ef4444; }
+
+.lb-score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+.lb-score-val {
+  font-size: 52px;
+  font-weight: 900;
+  font-family: var(--font-display);
+  letter-spacing: 0;
+  line-height: 1;
+  color: #fff;
+  transition: color 0.2s;
+}
+.lb-score-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: right;
+}
+
+/* Up next strip */
+.up-next-strip {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.up-next-title {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  text-transform: uppercase;
+  font-family: var(--font-display);
+}
+.up-next-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.up-next-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px 3px 3px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(8px);
+}
+.chip-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+/* ── RIGHT: Turn + Entry ── */
+.entry-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+
+.turn-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 24px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: relative;
+}
+.turn-header::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--player-color, var(--pink));
+  box-shadow: 0 0 12px var(--player-color, var(--pink));
+}
+
+.turn-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  border: 2px solid rgba(255,255,255,0.15);
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: box-shadow 0.2s;
+}
+.turn-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.turn-player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.turn-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.turn-name {
+  font-size: 36px;
+  line-height: 1;
+  letter-spacing: 0.05em;
+}
+
+.entry-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Misc */
+.no-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  width: 100vw;
+  height: 100vh;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.confirm-dialog {
+  background: rgba(20,20,20,0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 32px;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.confirm-dialog h3 { font-size: 22px; font-weight: 700; }
+.confirm-dialog p { color: var(--text-muted); }
+.confirm-btns { display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px; }
+
+/* ── Throw timer bar ── */
+.throw-timer-bar {
+  position: relative;
+  height: 28px;
+  background: rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.throw-timer-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: var(--blue);
+  transition: width 1s linear, background 0.3s;
+}
+.throw-timer-fill.urgent { background: var(--pink); }
+.throw-timer-fill.paused { background: var(--text-muted); }
+.throw-timer-text {
+  position: relative;
+  z-index: 1;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.7);
+  padding: 0 10px;
+  font-family: var(--font-display);
+}
+.throw-timer-text.urgent { color: #fff; }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .game {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .game-body {
+    flex-direction: column;
+  }
+
+  .entry-panel {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    order: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .entry-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .leaderboard-panel {
+    width: 100%;
+    flex-shrink: 0;
+    order: 1;
+    border-right: none;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    max-height: 42vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .lb-players { flex: 1; gap: 5px; padding: 8px 10px; overflow-y: auto; min-height: 0; }
+  .lb-player-row { padding: 8px 10px; }
+  .lb-player-info { gap: 5px; }
+  .lb-avatar { width: 34px; height: 34px; font-size: 16px; }
+  .lb-player-name { font-size: 14px; }
+  .cricket-mini { gap: 3px; }
+  .mini-target { width: auto; flex: 1; padding: 4px 2px; }
+  .mini-label { font-size: 9px; }
+  .mini-pip { width: 8px; height: 8px; }
+  .mini-marks { gap: 2px; }
+  .lb-score-val { font-size: 28px; }
+  .up-next-strip { display: none; }
+
+  .turn-header { padding: 10px 14px; gap: 10px; flex-shrink: 0; }
+  .turn-avatar { width: 40px; height: 40px; font-size: 20px; }
+  .turn-name { font-size: 22px; }
+
+  .confirm-dialog { min-width: unset; width: calc(100vw - 32px); padding: 24px; }
+}
+</style>

@@ -1,0 +1,113 @@
+<template>
+  <div class="page">
+    <div class="drip-bar" />
+    <div class="page-header">
+      <button class="btn btn-outline btn-sm" @click="router.push('/')">← Back</button>
+      <h2 class="page-title display">LEADERBOARD</h2>
+      <div style="width:80px" />
+    </div>
+
+    <div class="lb-body">
+      <div v-if="sorted.length === 0" class="empty">No players yet. Go add some!</div>
+
+      <!-- Podium -->
+      <div v-if="sorted.length >= 2" class="podium">
+        <div v-if="sorted[1]" class="podium-slot second">
+          <div class="pod-avatar" :style="{ background: sorted[1].color, boxShadow: `0 0 20px ${sorted[1].color}80` }">{{ sorted[1].avatarUrl ?? '🎯' }}</div>
+          <div class="pod-name">{{ sorted[1].name }}</div>
+          <div class="pod-wins display" :style="{ color: sorted[1].color }">{{ sorted[1].wins }}W</div>
+          <div class="pod-base second-base">2ND</div>
+        </div>
+        <div v-if="sorted[0]" class="podium-slot first">
+          <div class="pod-crown">👑</div>
+          <div class="pod-avatar large" :style="{ background: sorted[0].color, boxShadow: `0 0 30px ${sorted[0].color}` }">{{ sorted[0].avatarUrl ?? '🎯' }}</div>
+          <div class="pod-name">{{ sorted[0].name }}</div>
+          <div class="pod-wins display" :style="{ color: sorted[0].color }">{{ sorted[0].wins }}W</div>
+          <div class="pod-base first-base">1ST</div>
+        </div>
+        <div v-if="sorted[2]" class="podium-slot third">
+          <div class="pod-avatar" :style="{ background: sorted[2].color, boxShadow: `0 0 16px ${sorted[2].color}60` }">{{ sorted[2].avatarUrl ?? '🎯' }}</div>
+          <div class="pod-name">{{ sorted[2].name }}</div>
+          <div class="pod-wins display" :style="{ color: sorted[2].color }">{{ sorted[2].wins }}W</div>
+          <div class="pod-base third-base">3RD</div>
+        </div>
+      </div>
+
+      <!-- Full table -->
+      <div class="lb-table">
+        <div class="lb-table-header">
+          <span>#</span><span>Player</span><span>Games</span><span>Wins</span><span>Win %</span>
+        </div>
+        <div v-for="(p, i) in sorted" :key="p.id" class="lb-table-row" :class="{ top: i < 3 }"
+          :style="i < 3 ? { borderLeftColor: p.color, boxShadow: `inset 0 0 20px ${p.color}10` } : {}">
+          <span class="rank display" :style="i < 3 ? { color: p.color } : {}">{{ i + 1 }}</span>
+          <div class="player-cell">
+            <div class="cell-avatar" :style="{ background: p.color, boxShadow: `0 0 10px ${p.color}60` }">{{ p.avatarUrl ?? '🎯' }}</div>
+            <span>{{ p.name }}</span>
+          </div>
+          <span>{{ p.gamesPlayed }}</span>
+          <span>{{ p.wins }}</span>
+          <span :style="i === 0 ? { color: 'var(--gold)', fontWeight: 800 } : {}">
+            {{ p.gamesPlayed > 0 ? Math.round((p.wins / p.gamesPlayed) * 100) : 0 }}%
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { usePlayersStore } from '../stores/players'
+
+const router = useRouter()
+const playersStore = usePlayersStore()
+const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !== a.wins ? b.wins - a.wins : b.gamesPlayed - a.gamesPlayed))
+</script>
+
+<style scoped>
+.page { display: flex; flex-direction: column; width: 100vw; height: 100vh; overflow: hidden; }
+.page-header {
+  display: flex; align-items: center; justify-content: space-between; padding: 18px 40px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0;
+}
+.page-title { font-size: 28px; letter-spacing: 0.12em; background: linear-gradient(135deg, var(--gold), var(--orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+.lb-body { flex: 1; display: flex; gap: 48px; padding: 36px 48px; overflow: hidden; }
+.empty { width: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 18px; }
+
+.podium { display: flex; align-items: flex-end; gap: 20px; flex-shrink: 0; }
+.podium-slot { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.pod-crown { font-size: 32px; }
+.pod-avatar { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+.pod-avatar.large { width: 96px; height: 96px; font-size: 48px; }
+.pod-name { font-size: 14px; font-weight: 700; }
+.pod-wins { font-size: 24px; }
+.pod-base { font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 6px 18px; border-radius: 4px; font-family: var(--font-display); }
+.first-base  { background: linear-gradient(135deg, var(--gold), var(--orange)); color: #000; }
+.second-base { background: rgba(170,170,170,0.3); color: #aaa; border: 1px solid #aaa; }
+.third-base  { background: rgba(205,127,50,0.3); color: #cd7f32; border: 1px solid #cd7f32; }
+
+.lb-table { flex: 1; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
+.lb-table-header { display: grid; grid-template-columns: 44px 1fr 80px 80px 80px; padding: 8px 16px; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+.lb-table-row {
+  display: grid; grid-template-columns: 44px 1fr 80px 80px 80px; align-items: center; padding: 14px 16px;
+  background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid rgba(255,255,255,0.08); border-radius: 8px;
+  font-size: 14px; font-weight: 600; transition: background 0.15s;
+}
+.lb-table-row:hover { background: rgba(255,255,255,0.07); }
+.lb-table-row.top { border-left-width: 4px; }
+.rank { font-size: 20px; }
+.player-cell { display: flex; align-items: center; gap: 12px; }
+.cell-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+
+@media (max-width: 1024px) {
+  .page { height: auto; min-height: 100vh; overflow: auto; }
+  .lb-body { flex-direction: column; padding: 20px; gap: 24px; overflow: visible; }
+  .podium { justify-content: center; }
+  .lb-table-header, .lb-table-row { grid-template-columns: 36px 1fr 60px 60px 60px; }
+}
+</style>
