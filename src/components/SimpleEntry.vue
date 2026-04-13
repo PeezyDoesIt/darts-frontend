@@ -7,18 +7,20 @@
 
     <div class="score-display">
       <span class="score-entered">{{ entered || '0' }}</span>
-      <button class="btn btn-sm btn-surface" @click="clear" style="margin-left:12px">Clear</button>
+      <button v-ripple class="btn btn-sm btn-surface" @click="clear" style="margin-left:12px;position:relative;overflow:hidden">Clear</button>
     </div>
 
     <div class="numpad">
-      <button v-for="n in [1,2,3,4,5,6,7,8,9]" :key="n" class="key" @click="press(n)">{{ n }}</button>
-      <button class="key" @click="press(0)">0</button>
-      <button class="key double" @click="backspace">⌫</button>
+      <button v-for="n in [1,2,3,4,5,6,7,8,9]" :key="n" v-ripple class="key" @click="press(n)">{{ n }}</button>
+      <button v-ripple class="key" @click="press(0)">0</button>
+      <button v-ripple class="key double" @click="backspace">⌫</button>
     </div>
 
-    <button class="btn btn-gold btn-xl" :disabled="entered === ''" @click="submit">
-      Submit Turn
-    </button>
+    <div class="numpad-footer">
+      <button v-ripple class="btn btn-gold btn-xl submit-btn" :disabled="entered === ''" @click="submit">
+        Submit Turn
+      </button>
+    </div>
   </div>
 </template>
 
@@ -26,22 +28,13 @@
 import { ref, computed } from 'vue'
 import { GAME_TYPE_LABELS, type GameType } from '../types/index'
 
-const props = defineProps<{
-  gameType: GameType
-  round: number
-}>()
-
-const emit = defineEmits<{
-  submit: [score: number]
-}>()
+const props = defineProps<{ gameType: GameType; round: number }>()
+const emit = defineEmits<{ submit: [score: number] }>()
 
 const entered = ref('')
 const gameLabel = computed(() => GAME_TYPE_LABELS[props.gameType])
 
-function press(n: number) {
-  if (entered.value.length >= 4) return
-  entered.value += String(n)
-}
+function press(n: number) { if (entered.value.length >= 4) return; entered.value += String(n) }
 function backspace() { entered.value = entered.value.slice(0, -1) }
 function clear() { entered.value = '' }
 function submit() {
@@ -52,44 +45,32 @@ function submit() {
 </script>
 
 <style scoped>
-.simple-wrap {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 24px;
-  gap: 20px;
-  overflow: hidden;
-}
+.simple-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); gap: 20px; overflow: hidden; justify-content: center; }
 
 .round-info { text-align: center; }
 .round-label { font-size: 20px; font-weight: 800; color: var(--gold); display: block; }
 .round-sub { font-size: 14px; color: var(--text-muted); }
 
 .score-display { display: flex; align-items: center; }
-.score-entered { font-size: 48px; font-weight: 900; min-width: 100px; text-align: center; }
+.score-entered { font-size: 52px; font-weight: 900; min-width: 100px; text-align: center; font-family: var(--font-display); }
 
-.numpad {
-  display: grid;
-  grid-template-columns: repeat(3, 72px);
-  gap: 10px;
-}
+.numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 320px; }
 .key {
-  width: 72px;
-  height: 72px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text);
-  font-size: 26px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.1s, transform 0.1s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 80px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-card);
+  color: var(--text); font-size: 30px; font-weight: 700; cursor: pointer;
+  transition: background 0.1s, transform 0.1s; display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent; position: relative; overflow: hidden;
 }
 .key:hover { background: var(--bg-surface); }
 .key:active { transform: scale(0.93); }
-.key.double { grid-column: span 2; width: 100%; }
+.key.double { grid-column: span 2; }
+
+.numpad-footer { width: 100%; max-width: 320px; }
+.submit-btn { width: 100%; position: relative; overflow: hidden; }
+
+@media (max-width: 768px) {
+  .simple-wrap { padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); gap: 14px; }
+  .key { height: 72px; font-size: 26px; }
+  .score-entered { font-size: 40px; }
+}
 </style>

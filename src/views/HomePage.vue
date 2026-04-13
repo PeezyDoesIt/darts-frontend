@@ -11,20 +11,19 @@
       </div>
 
       <div class="home-actions">
-        <button class="btn btn-spray btn-xl w-full" @click="router.push('/new-game')">
+        <button v-ripple class="btn btn-spray btn-xl w-full" @click="router.push('/new-game')">
           START NEW GAME
         </button>
         <div class="home-secondary">
-          <button class="btn btn-outline btn-lg" @click="router.push('/leaderboard')">
+          <button v-ripple class="btn btn-outline btn-lg" @click="router.push('/leaderboard')">
             Leaderboard
           </button>
-          <button class="btn btn-outline btn-lg" @click="router.push('/player-setup')">
+          <button v-ripple class="btn btn-outline btn-lg" @click="router.push('/player-setup')">
             + Add Player
           </button>
         </div>
       </div>
 
-      <!-- Paint splatter decoration -->
       <div class="splatter" aria-hidden="true">
         <span class="dot" style="--c:var(--pink);   --x:12%; --y:20%; --s:18px" />
         <span class="dot" style="--c:var(--blue);   --x:80%; --y:10%; --s:12px" />
@@ -45,41 +44,32 @@
       <div v-if="topPlayers.length === 0" class="lb-empty">
         <span style="font-size:48px">🎯</span>
         <p>No players yet.</p>
-        <button class="btn btn-outline" @click="router.push('/player-setup')">Add your first player</button>
+        <button v-ripple class="btn btn-outline" @click="router.push('/player-setup')">Add your first player</button>
       </div>
 
-      <div v-else class="lb-list scroll">
-        <div
-          v-for="(p, i) in topPlayers"
-          :key="p.id"
-          class="lb-row"
-        >
-          <!-- Rank -->
-          <div class="lb-rank" :style="{ color: rankColor(i) }">
-            {{ i === 0 ? '👑' : i === 1 ? '②' : i === 2 ? '③' : i + 1 }}
-          </div>
-
-          <!-- Avatar -->
-          <div class="lb-avatar" :style="{ background: p.color, boxShadow: `0 0 12px ${p.color}80` }">
-            <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-            <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
-          </div>
-
-          <!-- Info -->
-          <div class="lb-info">
-            <span class="lb-name">{{ p.name }}</span>
-            <div class="lb-bar-wrap">
-              <div class="lb-bar" :style="{ width: winRate(p) + '%', background: p.color }" />
+      <q-scroll-area v-else class="lb-scroll">
+        <div class="lb-list">
+          <div v-for="(p, i) in topPlayers" :key="p.id" class="lb-row">
+            <div class="lb-rank" :style="{ color: rankColor(i) }">
+              {{ i === 0 ? '👑' : i === 1 ? '②' : i === 2 ? '③' : i + 1 }}
+            </div>
+            <div class="lb-avatar" :style="{ background: p.color, boxShadow: `0 0 12px ${p.color}80` }">
+              <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
+              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+            </div>
+            <div class="lb-info">
+              <span class="lb-name">{{ p.name }}</span>
+              <div class="lb-bar-wrap">
+                <div class="lb-bar" :style="{ width: winRate(p) + '%', background: p.color }" />
+              </div>
+            </div>
+            <div class="lb-stats">
+              <span class="lb-wins" :style="{ color: p.color }">{{ p.wins }}W</span>
+              <span class="lb-games">{{ p.gamesPlayed }}G</span>
             </div>
           </div>
-
-          <!-- Stats -->
-          <div class="lb-stats">
-            <span class="lb-wins" :style="{ color: p.color }">{{ p.wins }}W</span>
-            <span class="lb-games">{{ p.gamesPlayed }}G</span>
-          </div>
         </div>
-      </div>
+      </q-scroll-area>
     </div>
   </div>
 </template>
@@ -100,11 +90,9 @@ const topPlayers = computed(() =>
 function rankColor(i: number) {
   return ['var(--gold)', '#aaa', '#cd7f32'][i] ?? 'var(--text-muted)'
 }
-
 function winRate(p: Player) {
   return p.gamesPlayed > 0 ? Math.round((p.wins / p.gamesPlayed) * 100) : 0
 }
-
 function isPhoto(url: string | null) {
   return url?.startsWith('data:') || url?.startsWith('http')
 }
@@ -114,13 +102,9 @@ function isPhoto(url: string | null) {
 .home {
   display: flex;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   position: relative;
-  flex-direction: column;
-}
-
-.home {
   flex-direction: row;
 }
 
@@ -131,13 +115,14 @@ function isPhoto(url: string | null) {
   align-items: flex-start;
   justify-content: center;
   padding: 64px 56px;
+  padding-top: calc(64px + env(safe-area-inset-top));
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
   border-right: 1px solid var(--border);
   position: relative;
   overflow: hidden;
   gap: 48px;
 }
 
-/* Subtle grunge texture */
 .home-left::before {
   content: '';
   position: absolute;
@@ -150,16 +135,7 @@ function isPhoto(url: string | null) {
 }
 
 .brand { position: relative; z-index: 1; }
-
-.brand-tag {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
+.brand-tag { font-size: 12px; font-weight: 700; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
 .brand-title {
   font-family: var(--font-display);
   font-size: 120px;
@@ -171,154 +147,60 @@ function isPhoto(url: string | null) {
   background-clip: text;
   filter: drop-shadow(0 0 40px rgba(255,45,120,0.3));
 }
+.brand-sub { font-size: 12px; font-weight: 800; letter-spacing: 0.25em; color: var(--text-muted); text-transform: uppercase; margin-top: 16px; }
 
-.brand-sub {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.25em;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  margin-top: 16px;
-}
-
-.home-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  width: 100%;
-  max-width: 380px;
-  position: relative;
-  z-index: 1;
-}
-
-.home-secondary {
-  display: flex;
-  gap: 12px;
-}
-
+.home-actions { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 380px; position: relative; z-index: 1; }
+.home-secondary { display: flex; gap: 12px; }
 .w-full { width: 100%; }
 
-/* Paint splatter dots */
-.splatter {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.dot {
-  position: absolute;
-  left: var(--x);
-  top: var(--y);
-  width: var(--s);
-  height: var(--s);
-  border-radius: 50%;
-  background: var(--c);
-  opacity: 0.5;
-  filter: blur(1px);
-}
+.splatter { position: absolute; inset: 0; pointer-events: none; }
+.dot { position: absolute; left: var(--x); top: var(--y); width: var(--s); height: var(--s); border-radius: 50%; background: var(--c); opacity: 0.5; filter: blur(1px); }
 
-/* Right: Leaderboard */
 .home-right {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 40px 40px;
+  padding: 40px;
+  padding-top: calc(40px + env(safe-area-inset-top));
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
   gap: 24px;
   overflow: hidden;
 }
 
-.lb-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.lb-title {
-  font-size: 32px;
-  color: var(--text-muted);
-  letter-spacing: 0.1em;
-}
+.lb-head { display: flex; align-items: center; justify-content: space-between; }
+.lb-title { font-size: 32px; color: var(--text-muted); letter-spacing: 0.1em; }
 
-.lb-empty {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  color: var(--text-muted);
-  font-size: 15px;
-}
+.lb-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: var(--text-muted); font-size: 15px; }
 
-.lb-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex: 1;
-}
+.lb-scroll { flex: 1; }
+.lb-list { display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
 
 .lb-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
+  display: flex; align-items: center; gap: 16px; padding: 16px;
+  background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
   transition: border-color 0.15s, background 0.15s;
 }
 .lb-row:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); }
 
-.lb-rank {
-  font-size: 22px;
-  font-family: var(--font-display);
-  width: 36px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.lb-avatar {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  flex-shrink: 0;
-  overflow: hidden;
-}
+.lb-rank { font-size: 22px; font-family: var(--font-display); width: 36px; text-align: center; flex-shrink: 0; }
+.lb-avatar { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; overflow: hidden; }
 .lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-.lb-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
+.lb-info { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .lb-name { font-size: 16px; font-weight: 700; }
+.lb-bar-wrap { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.lb-bar { height: 100%; border-radius: 2px; transition: width 0.6s ease; min-width: 4px; }
 
-.lb-bar-wrap {
-  height: 3px;
-  background: var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.lb-bar {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.6s ease;
-  min-width: 4px;
-}
-
-.lb-stats {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  flex-shrink: 0;
-}
+.lb-stats { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
 .lb-wins { font-size: 20px; font-weight: 900; font-family: var(--font-display); }
 .lb-games { font-size: 12px; color: var(--text-muted); }
+
+@media (max-width: 768px) {
+  .home { flex-direction: column; height: auto; min-height: 100dvh; overflow: auto; }
+  .home-left { width: 100%; padding: 40px 24px; padding-top: calc(40px + env(safe-area-inset-top)); gap: 32px; border-right: none; border-bottom: 1px solid var(--border); }
+  .brand-title { font-size: 80px; }
+  .home-right { padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); overflow: visible; }
+  .lb-scroll { flex: none; height: auto; }
+}
 </style>

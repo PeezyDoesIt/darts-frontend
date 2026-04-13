@@ -48,8 +48,12 @@ function loadGame(): ActiveGame | null {
 }
 
 function saveGame(g: ActiveGame | null) {
-  if (g) localStorage.setItem(STORAGE_KEY, JSON.stringify(g))
-  else localStorage.removeItem(STORAGE_KEY)
+  try {
+    if (g) localStorage.setItem(STORAGE_KEY, JSON.stringify(g))
+    else localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // localStorage quota exceeded (e.g. large photo avatars) — game runs in memory only
+  }
 }
 
 export const useGameStore = defineStore('game', () => {

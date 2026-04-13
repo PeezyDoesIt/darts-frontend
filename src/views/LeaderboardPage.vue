@@ -2,7 +2,7 @@
   <div class="page">
     <div class="drip-bar" />
     <div class="page-header">
-      <button class="btn btn-outline btn-sm" @click="router.push('/')">← Back</button>
+      <button v-ripple class="btn btn-outline btn-sm" @click="router.push('/')">← Back</button>
       <h2 class="page-title display">LEADERBOARD</h2>
       <div style="width:80px" />
     </div>
@@ -10,7 +10,6 @@
     <div class="lb-body">
       <div v-if="sorted.length === 0" class="empty">No players yet. Go add some!</div>
 
-      <!-- Podium -->
       <div v-if="sorted.length >= 2" class="podium">
         <div v-if="sorted[1]" class="podium-slot second">
           <div class="pod-avatar" :style="{ background: sorted[1].color, boxShadow: `0 0 20px ${sorted[1].color}80` }">{{ sorted[1].avatarUrl ?? '🎯' }}</div>
@@ -33,13 +32,12 @@
         </div>
       </div>
 
-      <!-- Full table -->
-      <div class="lb-table">
+      <q-scroll-area class="lb-table-scroll">
         <div class="lb-table-header">
           <span>#</span><span>Player</span><span>Games</span><span>Wins</span><span>Win %</span>
         </div>
         <div v-for="(p, i) in sorted" :key="p.id" class="lb-table-row" :class="{ top: i < 3 }"
-          :style="i < 3 ? { borderLeftColor: p.color, boxShadow: `inset 0 0 20px ${p.color}10` } : {}">
+          :style="i < 3 ? { borderLeftColor: p.color } : {}">
           <span class="rank display" :style="i < 3 ? { color: p.color } : {}">{{ i + 1 }}</span>
           <div class="player-cell">
             <div class="cell-avatar" :style="{ background: p.color, boxShadow: `0 0 10px ${p.color}60` }">{{ p.avatarUrl ?? '🎯' }}</div>
@@ -47,11 +45,11 @@
           </div>
           <span>{{ p.gamesPlayed }}</span>
           <span>{{ p.wins }}</span>
-          <span :style="i === 0 ? { color: 'var(--gold)', fontWeight: 800 } : {}">
+          <span :style="i === 0 ? { color: 'var(--gold)', fontWeight: '800' } : {}">
             {{ p.gamesPlayed > 0 ? Math.round((p.wins / p.gamesPlayed) * 100) : 0 }}%
           </span>
         </div>
-      </div>
+      </q-scroll-area>
     </div>
   </div>
 </template>
@@ -67,9 +65,10 @@ const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !=
 </script>
 
 <style scoped>
-.page { display: flex; flex-direction: column; width: 100vw; height: 100vh; overflow: hidden; }
+.page { display: flex; flex-direction: column; width: 100vw; height: 100dvh; overflow: hidden; }
 .page-header {
   display: flex; align-items: center; justify-content: space-between; padding: 18px 40px;
+  padding-top: calc(18px + env(safe-area-inset-top));
   border-bottom: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0;
 }
@@ -90,13 +89,12 @@ const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !=
 .second-base { background: rgba(170,170,170,0.3); color: #aaa; border: 1px solid #aaa; }
 .third-base  { background: rgba(205,127,50,0.3); color: #cd7f32; border: 1px solid #cd7f32; }
 
-.lb-table { flex: 1; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
+.lb-table-scroll { flex: 1; }
 .lb-table-header { display: grid; grid-template-columns: 44px 1fr 80px 80px 80px; padding: 8px 16px; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
 .lb-table-row {
   display: grid; grid-template-columns: 44px 1fr 80px 80px 80px; align-items: center; padding: 14px 16px;
-  background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid rgba(255,255,255,0.08); border-radius: 8px;
-  font-size: 14px; font-weight: 600; transition: background 0.15s;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid rgba(255,255,255,0.08); border-radius: 8px;
+  font-size: 14px; font-weight: 600; transition: background 0.15s; margin-bottom: 6px;
 }
 .lb-table-row:hover { background: rgba(255,255,255,0.07); }
 .lb-table-row.top { border-left-width: 4px; }
@@ -104,10 +102,13 @@ const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !=
 .player-cell { display: flex; align-items: center; gap: 12px; }
 .cell-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; }
 
-@media (max-width: 1024px) {
-  .page { height: auto; min-height: 100vh; overflow: auto; }
-  .lb-body { flex-direction: column; padding: 20px; gap: 24px; overflow: visible; }
+@media (max-width: 768px) {
+  .lb-body { flex-direction: column; padding: 20px; gap: 24px; overflow: auto; }
+  .lb-body { height: auto; flex: none; }
+  .page { height: auto; min-height: 100dvh; overflow: auto; }
+  .lb-table-scroll { flex: none; height: auto; }
   .podium { justify-content: center; }
   .lb-table-header, .lb-table-row { grid-template-columns: 36px 1fr 60px 60px 60px; }
+  .page-header { padding: 14px 20px; padding-top: calc(14px + env(safe-area-inset-top)); }
 }
 </style>
