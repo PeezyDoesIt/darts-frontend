@@ -56,6 +56,7 @@
 import { ref, computed, onMounted, onUnmounted, type CSSProperties } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
+import { speak } from '../composables/useSpeech'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -86,24 +87,55 @@ const progress = computed(() => timeLeft.value / total.value)
 let interval: ReturnType<typeof setInterval> | null = null
 
 function togglePause() { paused.value = !paused.value }
-function speak(text: string) {
-  window.speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(text)
-  u.rate = 1.05
-  window.speechSynthesis.speak(u)
+
+function playWhistle(): Promise<void> {
+  return new Promise(resolve => {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioCtx) { resolve(); return }
+    const ctx = new AudioCtx()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(2800, ctx.currentTime)
+    osc.frequency.linearRampToValueAtTime(3200, ctx.currentTime + 0.08)
+    osc.frequency.linearRampToValueAtTime(2900, ctx.currentTime + 0.35)
+    gain.gain.setValueAtTime(0, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + 0.04)
+    gain.gain.setValueAtTime(0.35, ctx.currentTime + 0.3)
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.45)
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 0.45)
+    osc.onended = () => { ctx.close(); resolve() }
+  })
 }
 
-onMounted(() => {
+async function handleTurnAnnouncement() {
   const nextLine = `${nextPlayer.value.name} — it's your turn.`
-  if (gameStore.lastTurnWasZero) {
-    const u1 = new SpeechSynthesisUtterance(`Sucks to suck, ${prevPlayer.value.name}.`)
-    u1.rate = 1.05
-    u1.onend = () => speak(nextLine)
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(u1)
+  if (gameStore.lastTurnWasTimeout) {
+    const count = gameStore.playerTimeoutCounts[prevPlayer.value.id] ?? 0
+    await speak(`${prevPlayer.value.name} missed their turn.`)
+    if (count >= 3) {
+      await speak(`This is why nobody wants to play darts with you, ${prevPlayer.value.name}.`)
+    } else {
+      await new Promise(r => setTimeout(r, 150))
+      await playWhistle()
+      await new Promise(r => setTimeout(r, 150))
+      await playWhistle()
+    }
+    await new Promise(r => setTimeout(r, 300))
+    speak(nextLine)
+  } else if (gameStore.lastTurnWasZero) {
+    await speak(`Be better, ${prevPlayer.value.name}.`)
+    speak(nextLine)
   } else {
     speak(nextLine)
   }
+}
+
+onMounted(() => {
+  handleTurnAnnouncement()
 
   interval = setInterval(() => {
     if (paused.value) return

@@ -45,6 +45,7 @@ import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
+import { speak } from '../composables/useSpeech'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -59,10 +60,7 @@ onMounted(() => {
     else playersStore.recordGame(p.id)
   }
   if (winner.value) {
-    const u = new SpeechSynthesisUtterance(`${winner.value.name} wins! Well played.`)
-    u.rate = 0.95; u.pitch = 1.1
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(u)
+    speak(`${winner.value.name} wins! Well played.`)
   }
 })
 

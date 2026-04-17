@@ -4,7 +4,7 @@
     <div class="ng-header">
       <button v-ripple class="btn btn-outline btn-sm" @click="router.push('/')">← Back</button>
       <h2 class="ng-title display">NEW GAME</h2>
-      <button v-ripple class="btn btn-spray btn-lg" :disabled="selectedPlayers.length < 2" @click="startGame">
+      <button v-ripple class="btn btn-spray btn-lg" :disabled="selectedPlayers.length < 2 || !selectedGameType" @click="startGame">
         START GAME →
       </button>
     </div>
@@ -21,7 +21,7 @@
                 v-ripple
                 class="game-type-btn"
                 :class="{ active: selectedGameType === type }"
-                @click="selectedGameType = type as GameType"
+                @click="selectedGameType = (type as GameType)"
               >{{ label }}</button>
             </div>
           </section>
@@ -138,7 +138,7 @@ const router = useRouter()
 const playersStore = usePlayersStore()
 const gameStore = useGameStore()
 
-const selectedGameType = ref<GameType>('cricket')
+const selectedGameType = ref<GameType | null>(null)
 const timerDuration = ref(30)
 const timerOptions = [15, 20, 30, 45, 60]
 const throwTimerDuration = ref(0)
@@ -162,7 +162,7 @@ function moveDown(i: number) {
   selectedPlayers.value = arr
 }
 function startGame() {
-  if (selectedPlayers.value.length < 2) return
+  if (selectedPlayers.value.length < 2 || !selectedGameType.value) return
   gameStore.startGame(selectedGameType.value, timerDuration.value, throwTimerDuration.value, selectedPlayers.value)
   router.push('/game')
 }

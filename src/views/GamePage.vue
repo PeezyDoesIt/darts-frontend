@@ -3,7 +3,7 @@
     <div class="game-body">
 
       <!-- LEFT: Leaderboard -->
-      <div class="leaderboard-panel" v-show="showAllScores">
+      <div class="leaderboard-panel" :class="{ fullscreen: showAllScores }" v-show="showAllScores">
         <div class="lb-header">
           <div>
             <div class="game-type-badge">{{ GAME_TYPE_LABELS[game.gameType] }}</div>
@@ -63,7 +63,7 @@
       </div>
 
       <!-- RIGHT: Entry panel -->
-      <div class="entry-panel" :style="entryPanelStyle">
+      <div class="entry-panel" v-show="!showAllScores" :style="entryPanelStyle">
         <div class="turn-header" :style="{ '--player-color': currentPlayer.color }">
           <div class="turn-avatar" :style="{ background: currentPlayer.color, boxShadow: `0 0 20px ${currentPlayer.color}99` }">
             <img v-if="isPhoto(currentPlayer.avatarUrl)" :src="currentPlayer.avatarUrl!" alt="" />
@@ -91,6 +91,12 @@
           <span class="throw-timer-text" :class="{ urgent: throwTimeLeft <= 10 }">
             {{ throwPaused ? '⏸ PAUSED' : throwTimeLeft + 's' }}
           </span>
+        </div>
+
+        <!-- Portrait: big score display between header and entry controls -->
+        <div class="portrait-score">
+          <span class="portrait-score-val" :style="{ color: currentPlayer.color, filter: `drop-shadow(0 0 24px ${currentPlayer.color}60)` }">{{ displayScore(currentPlayer.id) }}</span>
+          <span class="portrait-score-label">{{ scoreLabel }}</span>
         </div>
 
         <div class="entry-body">
@@ -213,6 +219,7 @@ function startThrowTimer() {
     throwTimeLeft.value--
     if (throwTimeLeft.value <= 0) {
       clearThrowTimer()
+      gameStore.recordTimeout(currentPlayer.value.id)
       const gt = game.value?.gameType
       if (gt === 'cricket' || gt === 'cutThroat') handleCricketSubmit({} as Record<CricketTarget, number>)
       else handleNumpadSubmit(0)
@@ -261,6 +268,15 @@ watch(() => game.value?.currentPlayerIndex, () => {
   border-right: 1px solid rgba(255,255,255,0.06);
   overflow: hidden; background: rgba(255,255,255,0.02);
 }
+.leaderboard-panel.fullscreen {
+  width: 100%; flex: 1; max-height: none; border-right: none;
+}
+.leaderboard-panel.fullscreen .lb-players { gap: 0; padding: 0; }
+.leaderboard-panel.fullscreen .lb-player-row { padding: 20px 28px; border-radius: 0; border-left-width: 6px; border-top: none; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.leaderboard-panel.fullscreen .lb-avatar { width: 64px; height: 64px; font-size: 34px; }
+.leaderboard-panel.fullscreen .lb-player-name { font-size: 32px; }
+.leaderboard-panel.fullscreen .lb-score-val { font-size: 28vw; }
+.leaderboard-panel.fullscreen .lb-score-label { font-size: 13px; }
 .lb-header {
   display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;
   padding-top: calc(16px + env(safe-area-inset-top));
@@ -318,9 +334,10 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .turn-label { font-size: 9px; font-weight: 800; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; }
 .turn-name { font-size: 36px; line-height: 1; letter-spacing: 0.05em; }
 .turn-score-area { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
-.turn-score-val { font-size: 80px; font-weight: 900; font-family: var(--font-display); line-height: 1; transition: color 0.2s; }
+.turn-score-val { font-size: 120px; font-weight: 900; font-family: var(--font-display); line-height: 1; transition: color 0.2s; }
 .turn-score-label { font-size: 11px; color: rgba(255,255,255,0.45); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .scores-btn { flex-shrink: 0; margin-left: 12px; font-size: 11px; letter-spacing: 0.1em; }
+.portrait-score { display: none; }
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
 /* Throw timer */
@@ -341,6 +358,11 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .game-body { flex-direction: column; }
   .entry-panel { flex: 1; width: 100%; min-height: 0; order: 0; }
   .leaderboard-panel { width: 100%; flex-shrink: 0; order: 1; border-right: none; border-top: 1px solid rgba(255,255,255,0.06); max-height: 38vh; }
+  .leaderboard-panel.fullscreen { max-height: none; width: 100%; order: 0; border-top: none; }
+  .leaderboard-panel.fullscreen .lb-score-val { font-size: 32vw; }
+  .leaderboard-panel.fullscreen .lb-player-name { font-size: 24px; }
+  .leaderboard-panel.fullscreen .lb-avatar { width: 48px; height: 48px; font-size: 24px; }
+  .leaderboard-panel.fullscreen .lb-player-row { padding: 16px 20px; }
   .lb-players-scroll { flex: 1; }
   .lb-header { padding: 10px 14px; padding-top: 10px; }
   .lb-player-row { padding: 8px 10px; }
@@ -357,7 +379,22 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-header { padding: 10px 14px; padding-top: 10px; gap: 10px; }
   .turn-avatar { width: 40px; height: 40px; font-size: 20px; }
   .turn-name { font-size: 22px; }
-  .turn-score-val { font-size: 52px; }
+  .turn-score-val { font-size: 80px; }
   .scores-btn { margin-left: 6px; }
+}
+
+@media (orientation: portrait) {
+  .turn-score-area { display: none; }
+  .portrait-score {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    flex: 1; min-height: 0;
+  }
+  .portrait-score-val {
+    font-size: 40vw; font-weight: 900; font-family: var(--font-display); line-height: 1; transition: color 0.2s;
+  }
+  .portrait-score-label {
+    font-size: 13px; color: rgba(255,255,255,0.45); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 6px;
+  }
+  .entry-body { flex: 0 0 auto; }
 }
 </style>
