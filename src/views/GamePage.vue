@@ -3,13 +3,16 @@
     <div class="game-body">
 
       <!-- LEFT: Leaderboard -->
-      <div class="leaderboard-panel">
+      <div class="leaderboard-panel" v-show="showAllScores">
         <div class="lb-header">
           <div>
             <div class="game-type-badge">{{ GAME_TYPE_LABELS[game.gameType] }}</div>
             <div class="round-label">Round {{ game.round }}</div>
           </div>
-          <button v-ripple class="btn btn-sm btn-danger" @click="confirmQuit = true">Quit</button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button v-ripple class="btn btn-sm btn-surface" @click="showAllScores = false">✕</button>
+            <button v-ripple class="btn btn-sm btn-danger" @click="confirmQuit = true">Quit</button>
+          </div>
         </div>
 
         <q-scroll-area class="lb-players-scroll" ref="lbScrollRef">
@@ -70,6 +73,13 @@
             <span class="turn-label">THROWING NOW</span>
             <span class="turn-name display" :style="{ color: currentPlayer.color, filter: `drop-shadow(0 0 12px ${currentPlayer.color}80)` }">{{ currentPlayer.name }}</span>
           </div>
+          <div class="turn-score-area">
+            <span class="turn-score-val" :style="{ color: currentPlayer.color }">{{ displayScore(currentPlayer.id) }}</span>
+            <span class="turn-score-label">{{ scoreLabel }}</span>
+          </div>
+          <button v-ripple class="btn btn-sm btn-surface scores-btn" @click="showAllScores = !showAllScores">
+            {{ showAllScores ? 'HIDE' : 'SCORES' }}
+          </button>
         </div>
 
         <div v-if="throwTimerDuration > 0" class="throw-timer-bar" @click="toggleThrowPause">
@@ -147,6 +157,7 @@ const router = useRouter()
 const gameStore = useGameStore()
 const game = computed(() => gameStore.game)
 const confirmQuit = ref(false)
+const showAllScores = ref(false)
 const lbScrollRef = ref<InstanceType<typeof QScrollArea> | null>(null)
 
 const currentPlayer = computed(() => game.value!.players[game.value!.currentPlayerIndex]!)
@@ -281,7 +292,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .mini-pip { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); transition: background 0.1s; flex-shrink: 0; }
 .mini-pip.filled { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 6px rgba(255,45,120,0.8); }
 .lb-score { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
-.lb-score-val { font-size: 52px; font-weight: 900; font-family: var(--font-display); line-height: 1; color: #fff; transition: color 0.2s; }
+.lb-score-val { font-size: 64px; font-weight: 900; font-family: var(--font-display); line-height: 1; color: #fff; transition: color 0.2s; }
 .lb-score-label { font-size: 11px; color: rgba(255,255,255,0.45); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-align: right; }
 .remove-player-btn { background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: rgba(255,255,255,0.3); cursor: pointer; font-size: 12px; padding: 4px 7px; flex-shrink: 0; transition: all 0.15s; align-self: flex-start; margin-top: 2px; position: relative; overflow: hidden; }
 .remove-player-btn:hover { border-color: #ef4444; color: #ef4444; }
@@ -306,6 +317,10 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .turn-player-info { display: flex; flex-direction: column; gap: 2px; }
 .turn-label { font-size: 9px; font-weight: 800; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; }
 .turn-name { font-size: 36px; line-height: 1; letter-spacing: 0.05em; }
+.turn-score-area { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+.turn-score-val { font-size: 80px; font-weight: 900; font-family: var(--font-display); line-height: 1; transition: color 0.2s; }
+.turn-score-label { font-size: 11px; color: rgba(255,255,255,0.45); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.scores-btn { flex-shrink: 0; margin-left: 12px; font-size: 11px; letter-spacing: 0.1em; }
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
 /* Throw timer */
@@ -337,10 +352,12 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .mini-label { font-size: 9px; }
   .mini-pip { width: 8px; height: 8px; }
   .mini-marks { gap: 2px; }
-  .lb-score-val { font-size: 28px; }
+  .lb-score-val { font-size: 36px; }
   .up-next-strip { display: none; }
   .turn-header { padding: 10px 14px; padding-top: 10px; gap: 10px; }
   .turn-avatar { width: 40px; height: 40px; font-size: 20px; }
   .turn-name { font-size: 22px; }
+  .turn-score-val { font-size: 52px; }
+  .scores-btn { margin-left: 6px; }
 }
 </style>

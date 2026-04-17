@@ -22,17 +22,6 @@
           </div>
 
           <div class="field">
-            <label class="label">Color</label>
-            <div class="color-grid">
-              <button v-for="c in PLAYER_COLORS" :key="c.value" v-ripple class="color-swatch"
-                :style="{ background: c.value, boxShadow: color === c.value ? `0 0 16px ${c.value}` : 'none' }"
-                :class="{ active: color === c.value }" @click="color = c.value">
-                <span v-if="color === c.value">✓</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="field">
             <label class="label">Background</label>
             <div class="bg-tabs">
               <button v-ripple class="tab" :class="{ active: bgMode === 'theme' }" @click="bgMode = 'theme'">Themes</button>
@@ -134,14 +123,14 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
-import { PLAYER_COLORS, PRESET_AVATARS, PLAYER_THEMES, type Player } from '../types/index'
+import { PRESET_AVATARS, PLAYER_THEMES, type Player } from '../types/index'
 
 const router = useRouter()
 const playersStore = usePlayersStore()
 
 const editingId = ref<string | null>(null)
 const name = ref('')
-const color = ref<string>(PLAYER_COLORS[0]!.value)
+const color = ref<string>('#ff2d78')
 const avatarUrl = ref<string | null>(PRESET_AVATARS[0]!)
 const avatarMode = ref<'emoji' | 'photo'>('emoji')
 const photoPreview = ref<string | null>(null)
@@ -216,7 +205,7 @@ function save() {
   } else {
     playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg })
   }
-  name.value = ''; color.value = PLAYER_COLORS[0]!.value; avatarUrl.value = PRESET_AVATARS[0]!
+  name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
   photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null
 }
 </script>
@@ -236,10 +225,6 @@ function save() {
 .setup-form { padding: 28px; display: flex; flex-direction: column; gap: 24px; }
 
 .field { display: flex; flex-direction: column; gap: 10px; }
-.color-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-.color-swatch { width: 44px; height: 44px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: #fff; transition: transform 0.15s; position: relative; overflow: hidden; }
-.color-swatch:hover { transform: scale(1.1); }
-.color-swatch.active { border-color: #fff; transform: scale(1.2); }
 
 .bg-tabs, .avatar-tabs { display: flex; gap: 8px; }
 .tab { padding: 8px 20px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: var(--text-muted); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
