@@ -387,14 +387,19 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-score-area { display: none; }
   .portrait-score {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    flex: 1; min-height: 0;
+    flex-shrink: 0; padding: 8px 0;
   }
   .portrait-score-val {
-    font-size: 40vw; font-weight: 900; font-family: var(--font-display); line-height: 1; transition: color 0.2s;
+    font-size: 20vw; font-weight: 900; font-family: var(--font-display); line-height: 1; transition: color 0.2s;
   }
   .portrait-score-label {
     font-size: 13px; color: rgba(255,255,255,0.45); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 6px;
   }
-  .entry-body { flex: 0 0 auto; }
+  .entry-body { flex: 1; min-height: 0; }
+}
+
+/* iPad landscape — shrink score so cricket board fits without scrolling */
+@media (min-width: 769px) and (max-width: 1366px) and (orientation: landscape) {
+  .turn-score-val { font-size: 56px; }
 }
 </style>

@@ -144,6 +144,11 @@ function submit() {
 }
 .submit-btn:active { transform: scale(0.97); opacity: 0.9; }
 
+@media (orientation: landscape) and (max-height: 900px) {
+  .cricket-board { padding: 6px 12px; gap: 5px; }
+  .board-tile { min-height: 60px; }
+}
+
 @media (max-width: 768px) {
   .cricket-board { padding: 5px 8px; gap: 5px; }
   .board-tile { padding: 0 12px; min-height: 56px; }
