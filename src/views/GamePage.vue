@@ -15,7 +15,7 @@
           </div>
         </div>
 
-        <q-scroll-area class="lb-players-scroll" ref="lbScrollRef">
+        <div class="lb-players-scroll" ref="lbScrollRef">
           <div class="lb-players">
             <div
               v-for="p in game.players" :key="p.id"
@@ -49,7 +49,7 @@
               <button v-if="game.players.length > 2" v-ripple class="remove-player-btn" @click.stop="gameStore.removePlayerFromGame(p.id)" title="Remove from game">✕</button>
             </div>
           </div>
-        </q-scroll-area>
+        </div>
 
         <div class="up-next-strip" v-if="upNext.length > 0">
           <span class="up-next-title">UP NEXT</span>
@@ -286,7 +286,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .game-type-badge { font-size: 15px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); font-family: var(--font-display); }
 .round-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
 
-.lb-players-scroll { flex: 1; }
+.lb-players-scroll { flex: 1; min-height: 0; overflow-y: auto; }
 .lb-players { display: flex; flex-direction: column; gap: 8px; padding: 14px; }
 .lb-player-row {
   display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 6px;
@@ -363,7 +363,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .leaderboard-panel.fullscreen .lb-player-name { font-size: 24px; }
   .leaderboard-panel.fullscreen .lb-avatar { width: 48px; height: 48px; font-size: 24px; }
   .leaderboard-panel.fullscreen .lb-player-row { padding: 16px 20px; }
-  .lb-players-scroll { flex: 1; }
+  .lb-players-scroll { flex: 1; min-height: 0; overflow-y: auto; }
   .lb-header { padding: 10px 14px; padding-top: 10px; }
   .lb-player-row { padding: 8px 10px; }
   .lb-player-info { gap: 5px; }

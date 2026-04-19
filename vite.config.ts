@@ -4,6 +4,7 @@ import path from 'path'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  server: { host: true },
   plugins: [
     vue({ template: { transformAssetUrls } }),
     quasar({ sassVariables: false }),

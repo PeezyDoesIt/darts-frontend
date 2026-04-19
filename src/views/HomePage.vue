@@ -47,7 +47,7 @@
         <button v-ripple class="btn btn-outline" @click="router.push('/player-setup')">Add your first player</button>
       </div>
 
-      <q-scroll-area v-else class="lb-scroll">
+      <div v-else class="lb-scroll">
         <div class="lb-list">
           <div v-for="(p, i) in topPlayers" :key="p.id" class="lb-row">
             <div class="lb-rank" :style="{ color: rankColor(i) }">
@@ -69,7 +69,7 @@
             </div>
           </div>
         </div>
-      </q-scroll-area>
+      </div>
     </div>
   </div>
 </template>
@@ -172,7 +172,7 @@ function isPhoto(url: string | null) {
 
 .lb-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: var(--text-muted); font-size: 15px; }
 
-.lb-scroll { flex: 1; }
+.lb-scroll { flex: 1; min-height: 0; overflow-y: auto; }
 .lb-list { display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
 
 .lb-row {

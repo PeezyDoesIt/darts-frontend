@@ -4,14 +4,14 @@
     <div class="ng-header">
       <button v-ripple class="btn btn-outline btn-sm" @click="router.push('/')">← Back</button>
       <h2 class="ng-title display">NEW GAME</h2>
-      <button v-ripple class="btn btn-spray btn-lg" :disabled="selectedPlayers.length < 2 || !selectedGameType" @click="startGame">
-        START GAME →
+      <button v-ripple class="btn btn-spray btn-lg" :class="{ 'btn-blocked': selectedPlayers.length < 2 || !selectedGameType }" @click="startGame">
+        {{ !selectedGameType ? 'Pick a Game Type' : selectedPlayers.length < 2 ? 'Need 2+ Players' : 'START GAME →' }}
       </button>
     </div>
 
     <div class="ng-body">
       <!-- LEFT: Game type + Timers -->
-      <q-scroll-area class="ng-left">
+      <div class="ng-left">
         <div class="ng-left-inner">
           <section class="ng-section">
             <span class="label">Game Type</span>
@@ -64,7 +64,7 @@
             </div>
           </section>
         </div>
-      </q-scroll-area>
+      </div>
 
       <!-- RIGHT: Players -->
       <div class="ng-right">
@@ -82,7 +82,7 @@
             <button v-ripple class="link-btn" @click="router.push('/player-setup')">Add one →</button>
           </div>
 
-          <q-scroll-area v-else class="player-scroll">
+          <div v-else class="player-scroll">
             <div class="player-grid">
               <div
                 v-for="p in playersStore.players" :key="p.id"
@@ -105,7 +105,7 @@
                 </div>
               </div>
             </div>
-          </q-scroll-area>
+          </div>
         </section>
 
         <section v-if="selectedPlayers.length > 1" class="ng-section order-section">
@@ -180,10 +180,11 @@ function startGame() {
   flex-shrink: 0;
 }
 .ng-title { font-size: 28px; letter-spacing: 0.1em; background: linear-gradient(135deg, var(--pink), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.btn-blocked { opacity: 0.5; }
 
 .ng-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
 
-.ng-left { width: 360px; flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+.ng-left { width: 360px; flex-shrink: 0; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
 .ng-left-inner { padding: 28px; display: flex; flex-direction: column; gap: 28px; }
 
 .ng-right { flex: 1; padding: 28px; display: flex; flex-direction: column; gap: 20px; overflow: hidden; }
@@ -215,7 +216,7 @@ function startGame() {
 .empty-players { color: var(--text-muted); font-size: 14px; display: flex; gap: 8px; align-items: center; }
 .link-btn { background: none; border: none; color: var(--pink); cursor: pointer; font-size: 14px; font-weight: 700; }
 
-.player-scroll { flex: 1; }
+.player-scroll { flex: 1; min-height: 0; overflow-y: auto; }
 .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
 
 .player-tile {

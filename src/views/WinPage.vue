@@ -2,7 +2,7 @@
   <div class="win-page" :style="{ background: `radial-gradient(ellipse at center, ${winner?.color}40 0%, #0a0a0a 70%)` }">
     <div class="drip-bar" style="position:absolute;top:0;left:0;right:0" />
 
-    <q-scroll-area class="win-scroll">
+    <div class="win-scroll">
       <div class="win-inner">
         <div class="trophy-wrap">
           <span class="trophy">🏆</span>
@@ -36,7 +36,7 @@
           <button v-ripple class="btn btn-outline btn-lg" @click="goHome">Home</button>
         </div>
       </div>
-    </q-scroll-area>
+    </div>
   </div>
 </template>
 
@@ -83,7 +83,7 @@ function goHome() { gameStore.endGame(); router.push('/') }
   position: relative; overflow: hidden;
 }
 .win-scroll {
-  width: 100%; height: 100dvh;
+  width: 100%; height: 100vh; height: 100dvh; overflow-y: auto;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }

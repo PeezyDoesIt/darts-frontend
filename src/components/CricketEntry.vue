@@ -1,6 +1,6 @@
 <template>
   <div class="cricket">
-    <q-scroll-area class="cricket-board-scroll">
+    <div class="cricket-board-scroll">
       <div class="cricket-board">
         <button
           v-for="target in CRICKET_TARGETS"
@@ -26,7 +26,7 @@
           <span v-else class="hit-badge invisible">+0</span>
         </button>
       </div>
-    </q-scroll-area>
+    </div>
 
     <div class="submit-row">
       <div class="round-summary">
@@ -94,7 +94,7 @@ function submit() {
 <style scoped>
 .cricket { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
-.cricket-board-scroll { flex: 1; }
+.cricket-board-scroll { flex: 1; min-height: 0; overflow-y: auto; }
 
 .cricket-board {
   display: flex;

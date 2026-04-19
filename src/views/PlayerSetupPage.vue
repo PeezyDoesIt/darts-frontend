@@ -4,20 +4,23 @@
     <div class="page-header">
       <button v-ripple class="btn btn-outline btn-sm" @click="router.back()">← Back</button>
       <h2 class="page-title display">{{ editingId ? 'EDIT PLAYER' : 'NEW PLAYER' }}</h2>
-      <button v-ripple class="btn btn-spray btn-lg" :disabled="!name.trim()" @click="save">Save Player</button>
+      <button v-if="editingId" v-ripple class="btn btn-outline btn-sm" @click="resetForm">+ New Player</button>
+      <button v-ripple class="btn btn-spray btn-lg" :disabled="!name.trim()" @click="save">{{ editingId ? 'Save Changes' : 'Save Player' }}</button>
     </div>
 
     <div class="setup-body">
-      <q-scroll-area class="setup-form-scroll">
+      <div class="setup-form-scroll">
         <div class="setup-form">
           <div class="field">
             <label class="label">Name</label>
-            <q-input
+            <input
               v-model="name"
-              dark outlined
+              class="name-input"
               placeholder="Enter name..."
               maxlength="20"
-              :input-style="{ fontSize: '20px' }"
+              autocomplete="off"
+              autocorrect="off"
+              spellcheck="false"
             />
           </div>
 
@@ -73,7 +76,7 @@
             </div>
           </div>
         </div>
-      </q-scroll-area>
+      </div>
 
       <div class="setup-right">
         <div class="preview-card" :style="previewCardStyle">
@@ -86,7 +89,7 @@
 
         <div class="existing-section">
           <span class="label">Existing Players</span>
-          <q-scroll-area class="existing-scroll">
+          <div class="existing-scroll">
             <div class="existing-list">
               <div v-for="p in playersStore.players" :key="p.id" v-ripple class="existing-row" @click="loadPlayer(p)">
                 <div class="roster-avatar" :style="{ background: p.color, boxShadow: `0 0 8px ${p.color}60` }">{{ p.avatarUrl ?? '🎯' }}</div>
@@ -97,7 +100,7 @@
                 <button v-ripple class="btn btn-sm btn-danger" @click.stop="playersStore.deletePlayer(p.id)">✕</button>
               </div>
             </div>
-          </q-scroll-area>
+          </div>
         </div>
       </div>
     </div>
@@ -187,6 +190,10 @@ function closeCamera() {
   stream?.getTracks().forEach(t => t.stop())
   stream = null
 }
+function resetForm() {
+  editingId.value = null; name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
+  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'
+}
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
   if (p.avatarUrl?.startsWith('data:')) { avatarMode.value = 'photo'; photoPreview.value = p.avatarUrl }
@@ -207,11 +214,15 @@ function save() {
   }
   name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
   photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null
+  router.back()
 }
 </script>
 
 <style scoped>
-.page { display: flex; flex-direction: column; width: 100vw; height: 100dvh; overflow: hidden; }
+.page { display: flex; flex-direction: column; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; }
+.name-input { width: 100%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 12px 16px; color: #fff; font-size: 20px; font-family: inherit; outline: none; box-sizing: border-box; -webkit-appearance: none; }
+.name-input:focus { border-color: var(--pink); }
+.name-input::placeholder { color: rgba(255,255,255,0.35); }
 .page-header {
   display: flex; align-items: center; justify-content: space-between; padding: 18px 32px;
   padding-top: calc(18px + env(safe-area-inset-top));
@@ -221,7 +232,7 @@ function save() {
 .page-title { font-size: 26px; letter-spacing: 0.1em; background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 
 .setup-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
-.setup-form-scroll { flex: 1; border-right: 1px solid rgba(255,255,255,0.06); }
+.setup-form-scroll { flex: 1; min-height: 0; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.06); }
 .setup-form { padding: 28px; display: flex; flex-direction: column; gap: 24px; }
 
 .field { display: flex; flex-direction: column; gap: 10px; }
@@ -256,7 +267,7 @@ function save() {
 .preview-name { font-size: 22px; font-weight: 900; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.4); font-family: var(--font-display); letter-spacing: 0.05em; }
 
 .existing-section { display: flex; flex-direction: column; gap: 10px; flex: 1; overflow: hidden; }
-.existing-scroll { flex: 1; }
+.existing-scroll { flex: 1; min-height: 0; overflow-y: auto; }
 .existing-list { display: flex; flex-direction: column; gap: 6px; }
 .existing-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
 .existing-row:hover { background: rgba(255,255,255,0.07); }
@@ -270,9 +281,9 @@ function save() {
 .camera-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.08); }
 
 @media (max-width: 768px) {
-  .page { height: auto; min-height: 100dvh; overflow: auto; }
+  .page { height: auto; min-height: 100vh; min-height: 100dvh; overflow: auto; }
   .setup-body { flex-direction: column; overflow: visible; height: auto; }
-  .setup-form-scroll { flex: none; height: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .setup-form-scroll { flex: none; overflow-y: visible; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
   .setup-right { width: 100%; padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
   .page-header { padding: 14px 20px; padding-top: calc(14px + env(safe-area-inset-top)); }
   .existing-scroll { flex: none; height: auto; }
