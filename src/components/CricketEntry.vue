@@ -116,7 +116,7 @@ function submit() {
 .board-tile.active { border-color: var(--pink); background: rgba(255,45,120,0.18); box-shadow: 0 0 32px rgba(255,45,120,0.35), inset 0 0 40px rgba(255,45,120,0.08); }
 .board-tile.closed { opacity: 0.3; cursor: default; }
 
-.target-label { font-size: 38px; font-family: var(--font-display); color: var(--pink); letter-spacing: 0.05em; width: 90px; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(255,45,120,0.5)); }
+.target-label { font-size: 52px; font-family: var(--font-display); color: var(--pink); letter-spacing: 0.05em; width: 110px; flex-shrink: 0; filter: drop-shadow(0 0 12px rgba(255,45,120,0.7)); }
 .pips-wrap { display: flex; align-items: center; gap: 24px; flex: 1; justify-content: center; }
 .pip { width: 54px; height: 54px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); display: block; transition: all 0.2s; flex-shrink: 0; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
@@ -152,7 +152,7 @@ function submit() {
 @media (max-width: 768px) {
   .cricket-board { padding: 5px 8px; gap: 5px; }
   .board-tile { padding: 0 12px; min-height: 56px; }
-  .target-label { font-size: 28px; width: 64px; }
+  .target-label { font-size: 40px; width: 80px; }
   .pips-wrap { gap: 12px; }
   .pip { width: 44px; height: 44px; border-width: 2px; }
   .hit-badge { font-size: 16px; width: 52px; }

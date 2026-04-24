@@ -177,10 +177,10 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .alert-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .alert-name { font-size: 64px; letter-spacing: 0.04em; line-height: 1; }
 
-.timer-wrap { position: relative; width: 120px; height: 120px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+.timer-wrap { position: relative; width: 200px; height: 200px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
 .timer-wrap:active { transform: scale(0.95); }
-.timer-ring { width: 120px; height: 120px; }
-.timer-count { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #fff; transition: color 0.3s; }
+.timer-ring { width: 200px; height: 200px; }
+.timer-count { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 72px; color: #fff; transition: color 0.3s; }
 
 .btn-ready {
   padding: 18px 52px; font-size: 18px; font-weight: 900; border-radius: 6px;
