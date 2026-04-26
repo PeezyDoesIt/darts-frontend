@@ -91,10 +91,30 @@
           <div class="round-label">Round {{ game.round }}</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
+          <button v-ripple class="btn btn-sm btn-surface" @click="showAddPlayer = !showAddPlayer">+ Add</button>
           <button v-ripple class="btn btn-sm btn-surface" @click="showAllScores = false">✕</button>
           <button v-ripple class="btn btn-sm btn-danger" @click="confirmQuit = true">Quit</button>
         </div>
       </div>
+
+      <!-- Add player picker -->
+      <div v-if="showAddPlayer" class="add-player-panel">
+        <div v-if="availablePlayers.length === 0" class="add-player-empty">All saved players are already in this game.</div>
+        <button
+          v-for="p in availablePlayers" :key="p.id"
+          v-ripple
+          class="add-player-row"
+          @click="gameStore.addPlayerToGame(p); showAddPlayer = false"
+        >
+          <div class="add-player-avatar" :style="{ background: p.color }">
+            <img v-if="p.avatarUrl?.startsWith('data:') || p.avatarUrl?.startsWith('http')" :src="p.avatarUrl" alt="" />
+            <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+          </div>
+          <span class="add-player-name">{{ p.name }}</span>
+          <span class="add-player-cta">Add →</span>
+        </button>
+      </div>
+
       <div class="lb-players-scroll" ref="lbScrollRef">
         <div class="lb-players">
           <div
@@ -157,6 +177,7 @@
 import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
+import { usePlayersStore } from '../stores/players'
 import { GAME_TYPE_LABELS, CRICKET_TARGETS, type PlayerScore, type CricketTarget } from '../types/index'
 import CricketEntry from '../components/CricketEntry.vue'
 import NumpadEntry from '../components/NumpadEntry.vue'
@@ -166,9 +187,15 @@ type CricketHits = Record<string | number, number>
 
 const router = useRouter()
 const gameStore = useGameStore()
+const playersStore = usePlayersStore()
 const game = computed(() => gameStore.game)
 const confirmQuit = ref(false)
 const showAllScores = ref(false)
+const showAddPlayer = ref(false)
+
+const availablePlayers = computed(() =>
+  playersStore.players.filter(p => !game.value?.players.some(gp => gp.id === p.id))
+)
 const lbScrollRef = ref<HTMLElement | null>(null)
 
 const currentPlayer = computed(() => game.value!.players[game.value!.currentPlayerIndex]!)
@@ -356,7 +383,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .throwing-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.12); border-radius: 3px; padding: 2px 5px; font-family: var(--font-body); }
 .cricket-mini { display: flex; flex-wrap: nowrap; gap: 4px; }
 .mini-target { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; min-width: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; padding: 6px 2px; }
-.mini-label { font-size: 18px; font-weight: 800; color: rgba(255,255,255,0.9); letter-spacing: 0.02em; font-family: var(--font-display); }
+.mini-label { font-size: 28px; font-weight: 800; color: rgba(255,255,255,0.9); letter-spacing: 0.02em; font-family: var(--font-display); }
 .mini-marks { display: flex; gap: 3px; }
 .mini-pip { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); transition: background 0.1s; flex-shrink: 0; }
 .mini-pip.filled { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 6px rgba(255,45,120,0.8); }
@@ -366,10 +393,38 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .remove-player-btn { background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: rgba(255,255,255,0.3); cursor: pointer; font-size: 12px; padding: 4px 7px; flex-shrink: 0; transition: all 0.15s; align-self: flex-start; position: relative; overflow: hidden; }
 .remove-player-btn:hover { border-color: #ef4444; color: #ef4444; }
 
+/* Add player panel */
+.add-player-panel {
+  flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03); display: flex; flex-direction: column;
+}
+.add-player-empty { padding: 16px 24px; font-size: 13px; color: var(--text-muted); }
+.add-player-row {
+  display: flex; align-items: center; gap: 14px; padding: 12px 24px;
+  background: none; border: none; border-bottom: 1px solid rgba(255,255,255,0.05);
+  cursor: pointer; text-align: left; width: 100%; transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent; position: relative; overflow: hidden;
+}
+.add-player-row:last-child { border-bottom: none; }
+.add-player-row:active { background: rgba(255,255,255,0.06); }
+.add-player-avatar {
+  width: 40px; height: 40px; border-radius: 6px; display: flex; align-items: center;
+  justify-content: center; font-size: 20px; flex-shrink: 0; overflow: hidden;
+}
+.add-player-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.add-player-name { flex: 1; font-size: 18px; font-weight: 800; font-family: var(--font-display); color: #fff; letter-spacing: 0.03em; }
+.add-player-cta { font-size: 13px; font-weight: 700; color: var(--pink); letter-spacing: 0.08em; flex-shrink: 0; }
+
 /* Misc */
 .no-game { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; width: 100vw; height: 100dvh; }
 .confirm-card { background: #1a1a1a; min-width: 300px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; }
 .confirm-card .q-card-actions { padding: 12px 16px 16px; gap: 10px; }
+
+@media (orientation: landscape) and (max-height: 900px) {
+  .turn-header { padding: 6px 16px; padding-top: calc(6px + env(safe-area-inset-top)); gap: 12px; }
+  .turn-avatar { width: 40px; height: 40px; font-size: 20px; }
+  .turn-name { font-size: 22px; }
+}
 
 @media (max-width: 768px) {
   .game { position: fixed; inset: 0; }
@@ -394,7 +449,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .lb-avatar { width: 48px; height: 48px; font-size: 24px; }
   .lb-player-name { font-size: 24px; }
   .lb-score-val { font-size: 32vw; }
-  .mini-label { font-size: 14px; }
+  .mini-label { font-size: 22px; }
   .mini-pip { width: 8px; height: 8px; }
 }
 </style>

@@ -182,6 +182,33 @@ export const useGameStore = defineStore('game', () => {
     saveGame(game.value)
   }
 
+  function addPlayerToGame(player: Player) {
+    if (!game.value) return
+    if (game.value.players.some(p => p.id === player.id)) return
+    game.value.players.push(player)
+    const gameType = game.value.gameType
+    if (gameType === 'cricket' || gameType === 'cutThroat') {
+      game.value.scores[player.id] = {
+        kind: 'cricket',
+        data: {
+          marks: Object.fromEntries(CRICKET_TARGETS.map(t => [t, 0])) as Record<CricketTarget, number>,
+          points: 0,
+        },
+      }
+    } else if (['301', '501', '701', '1001'].includes(gameType)) {
+      game.value.scores[player.id] = {
+        kind: 'ohOne',
+        data: { remaining: Number(gameType), history: [] },
+      }
+    } else {
+      game.value.scores[player.id] = {
+        kind: 'simple',
+        data: { total: 0, history: [] },
+      }
+    }
+    saveGame(game.value)
+  }
+
   function removePlayerFromGame(playerId: string) {
     if (!game.value) return
     const players = game.value.players
@@ -213,7 +240,7 @@ export const useGameStore = defineStore('game', () => {
     saveGame(null)
   }
 
-  return { game, lastTurnWasZero, lastTurnWasTimeout, playerTimeoutCounts, recordTimeout, startGame, submitScore, startNextTurn, removePlayerFromGame, endGame }
+  return { game, lastTurnWasZero, lastTurnWasTimeout, playerTimeoutCounts, recordTimeout, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, endGame }
 })
 
 function checkCricketWin(game: ActiveGame): string | null {

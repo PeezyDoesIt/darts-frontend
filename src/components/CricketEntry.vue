@@ -145,8 +145,15 @@ function submit() {
 .submit-btn:active { transform: scale(0.97); opacity: 0.9; }
 
 @media (orientation: landscape) and (max-height: 900px) {
-  .cricket-board { padding: 6px 12px; gap: 5px; }
-  .board-tile { min-height: 60px; }
+  .cricket-board { padding: 4px 12px; gap: 4px; }
+  .board-tile { min-height: 50px; padding: 0 16px; }
+  .target-label { font-size: 34px; width: 75px; }
+  .pips-wrap { gap: 10px; }
+  .pip { width: 36px; height: 36px; border-width: 2px; }
+  .hit-badge { font-size: 14px; width: 50px; }
+  .closed-badge { width: 50px; font-size: 8px; }
+  .submit-row { padding: 6px 16px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
+  .submit-btn { height: 44px; font-size: 16px; }
 }
 
 @media (max-width: 768px) {
