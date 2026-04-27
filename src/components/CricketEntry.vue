@@ -118,7 +118,7 @@ function submit() {
 
 .target-label { font-size: 52px; font-family: var(--font-display); color: var(--pink); letter-spacing: 0.05em; width: 110px; flex-shrink: 0; filter: drop-shadow(0 0 12px rgba(255,45,120,0.7)); }
 .pips-wrap { display: flex; align-items: center; gap: 24px; flex: 1; justify-content: center; }
-.pip { width: 54px; height: 54px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); display: block; transition: all 0.2s; flex-shrink: 0; }
+.pip { width: 72px; height: 72px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); display: block; transition: all 0.2s; flex-shrink: 0; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
 .pip.round { background: rgba(255,45,120,0.55); border-color: var(--pink); box-shadow: 0 0 16px rgba(255,45,120,0.6); }
 
@@ -149,7 +149,7 @@ function submit() {
   .board-tile { min-height: 50px; padding: 0 16px; }
   .target-label { font-size: 34px; width: 75px; }
   .pips-wrap { gap: 10px; }
-  .pip { width: 36px; height: 36px; border-width: 2px; }
+  .pip { width: 44px; height: 44px; border-width: 2px; }
   .hit-badge { font-size: 14px; width: 50px; }
   .closed-badge { width: 50px; font-size: 8px; }
   .submit-row { padding: 6px 16px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
@@ -161,7 +161,7 @@ function submit() {
   .board-tile { padding: 0 12px; min-height: 56px; }
   .target-label { font-size: 40px; width: 80px; }
   .pips-wrap { gap: 12px; }
-  .pip { width: 44px; height: 44px; border-width: 2px; }
+  .pip { width: 60px; height: 60px; border-width: 2px; }
   .hit-badge { font-size: 16px; width: 52px; }
   .closed-badge { width: 52px; font-size: 9px; }
   .submit-row { padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
