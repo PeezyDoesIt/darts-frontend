@@ -108,7 +108,7 @@ function submit() {
 .board-tile {
   display: flex; align-items: center; width: 100%; padding: 0 24px; gap: 0;
   flex: 1; min-height: 72px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.18); border-radius: 8px;
   cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent; text-align: left;
   position: relative; overflow: hidden;
 }
@@ -116,9 +116,9 @@ function submit() {
 .board-tile.active { border-color: var(--pink); background: rgba(255,45,120,0.18); box-shadow: 0 0 32px rgba(255,45,120,0.35), inset 0 0 40px rgba(255,45,120,0.08); }
 .board-tile.closed { opacity: 0.3; cursor: default; }
 
-.target-label { font-size: 52px; font-family: var(--font-display); color: var(--pink); letter-spacing: 0.05em; width: 110px; flex-shrink: 0; filter: drop-shadow(0 0 12px rgba(255,45,120,0.7)); }
-.pips-wrap { display: flex; align-items: center; gap: 24px; flex: 1; justify-content: center; }
-.pip { width: 72px; height: 72px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); display: block; transition: all 0.2s; flex-shrink: 0; }
+.target-label { font-size: 52px; font-family: var(--font-display); color: var(--pink); letter-spacing: 0.05em; width: 80px; flex-shrink: 0; filter: drop-shadow(0 0 12px rgba(255,45,120,0.7)); }
+.pips-wrap { display: flex; align-items: center; gap: 24px; flex: 1; justify-content: flex-start; }
+.pip { width: 72px; height: 72px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: block; transition: all 0.2s; flex-shrink: 0; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
 .pip.round { background: rgba(255,45,120,0.55); border-color: var(--pink); box-shadow: 0 0 16px rgba(255,45,120,0.6); }
 
