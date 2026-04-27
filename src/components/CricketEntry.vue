@@ -107,7 +107,7 @@ function submit() {
 
 .board-tile {
   display: flex; align-items: center; width: 100%; padding: 0 24px; gap: 0;
-  min-height: 72px;
+  flex: 1; min-height: 72px;
   background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
   cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent; text-align: left;
   position: relative; overflow: hidden;

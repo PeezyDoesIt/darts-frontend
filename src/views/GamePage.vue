@@ -312,11 +312,11 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
 /* Throw timer */
-.throw-timer-bar { position: relative; height: 28px; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; cursor: pointer; user-select: none; }
+.throw-timer-bar { position: relative; height: 48px; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; cursor: pointer; user-select: none; }
 .throw-timer-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--blue); transition: width 1s linear, background 0.3s; }
 .throw-timer-fill.urgent { background: var(--pink); }
 .throw-timer-fill.paused { background: var(--text-muted); }
-.throw-timer-text { position: relative; z-index: 1; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); padding: 0 10px; font-family: var(--font-display); }
+.throw-timer-text { position: relative; z-index: 1; font-size: 22px; font-weight: 800; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); padding: 0 10px; font-family: var(--font-display); }
 .throw-timer-text.urgent { color: #fff; }
 
 /* Scores sidebar — always visible */
@@ -369,23 +369,23 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .lb-players-scroll { flex: 1; min-height: 0; overflow-y: auto; }
 .lb-players { display: flex; flex-direction: column; gap: 0; padding: 0; }
 .lb-player-row {
-  display: flex; align-items: center; gap: 14px; padding: 20px 28px;
+  display: flex; align-items: center; gap: 14px; padding: 10px 20px;
   background: transparent; border: none; border-left: 6px solid transparent;
   border-bottom: 1px solid rgba(255,255,255,0.06);
   transition: border-color 0.2s, background 0.2s; position: relative;
 }
 .lb-player-row.active { border-left-color: var(--active-color, var(--pink)); }
 .active-dot { display: none; }
-.lb-avatar { width: 64px; height: 64px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 34px; flex-shrink: 0; overflow: hidden; border: 2px solid rgba(255,255,255,0.1); }
+.lb-avatar { width: 48px; height: 48px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; overflow: hidden; border: 2px solid rgba(255,255,255,0.1); }
 .lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.lb-player-info { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.lb-player-name { font-size: 32px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; display: flex; align-items: center; gap: 10px; color: #fff; }
+.lb-player-info { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lb-player-name { font-size: 22px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; display: flex; align-items: center; gap: 10px; color: #fff; }
 .throwing-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.12); border-radius: 3px; padding: 2px 5px; font-family: var(--font-body); }
 .cricket-mini { display: flex; flex-wrap: nowrap; gap: 4px; }
-.mini-target { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; min-width: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; padding: 6px 2px; }
-.mini-label { font-size: 28px; font-weight: 800; color: rgba(255,255,255,0.9); letter-spacing: 0.02em; font-family: var(--font-display); }
-.mini-marks { display: flex; gap: 3px; }
-.mini-pip { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); transition: background 0.1s; flex-shrink: 0; }
+.mini-target { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; min-width: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; padding: 10px 2px; }
+.mini-label { font-size: 40px; font-weight: 800; color: rgba(255,255,255,0.9); letter-spacing: 0.02em; font-family: var(--font-display); }
+.mini-marks { display: flex; gap: 5px; }
+.mini-pip { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); transition: background 0.1s; flex-shrink: 0; }
 .mini-pip.filled { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 6px rgba(255,45,120,0.8); }
 .lb-score { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
 .lb-score-val { font-size: 28vw; font-weight: 900; font-family: var(--font-display); line-height: 1; color: #fff; }
@@ -445,11 +445,11 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-avatar { width: 40px; height: 40px; font-size: 20px; }
   .turn-name { font-size: 22px; }
   .scores-btn { margin-left: 6px; }
-  .lb-player-row { padding: 16px 20px; }
-  .lb-avatar { width: 48px; height: 48px; font-size: 24px; }
-  .lb-player-name { font-size: 24px; }
+  .lb-player-row { padding: 8px 16px; }
+  .lb-avatar { width: 40px; height: 40px; font-size: 20px; }
+  .lb-player-name { font-size: 18px; }
   .lb-score-val { font-size: 32vw; }
-  .mini-label { font-size: 22px; }
-  .mini-pip { width: 8px; height: 8px; }
+  .mini-label { font-size: 32px; }
+  .mini-pip { width: 12px; height: 12px; }
 }
 </style>
