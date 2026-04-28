@@ -4,7 +4,10 @@ import { useSettingsStore } from '../stores/settings'
 const MALE_NAMES = ['David', 'Mark', 'Alex', 'Daniel', 'Fred', 'Ralph', 'Albert', 'Guy', 'James', 'Richard', 'George', 'Tom', 'Bruce', 'Bob', 'Lee', 'Reed', 'Ryan', 'Aaron', 'Liam', 'Nathan', 'Oliver']
 
 // Known female voice name fragments
-const FEMALE_NAMES = ['Zira', 'Samantha', 'Karen', 'Susan', 'Victoria', 'Fiona', 'Moira', 'Aria', 'Jenny', 'Hazel', 'Eva', 'Heera', 'Cortana', 'Microsoft Eva', 'Siri', 'Ava', 'Emma', 'Alice', 'Grace', 'Nicky', 'Catherine', 'Kate', 'Kyoko', 'Laura', 'Linda', 'Lisa', 'Marie', 'Martha', 'Monica', 'Nicole', 'Nora', 'Paulina', 'Petra', 'Sara', 'Serena', 'Stephanie', 'Tessa', 'Ting-Ting', 'Tracy', 'Veena', 'Victoria', 'Xander', 'Yelena', 'Yuna', 'Zoe']
+const FEMALE_NAMES = ['Zira', 'Samantha', 'Karen', 'Susan', 'Victoria', 'Fiona', 'Moira', 'Aria', 'Jenny', 'Hazel', 'Eva', 'Heera', 'Cortana', 'Microsoft Eva', 'Siri', 'Ava', 'Emma', 'Alice', 'Grace', 'Nicky', 'Catherine', 'Kate', 'Kyoko', 'Laura', 'Linda', 'Lisa', 'Marie', 'Martha', 'Monica', 'Nicole', 'Nora', 'Paulina', 'Petra', 'Sara', 'Serena', 'Stephanie', 'Tessa', 'Ting-Ting', 'Tracy', 'Veena', 'Xander', 'Yelena', 'Yuna', 'Zoe']
+
+// The special Southern accent value — uses en-US voices with drawl parameters
+const SOUTHERN_ACCENT = 'en-US-southern'
 
 function isMaleVoice(voice: SpeechSynthesisVoice): boolean {
   return MALE_NAMES.some(n => voice.name.toLowerCase().includes(n.toLowerCase()))
@@ -18,6 +21,9 @@ function selectVoice(gender: 'female' | 'male', accent: string): SpeechSynthesis
   const voices = window.speechSynthesis.getVoices()
   if (!voices.length) return null
 
+  // Southern uses en-US voice selection
+  const langAccent = accent === SOUTHERN_ACCENT ? 'en-US' : accent
+
   console.log('[useSpeech] available voices:', voices.map(v => `${v.name} (${v.lang})`))
   console.log('[useSpeech] selecting gender:', gender, 'accent:', accent)
 
@@ -25,19 +31,19 @@ function selectVoice(gender: 'female' | 'male', accent: string): SpeechSynthesis
   const oppositeCheck = gender === 'female' ? isMaleVoice : isFemaleVoice
 
   // 1. Exact accent match + gender match
-  const exactGender = voices.find(v => v.lang === accent && genderCheck(v))
+  const exactGender = voices.find(v => v.lang === langAccent && genderCheck(v))
   if (exactGender) { console.log('[useSpeech] picked (exact+gender):', exactGender.name); return exactGender }
 
   // 2. Exact accent match + not opposite gender (unknown/neutral)
-  const exactNeutral = voices.find(v => v.lang === accent && !oppositeCheck(v))
+  const exactNeutral = voices.find(v => v.lang === langAccent && !oppositeCheck(v))
   if (exactNeutral) { console.log('[useSpeech] picked (exact+neutral):', exactNeutral.name); return exactNeutral }
 
   // 3. Exact accent match, any voice
-  const exactAny = voices.find(v => v.lang === accent)
+  const exactAny = voices.find(v => v.lang === langAccent)
   if (exactAny) { console.log('[useSpeech] picked (exact):', exactAny.name); return exactAny }
 
   // 4. Accent language prefix match + gender match (e.g. 'en-GB' → 'en')
-  const prefix = accent.split('-')[0]
+  const prefix = langAccent.split('-')[0]
   const prefixGender = voices.find(v => v.lang.startsWith(prefix + '-') && genderCheck(v))
   if (prefixGender) { console.log('[useSpeech] picked (prefix+gender):', prefixGender.name); return prefixGender }
 
@@ -59,12 +65,21 @@ function selectVoice(gender: 'female' | 'male', accent: string): SpeechSynthesis
 
 function doSpeak(text: string, resolve: () => void) {
   const settings = useSettingsStore()
+  const isSouthern = settings.voiceAccent === SOUTHERN_ACCENT
   window.speechSynthesis.cancel()
   const u = new SpeechSynthesisUtterance(text)
   const voice = selectVoice(settings.voiceGender, settings.voiceAccent)
   if (voice) u.voice = voice
-  u.rate = 0.88
-  u.pitch = settings.voiceGender === 'male' ? 0.85 : 1.15
+
+  if (isSouthern) {
+    // Southern drawl: slow, warm, slightly lower pitch
+    u.rate = settings.voiceGender === 'male' ? 0.68 : 0.72
+    u.pitch = settings.voiceGender === 'male' ? 0.78 : 1.0
+  } else {
+    u.rate = 0.88
+    u.pitch = settings.voiceGender === 'male' ? 0.85 : 1.15
+  }
+
   u.onend = () => resolve()
   window.speechSynthesis.speak(u)
 }
@@ -105,11 +120,17 @@ export function getAvailableAccents(): { label: string; value: string }[] {
     if (v.lang.startsWith('en')) found.add(v.lang)
   }
 
-  // Always include common ones even if not found, filter to only found
   const result: { label: string; value: string }[] = []
+
+  // Always include Southern if any en-US voice is available
+  if (found.has('en-US')) {
+    result.push({ label: 'Southern (en-US)', value: SOUTHERN_ACCENT })
+  }
+
   for (const lang of found) {
     result.push({ label: ACCENT_LABELS[lang] ?? lang, value: lang })
   }
+
   result.sort((a, b) => a.label.localeCompare(b.label))
   return result
 }
