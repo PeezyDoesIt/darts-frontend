@@ -10,8 +10,8 @@
             <span v-else>{{ currentPlayer.avatarUrl ?? '🎯' }}</span>
           </div>
           <div class="turn-player-info">
-            <span class="turn-label">THROWING NOW</span>
             <span class="turn-name display" :style="{ color: currentPlayer.color, filter: `drop-shadow(0 0 12px ${currentPlayer.color}80)` }">{{ currentPlayer.name }}</span>
+            <span class="turn-label">THROWING NOW</span>
           </div>
           <button v-ripple class="btn btn-sm btn-surface scores-btn" @click="showAllScores = !showAllScores">SCORES</button>
         </div>
@@ -309,10 +309,10 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .turn-header::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--player-color, var(--pink)); box-shadow: 0 0 12px var(--player-color, var(--pink)); }
 .turn-avatar { width: 60px; height: 60px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 30px; border: 2px solid rgba(255,255,255,0.15); overflow: hidden; flex-shrink: 0; }
 .turn-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.turn-player-info { display: flex; flex-direction: column; gap: 2px; }
-.turn-label { font-size: 9px; font-weight: 800; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; }
-.turn-name { font-size: 36px; line-height: 1; letter-spacing: 0.05em; }
-.scores-btn { flex-shrink: 0; margin-left: auto; font-size: 11px; letter-spacing: 0.1em; }
+.turn-player-info { display: flex; flex-direction: row; align-items: center; gap: 16px; }
+.turn-label { font-size: 16px; font-weight: 800; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; }
+.turn-name { font-size: 48px; line-height: 1; letter-spacing: 0.05em; }
+.scores-btn { flex-shrink: 0; margin-left: auto; font-size: 14px; letter-spacing: 0.1em; padding: 10px 32px; }
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
 /* Throw timer */
@@ -450,7 +450,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .sb-footer { display: none; }
   .turn-header { padding: 10px 14px; padding-top: 10px; gap: 10px; }
   .turn-avatar { width: 40px; height: 40px; font-size: 20px; }
-  .turn-name { font-size: 22px; }
+  .turn-name { font-size: 30px; }
+  .turn-label { font-size: 12px; }
   .scores-btn { margin-left: 6px; }
   .lb-player-row { padding: 8px 16px; }
   .lb-avatar { width: 40px; height: 40px; font-size: 20px; }

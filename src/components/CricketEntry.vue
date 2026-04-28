@@ -107,7 +107,7 @@ function submit() {
   display: flex;
   flex-direction: column;
   padding: 6px 16px;
-  gap: 4px;
+  gap: 10px;
   /* Make tiles fill the available height by stretching */
   min-height: 100%;
 }
@@ -124,7 +124,7 @@ function submit() {
 .board-tile.closed { opacity: 0.3; cursor: default; }
 
 .target-label { font-size: clamp(72px, 13dvh, 150px); font-family: var(--font-display); color: var(--pink); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; filter: drop-shadow(0 0 12px rgba(255,45,120,0.7)); display: flex; align-items: center; }
-.pips-wrap { display: flex; align-items: stretch; gap: 10px; flex: 1; }
+.pips-wrap { display: flex; align-items: stretch; gap: 10px; flex: 1; padding: 14px 0; }
 .pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: block; transition: all 0.2s; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
 .pip.round { background: rgba(255,45,120,0.55); border-color: var(--pink); box-shadow: 0 0 16px rgba(255,45,120,0.6); }
