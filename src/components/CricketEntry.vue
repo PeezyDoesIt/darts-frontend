@@ -17,7 +17,7 @@
           :disabled="myClosed(target)"
           @click="handleTileClick(target)"
         >
-          <span class="target-label">{{ target === 'bull' ? 'BULL' : target }}</span>
+          <span class="target-label" :style="{ color: targetColor, filter: `drop-shadow(0 0 12px ${targetColor})` }">{{ target === 'bull' ? '🎯' : target }}</span>
 
           <div class="pips-wrap">
             <span
@@ -55,7 +55,29 @@ const props = defineProps<{
   scores: Record<string, PlayerScore>
   isCutThroat: boolean
   avatarUrl?: string | null
+  playerColor?: string
 }>()
+
+function complementaryColor(hex: string): string {
+  if (!hex.startsWith('#') || hex.length < 7) return hex
+  const r = parseInt(hex.slice(1,3), 16) / 255
+  const g = parseInt(hex.slice(3,5), 16) / 255
+  const b = parseInt(hex.slice(5,7), 16) / 255
+  const max = Math.max(r,g,b), min = Math.min(r,g,b)
+  let h = 0, s = 0
+  const l = (max + min) / 2
+  if (max !== min) {
+    const d = max - min
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6
+    else if (max === g) h = ((b - r) / d + 2) / 6
+    else h = ((r - g) / d + 4) / 6
+  }
+  h = (h + 0.5) % 1
+  return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`
+}
+
+const targetColor = computed(() => props.playerColor ? complementaryColor(props.playerColor) : 'var(--pink)')
 
 const emit = defineEmits<{
   submit: [hits: Record<CricketTarget, number>]
@@ -123,7 +145,7 @@ function submit() {
 .board-tile.active { border-color: var(--pink); background: rgba(255,45,120,0.18); box-shadow: 0 0 32px rgba(255,45,120,0.35), inset 0 0 40px rgba(255,45,120,0.08); }
 .board-tile.closed { opacity: 0.3; cursor: default; }
 
-.target-label { font-size: clamp(72px, 13dvh, 150px); font-family: var(--font-display); color: var(--pink); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; filter: drop-shadow(0 0 12px rgba(255,45,120,0.7)); display: flex; align-items: center; }
+.target-label { font-size: clamp(72px, 13dvh, 150px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; display: flex; align-items: center; }
 .pips-wrap { display: flex; align-items: stretch; gap: 10px; flex: 1; padding: 14px 0; }
 .pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: block; transition: all 0.2s; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
@@ -177,7 +199,7 @@ function submit() {
   .pips-wrap { gap: 8px; }
   .hit-badge { font-size: 16px; width: 52px; }
   .closed-badge { width: 52px; font-size: 9px; }
-  .submit-row { padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
-  .submit-btn { height: 54px; font-size: 18px; }
+  .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+  .submit-btn { height: 46px; font-size: 16px; }
 }
 </style>

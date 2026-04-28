@@ -35,6 +35,7 @@
             :scores="game.scores"
             :isCutThroat="game.gameType === 'cutThroat'"
             :avatarUrl="currentPlayer.avatarUrl"
+            :playerColor="currentPlayer.color"
             @submit="handleCricketSubmit"
           />
           <NumpadEntry
@@ -448,11 +449,15 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .sb-score { font-size: 28px; }
   .sb-player-row.active .sb-score { font-size: 56px; }
   .sb-footer { display: none; }
-  .turn-header { padding: 10px 14px; padding-top: 10px; gap: 10px; }
-  .turn-avatar { width: 40px; height: 40px; font-size: 20px; }
-  .turn-name { font-size: 30px; }
-  .turn-label { font-size: 12px; }
-  .scores-btn { margin-left: 6px; }
+  .turn-header { padding: 6px 12px; padding-top: calc(6px + env(safe-area-inset-top)); gap: 8px; }
+  .turn-avatar { width: 36px; height: 36px; font-size: 18px; }
+  .turn-name { font-size: 26px; }
+  .turn-label { font-size: 11px; }
+  .scores-btn { margin-left: 6px; padding: 7px 20px; font-size: 12px; }
+  .throw-timer-bar { height: 32px; }
+  .throw-timer-text { font-size: 14px; }
+  .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+  .submit-btn { height: 46px; font-size: 16px; }
   .lb-player-row { padding: 8px 16px; }
   .lb-avatar { width: 40px; height: 40px; font-size: 20px; }
   .lb-player-name { font-size: 18px; }

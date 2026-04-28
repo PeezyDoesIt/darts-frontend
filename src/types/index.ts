@@ -13,7 +13,6 @@ export const PLAYER_THEMES = [
   { label: 'None',       value: null },
   // Dark moody
   { label: 'Fire',       value: 'linear-gradient(160deg, #1a0000 0%, #8b0000 50%, #ff2d00 100%)' },
-  { label: 'Inferno',    value: 'linear-gradient(160deg, #0d0000 0%, #7a1800 35%, #ff6b00 70%, #ffd700 100%)' },
   { label: 'Blood',      value: 'linear-gradient(160deg, #0a0000 0%, #3d0000 50%, #dc143c 100%)' },
   { label: 'Magma',      value: 'linear-gradient(160deg, #1a0500 0%, #8b2500 40%, #ff4500 75%, #ffa500 100%)' },
   // Cool
@@ -27,7 +26,6 @@ export const PLAYER_THEMES = [
   { label: 'Electric',   value: 'linear-gradient(160deg, #000d1a 0%, #001a40 40%, #0055ff 75%, #00ddff 100%)' },
   { label: 'Cyber',      value: 'linear-gradient(160deg, #000d14 0%, #001428 40%, #00aaff 70%, #00ffcc 100%)' },
   { label: 'Synthwave',  value: 'linear-gradient(160deg, #0d0020 0%, #330066 35%, #cc00ff 65%, #ff0066 100%)' },
-  { label: 'Glitch',     value: 'linear-gradient(160deg, #001100 0%, #002200 30%, #00ff44 60%, #ff00aa 100%)' },
   // Rich / luxe
   { label: 'Gold',       value: 'linear-gradient(160deg, #1a0f00 0%, #6b3a00 50%, #ffd700 100%)' },
   { label: 'Bronze',     value: 'linear-gradient(160deg, #100800 0%, #4a2800 45%, #cd7f32 80%, #e8a050 100%)' },
