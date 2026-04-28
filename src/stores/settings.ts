@@ -1,25 +1,16 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-export type VoiceGender = 'female' | 'male'
-
 export const useSettingsStore = defineStore('settings', () => {
-  const voiceGender = ref<VoiceGender>(
-    (localStorage.getItem('voiceGender') as VoiceGender) ?? 'female'
-  )
-  const voiceAccent = ref<string>(
-    localStorage.getItem('voiceAccent') ?? 'en-US'
+  // voiceName stores the exact SpeechSynthesisVoice.name, or a special accent key
+  const voiceName = ref<string>(
+    localStorage.getItem('voiceName') ?? ''
   )
 
-  function setVoiceGender(g: VoiceGender) {
-    voiceGender.value = g
-    localStorage.setItem('voiceGender', g)
+  function setVoiceName(name: string) {
+    voiceName.value = name
+    localStorage.setItem('voiceName', name)
   }
 
-  function setVoiceAccent(a: string) {
-    voiceAccent.value = a
-    localStorage.setItem('voiceAccent', a)
-  }
-
-  return { voiceGender, voiceAccent, setVoiceGender, setVoiceAccent }
+  return { voiceName, setVoiceName }
 })

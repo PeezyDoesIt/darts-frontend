@@ -12,29 +12,18 @@
           </div>
 
           <div class="settings-section">
-            <div class="settings-label">Voice Gender</div>
-            <div class="gender-toggle">
+            <div class="settings-label">Voice</div>
+            <div v-if="availableVoices.length === 0" class="settings-muted">No voices loaded yet. Try again in a moment.</div>
+            <div v-else class="voice-list">
               <button
-                :class="['gender-btn', { active: settingsStore.voiceGender === 'female' }]"
-                @click="settingsStore.setVoiceGender('female')"
-              >Female</button>
-              <button
-                :class="['gender-btn', { active: settingsStore.voiceGender === 'male' }]"
-                @click="settingsStore.setVoiceGender('male')"
-              >Male</button>
-            </div>
-          </div>
-
-          <div class="settings-section">
-            <div class="settings-label">Accent</div>
-            <div v-if="availableAccents.length === 0" class="settings-muted">No voices loaded yet. Try again in a moment.</div>
-            <div v-else class="accent-list">
-              <button
-                v-for="acc in availableAccents"
-                :key="acc.value"
-                :class="['accent-btn', { active: settingsStore.voiceAccent === acc.value }]"
-                @click="settingsStore.setVoiceAccent(acc.value)"
-              >{{ acc.label }}</button>
+                v-for="v in availableVoices"
+                :key="v.value"
+                :class="['voice-btn', { active: settingsStore.voiceName === v.value }]"
+                @click="settingsStore.setVoiceName(v.value)"
+              >
+                <span class="voice-btn-label">{{ v.label }}</span>
+                <span v-if="v.sublabel" class="voice-btn-sub">{{ v.sublabel }}</span>
+              </button>
             </div>
           </div>
 
@@ -121,7 +110,7 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
-import { speak, getAvailableAccents } from '../composables/useSpeech'
+import { speak, getAvailableVoices, type VoiceOption } from '../composables/useSpeech'
 import type { Player } from '../types/index'
 
 const router = useRouter()
@@ -143,20 +132,17 @@ function isPhoto(url: string | null) {
 }
 
 const showSettings = ref(false)
-const availableAccents = ref<{ label: string; value: string }[]>([])
+const availableVoices = ref<VoiceOption[]>([])
 
 function openSettings() {
-  availableAccents.value = getAvailableAccents()
-  if (availableAccents.value.length === 0) {
-    // Voices may not be loaded yet; wait and retry
+  availableVoices.value = getAvailableVoices()
+  if (availableVoices.value.length === 0) {
     window.speechSynthesis.onvoiceschanged = () => {
       window.speechSynthesis.onvoiceschanged = null
-      availableAccents.value = getAvailableAccents()
+      availableVoices.value = getAvailableVoices()
     }
     setTimeout(() => {
-      if (availableAccents.value.length === 0) {
-        availableAccents.value = getAvailableAccents()
-      }
+      if (availableVoices.value.length === 0) availableVoices.value = getAvailableVoices()
     }, 600)
   }
   showSettings.value = true
@@ -296,23 +282,17 @@ function testVoice() {
 .settings-label { font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); }
 .settings-muted { font-size: 13px; color: var(--text-muted); }
 
-.gender-toggle { display: flex; gap: 10px; }
-.gender-btn {
-  flex: 1; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer;
+.voice-list { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; }
+.voice-btn {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 14px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; text-align: left;
   background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted);
-  transition: all 0.15s;
+  transition: all 0.15s; width: 100%;
 }
-.gender-btn.active { background: rgba(255,45,120,0.2); border-color: var(--pink); color: #fff; box-shadow: 0 0 16px rgba(255,45,120,0.3); }
-.gender-btn:hover:not(.active) { background: rgba(255,255,255,0.1); }
-
-.accent-list { display: flex; flex-wrap: wrap; gap: 8px; }
-.accent-btn {
-  padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted);
-  transition: all 0.15s;
-}
-.accent-btn.active { background: rgba(255,45,120,0.2); border-color: var(--pink); color: #fff; }
-.accent-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
+.voice-btn.active { background: rgba(255,45,120,0.2); border-color: var(--pink); color: #fff; box-shadow: 0 0 12px rgba(255,45,120,0.25); }
+.voice-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
+.voice-btn-label { font-weight: 700; }
+.voice-btn-sub { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.4); flex-shrink: 0; }
 
 .test-btn { align-self: flex-end; }
 
