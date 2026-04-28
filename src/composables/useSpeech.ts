@@ -6,8 +6,54 @@ const MALE_NAMES = ['David', 'Mark', 'Alex', 'Daniel', 'Fred', 'Ralph', 'Albert'
 // Known female voice name fragments
 const FEMALE_NAMES = ['Zira', 'Samantha', 'Karen', 'Susan', 'Victoria', 'Fiona', 'Moira', 'Aria', 'Jenny', 'Hazel', 'Eva', 'Heera', 'Cortana', 'Microsoft Eva', 'Siri', 'Ava', 'Emma', 'Alice', 'Grace', 'Nicky', 'Catherine', 'Kate', 'Kyoko', 'Laura', 'Linda', 'Lisa', 'Marie', 'Martha', 'Monica', 'Nicole', 'Nora', 'Paulina', 'Petra', 'Sara', 'Serena', 'Stephanie', 'Tessa', 'Ting-Ting', 'Tracy', 'Veena', 'Xander', 'Yelena', 'Yuna', 'Zoe']
 
-// The special Southern accent value — uses en-US voices with drawl parameters
 const SOUTHERN_ACCENT = 'en-US-southern'
+const PIRATE_ACCENT = 'en-pirate'
+
+// Pirate text transformation — replaces common words/phrases with pirate-speak
+function pirateify(text: string): string {
+  const replacements: [RegExp, string][] = [
+    // Greetings / transitions
+    [/\bit'?s your turn\b/gi, "it be yer turn"],
+    [/\bhurry the fuck up\b/gi, "hurry it up, ye landlubber"],
+    [/\bhurry up\b/gi, "make haste"],
+    [/\bready to play some darts\?/gi, "ready to throw some darts, ye scallywag?"],
+    [/\btesting\b/gi, "testin"],
+    // Pronouns & articles
+    [/\byou\b/gi, "ye"],
+    [/\byour\b/gi, "yer"],
+    [/\bmy\b/gi, "me"],
+    [/\bthe\b/gi, "the"],
+    [/\bis\b/gi, "be"],
+    [/\bare\b/gi, "be"],
+    [/\bwas\b/gi, "were"],
+    // Common words
+    [/\byes\b/gi, "aye"],
+    [/\bhello\b/gi, "ahoy"],
+    [/\bhi\b/gi, "ahoy"],
+    [/\btheir\b/gi, "their"],
+    [/\bthey\b/gi, "they"],
+    [/\bhe\b/gi, "he"],
+    [/\bshe\b/gi, "she"],
+    [/\bwhat\b/gi, "what"],
+    [/\bwhy\b/gi, "why"],
+    [/\bnobody\b/gi, "no soul"],
+    [/\beveryone\b/gi, "all ye crew"],
+    [/\bplayer\b/gi, "scallywag"],
+    [/\bplayers\b/gi, "scallywags"],
+    [/\bturn\b/gi, "turn"],
+    [/\bmissed\b/gi, "missed"],
+    // Insults & flavour
+    [/\bthis is why nobody wants to play darts with you\b/gi, "ye be bringin' shame upon this ship"],
+    [/\bbe better\b/gi, "do better, ye barnacle"],
+    [/\bone, two, three\b/gi, "one, two, three, shiver me timbers"],
+  ]
+
+  let result = text
+  for (const [pattern, replacement] of replacements) {
+    result = result.replace(pattern, replacement)
+  }
+  return result
+}
 
 function isMaleVoice(voice: SpeechSynthesisVoice): boolean {
   return MALE_NAMES.some(n => voice.name.toLowerCase().includes(n.toLowerCase()))
@@ -21,8 +67,10 @@ function selectVoice(gender: 'female' | 'male', accent: string): SpeechSynthesis
   const voices = window.speechSynthesis.getVoices()
   if (!voices.length) return null
 
-  // Southern uses en-US voice selection
-  const langAccent = accent === SOUTHERN_ACCENT ? 'en-US' : accent
+  // Special accents map to real lang codes for voice selection
+  let langAccent = accent
+  if (accent === SOUTHERN_ACCENT) langAccent = 'en-US'
+  if (accent === PIRATE_ACCENT) langAccent = 'en-GB' // West Country = closest to pirate
 
   console.log('[useSpeech] available voices:', voices.map(v => `${v.name} (${v.lang})`))
   console.log('[useSpeech] selecting gender:', gender, 'accent:', accent)
@@ -66,15 +114,21 @@ function selectVoice(gender: 'female' | 'male', accent: string): SpeechSynthesis
 function doSpeak(text: string, resolve: () => void) {
   const settings = useSettingsStore()
   const isSouthern = settings.voiceAccent === SOUTHERN_ACCENT
+  const isPirate = settings.voiceAccent === PIRATE_ACCENT
+
   window.speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(text)
+  const spokenText = isPirate ? pirateify(text) : text
+  const u = new SpeechSynthesisUtterance(spokenText)
   const voice = selectVoice(settings.voiceGender, settings.voiceAccent)
   if (voice) u.voice = voice
 
   if (isSouthern) {
-    // Southern drawl: slow, warm, slightly lower pitch
     u.rate = settings.voiceGender === 'male' ? 0.68 : 0.72
     u.pitch = settings.voiceGender === 'male' ? 0.78 : 1.0
+  } else if (isPirate) {
+    // Gruff, growling pirate voice
+    u.rate = settings.voiceGender === 'male' ? 0.78 : 0.82
+    u.pitch = settings.voiceGender === 'male' ? 0.6 : 0.85
   } else {
     u.rate = 0.88
     u.pitch = settings.voiceGender === 'male' ? 0.85 : 1.15
@@ -122,9 +176,12 @@ export function getAvailableAccents(): { label: string; value: string }[] {
 
   const result: { label: string; value: string }[] = []
 
-  // Always include Southern if any en-US voice is available
+  // Special accents — always show if a base en voice is available
   if (found.has('en-US')) {
     result.push({ label: 'Southern (en-US)', value: SOUTHERN_ACCENT })
+  }
+  if (found.size > 0) {
+    result.push({ label: 'Pirate 🏴‍☠️', value: PIRATE_ACCENT })
   }
 
   for (const lang of found) {
