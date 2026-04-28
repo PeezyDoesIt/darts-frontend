@@ -146,7 +146,7 @@ function submit() {
 .board-tile.closed { opacity: 0.3; cursor: default; }
 
 .target-label { font-size: clamp(72px, 13dvh, 150px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; display: flex; align-items: center; }
-.pips-wrap { display: flex; align-items: stretch; gap: 10px; flex: 1; padding: 14px 0; }
+.pips-wrap { display: flex; align-items: stretch; gap: 20px; flex: 1; padding: 14px 0; }
 .pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: block; transition: all 0.2s; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
 .pip.round { background: rgba(255,45,120,0.55); border-color: var(--pink); box-shadow: 0 0 16px rgba(255,45,120,0.6); }
@@ -185,7 +185,7 @@ function submit() {
   .cricket-board { padding: 4px 12px; gap: 4px; }
   .board-tile { min-height: 50px; padding: 4px 16px; }
   .target-label { font-size: clamp(30px, 6dvh, 52px); width: clamp(80px, 10dvh, 110px); }
-  .pips-wrap { gap: 6px; }
+  .pips-wrap { gap: 12px; }
   .hit-badge { font-size: 14px; width: 50px; }
   .closed-badge { width: 50px; font-size: 8px; }
   .submit-row { padding: 6px 16px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
@@ -196,7 +196,7 @@ function submit() {
   .cricket-board { padding: 5px 8px; gap: 5px; }
   .board-tile { padding: 6px 12px; min-height: 56px; }
   .target-label { font-size: clamp(44px, 8dvh, 72px); width: clamp(90px, 12dvh, 130px); }
-  .pips-wrap { gap: 8px; }
+  .pips-wrap { gap: 16px; }
   .hit-badge { font-size: 16px; width: 52px; }
   .closed-badge { width: 52px; font-size: 9px; }
   .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
