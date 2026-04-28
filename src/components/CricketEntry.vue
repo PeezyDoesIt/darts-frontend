@@ -113,7 +113,7 @@ function submit() {
 }
 
 .board-tile {
-  display: flex; align-items: center; width: 100%; padding: 0 24px; gap: 0;
+  display: flex; align-items: stretch; width: 100%; padding: 8px 24px; gap: 0;
   flex: 1; min-height: 48px;
   background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.18); border-radius: 8px;
   cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent; text-align: left;
@@ -123,14 +123,14 @@ function submit() {
 .board-tile.active { border-color: var(--pink); background: rgba(255,45,120,0.18); box-shadow: 0 0 32px rgba(255,45,120,0.35), inset 0 0 40px rgba(255,45,120,0.08); }
 .board-tile.closed { opacity: 0.3; cursor: default; }
 
-.target-label { font-size: clamp(72px, 13dvh, 150px); font-family: var(--font-display); color: var(--pink); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; filter: drop-shadow(0 0 12px rgba(255,45,120,0.7)); }
-.pips-wrap { display: flex; align-items: center; gap: 24px; flex: 1; justify-content: flex-start; }
-.pip { width: clamp(56px, 9dvh, 100px); height: clamp(56px, 9dvh, 100px); border-radius: 50%; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: block; transition: all 0.2s; flex-shrink: 0; }
+.target-label { font-size: clamp(72px, 13dvh, 150px); font-family: var(--font-display); color: var(--pink); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; filter: drop-shadow(0 0 12px rgba(255,45,120,0.7)); display: flex; align-items: center; }
+.pips-wrap { display: flex; align-items: stretch; gap: 10px; flex: 1; }
+.pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: block; transition: all 0.2s; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
 .pip.round { background: rgba(255,45,120,0.55); border-color: var(--pink); box-shadow: 0 0 16px rgba(255,45,120,0.6); }
 
-.closed-badge { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--pink); text-transform: uppercase; font-family: var(--font-display); opacity: 0.7; width: 80px; text-align: right; flex-shrink: 0; }
-.hit-badge { font-size: 22px; font-weight: 900; font-family: var(--font-display); color: var(--pink); width: 80px; text-align: right; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(255,45,120,0.6)); }
+.closed-badge { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--pink); text-transform: uppercase; font-family: var(--font-display); opacity: 0.7; width: 80px; text-align: right; flex-shrink: 0; align-self: center; }
+.hit-badge { font-size: 22px; font-weight: 900; font-family: var(--font-display); color: var(--pink); width: 80px; text-align: right; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(255,45,120,0.6)); align-self: center; }
 .hit-badge.invisible { opacity: 0; }
 
 .board-avatar-bg {
@@ -161,10 +161,9 @@ function submit() {
 
 @media (orientation: landscape) and (max-height: 900px) {
   .cricket-board { padding: 4px 12px; gap: 4px; }
-  .board-tile { min-height: 50px; padding: 0 16px; }
+  .board-tile { min-height: 50px; padding: 4px 16px; }
   .target-label { font-size: clamp(30px, 6dvh, 52px); width: clamp(80px, 10dvh, 110px); }
-  .pips-wrap { gap: 10px; }
-  .pip { width: 44px; height: 44px; border-width: 2px; }
+  .pips-wrap { gap: 6px; }
   .hit-badge { font-size: 14px; width: 50px; }
   .closed-badge { width: 50px; font-size: 8px; }
   .submit-row { padding: 6px 16px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
@@ -173,10 +172,9 @@ function submit() {
 
 @media (max-width: 768px) {
   .cricket-board { padding: 5px 8px; gap: 5px; }
-  .board-tile { padding: 0 12px; min-height: 56px; }
+  .board-tile { padding: 6px 12px; min-height: 56px; }
   .target-label { font-size: clamp(44px, 8dvh, 72px); width: clamp(90px, 12dvh, 130px); }
-  .pips-wrap { gap: 12px; }
-  .pip { width: 60px; height: 60px; border-width: 2px; }
+  .pips-wrap { gap: 8px; }
   .hit-badge { font-size: 16px; width: 52px; }
   .closed-badge { width: 52px; font-size: 9px; }
   .submit-row { padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }

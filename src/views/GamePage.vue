@@ -100,6 +100,9 @@
 
       <!-- Add player picker -->
       <div v-if="showAddPlayer" class="add-player-panel">
+        <button v-ripple class="add-player-row add-player-create" @click="router.push('/player-setup?addToGame=true'); showAddPlayer = false; showAllScores = false">
+          <span class="add-player-name" style="color: var(--pink)">+ Create New Player</span>
+        </button>
         <div v-if="availablePlayers.length === 0" class="add-player-empty">All saved players are already in this game.</div>
         <button
           v-for="p in availablePlayers" :key="p.id"

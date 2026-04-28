@@ -124,12 +124,15 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
+import { useGameStore } from '../stores/game'
 import { PRESET_AVATARS, PLAYER_THEMES, type Player } from '../types/index'
 
 const router = useRouter()
+const route = useRoute()
 const playersStore = usePlayersStore()
+const gameStore = useGameStore()
 
 const editingId = ref<string | null>(null)
 const name = ref('')
@@ -210,7 +213,14 @@ function save() {
     playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg })
     editingId.value = null
   } else {
-    playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg })
+    if (route.query.addToGame === 'true' && gameStore.game) {
+      gameStore.addPlayerToGame(newPlayer)
+      name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
+      photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null
+      router.push('/game')
+      return
+    }
   }
   name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
   photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null
