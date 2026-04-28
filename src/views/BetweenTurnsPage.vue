@@ -141,7 +141,7 @@ onMounted(() => {
     if (paused.value) return
     if (timeLeft.value <= 0) { clearInterval(interval!); startTurn(); return }
     timeLeft.value--
-    if (timeLeft.value <= 10 && !showAlert.value) {
+    if (timeLeft.value <= 30 && !showAlert.value) {
       showAlert.value = true
       speak(`${nextPlayer.value.name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`)
     }
