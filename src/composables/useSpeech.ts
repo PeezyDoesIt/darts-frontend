@@ -8,6 +8,39 @@ const FEMALE_NAMES = ['Zira', 'Samantha', 'Karen', 'Susan', 'Victoria', 'Fiona',
 
 const SOUTHERN_ACCENT = 'en-US-southern'
 const PIRATE_ACCENT = 'en-pirate'
+const SAMUEL_ACCENT = 'en-US-samuel'
+
+// Samuel L. Jackson style — rewrites narrator lines with his characteristic attitude
+function samuelify(text: string): string {
+  type Replacement = [RegExp, string | ((...args: string[]) => string)]
+  const replacements: Replacement[] = [
+    // Specific game phrases — matched before generic replacements
+    [/^(.+) — it'?s your turn\.$/i,
+      (_: string, name: string) => `${name}. Get your ass up there. It is your turn.`],
+    [/^(.+) missed their turn\.$/i,
+      (_: string, name: string) => `${name} missed their damn turn. I have had it.`],
+    [/^This is why nobody wants to play darts with you, (.+)\.$/i,
+      (_: string, name: string) => `This is exactly why nobody wants to play darts with you, ${name}. Do you understand the words coming out of my mouth?`],
+    [/^Be better, (.+)\.$/i,
+      (_: string, name: string) => `${name}. What does Marsellus Wallace look like? Do better.`],
+    [/^(.+)\. Hurry the fuck up\. It'?s your turn\. This is why nobody wants to play darts with you\.$/i,
+      (_: string, name: string) => `${name}. Enough is enough. I have had it with your slow ass. Get. Up. There. Now.`],
+    [/^Testing\. One, two, three\. Ready to play some darts\?$/i,
+      () => `Yes they can. Yes they can. Are you ready to play some motherflipping darts?`],
+    // Generic fallbacks
+    [/\bit'?s your turn\b/gi,                        'it is your turn, so move your ass'],
+    [/\bhurry the f[\w]+ up\b/gi,                    'enough is enough'],
+    [/\bnobody wants to play darts with you\b/gi,     'nobody wants to play darts with your ass'],
+    [/\bbe better\b/gi,                               'do better'],
+  ]
+
+  let result = text
+  for (const [pattern, replacement] of replacements) {
+    const next = result.replace(pattern as RegExp, replacement as string)
+    if (next !== result) { result = next; break } // Stop after first match
+  }
+  return result
+}
 
 // Pirate text transformation — replaces common words/phrases with pirate-speak
 function pirateify(text: string): string {
@@ -71,12 +104,15 @@ function selectVoice(gender: 'female' | 'male', accent: string): SpeechSynthesis
   let langAccent = accent
   if (accent === SOUTHERN_ACCENT) langAccent = 'en-US'
   if (accent === PIRATE_ACCENT) langAccent = 'en-GB' // West Country = closest to pirate
+  if (accent === SAMUEL_ACCENT)  langAccent = 'en-US'
 
   console.log('[useSpeech] available voices:', voices.map(v => `${v.name} (${v.lang})`))
   console.log('[useSpeech] selecting gender:', gender, 'accent:', accent)
 
-  const genderCheck = gender === 'female' ? isFemaleVoice : isMaleVoice
-  const oppositeCheck = gender === 'female' ? isMaleVoice : isFemaleVoice
+  // Samuel always uses a deep male voice regardless of gender setting
+  const effectiveGender = accent === SAMUEL_ACCENT ? 'male' : gender
+  const genderCheck = effectiveGender === 'female' ? isFemaleVoice : isMaleVoice
+  const oppositeCheck = effectiveGender === 'female' ? isMaleVoice : isFemaleVoice
 
   // 1. Exact accent match + gender match
   const exactGender = voices.find(v => v.lang === langAccent && genderCheck(v))
@@ -114,23 +150,30 @@ function selectVoice(gender: 'female' | 'male', accent: string): SpeechSynthesis
 function doSpeak(text: string, resolve: () => void) {
   const settings = useSettingsStore()
   const isSouthern = settings.voiceAccent === SOUTHERN_ACCENT
-  const isPirate = settings.voiceAccent === PIRATE_ACCENT
+  const isPirate   = settings.voiceAccent === PIRATE_ACCENT
+  const isSamuel   = settings.voiceAccent === SAMUEL_ACCENT
 
   window.speechSynthesis.cancel()
-  const spokenText = isPirate ? pirateify(text) : text
+  let spokenText = text
+  if (isPirate)  spokenText = pirateify(text)
+  if (isSamuel)  spokenText = samuelify(text)
+
   const u = new SpeechSynthesisUtterance(spokenText)
   const voice = selectVoice(settings.voiceGender, settings.voiceAccent)
   if (voice) u.voice = voice
 
   if (isSouthern) {
-    u.rate = settings.voiceGender === 'male' ? 0.68 : 0.72
+    u.rate  = settings.voiceGender === 'male' ? 0.68 : 0.72
     u.pitch = settings.voiceGender === 'male' ? 0.78 : 1.0
   } else if (isPirate) {
-    // Gruff, growling pirate voice
-    u.rate = settings.voiceGender === 'male' ? 0.78 : 0.82
-    u.pitch = settings.voiceGender === 'male' ? 0.6 : 0.85
+    u.rate  = settings.voiceGender === 'male' ? 0.78 : 0.82
+    u.pitch = settings.voiceGender === 'male' ? 0.6  : 0.85
+  } else if (isSamuel) {
+    // Deep, deliberate, commanding
+    u.rate  = 0.82
+    u.pitch = 0.5
   } else {
-    u.rate = 0.88
+    u.rate  = 0.88
     u.pitch = settings.voiceGender === 'male' ? 0.85 : 1.15
   }
 
@@ -181,7 +224,8 @@ export function getAvailableAccents(): { label: string; value: string }[] {
     result.push({ label: 'Southern (en-US)', value: SOUTHERN_ACCENT })
   }
   if (found.size > 0) {
-    result.push({ label: 'Pirate 🏴‍☠️', value: PIRATE_ACCENT })
+    result.push({ label: 'Pirate 🏴‍☠️',       value: PIRATE_ACCENT })
+    result.push({ label: 'Samuel L. Jackson', value: SAMUEL_ACCENT })
   }
 
   for (const lang of found) {
