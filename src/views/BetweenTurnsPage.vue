@@ -205,6 +205,8 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .up-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
   .your-turn-label { font-size: 16px; }
   .next-name, .alert-name { font-size: 52px; }
+  .next-avatar { width: 80px; height: 80px; font-size: 40px; }
+  .alert-avatar { width: 80px; height: 80px; font-size: 40px; }
   .timer-wrap, .timer-ring { width: 180px; height: 180px; }
   .timer-count { font-size: 64px; }
   .btn-ready { font-size: 16px; padding: 14px 0; max-width: 360px; }
