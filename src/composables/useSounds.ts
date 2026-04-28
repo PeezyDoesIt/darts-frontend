@@ -1,83 +1,102 @@
 export function playBullseye(): Promise<void> {
   return new Promise(resolve => {
-  const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
-  if (!AudioCtx) return
-  const ctx = new AudioCtx()
-  const now = ctx.currentTime
-  const duration = 2.0
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioCtx) { resolve(); return }
+    const ctx = new AudioCtx()
+    const now = ctx.currentTime
+    const duration = 3.0
 
-  // Master gain
-  const master = ctx.createGain()
-  master.gain.setValueAtTime(0, now)
-  master.gain.linearRampToValueAtTime(0.28, now + 0.08)
-  master.gain.setValueAtTime(0.28, now + 1.3)
-  master.gain.linearRampToValueAtTime(0, now + duration)
-  master.connect(ctx.destination)
+    // Master gain — slow, sensual fade in, long sustain, soft release
+    const master = ctx.createGain()
+    master.gain.setValueAtTime(0, now)
+    master.gain.linearRampToValueAtTime(0.32, now + 0.18)
+    master.gain.setValueAtTime(0.32, now + 2.0)
+    master.gain.linearRampToValueAtTime(0, now + duration)
+    master.connect(ctx.destination)
 
-  // Formant filter — gives it a vocal "oh/mm" quality
-  const formant = ctx.createBiquadFilter()
-  formant.type = 'bandpass'
-  formant.frequency.setValueAtTime(900, now)
-  formant.frequency.linearRampToValueAtTime(700, now + 0.5)
-  formant.frequency.linearRampToValueAtTime(600, now + duration)
-  formant.Q.value = 4
-  formant.connect(master)
+    // F1 formant — "oh" vowel body (~600 Hz)
+    const f1 = ctx.createBiquadFilter()
+    f1.type = 'bandpass'
+    f1.frequency.setValueAtTime(520, now)
+    f1.frequency.linearRampToValueAtTime(680, now + 0.6)
+    f1.frequency.linearRampToValueAtTime(620, now + 1.6)
+    f1.frequency.linearRampToValueAtTime(480, now + duration)
+    f1.Q.value = 6
+    f1.connect(master)
 
-  // LFO for vibrato
-  const lfo = ctx.createOscillator()
-  const lfoGain = ctx.createGain()
-  lfo.frequency.value = 5.5
-  lfoGain.gain.setValueAtTime(0, now)
-  lfoGain.gain.linearRampToValueAtTime(12, now + 0.4)
-  lfo.connect(lfoGain)
+    // F2 formant — adds brightness and intelligibility (~1100 Hz)
+    const f2 = ctx.createBiquadFilter()
+    f2.type = 'bandpass'
+    f2.frequency.value = 1100
+    f2.Q.value = 8
+    f2.connect(master)
 
-  // Fundamental — the voice
-  const osc1 = ctx.createOscillator()
-  osc1.type = 'sine'
-  osc1.frequency.setValueAtTime(280, now)
-  osc1.frequency.linearRampToValueAtTime(420, now + 0.25)
-  osc1.frequency.linearRampToValueAtTime(460, now + 0.65)
-  osc1.frequency.linearRampToValueAtTime(380, now + 1.2)
-  osc1.frequency.linearRampToValueAtTime(320, now + duration)
-  lfoGain.connect(osc1.frequency)
-  osc1.connect(formant)
-  osc1.start(now)
-  osc1.stop(now + duration)
+    // Fundamental — smooth pitch arc: starts low, rises, peaks, melts back down
+    const osc1 = ctx.createOscillator()
+    osc1.type = 'sine'
+    osc1.frequency.setValueAtTime(260, now)
+    osc1.frequency.linearRampToValueAtTime(370, now + 0.35)
+    osc1.frequency.linearRampToValueAtTime(440, now + 0.9)
+    osc1.frequency.linearRampToValueAtTime(420, now + 1.6)
+    osc1.frequency.linearRampToValueAtTime(300, now + 2.5)
+    osc1.frequency.linearRampToValueAtTime(260, now + duration)
+    osc1.connect(f1)
+    osc1.connect(f2)
+    osc1.start(now)
+    osc1.stop(now + duration)
 
-  // 2nd harmonic for richness
-  const osc2 = ctx.createOscillator()
-  const osc2Gain = ctx.createGain()
-  osc2.type = 'sine'
-  osc2.frequency.setValueAtTime(560, now)
-  osc2.frequency.linearRampToValueAtTime(840, now + 0.25)
-  osc2.frequency.linearRampToValueAtTime(920, now + 0.65)
-  osc2.frequency.linearRampToValueAtTime(760, now + 1.2)
-  osc2.frequency.linearRampToValueAtTime(640, now + duration)
-  osc2Gain.gain.value = 0.35
-  lfoGain.connect(osc2.frequency)
-  osc2.connect(osc2Gain)
-  osc2Gain.connect(formant)
-  osc2.start(now)
-  osc2.stop(now + duration)
+    // 2nd harmonic — warmth and body
+    const osc2 = ctx.createOscillator()
+    const osc2Gain = ctx.createGain()
+    osc2.type = 'sine'
+    osc2.frequency.setValueAtTime(520, now)
+    osc2.frequency.linearRampToValueAtTime(740, now + 0.35)
+    osc2.frequency.linearRampToValueAtTime(880, now + 0.9)
+    osc2.frequency.linearRampToValueAtTime(840, now + 1.6)
+    osc2.frequency.linearRampToValueAtTime(600, now + 2.5)
+    osc2.frequency.linearRampToValueAtTime(520, now + duration)
+    osc2Gain.gain.value = 0.28
+    osc2.connect(osc2Gain)
+    osc2Gain.connect(f1)
+    osc2Gain.connect(f2)
+    osc2.start(now)
+    osc2.stop(now + duration)
 
-  // Breathiness — gentle noise layer
-  const bufferSize = ctx.sampleRate * duration
-  const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
-  const data = noiseBuffer.getChannelData(0)
-  for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.04
-  const noise = ctx.createBufferSource()
-  noise.buffer = noiseBuffer
-  const noiseFilter = ctx.createBiquadFilter()
-  noiseFilter.type = 'bandpass'
-  noiseFilter.frequency.value = 3000
-  noiseFilter.Q.value = 0.8
-  noise.connect(noiseFilter)
-  noiseFilter.connect(master)
-  noise.start(now)
-  noise.stop(now + duration)
+    // 3rd harmonic — adds a little edge
+    const osc3 = ctx.createOscillator()
+    const osc3Gain = ctx.createGain()
+    osc3.type = 'sine'
+    osc3.frequency.setValueAtTime(780, now)
+    osc3.frequency.linearRampToValueAtTime(1110, now + 0.9)
+    osc3.frequency.linearRampToValueAtTime(780, now + duration)
+    osc3Gain.gain.value = 0.12
+    osc3.connect(osc3Gain)
+    osc3Gain.connect(f2)
+    osc3.start(now)
+    osc3.stop(now + duration)
 
-  lfo.start(now)
-  lfo.stop(now + duration)
-  osc1.onended = () => { ctx.close(); resolve() }
+    // Breathiness — filtered noise for an airy, intimate quality
+    const bufferSize = Math.ceil(ctx.sampleRate * duration)
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+    const data = noiseBuffer.getChannelData(0)
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1
+    const noise = ctx.createBufferSource()
+    noise.buffer = noiseBuffer
+    const noiseFilter = ctx.createBiquadFilter()
+    noiseFilter.type = 'bandpass'
+    noiseFilter.frequency.value = 2800
+    noiseFilter.Q.value = 0.6
+    const noiseGain = ctx.createGain()
+    noiseGain.gain.setValueAtTime(0, now)
+    noiseGain.gain.linearRampToValueAtTime(0.055, now + 0.2)
+    noiseGain.gain.setValueAtTime(0.055, now + 2.2)
+    noiseGain.gain.linearRampToValueAtTime(0, now + duration)
+    noise.connect(noiseFilter)
+    noiseFilter.connect(noiseGain)
+    noiseGain.connect(master)
+    noise.start(now)
+    noise.stop(now + duration)
+
+    osc1.onended = () => { ctx.close(); resolve() }
   })
 }
