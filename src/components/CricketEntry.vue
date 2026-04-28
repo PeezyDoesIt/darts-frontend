@@ -24,6 +24,12 @@
           <span v-if="myClosed(target)" class="closed-badge">✓ CLOSED</span>
           <span v-else-if="(roundHits[target] ?? 0) > 0" class="hit-badge">+{{ roundHits[target] }}</span>
           <span v-else class="hit-badge invisible">+0</span>
+
+          <!-- Avatar watermark -->
+          <div class="tile-avatar" aria-hidden="true">
+            <img v-if="avatarUrl?.startsWith('data:') || avatarUrl?.startsWith('http')" :src="avatarUrl" alt="" />
+            <span v-else-if="avatarUrl">{{ avatarUrl }}</span>
+          </div>
         </button>
       </div>
     </div>
@@ -48,6 +54,7 @@ const props = defineProps<{
   playerId: string
   scores: Record<string, PlayerScore>
   isCutThroat: boolean
+  avatarUrl?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -99,8 +106,8 @@ function submit() {
 .cricket-board {
   display: flex;
   flex-direction: column;
-  padding: 10px 16px;
-  gap: 8px;
+  padding: 6px 16px;
+  gap: 4px;
   /* Make tiles fill the available height by stretching */
   min-height: 100%;
 }
@@ -116,7 +123,7 @@ function submit() {
 .board-tile.active { border-color: var(--pink); background: rgba(255,45,120,0.18); box-shadow: 0 0 32px rgba(255,45,120,0.35), inset 0 0 40px rgba(255,45,120,0.08); }
 .board-tile.closed { opacity: 0.3; cursor: default; }
 
-.target-label { font-size: 52px; font-family: var(--font-display); color: var(--pink); letter-spacing: 0.05em; width: 80px; flex-shrink: 0; filter: drop-shadow(0 0 12px rgba(255,45,120,0.7)); }
+.target-label { font-size: clamp(60px, 10dvh, 110px); font-family: var(--font-display); color: var(--pink); letter-spacing: 0.05em; width: clamp(110px, 14dvh, 160px); flex-shrink: 0; filter: drop-shadow(0 0 12px rgba(255,45,120,0.7)); }
 .pips-wrap { display: flex; align-items: center; gap: 24px; flex: 1; justify-content: flex-start; }
 .pip { width: 72px; height: 72px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: block; transition: all 0.2s; flex-shrink: 0; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
@@ -125,6 +132,15 @@ function submit() {
 .closed-badge { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--pink); text-transform: uppercase; font-family: var(--font-display); opacity: 0.7; width: 80px; text-align: right; flex-shrink: 0; }
 .hit-badge { font-size: 22px; font-weight: 900; font-family: var(--font-display); color: var(--pink); width: 80px; text-align: right; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(255,45,120,0.6)); }
 .hit-badge.invisible { opacity: 0; }
+
+.tile-avatar {
+  position: absolute; right: 0; top: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding-right: 16px; pointer-events: none; overflow: hidden;
+  width: 50%;
+}
+.tile-avatar img { height: 100%; width: 100%; object-fit: cover; object-position: center; opacity: 0.12; }
+.tile-avatar span { font-size: 80px; line-height: 1; opacity: 0.18; filter: drop-shadow(0 0 8px rgba(0,0,0,0.5)); }
 
 .submit-row {
   display: flex; align-items: center; justify-content: space-between;
@@ -147,7 +163,7 @@ function submit() {
 @media (orientation: landscape) and (max-height: 900px) {
   .cricket-board { padding: 4px 12px; gap: 4px; }
   .board-tile { min-height: 50px; padding: 0 16px; }
-  .target-label { font-size: 34px; width: 75px; }
+  .target-label { font-size: clamp(30px, 6dvh, 52px); width: clamp(80px, 10dvh, 110px); }
   .pips-wrap { gap: 10px; }
   .pip { width: 44px; height: 44px; border-width: 2px; }
   .hit-badge { font-size: 14px; width: 50px; }
@@ -159,7 +175,7 @@ function submit() {
 @media (max-width: 768px) {
   .cricket-board { padding: 5px 8px; gap: 5px; }
   .board-tile { padding: 0 12px; min-height: 56px; }
-  .target-label { font-size: 40px; width: 80px; }
+  .target-label { font-size: clamp(44px, 8dvh, 72px); width: clamp(90px, 12dvh, 130px); }
   .pips-wrap { gap: 12px; }
   .pip { width: 60px; height: 60px; border-width: 2px; }
   .hit-badge { font-size: 16px; width: 52px; }

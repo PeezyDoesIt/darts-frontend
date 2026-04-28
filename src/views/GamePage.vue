@@ -34,6 +34,7 @@
             :playerId="currentPlayer.id"
             :scores="game.scores"
             :isCutThroat="game.gameType === 'cutThroat'"
+            :avatarUrl="currentPlayer.avatarUrl"
             @submit="handleCricketSubmit"
           />
           <NumpadEntry
@@ -344,7 +345,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .sb-info { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .sb-name { font-size: 13px; font-weight: 800; font-family: var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.03em; }
 .sb-throwing { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
-.sb-score { font-size: 48px; font-weight: 900; font-family: var(--font-display); flex-shrink: 0; line-height: 1; }
+.sb-score { font-size: 36px; font-weight: 900; font-family: var(--font-display); flex-shrink: 0; line-height: 1; }
+.sb-player-row.active .sb-score { font-size: 72px; }
 .sb-footer {
   display: flex; gap: 8px; padding: 10px;
   padding-bottom: calc(10px + env(safe-area-inset-bottom));
@@ -439,7 +441,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .sb-info { align-items: center; }
   .sb-name { font-size: 11px; }
   .sb-throwing { display: none; }
-  .sb-score { font-size: 36px; }
+  .sb-score { font-size: 28px; }
+  .sb-player-row.active .sb-score { font-size: 56px; }
   .sb-footer { display: none; }
   .turn-header { padding: 10px 14px; padding-top: 10px; gap: 10px; }
   .turn-avatar { width: 40px; height: 40px; font-size: 20px; }
