@@ -5,26 +5,32 @@
       <!-- Entry panel -->
       <div class="entry-panel" :style="entryPanelStyle">
         <div class="turn-header" :style="{ '--player-color': currentPlayer.color }">
-          <div class="turn-avatar" :style="{ background: currentPlayer.color, boxShadow: `0 0 20px ${currentPlayer.color}99` }">
-            <img v-if="isPhoto(currentPlayer.avatarUrl)" :src="currentPlayer.avatarUrl!" alt="" />
-            <span v-else>{{ currentPlayer.avatarUrl ?? '🎯' }}</span>
+          <!-- Player box -->
+          <div class="turn-player-box">
+            <div class="turn-avatar" :style="{ background: currentPlayer.color, boxShadow: `0 0 20px ${currentPlayer.color}99` }">
+              <img v-if="isPhoto(currentPlayer.avatarUrl)" :src="currentPlayer.avatarUrl!" alt="" />
+              <span v-else>{{ currentPlayer.avatarUrl ?? '🎯' }}</span>
+            </div>
+            <div class="turn-player-info">
+              <span class="turn-name display" :style="{ color: currentPlayer.color, filter: `drop-shadow(0 0 12px ${currentPlayer.color}80)` }">{{ currentPlayer.name }}</span>
+              <span class="turn-label">THROWING NOW</span>
+            </div>
           </div>
-          <div class="turn-player-info">
-            <span class="turn-name display" :style="{ color: currentPlayer.color, filter: `drop-shadow(0 0 12px ${currentPlayer.color}80)` }">{{ currentPlayer.name }}</span>
-            <span class="turn-label">THROWING NOW</span>
-          </div>
-          <button v-ripple class="btn btn-sm btn-surface scores-btn" @click="showAllScores = !showAllScores">SCORES</button>
-        </div>
 
-        <div v-if="throwTimerDuration > 0" class="throw-timer-bar" @click="toggleThrowPause">
-          <div
-            class="throw-timer-fill"
-            :class="{ urgent: throwTimeLeft <= 10, paused: throwPaused }"
-            :style="{ width: `${(throwTimeLeft / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }"
-          />
-          <span class="throw-timer-text" :class="{ urgent: throwTimeLeft <= 10 }">
-            {{ throwPaused ? '⏸ PAUSED' : throwTimeLeft + 's' }}
-          </span>
+          <!-- Timer inline, expands to fill -->
+          <div v-if="throwTimerDuration > 0" class="throw-timer-bar" @click="toggleThrowPause">
+            <div
+              class="throw-timer-fill"
+              :class="{ urgent: throwTimeLeft <= 10, paused: throwPaused }"
+              :style="{ width: `${(throwTimeLeft / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }"
+            />
+            <span class="throw-timer-text" :class="{ urgent: throwTimeLeft <= 10 }">
+              {{ throwPaused ? '⏸ PAUSED' : throwTimeLeft + 's' }}
+            </span>
+          </div>
+          <div v-else class="throw-timer-spacer" />
+
+          <button v-ripple class="btn btn-sm btn-surface scores-btn" @click="showAllScores = !showAllScores">SCORES</button>
         </div>
 
         <div class="entry-body">
@@ -302,27 +308,37 @@ watch(() => game.value?.currentPlayerIndex, () => {
 /* Entry panel */
 .entry-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
 .turn-header {
-  display: flex; align-items: center; gap: 18px; padding: 16px 24px;
-  padding-top: calc(16px + env(safe-area-inset-top));
+  display: flex; align-items: stretch; gap: 0;
+  padding-top: env(safe-area-inset-top);
   flex-shrink: 0; background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255,255,255,0.06); position: relative;
+  border-bottom: 1px solid rgba(255,255,255,0.06); position: relative; min-height: 72px;
 }
-.turn-header::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--player-color, var(--pink)); box-shadow: 0 0 12px var(--player-color, var(--pink)); }
-.turn-avatar { width: 60px; height: 60px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 30px; border: 2px solid rgba(255,255,255,0.15); overflow: hidden; flex-shrink: 0; }
-.turn-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.turn-player-info { display: flex; flex-direction: row; align-items: center; gap: 16px; }
-.turn-label { font-size: 16px; font-weight: 800; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; }
-.turn-name { font-size: 48px; line-height: 1; letter-spacing: 0.05em; }
-.scores-btn { flex-shrink: 0; margin-left: auto; font-size: 14px; letter-spacing: 0.1em; padding: 10px 32px; }
-.entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.turn-header::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--player-color, var(--pink)); box-shadow: 0 0 12px var(--player-color, var(--pink)); z-index: 1; }
 
-/* Throw timer */
-.throw-timer-bar { position: relative; height: 48px; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; cursor: pointer; user-select: none; }
+/* Player identity box */
+.turn-player-box {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 20px 12px 24px;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+.turn-avatar { width: 54px; height: 54px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 28px; border: 2px solid rgba(255,255,255,0.15); overflow: hidden; flex-shrink: 0; }
+.turn-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.turn-player-info { display: flex; flex-direction: column; gap: 4px; }
+.turn-name { font-size: 36px; line-height: 1; letter-spacing: 0.05em; }
+.turn-label { font-size: 11px; font-weight: 800; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; }
+
+/* Timer — expands to fill remaining header space */
+.throw-timer-bar { flex: 1; position: relative; background: rgba(255,255,255,0.05); overflow: hidden; display: flex; align-items: center; cursor: pointer; user-select: none; border-right: 1px solid rgba(255,255,255,0.08); }
+.throw-timer-spacer { flex: 1; }
 .throw-timer-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--blue); transition: width 1s linear, background 0.3s; }
 .throw-timer-fill.urgent { background: var(--pink); }
 .throw-timer-fill.paused { background: var(--text-muted); }
-.throw-timer-text { position: relative; z-index: 1; font-size: 22px; font-weight: 800; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); padding: 0 10px; font-family: var(--font-display); }
+.throw-timer-text { position: relative; z-index: 1; font-size: 22px; font-weight: 800; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); padding: 0 16px; font-family: var(--font-display); }
 .throw-timer-text.urgent { color: #fff; }
+
+.scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; font-size: 14px; letter-spacing: 0.1em; padding: 12px 40px; }
+.entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
 /* Scores sidebar — always visible */
 .scores-sidebar {
@@ -428,9 +444,13 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .confirm-card .q-card-actions { padding: 12px 16px 16px; gap: 10px; }
 
 @media (orientation: landscape) and (max-height: 900px) {
-  .turn-header { padding: 6px 16px; padding-top: calc(6px + env(safe-area-inset-top)); gap: 12px; }
-  .turn-avatar { width: 40px; height: 40px; font-size: 20px; }
-  .turn-name { font-size: 22px; }
+  .turn-header { min-height: 52px; }
+  .turn-player-box { padding: 6px 14px 6px 18px; gap: 10px; }
+  .turn-avatar { width: 36px; height: 36px; font-size: 18px; }
+  .turn-name { font-size: 20px; }
+  .turn-label { font-size: 9px; }
+  .throw-timer-text { font-size: 16px; }
+  .scores-btn { padding: 8px 28px; font-size: 12px; margin: 0 10px; }
 }
 
 @media (max-width: 768px) {
@@ -449,13 +469,13 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .sb-score { font-size: 28px; }
   .sb-player-row.active .sb-score { font-size: 56px; }
   .sb-footer { display: none; }
-  .turn-header { padding: 6px 12px; padding-top: calc(6px + env(safe-area-inset-top)); gap: 8px; }
-  .turn-avatar { width: 36px; height: 36px; font-size: 18px; }
-  .turn-name { font-size: 26px; }
-  .turn-label { font-size: 11px; }
-  .scores-btn { margin-left: 6px; padding: 7px 20px; font-size: 12px; }
-  .throw-timer-bar { height: 32px; }
-  .throw-timer-text { font-size: 14px; }
+  .turn-header { min-height: 58px; }
+  .turn-player-box { padding: 8px 12px 8px 16px; gap: 8px; }
+  .turn-avatar { width: 38px; height: 38px; font-size: 18px; }
+  .turn-name { font-size: 22px; }
+  .turn-label { font-size: 9px; }
+  .throw-timer-text { font-size: 15px; padding: 0 10px; }
+  .scores-btn { padding: 8px 24px; font-size: 12px; margin: 0 10px; }
   .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
   .submit-btn { height: 46px; font-size: 16px; }
   .lb-player-row { padding: 8px 16px; }
