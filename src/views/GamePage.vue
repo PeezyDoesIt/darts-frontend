@@ -13,7 +13,6 @@
             </div>
             <div class="turn-player-info">
               <span class="turn-name display" :style="{ color: currentPlayer.color, filter: `drop-shadow(0 0 12px ${currentPlayer.color}80)` }">{{ currentPlayer.name }}</span>
-              <span class="turn-label">THROWING NOW</span>
             </div>
           </div>
 
@@ -325,8 +324,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .turn-avatar { width: 54px; height: 54px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 28px; border: 2px solid rgba(255,255,255,0.15); overflow: hidden; flex-shrink: 0; }
 .turn-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .turn-player-info { display: flex; flex-direction: column; gap: 4px; }
-.turn-name { font-size: 36px; line-height: 1; letter-spacing: 0.05em; }
-.turn-label { font-size: 11px; font-weight: 800; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; }
+.turn-name { font-size: 48px; line-height: 1; letter-spacing: 0.05em; font-weight: 900; }
 
 /* Timer — expands to fill remaining header space */
 .throw-timer-bar { flex: 1; position: relative; background: rgba(255,255,255,0.05); overflow: hidden; display: flex; align-items: center; cursor: pointer; user-select: none; border-right: 1px solid rgba(255,255,255,0.08); }
@@ -447,8 +445,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-header { min-height: 52px; }
   .turn-player-box { padding: 6px 14px 6px 18px; gap: 10px; }
   .turn-avatar { width: 36px; height: 36px; font-size: 18px; }
-  .turn-name { font-size: 20px; }
-  .turn-label { font-size: 9px; }
+  .turn-name { font-size: 26px; }
   .throw-timer-text { font-size: 16px; }
   .scores-btn { padding: 8px 28px; font-size: 12px; margin: 0 10px; }
 }
@@ -472,8 +469,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-header { min-height: 58px; }
   .turn-player-box { padding: 8px 12px 8px 16px; gap: 8px; }
   .turn-avatar { width: 38px; height: 38px; font-size: 18px; }
-  .turn-name { font-size: 22px; }
-  .turn-label { font-size: 9px; }
+  .turn-name { font-size: 30px; }
   .throw-timer-text { font-size: 15px; padding: 0 10px; }
   .scores-btn { padding: 8px 24px; font-size: 12px; margin: 0 10px; }
   .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
