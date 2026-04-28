@@ -49,7 +49,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { CRICKET_TARGETS, type CricketTarget, type PlayerScore } from '../types/index'
-import { playBullseye } from '../composables/useSounds'
 
 const props = defineProps<{
   playerId: string
@@ -116,7 +115,6 @@ function submit() {
   submitted.value = true
   const hits: Record<CricketTarget, number> = {} as Record<CricketTarget, number>
   for (const t of CRICKET_TARGETS) hits[t] = roundHits.value[t] ?? 0
-  if (hits['bull'] > 0) playBullseye()
   emit('submit', hits)
   roundHits.value = {}
 }

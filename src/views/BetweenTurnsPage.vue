@@ -57,6 +57,7 @@ import { ref, computed, onMounted, onUnmounted, type CSSProperties } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import { speak } from '../composables/useSpeech'
+import { playBullseye } from '../composables/useSounds'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -112,6 +113,10 @@ function playWhistle(): Promise<void> {
 }
 
 async function handleTurnAnnouncement() {
+  if (gameStore.lastTurnHadBull) {
+    await playBullseye()
+    await new Promise(r => setTimeout(r, 200))
+  }
   const nextLine = `${nextPlayer.value.name} — it's your turn.`
   if (gameStore.lastTurnWasTimeout) {
     const count = gameStore.playerTimeoutCounts[prevPlayer.value.id] ?? 0

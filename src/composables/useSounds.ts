@@ -1,4 +1,5 @@
-export function playBullseye(): void {
+export function playBullseye(): Promise<void> {
+  return new Promise(resolve => {
   const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
   if (!AudioCtx) return
   const ctx = new AudioCtx()
@@ -77,5 +78,6 @@ export function playBullseye(): void {
 
   lfo.start(now)
   lfo.stop(now + duration)
-  osc1.onended = () => ctx.close()
+  osc1.onended = () => { ctx.close(); resolve() }
+  })
 }
