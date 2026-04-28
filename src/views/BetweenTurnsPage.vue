@@ -143,7 +143,12 @@ onMounted(() => {
     timeLeft.value--
     if (timeLeft.value <= 30 && !showAlert.value) {
       showAlert.value = true
-      speak(`${nextPlayer.value.name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`)
+      const hurryCount = gameStore.playerHurryUpCounts[nextPlayer.value.id] ?? 0
+      gameStore.recordHurryUp(nextPlayer.value.id)
+      const line = hurryCount > 0
+        ? `${nextPlayer.value.name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`
+        : `${nextPlayer.value.name}. Hurry the fuck up. It's your turn.`
+      speak(line)
     }
   }, 1000)
 })

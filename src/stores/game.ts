@@ -61,7 +61,12 @@ export const useGameStore = defineStore('game', () => {
   const lastTurnWasZero = ref(false)
   const lastTurnWasTimeout = ref(false)
   const playerTimeoutCounts = ref<Record<string, number>>({})
+  const playerHurryUpCounts = ref<Record<string, number>>({})
   const _pendingTimeout = ref(false)
+
+  function recordHurryUp(playerId: string) {
+    playerHurryUpCounts.value[playerId] = (playerHurryUpCounts.value[playerId] ?? 0) + 1
+  }
 
   function recordTimeout(playerId: string) {
     playerTimeoutCounts.value[playerId] = (playerTimeoutCounts.value[playerId] ?? 0) + 1
@@ -70,6 +75,7 @@ export const useGameStore = defineStore('game', () => {
 
   function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, players: Player[]) {
     playerTimeoutCounts.value = {}
+    playerHurryUpCounts.value = {}
     lastTurnWasTimeout.value = false
     game.value = {
       id: uuid(),
@@ -240,7 +246,7 @@ export const useGameStore = defineStore('game', () => {
     saveGame(null)
   }
 
-  return { game, lastTurnWasZero, lastTurnWasTimeout, playerTimeoutCounts, recordTimeout, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, endGame }
+  return { game, lastTurnWasZero, lastTurnWasTimeout, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, endGame }
 })
 
 function checkCricketWin(game: ActiveGame): string | null {
