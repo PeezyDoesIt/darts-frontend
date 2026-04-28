@@ -2,6 +2,47 @@
   <div class="home">
     <div class="drip-bar" />
 
+    <!-- Settings Modal -->
+    <transition name="fade">
+      <div v-if="showSettings" class="settings-overlay" @click.self="showSettings = false">
+        <div class="settings-panel">
+          <div class="settings-header">
+            <span class="settings-title display">NARRATOR SETTINGS</span>
+            <button class="settings-close" @click="showSettings = false">✕</button>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-label">Voice Gender</div>
+            <div class="gender-toggle">
+              <button
+                :class="['gender-btn', { active: settingsStore.voiceGender === 'female' }]"
+                @click="settingsStore.setVoiceGender('female')"
+              >Female</button>
+              <button
+                :class="['gender-btn', { active: settingsStore.voiceGender === 'male' }]"
+                @click="settingsStore.setVoiceGender('male')"
+              >Male</button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-label">Accent</div>
+            <div v-if="availableAccents.length === 0" class="settings-muted">No voices loaded yet. Try again in a moment.</div>
+            <div v-else class="accent-list">
+              <button
+                v-for="acc in availableAccents"
+                :key="acc.value"
+                :class="['accent-btn', { active: settingsStore.voiceAccent === acc.value }]"
+                @click="settingsStore.setVoiceAccent(acc.value)"
+              >{{ acc.label }}</button>
+            </div>
+          </div>
+
+          <button v-ripple class="btn btn-outline test-btn" @click="testVoice">Test Voice</button>
+        </div>
+      </div>
+    </transition>
+
     <!-- Left: Branding -->
     <div class="home-left">
       <div class="brand">
@@ -21,6 +62,7 @@
           <button v-ripple class="btn btn-outline btn-lg" @click="router.push('/player-setup')">
             + Add Player
           </button>
+          <button v-ripple class="btn btn-outline btn-lg settings-gear-btn" @click="openSettings" title="Narrator Settings">⚙️</button>
         </div>
       </div>
 
@@ -75,13 +117,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
+import { useSettingsStore } from '../stores/settings'
+import { speak, getAvailableAccents } from '../composables/useSpeech'
 import type { Player } from '../types/index'
 
 const router = useRouter()
 const playersStore = usePlayersStore()
+const settingsStore = useSettingsStore()
 
 const topPlayers = computed(() =>
   [...playersStore.players].sort((a, b) => b.wins - a.wins).slice(0, 8)
@@ -95,6 +140,30 @@ function winRate(p: Player) {
 }
 function isPhoto(url: string | null) {
   return url?.startsWith('data:') || url?.startsWith('http')
+}
+
+const showSettings = ref(false)
+const availableAccents = ref<{ label: string; value: string }[]>([])
+
+function openSettings() {
+  availableAccents.value = getAvailableAccents()
+  if (availableAccents.value.length === 0) {
+    // Voices may not be loaded yet; wait and retry
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.onvoiceschanged = null
+      availableAccents.value = getAvailableAccents()
+    }
+    setTimeout(() => {
+      if (availableAccents.value.length === 0) {
+        availableAccents.value = getAvailableAccents()
+      }
+    }, 600)
+  }
+  showSettings.value = true
+}
+
+function testVoice() {
+  speak('Testing. One, two, three. Ready to play some darts?')
 }
 </script>
 
@@ -203,4 +272,50 @@ function isPhoto(url: string | null) {
   .home-right { padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); overflow: visible; }
   .lb-scroll { flex: none; height: auto; }
 }
+
+/* Settings */
+.settings-gear-btn { flex-shrink: 0; padding-left: 14px; padding-right: 14px; }
+
+.settings-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.settings-panel {
+  background: #111; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px;
+  padding: 28px; width: 100%; max-width: 480px;
+  display: flex; flex-direction: column; gap: 24px;
+}
+.settings-header { display: flex; align-items: center; justify-content: space-between; }
+.settings-title { font-size: 20px; letter-spacing: 0.15em; color: var(--pink); }
+.settings-close { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; padding: 4px 8px; }
+.settings-close:hover { color: #fff; }
+
+.settings-section { display: flex; flex-direction: column; gap: 10px; }
+.settings-label { font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); }
+.settings-muted { font-size: 13px; color: var(--text-muted); }
+
+.gender-toggle { display: flex; gap: 10px; }
+.gender-btn {
+  flex: 1; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted);
+  transition: all 0.15s;
+}
+.gender-btn.active { background: rgba(255,45,120,0.2); border-color: var(--pink); color: #fff; box-shadow: 0 0 16px rgba(255,45,120,0.3); }
+.gender-btn:hover:not(.active) { background: rgba(255,255,255,0.1); }
+
+.accent-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.accent-btn {
+  padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted);
+  transition: all 0.15s;
+}
+.accent-btn.active { background: rgba(255,45,120,0.2); border-color: var(--pink); color: #fff; }
+.accent-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
+
+.test-btn { align-self: flex-end; }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>
