@@ -1,5 +1,11 @@
 <template>
   <div class="cricket">
+    <!-- Single avatar watermark behind the whole board -->
+    <div class="board-avatar-bg" aria-hidden="true">
+      <img v-if="avatarUrl?.startsWith('data:') || avatarUrl?.startsWith('http')" :src="avatarUrl" alt="" />
+      <span v-else-if="avatarUrl">{{ avatarUrl }}</span>
+    </div>
+
     <div class="cricket-board-scroll">
       <div class="cricket-board">
         <button
@@ -24,12 +30,6 @@
           <span v-if="myClosed(target)" class="closed-badge">✓ CLOSED</span>
           <span v-else-if="(roundHits[target] ?? 0) > 0" class="hit-badge">+{{ roundHits[target] }}</span>
           <span v-else class="hit-badge invisible">+0</span>
-
-          <!-- Avatar watermark -->
-          <div class="tile-avatar" aria-hidden="true">
-            <img v-if="avatarUrl?.startsWith('data:') || avatarUrl?.startsWith('http')" :src="avatarUrl" alt="" />
-            <span v-else-if="avatarUrl">{{ avatarUrl }}</span>
-          </div>
         </button>
       </div>
     </div>
@@ -99,9 +99,9 @@ function submit() {
 </script>
 
 <style scoped>
-.cricket { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.cricket { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; position: relative; }
 
-.cricket-board-scroll { flex: 1; min-height: 0; overflow-y: auto; }
+.cricket-board-scroll { flex: 1; min-height: 0; overflow-y: auto; position: relative; z-index: 1; }
 
 .cricket-board {
   display: flex;
@@ -133,20 +133,19 @@ function submit() {
 .hit-badge { font-size: 22px; font-weight: 900; font-family: var(--font-display); color: var(--pink); width: 80px; text-align: right; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(255,45,120,0.6)); }
 .hit-badge.invisible { opacity: 0; }
 
-.tile-avatar {
-  position: absolute; right: 0; top: 0; bottom: 0;
-  display: flex; align-items: center; justify-content: flex-end;
-  padding-right: 16px; pointer-events: none; overflow: hidden;
-  width: 50%;
+.board-avatar-bg {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  pointer-events: none; overflow: hidden; z-index: 0;
 }
-.tile-avatar img { height: 100%; width: 100%; object-fit: cover; object-position: center; opacity: 0.12; }
-.tile-avatar span { font-size: 80px; line-height: 1; opacity: 0.18; filter: drop-shadow(0 0 8px rgba(0,0,0,0.5)); }
+.board-avatar-bg img { width: 70%; height: 70%; object-fit: contain; opacity: 0.08; }
+.board-avatar-bg span { font-size: 45dvh; line-height: 1; opacity: 0.1; filter: drop-shadow(0 0 24px rgba(0,0,0,0.6)); }
 
 .submit-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 20px; padding-bottom: calc(16px + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); flex-shrink: 0; gap: 16px;
+  position: relative; z-index: 1;
 }
 .round-summary { font-size: 14px; flex-shrink: 0; }
 .hits-text { color: var(--pink); font-weight: 700; }

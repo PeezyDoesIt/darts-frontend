@@ -53,8 +53,8 @@
         </div>
       </div>
 
-      <!-- Scores sidebar (always visible) -->
-      <div class="scores-sidebar">
+      <!-- Scores sidebar (hidden — use SCORES button overlay instead) -->
+      <div class="scores-sidebar" style="display:none">
         <div class="sb-game-info">
           <span class="sb-game-type">{{ GAME_TYPE_LABELS[game.gameType] }}</span>
           <span class="sb-round">Round {{ game.round }}</span>
@@ -366,6 +366,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   border-bottom: 1px solid rgba(255,255,255,0.06);
   background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0;
 }
+.lb-header .btn { padding: 8px 28px; font-size: 14px; }
 .game-type-badge { font-size: 15px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); font-family: var(--font-display); }
 .round-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
 .lb-players-scroll { flex: 1; min-height: 0; overflow-y: auto; }

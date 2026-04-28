@@ -200,6 +200,16 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   font-size: 180px; line-height: 1; opacity: 0.15; pointer-events: none; user-select: none; z-index: 1;
 }
 
+@media (orientation: landscape) and (max-height: 900px) {
+  .between-inner { flex-direction: row; flex-wrap: wrap; padding: 16px 32px; gap: 16px; align-content: center; justify-content: center; }
+  .up-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+  .your-turn-label { font-size: 16px; }
+  .next-name, .alert-name { font-size: 52px; }
+  .timer-wrap, .timer-ring { width: 180px; height: 180px; }
+  .timer-count { font-size: 64px; }
+  .btn-ready { font-size: 16px; padding: 14px 0; max-width: 360px; }
+}
+
 @media (max-width: 768px) {
   .between-inner { padding: 24px 20px; }
   .your-turn-label { font-size: 20px; }
