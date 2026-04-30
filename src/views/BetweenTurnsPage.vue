@@ -191,10 +191,10 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .alert-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .alert-name { font-size: 80px; letter-spacing: 0.04em; line-height: 1; }
 
-.timer-wrap { position: relative; width: 320px; height: 320px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+.timer-wrap { position: relative; width: 420px; height: 420px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
 .timer-wrap:active { transform: scale(0.95); }
-.timer-ring { width: 320px; height: 320px; }
-.timer-count { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 110px; color: #fff; transition: color 0.3s; }
+.timer-ring { width: 420px; height: 420px; }
+.timer-count { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 160px; color: #fff; transition: color 0.3s; }
 
 .btn-ready {
   padding: 22px 0; font-size: 22px; font-weight: 900; border-radius: 6px; width: 100%; max-width: 480px;
@@ -231,8 +231,8 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .next-name, .alert-name { font-size: 52px; }
   .next-avatar { width: 80px; height: 80px; font-size: 40px; }
   .alert-avatar { width: 80px; height: 80px; font-size: 40px; }
-  .timer-wrap, .timer-ring { width: 180px; height: 180px; }
-  .timer-count { font-size: 64px; }
+  .timer-wrap, .timer-ring { width: 220px; height: 220px; }
+  .timer-count { font-size: 80px; }
   .btn-ready { font-size: 16px; padding: 14px 0; max-width: 360px; }
 }
 
@@ -240,8 +240,8 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .between-inner { padding: 24px 20px; }
   .your-turn-label { font-size: 20px; }
   .next-name, .alert-name { font-size: 72px; }
-  .timer-wrap, .timer-ring { width: 240px; height: 240px; }
-  .timer-count { font-size: 84px; }
+  .timer-wrap, .timer-ring { width: 320px; height: 320px; }
+  .timer-count { font-size: 120px; }
   .btn-ready { font-size: 18px; padding: 18px 0; }
 }
 </style>
