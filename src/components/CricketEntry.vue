@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { CRICKET_TARGETS, type CricketTarget, type PlayerScore } from '../types/index'
+import { CRICKET_TARGETS, PLAYER_THEMES, type CricketTarget, type PlayerScore } from '../types/index'
 
 const props = defineProps<{
   playerId: string
@@ -56,7 +56,14 @@ const props = defineProps<{
   isCutThroat: boolean
   avatarUrl?: string | null
   playerColor?: string
+  playerBackground?: string | null
 }>()
+
+const WHITE_LABEL_THEMES = new Set<string | null>(
+  PLAYER_THEMES
+    .filter(t => t.label === 'Magma' || t.label === 'Steel' || t.label === 'Obsidian')
+    .map(t => t.value as string | null)
+)
 
 function complementaryColor(hex: string): string {
   if (!hex.startsWith('#') || hex.length < 7) return hex
@@ -77,7 +84,10 @@ function complementaryColor(hex: string): string {
   return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`
 }
 
-const targetColor = computed(() => props.playerColor ? complementaryColor(props.playerColor) : 'var(--pink)')
+const targetColor = computed(() => {
+  if (props.playerBackground && WHITE_LABEL_THEMES.has(props.playerBackground)) return '#ffffff'
+  return props.playerColor ? complementaryColor(props.playerColor) : 'var(--pink)'
+})
 
 const emit = defineEmits<{
   submit: [hits: Record<CricketTarget, number>]

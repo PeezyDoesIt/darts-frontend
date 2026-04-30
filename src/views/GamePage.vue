@@ -41,6 +41,7 @@
             :isCutThroat="game.gameType === 'cutThroat'"
             :avatarUrl="currentPlayer.avatarUrl"
             :playerColor="currentPlayer.color"
+            :playerBackground="currentPlayer.playerBackground"
             @submit="handleCricketSubmit"
           />
           <NumpadEntry
