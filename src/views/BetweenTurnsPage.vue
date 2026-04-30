@@ -2,9 +2,10 @@
   <div class="between" :style="betweenStyle">
     <div class="drip-bar" style="position:absolute;top:0;left:0;right:0" />
 
-    <!-- Emoji watermark bottom-left -->
-    <div v-if="nextPlayer.avatarUrl && !isPhoto(nextPlayer.avatarUrl)" class="between-emoji-bg" aria-hidden="true">
-      {{ nextPlayer.avatarUrl }}
+    <!-- Avatar watermark bottom-right -->
+    <div class="between-avatar-bg" aria-hidden="true">
+      <img v-if="isPhoto(nextPlayer.avatarUrl)" :src="nextPlayer.avatarUrl!" alt="" />
+      <span v-else-if="nextPlayer.avatarUrl">{{ nextPlayer.avatarUrl }}</span>
     </div>
 
     <div class="between-inner">
@@ -208,9 +209,19 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .swap-enter-from { opacity: 0; transform: scale(0.94); }
 .swap-leave-to { opacity: 0; transform: scale(1.04); }
 
-.between-emoji-bg {
-  position: absolute; bottom: calc(24px + env(safe-area-inset-bottom)); left: 24px;
-  font-size: 180px; line-height: 1; opacity: 0.15; pointer-events: none; user-select: none; z-index: 1;
+.between-avatar-bg {
+  position: absolute; bottom: calc(0px + env(safe-area-inset-bottom)); right: 0;
+  width: 55vmin; height: 55vmin;
+  pointer-events: none; user-select: none; z-index: 1;
+  display: flex; align-items: flex-end; justify-content: flex-end;
+}
+.between-avatar-bg img {
+  width: 100%; height: 100%; object-fit: cover; object-position: center top;
+  opacity: 0.25; border-radius: 12px 0 0 0;
+}
+.between-avatar-bg span {
+  font-size: 45vmin; line-height: 1; opacity: 0.22;
+  filter: drop-shadow(0 0 32px rgba(0,0,0,0.5));
 }
 
 @media (orientation: landscape) and (max-height: 900px) {
