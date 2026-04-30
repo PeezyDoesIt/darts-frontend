@@ -55,6 +55,23 @@
           </div>
 
           <div class="field">
+            <label class="label">Turn Transition</label>
+            <p class="field-hint">Plays when this player ends their turn</p>
+            <div class="fx-selected-label">
+              Selected: <strong>{{ TRANSITION_EFFECTS.find(f => f.value === transitionEffect)?.label ?? 'None' }}</strong>
+            </div>
+            <div class="fx-grid">
+              <button
+                v-for="fx in TRANSITION_EFFECTS" :key="String(fx.value)"
+                v-ripple
+                class="fx-btn"
+                :class="{ active: transitionEffect === (fx.value ?? null) }"
+                @click="selectTransition(fx.value ?? null)"
+              >{{ fx.label }}</button>
+            </div>
+          </div>
+
+          <div class="field">
             <label class="label">Avatar</label>
             <div class="avatar-tabs">
               <button v-ripple class="tab" :class="{ active: avatarMode === 'emoji' }" @click="avatarMode = 'emoji'">Emoji</button>
@@ -148,7 +165,7 @@ import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
-import { PRESET_AVATARS, PLAYER_THEMES, type Player } from '../types/index'
+import { PRESET_AVATARS, PLAYER_THEMES, TRANSITION_EFFECTS, type Player } from '../types/index'
 
 const router = useRouter()
 const route = useRoute()
@@ -179,6 +196,9 @@ function doDelete() {
 const bgMode = ref<'theme' | 'image'>('theme')
 const playerBackground = ref<string | null>(null)
 const bgImagePreview = ref<string | null>(null)
+const transitionEffect = ref<string | null>(null)
+
+function selectTransition(val: string | null) { transitionEffect.value = val }
 
 const bgPreviewStyle = computed(() => {
   if (bgImagePreview.value) return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: 'cover', backgroundPosition: 'center' }
@@ -226,7 +246,7 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
-  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'
+  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; transitionEffect.value = null
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
@@ -235,26 +255,28 @@ function loadPlayer(p: Player) {
   playerBackground.value = p.playerBackground ?? null
   if (p.playerBackground?.startsWith('data:')) { bgMode.value = 'image'; bgImagePreview.value = p.playerBackground }
   else { bgMode.value = 'theme'; bgImagePreview.value = null }
+  transitionEffect.value = p.transitionEffect ?? null
 }
 function save() {
   if (!name.value.trim()) return
   const finalAvatar = avatarMode.value === 'photo' ? (photoPreview.value ?? PRESET_AVATARS[0]!) : avatarUrl.value
   const bg = playerBackground.value
+  const fx = transitionEffect.value
   if (editingId.value) {
-    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg })
+    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, transitionEffect: fx })
     editingId.value = null
   } else {
-    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, transitionEffect: fx })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
       name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
-      photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null
+      photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; transitionEffect.value = null
       router.push('/game')
       return
     }
   }
   name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
-  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null
+  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; transitionEffect.value = null
   router.back()
 }
 </script>
@@ -290,6 +312,19 @@ function save() {
 .theme-check { position: absolute; top: 4px; right: 5px; font-size: 11px; color: #fff; font-weight: 900; }
 .theme-label { font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.8); text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
 .bg-preview { width: 80px; height: 80px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+
+.field-hint { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.4; }
+.fx-selected-label { font-size: 12px; color: var(--text-muted); }
+.fx-selected-label strong { color: var(--blue); }
+.fx-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.fx-btn {
+  padding: 8px 16px; border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
+  color: var(--text-muted); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+  position: relative; overflow: hidden;
+}
+.fx-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+.fx-btn.active { border-color: var(--blue); color: var(--blue); background: rgba(0,212,255,0.1); box-shadow: 0 0 10px rgba(0,212,255,0.2); }
 
 .emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .emoji-btn { width: 50px; height: 50px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-size: 24px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; }

@@ -7,13 +7,14 @@
     </div>
 
     <div class="cricket-board-scroll">
-      <div class="cricket-board">
+      <TransitionGroup tag="div" name="tile-vanish" class="cricket-board">
         <button
           v-for="target in CRICKET_TARGETS"
           :key="target"
+          v-show="!hideClosedTargets || !myClosed(target)"
           v-ripple
           class="board-tile"
-          :class="{ closed: myClosed(target), active: (roundHits[target] ?? 0) > 0 }"
+          :class="{ closed: myClosed(target) && !hideClosedTargets, active: (roundHits[target] ?? 0) > 0 }"
           :disabled="myClosed(target)"
           @click="handleTileClick(target)"
         >
@@ -31,17 +32,14 @@
           <span v-else-if="(roundHits[target] ?? 0) > 0" class="hit-badge">+{{ roundHits[target] }}</span>
           <span v-else class="hit-badge invisible">+0</span>
         </button>
-      </div>
+      </TransitionGroup>
     </div>
 
     <div class="submit-row">
-      <div class="round-summary">
-        <span v-if="totalHitsThisRound > 0" class="hits-text">
-          {{ totalHitsThisRound }} hit{{ totalHitsThisRound !== 1 ? 's' : '' }} this round
-        </span>
-        <span v-else class="muted">Tap a number to mark a hit</span>
-      </div>
-      <button v-ripple class="submit-btn" @click="submit" :disabled="submitted">SUBMIT TURN</button>
+      <span v-if="totalHitsThisRound > 0" class="hits-text">
+        {{ totalHitsThisRound }} hit{{ totalHitsThisRound !== 1 ? 's' : '' }} this round
+      </span>
+      <span v-else class="muted">Round {{ round }}</span>
     </div>
   </div>
 </template>
@@ -54,6 +52,8 @@ const props = defineProps<{
   playerId: string
   scores: Record<string, PlayerScore>
   isCutThroat: boolean
+  round: number
+  hideClosedTargets?: boolean
   avatarUrl?: string | null
   playerColor?: string
   playerBackground?: string | null
@@ -128,6 +128,8 @@ function submit() {
   emit('submit', hits)
   roundHits.value = {}
 }
+
+defineExpose({ submit, submitted })
 </script>
 
 <style scoped>
@@ -140,8 +142,22 @@ function submit() {
   flex-direction: column;
   padding: 6px 16px;
   gap: 10px;
-  /* Make tiles fill the available height by stretching */
   min-height: 100%;
+}
+
+/* Hide-closed-targets animation */
+.tile-vanish-leave-active {
+  transition: opacity 0.4s ease, transform 0.4s ease, flex 0.4s ease, min-height 0.4s ease, padding 0.4s ease, margin 0.4s ease;
+  overflow: hidden;
+}
+.tile-vanish-leave-to {
+  opacity: 0;
+  transform: scale(0.7);
+  flex: 0 !important;
+  min-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
 }
 
 .board-tile {
@@ -192,14 +208,16 @@ function submit() {
 .submit-btn:active { transform: scale(0.97); opacity: 0.9; }
 
 @media (orientation: landscape) and (max-height: 900px) {
-  .cricket-board { padding: 4px 12px; gap: 4px; }
-  .board-tile { min-height: 50px; padding: 4px 16px; }
-  .target-label { font-size: clamp(44px, 9dvh, 90px); width: clamp(100px, 14dvh, 160px); }
-  .pips-wrap { gap: 12px; }
-  .hit-badge { font-size: 18px; width: 60px; }
-  .closed-badge { width: 60px; font-size: 10px; }
-  .submit-row { padding: 6px 16px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
-  .submit-btn { height: 44px; font-size: 16px; }
+  .cricket-board-scroll { overflow: hidden; display: flex; flex-direction: column; }
+  .cricket-board { flex: 1; height: 100%; min-height: 0; padding: 3px 12px; gap: 3px; }
+  .board-tile { min-height: 0; padding: 2px 14px; }
+  .target-label { font-size: clamp(28px, 6dvh, 60px); width: clamp(70px, 10dvh, 120px); }
+  .pips-wrap { gap: 8px; padding: 6px 0; }
+  .pip { border-radius: 6px; border-width: 2px; }
+  .hit-badge { font-size: 16px; width: 52px; }
+  .closed-badge { width: 52px; font-size: 9px; }
+  .submit-row { padding: 4px 16px; padding-bottom: calc(4px + env(safe-area-inset-bottom)); }
+  .submit-btn { height: 36px; font-size: 14px; }
 }
 
 @media (max-width: 768px) {

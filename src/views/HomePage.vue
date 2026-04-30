@@ -28,6 +28,19 @@
           </div>
 
           <button v-ripple class="btn btn-outline test-btn" @click="testVoice">Test Voice</button>
+
+          <div class="settings-section">
+            <div class="settings-label">Narrator Style</div>
+            <div class="toggle-row" @click="settingsStore.setQuietNarrator(!settingsStore.quietNarrator)">
+              <div class="toggle-track" :class="{ active: settingsStore.quietNarrator }">
+                <div class="toggle-thumb" />
+              </div>
+              <div class="toggle-info">
+                <span class="toggle-title">Quiet Mode</span>
+                <span class="toggle-sub">Only announces whose turn it is — no commentary</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </transition>
@@ -295,6 +308,30 @@ function testVoice() {
 .voice-btn-sub { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.4); flex-shrink: 0; }
 
 .test-btn { align-self: flex-end; }
+
+.toggle-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 14px; border-radius: 8px; cursor: pointer;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  transition: background 0.15s;
+  user-select: none;
+}
+.toggle-row:hover { background: rgba(255,255,255,0.08); }
+.toggle-track {
+  width: 44px; height: 24px; border-radius: 12px; flex-shrink: 0;
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+  position: relative; transition: background 0.2s;
+}
+.toggle-track.active { background: var(--pink); border-color: var(--pink); }
+.toggle-thumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 16px; height: 16px; border-radius: 50%; background: #fff;
+  transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.toggle-track.active .toggle-thumb { transform: translateX(20px); }
+.toggle-info { display: flex; flex-direction: column; gap: 2px; }
+.toggle-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.toggle-sub { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }

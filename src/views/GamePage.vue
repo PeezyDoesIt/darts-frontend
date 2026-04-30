@@ -12,7 +12,7 @@
               <span v-else>{{ currentPlayer.avatarUrl ?? '🎯' }}</span>
             </div>
             <div class="turn-player-info">
-              <span class="turn-name display" :style="{ color: currentPlayer.color, filter: `drop-shadow(0 0 12px ${currentPlayer.color}80)` }">{{ currentPlayer.name }}</span>
+              <span class="turn-name display" :style="{ color: currentPlayerNameColor, filter: `drop-shadow(0 0 12px ${currentPlayer.color}80)` }">{{ currentPlayer.name }}</span>
             </div>
           </div>
 
@@ -29,16 +29,26 @@
           </div>
           <div v-else class="throw-timer-spacer" />
 
+          <button
+            v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'"
+            v-ripple
+            class="btn btn-sm btn-gold submit-header-btn"
+            :disabled="cricketEntryRef?.submitted"
+            @click="cricketEntryRef?.submit()"
+          >SUBMIT TURN</button>
           <button v-ripple class="btn btn-sm btn-surface scores-btn" @click="showAllScores = !showAllScores">SCORES</button>
         </div>
 
         <div class="entry-body">
           <CricketEntry
             v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'"
+            ref="cricketEntryRef"
             :key="currentPlayer.id"
             :playerId="currentPlayer.id"
             :scores="game.scores"
             :isCutThroat="game.gameType === 'cutThroat'"
+            :round="game.round"
+            :hideClosedTargets="game.hideClosedTargets"
             :avatarUrl="currentPlayer.avatarUrl"
             :playerColor="currentPlayer.color"
             :playerBackground="currentPlayer.playerBackground"
@@ -90,6 +100,17 @@
           <button v-ripple class="btn btn-sm btn-danger" @click="confirmQuit = true">Quit</button>
         </div>
       </div>
+
+      <!-- Score reveal overlay — oh-one games -->
+      <Transition name="score-reveal">
+        <div v-if="showScoreReveal && revealData" class="score-reveal-overlay">
+          <div class="reveal-label">REMAINING</div>
+          <div class="reveal-number" :style="{ color: revealData.playerColor, filter: `drop-shadow(0 0 40px ${revealData.playerColor}80)` }">
+            {{ revealData.remaining }}
+          </div>
+          <div v-if="revealData.isBust" class="reveal-bust-tag">BUST</div>
+        </div>
+      </Transition>
     </div>
 
     <!-- Fullscreen scores overlay -->
@@ -99,7 +120,17 @@
           <div class="game-type-badge">{{ GAME_TYPE_LABELS[game.gameType] }}</div>
           <div class="round-label">Round {{ game.round }}</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+          <div
+            v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'"
+            class="hide-targets-toggle"
+            @click="gameStore.setHideClosedTargets(!game.hideClosedTargets)"
+          >
+            <div class="htt-track" :class="{ active: game.hideClosedTargets }">
+              <div class="htt-thumb" />
+            </div>
+            <span class="htt-label">Hide closed</span>
+          </div>
           <button v-ripple class="btn btn-sm btn-surface" @click="showAddPlayer = !showAddPlayer">+ Add</button>
           <button v-ripple class="btn btn-sm btn-surface" @click="showAllScores = false">✕</button>
           <button v-ripple class="btn btn-sm btn-danger" @click="confirmQuit = true">Quit</button>
@@ -190,7 +221,13 @@ import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
-import { GAME_TYPE_LABELS, CRICKET_TARGETS, type PlayerScore, type CricketTarget } from '../types/index'
+import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore, type CricketTarget } from '../types/index'
+
+const WHITE_LABEL_THEMES = new Set<string | null>(
+  PLAYER_THEMES
+    .filter(t => ['Magma', 'Steel', 'Obsidian', 'Blood', 'Oil Slick', 'Midnight'].includes(t.label))
+    .map(t => t.value as string | null)
+)
 import CricketEntry from '../components/CricketEntry.vue'
 import NumpadEntry from '../components/NumpadEntry.vue'
 import SimpleEntry from '../components/SimpleEntry.vue'
@@ -204,6 +241,7 @@ const game = computed(() => gameStore.game)
 const confirmQuit = ref(false)
 const showAllScores = ref(false)
 const showAddPlayer = ref(false)
+const cricketEntryRef = ref<InstanceType<typeof CricketEntry> | null>(null)
 
 const availablePlayers = computed(() =>
   playersStore.players.filter(p => !game.value?.players.some(gp => gp.id === p.id))
@@ -257,7 +295,45 @@ function displayScore(playerId: string): string {
   return '—'
 }
 function handleCricketSubmit(marks: CricketHits) { gameStore.submitScore(currentPlayer.value.id, marks as Record<CricketTarget, number>) }
-function handleNumpadSubmit(score: number) { gameStore.submitScore(currentPlayer.value.id, score) }
+
+// Score reveal (oh-one games)
+const showScoreReveal = ref(false)
+const revealData = ref<{ remaining: number; playerColor: string; isBust: boolean } | null>(null)
+let pendingRevealNavigation = false
+let revealTimeout: ReturnType<typeof setTimeout> | null = null
+
+function handleNumpadSubmit(score: number) {
+  const isOhOne = ['301','501','701','1001'].includes(game.value?.gameType ?? '')
+  if (!isOhOne) { gameStore.submitScore(currentPlayer.value.id, score); return }
+
+  // Capture state before submission changes the active player
+  const player = currentPlayer.value
+  const currentScore = game.value?.scores[player.id]
+  const currentRemaining = currentScore?.kind === 'ohOne' ? currentScore.data.remaining : 0
+  const newRemaining = currentRemaining - score
+  const isBust = newRemaining < 0
+
+  pendingRevealNavigation = true
+  gameStore.submitScore(player.id, score)
+
+  // Checkout — go straight to win screen
+  if (game.value?.status === 'finished') {
+    pendingRevealNavigation = false
+    router.push('/win')
+    return
+  }
+
+  revealData.value = { remaining: isBust ? currentRemaining : Math.max(0, newRemaining), playerColor: player.color, isBust }
+  showScoreReveal.value = true
+
+  if (revealTimeout) clearTimeout(revealTimeout)
+  revealTimeout = setTimeout(() => {
+    showScoreReveal.value = false
+    pendingRevealNavigation = false
+    router.push('/between')
+  }, 4000)
+}
+
 function quitGame() { gameStore.endGame(); router.push('/') }
 
 // Throw timer
@@ -287,9 +363,14 @@ function startThrowTimer() {
 }
 
 const entryPanelStyle = computed(() => {
-  const bg = currentPlayer.value.playerBackground
+  const bg = game.value?.gameTheme ?? currentPlayer.value.playerBackground
   if (!bg || bg.startsWith('data:') || bg.startsWith('http')) return {}
   return { background: bg }
+})
+
+const currentPlayerNameColor = computed(() => {
+  const bg = game.value?.gameTheme ?? currentPlayer.value.playerBackground
+  return WHITE_LABEL_THEMES.has(bg ?? null) ? '#ffffff' : currentPlayer.value.color
 })
 
 function scrollActivePlayerIntoView() {
@@ -303,11 +384,14 @@ onMounted(() => {
   if (game.value?.status === 'playing') startThrowTimer()
   scrollActivePlayerIntoView()
 })
-onUnmounted(() => clearThrowTimer())
+onUnmounted(() => {
+  clearThrowTimer()
+  if (revealTimeout) clearTimeout(revealTimeout)
+})
 
 watch(() => game.value?.status, (status) => {
-  if (status === 'between_turns') { clearThrowTimer(); router.push('/between') }
-  if (status === 'finished') { clearThrowTimer(); router.push('/win') }
+  if (status === 'between_turns') { clearThrowTimer(); if (!pendingRevealNavigation) router.push('/between') }
+  if (status === 'finished') { clearThrowTimer(); if (!pendingRevealNavigation) router.push('/win') }
   if (status === 'playing') startThrowTimer()
 })
 watch(() => game.value?.currentPlayerIndex, () => {
@@ -351,6 +435,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .throw-timer-text { position: relative; z-index: 1; font-size: 22px; font-weight: 800; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); padding: 0 16px; font-family: var(--font-display); }
 .throw-timer-text.urgent { color: #fff; }
 
+.submit-header-btn { flex-shrink: 0; align-self: center; margin-left: 16px; font-size: 14px; letter-spacing: 0.1em; padding: 12px 28px; }
+.submit-header-btn:disabled { opacity: 0.4; }
 .scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; font-size: 14px; letter-spacing: 0.1em; padding: 12px 40px; }
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
@@ -453,6 +539,49 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .add-player-name { flex: 1; font-size: 18px; font-weight: 800; font-family: var(--font-display); color: #fff; letter-spacing: 0.03em; }
 .add-player-cta { font-size: 13px; font-weight: 700; color: var(--pink); letter-spacing: 0.08em; flex-shrink: 0; }
 
+/* Hide-closed-targets toggle in scores overlay */
+.hide-targets-toggle {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1); user-select: none; transition: background 0.15s;
+}
+.hide-targets-toggle:hover { background: rgba(255,255,255,0.1); }
+.htt-track {
+  width: 34px; height: 18px; border-radius: 9px; flex-shrink: 0;
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+  position: relative; transition: background 0.2s;
+}
+.htt-track.active { background: var(--pink); border-color: var(--pink); }
+.htt-thumb {
+  position: absolute; top: 2px; left: 2px; width: 12px; height: 12px;
+  border-radius: 50%; background: #fff; transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+.htt-track.active .htt-thumb { transform: translateX(16px); }
+.htt-label { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); white-space: nowrap; letter-spacing: 0.04em; }
+
+/* Score reveal overlay */
+.score-reveal-overlay {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  background: rgba(0,0,0,0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.reveal-label {
+  font-size: 13px; font-weight: 800; letter-spacing: 0.35em; text-transform: uppercase;
+  color: rgba(255,255,255,0.45); font-family: var(--font-display);
+}
+.reveal-number {
+  font-size: clamp(100px, 22dvh, 200px); font-family: var(--font-display);
+  font-weight: 900; line-height: 1; letter-spacing: 0.02em;
+}
+.reveal-bust-tag {
+  font-size: 22px; font-weight: 900; letter-spacing: 0.2em; color: #ef4444;
+  background: rgba(239,68,68,0.15); border: 2px solid rgba(239,68,68,0.4);
+  border-radius: 6px; padding: 6px 18px; font-family: var(--font-display);
+}
+.score-reveal-enter-active, .score-reveal-leave-active { transition: opacity 0.25s; }
+.score-reveal-enter-from, .score-reveal-leave-to { opacity: 0; }
+
 /* Misc */
 .no-game { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; width: 100vw; height: 100dvh; }
 .confirm-card { background: #1a1a1a; min-width: 300px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; }
@@ -464,6 +593,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-avatar { width: 36px; height: 36px; font-size: 18px; }
   .turn-name { font-size: 26px; }
   .throw-timer-text { font-size: 16px; }
+  .submit-header-btn { padding: 8px 18px; font-size: 12px; margin-left: 10px; }
   .scores-btn { padding: 8px 28px; font-size: 12px; margin: 0 10px; }
 }
 
@@ -488,6 +618,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-avatar { width: 38px; height: 38px; font-size: 18px; }
   .turn-name { font-size: 30px; }
   .throw-timer-text { font-size: 15px; padding: 0 10px; }
+  .submit-header-btn { padding: 8px 14px; font-size: 12px; margin-left: 8px; }
   .scores-btn { padding: 8px 24px; font-size: 12px; margin: 0 10px; }
   .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
   .submit-btn { height: 46px; font-size: 16px; }

@@ -26,6 +26,19 @@
             </div>
           </section>
 
+          <section v-if="selectedGameType === 'cricket' || selectedGameType === 'cutThroat'" class="ng-section">
+            <span class="label">Cricket Options</span>
+            <div class="toggle-row" @click="hideClosedTargets = !hideClosedTargets">
+              <div class="toggle-track" :class="{ active: hideClosedTargets }">
+                <div class="toggle-thumb" />
+              </div>
+              <div class="toggle-info">
+                <span class="toggle-title">Hide Closed Targets</span>
+                <span class="toggle-sub">Targets disappear from the board once closed</span>
+              </div>
+            </div>
+          </section>
+
           <section class="ng-section">
             <span class="label">Walk-up Timer</span>
             <p class="hint">Seconds the next player has to walk up before the alert fires</p>
@@ -62,6 +75,25 @@
               />
               <span class="hint">seconds (0 = off)</span>
             </div>
+          </section>
+
+          <section class="ng-section">
+            <span class="label">Scoring Screen Theme</span>
+            <p class="hint">Shared background for all players during their throw. Overrides individual player themes.</p>
+            <div class="theme-swatch-grid">
+              <button
+                v-for="t in PLAYER_THEMES"
+                :key="String(t.value)"
+                class="theme-swatch"
+                :class="{ active: gameTheme === t.value, none: !t.value }"
+                :style="t.value ? { background: t.value } : {}"
+                :title="t.label"
+                @click="selectGameTheme(t.value as string | null)"
+              >
+                <span v-if="!t.value" class="swatch-none-icon">✕</span>
+              </button>
+            </div>
+            <span v-if="gameTheme" class="selected-theme-name">{{ PLAYER_THEMES.find(t => t.value === gameTheme)?.label }}</span>
           </section>
         </div>
       </div>
@@ -132,7 +164,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
-import { GAME_TYPE_LABELS, type GameType, type Player } from '../types/index'
+import { GAME_TYPE_LABELS, PLAYER_THEMES, type GameType, type Player } from '../types/index'
 
 const router = useRouter()
 const playersStore = usePlayersStore()
@@ -143,7 +175,11 @@ const timerDuration = ref(30)
 const timerOptions = [15, 20, 30, 45, 60]
 const throwTimerDuration = ref(0)
 const throwTimerOptions = [0, 30, 45, 60, 90, 120]
+const hideClosedTargets = ref(false)
+const gameTheme = ref<string | null>(null)
 const selectedPlayers = ref<Player[]>([])
+
+function selectGameTheme(val: string | null) { gameTheme.value = val }
 
 function isSelected(id: string) { return selectedPlayers.value.some(p => p.id === id) }
 function isPhoto(url: string | null) { return url?.startsWith('data:') || url?.startsWith('http') }
@@ -163,7 +199,7 @@ function moveDown(i: number) {
 }
 function startGame() {
   if (selectedPlayers.value.length < 2 || !selectedGameType.value) return
-  gameStore.startGame(selectedGameType.value, timerDuration.value, throwTimerDuration.value, selectedPlayers.value)
+  gameStore.startGame(selectedGameType.value, timerDuration.value, throwTimerDuration.value, hideClosedTargets.value, gameTheme.value, selectedPlayers.value)
   router.push('/game')
 }
 </script>
@@ -237,12 +273,50 @@ function startGame() {
 .tile-stats { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 .tile-check { width: 28px; height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: #000; border: 2px solid rgba(255,255,255,0.1); transition: all 0.15s; font-family: var(--font-display); }
 
+.ng-section .label, .players-header .label, .order-section .label { color: #ffffff; }
+
+.toggle-row {
+  display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 8px;
+  cursor: pointer; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  transition: background 0.15s; user-select: none;
+}
+.toggle-row:hover { background: rgba(255,255,255,0.08); }
+.toggle-track {
+  width: 44px; height: 24px; border-radius: 12px; flex-shrink: 0;
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+  position: relative; transition: background 0.2s;
+}
+.toggle-track.active { background: var(--pink); border-color: var(--pink); }
+.toggle-thumb {
+  position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+  border-radius: 50%; background: #fff; transition: transform 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.toggle-track.active .toggle-thumb { transform: translateX(20px); }
+.toggle-info { display: flex; flex-direction: column; gap: 2px; }
+.toggle-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.toggle-sub { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+
 .order-section { flex-shrink: 0; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 18px; }
 .order-list { display: flex; flex-direction: column; gap: 8px; }
 .order-row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid rgba(255,255,255,0.1); border-radius: 4px; }
 .order-num { font-size: 28px; font-family: var(--font-display); width: 28px; text-align: center; }
 .order-name { flex: 1; font-size: 16px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; }
 .order-btns { display: flex; gap: 6px; }
+
+.theme-swatch-grid {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.theme-swatch {
+  width: 38px; height: 38px; border-radius: 6px; border: 2px solid rgba(255,255,255,0.12);
+  cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
+  flex-shrink: 0;
+}
+.theme-swatch.none { background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; }
+.theme-swatch:hover { border-color: rgba(255,255,255,0.4); transform: scale(1.08); }
+.theme-swatch.active { border-color: var(--blue); box-shadow: 0 0 10px rgba(0,212,255,0.5); transform: scale(1.12); }
+.swatch-none-icon { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 1; }
+.selected-theme-name { font-size: 12px; font-weight: 700; color: var(--blue); letter-spacing: 0.08em; text-transform: uppercase; }
 
 @media (max-width: 768px) {
   .ng-header { padding: 14px 20px; padding-top: calc(14px + env(safe-area-inset-top)); }

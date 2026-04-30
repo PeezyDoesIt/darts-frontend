@@ -32,23 +32,23 @@
         </div>
       </transition>
 
-      <!-- Timer ring — tap to pause/resume -->
-      <div class="timer-wrap" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
-        <svg class="timer-ring" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6" />
-          <circle cx="60" cy="60" r="52" fill="none"
-            :stroke="showAlert ? '#ef4444' : nextPlayer.color" stroke-width="6" stroke-linecap="round"
-            stroke-dasharray="326.7" :stroke-dashoffset="326.7 - (326.7 * progress)"
-            transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 8px currentColor)' }" />
-        </svg>
-        <span class="timer-count display" :style="showAlert ? { color: '#ef4444' } : {}">
-          {{ paused ? '⏸' : timeLeft }}
-        </span>
-      </div>
-
       <button v-ripple class="btn-ready" :style="{ borderColor: nextPlayer.color, color: nextPlayer.color, boxShadow: `0 0 24px ${nextPlayer.color}40` }" @click="startTurn">
         I'M READY — START TURN
       </button>
+    </div>
+
+    <!-- Timer ring — absolutely positioned top-left -->
+    <div class="timer-wrap" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
+      <svg class="timer-ring" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6" />
+        <circle cx="60" cy="60" r="52" fill="none"
+          :stroke="showAlert ? '#ef4444' : nextPlayer.color" stroke-width="6" stroke-linecap="round"
+          stroke-dasharray="326.7" :stroke-dashoffset="326.7 - (326.7 * progress)"
+          transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 8px currentColor)' }" />
+      </svg>
+      <span class="timer-count display" :style="showAlert ? { color: '#ef4444' } : {}">
+        {{ paused ? '⏸' : timeLeft }}
+      </span>
     </div>
   </div>
 </template>
@@ -57,11 +57,13 @@
 import { ref, computed, onMounted, onUnmounted, type CSSProperties } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
+import { useSettingsStore } from '../stores/settings'
 import { speak } from '../composables/useSpeech'
-import { playBullseye, playBrakeSqueal, playCarCrash } from '../composables/useSounds'
+import { playCarCrash, playBuzzer } from '../composables/useSounds'
 
 const router = useRouter()
 const gameStore = useGameStore()
+const settingsStore = useSettingsStore()
 const game = computed(() => gameStore.game)
 if (!game.value) router.push('/')
 const nextPlayer = computed(() => game.value!.players[game.value!.currentPlayerIndex]!)
@@ -114,15 +116,18 @@ function playWhistle(): Promise<void> {
 }
 
 async function handleTurnAnnouncement() {
+  const nextLine = `${nextPlayer.value.name} — it's your turn.`
+  if (settingsStore.quietNarrator) {
+    speak(nextLine)
+    return
+  }
   if (gameStore.lastTurnHadBull) {
-    await playBullseye()
+    await playCarCrash()
     await new Promise(r => setTimeout(r, 200))
   }
-  const nextLine = `${nextPlayer.value.name} — it's your turn.`
   if (gameStore.lastTurnWasTimeout) {
     const count = gameStore.playerTimeoutCounts[prevPlayer.value.id] ?? 0
-    await playBrakeSqueal()
-    await playCarCrash()
+    await playBuzzer()
     await new Promise(r => setTimeout(r, 200))
     await speak(`${prevPlayer.value.name} missed their turn.`)
     if (count >= 3) {
@@ -136,7 +141,12 @@ async function handleTurnAnnouncement() {
     await new Promise(r => setTimeout(r, 300))
     speak(nextLine)
   } else if (gameStore.lastTurnWasZero) {
-    await speak(`Be better, ${prevPlayer.value.name}.`)
+    const zeroPhrases = [
+      `Be better, ${prevPlayer.value.name}.`,
+      `You suck, ${prevPlayer.value.name}.`,
+      `This is going to be a long one, ${prevPlayer.value.name}.`,
+    ]
+    await speak(zeroPhrases[Math.floor(Math.random() * zeroPhrases.length)]!)
     speak(nextLine)
   } else {
     speak(nextLine)
@@ -191,10 +201,17 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .alert-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .alert-name { font-size: 80px; letter-spacing: 0.04em; line-height: 1; }
 
-.timer-wrap { position: relative; width: 420px; height: 420px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
-.timer-wrap:active { transform: scale(0.95); }
-.timer-ring { width: 420px; height: 420px; }
-.timer-count { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 160px; color: #fff; transition: color 0.3s; }
+.timer-wrap {
+  position: absolute;
+  top: calc(28px + env(safe-area-inset-top));
+  left: 28px;
+  width: 148px; height: 148px;
+  cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+  z-index: 3;
+}
+.timer-wrap:active { transform: scale(0.93); }
+.timer-ring { width: 148px; height: 148px; }
+.timer-count { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 58px; color: #fff; transition: color 0.3s; }
 
 .btn-ready {
   padding: 22px 0; font-size: 22px; font-weight: 900; border-radius: 6px; width: 100%; max-width: 480px;
@@ -231,8 +248,9 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .next-name, .alert-name { font-size: 52px; }
   .next-avatar { width: 80px; height: 80px; font-size: 40px; }
   .alert-avatar { width: 80px; height: 80px; font-size: 40px; }
-  .timer-wrap, .timer-ring { width: 220px; height: 220px; }
-  .timer-count { font-size: 80px; }
+  .timer-wrap { top: calc(16px + env(safe-area-inset-top)); left: 16px; width: 110px; height: 110px; }
+  .timer-ring { width: 110px; height: 110px; }
+  .timer-count { font-size: 42px; }
   .btn-ready { font-size: 16px; padding: 14px 0; max-width: 360px; }
 }
 
@@ -240,8 +258,9 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .between-inner { padding: 24px 20px; }
   .your-turn-label { font-size: 20px; }
   .next-name, .alert-name { font-size: 72px; }
-  .timer-wrap, .timer-ring { width: 320px; height: 320px; }
-  .timer-count { font-size: 120px; }
+  .timer-wrap { top: calc(20px + env(safe-area-inset-top)); left: 20px; width: 124px; height: 124px; }
+  .timer-ring { width: 124px; height: 124px; }
+  .timer-count { font-size: 48px; }
   .btn-ready { font-size: 18px; padding: 18px 0; }
 }
 </style>
