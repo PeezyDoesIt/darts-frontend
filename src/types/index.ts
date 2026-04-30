@@ -34,6 +34,12 @@ export const PLAYER_THEMES = [
   { label: 'Aurora',     value: 'linear-gradient(160deg, #000d08 0%, #003322 35%, #00aa66 60%, #44ffcc 80%, #88aaff 100%)' },
   // Dark
   { label: 'Obsidian',   value: 'linear-gradient(160deg, #050505 0%, #111111 40%, #222222 75%, #333344 100%)' },
+  // Unique
+  { label: 'Amber',      value: 'linear-gradient(160deg, #100500 0%, #4a2000 40%, #cc7000 70%, #ffcc00 100%)' },
+  { label: 'Steel',      value: 'linear-gradient(160deg, #080a0d 0%, #1a2030 40%, #3a4a5a 70%, #7090a8 100%)' },
+  { label: 'Toxic',      value: 'linear-gradient(160deg, #040800 0%, #143300 40%, #44cc00 72%, #ccff00 100%)' },
+  { label: 'Coffee',     value: 'linear-gradient(160deg, #050200 0%, #1c0a00 40%, #4a2200 70%, #8b5a2b 100%)' },
+  { label: 'Prism',      value: 'linear-gradient(135deg, #1a0030 0%, #0d00cc 20%, #0066ff 38%, #00ccff 52%, #00ff99 66%, #ccff00 80%, #ff3300 100%)' },
 ] as const
 
 export type GameType =
