@@ -305,7 +305,7 @@ function save() {
 .tab.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
 
 .theme-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
-.theme-swatch { width: 72px; height: 52px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.1); cursor: pointer; position: relative; overflow: hidden; transition: transform 0.15s, border-color 0.15s; background: rgba(255,255,255,0.06); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.theme-swatch { width: 72px; height: 52px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.1); cursor: pointer; position: relative; overflow: hidden; transition: transform 0.15s, border-color 0.15s; background: rgba(255,255,255,0.06); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; touch-action: pan-y; }
 .theme-swatch:hover { transform: scale(1.05); }
 .theme-swatch.active { border-color: #fff; transform: scale(1.08); }
 .theme-none { font-size: 16px; color: rgba(255,255,255,0.3); }
@@ -321,13 +321,13 @@ function save() {
   padding: 8px 16px; border-radius: 6px;
   border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
   color: var(--text-muted); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s;
-  position: relative; overflow: hidden;
+  position: relative; overflow: hidden; touch-action: pan-y;
 }
 .fx-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
 .fx-btn.active { border-color: var(--blue); color: var(--blue); background: rgba(0,212,255,0.1); box-shadow: 0 0 10px rgba(0,212,255,0.2); }
 
 .emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
-.emoji-btn { width: 50px; height: 50px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-size: 24px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; }
+.emoji-btn { width: 50px; height: 50px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-size: 24px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; touch-action: pan-y; }
 .emoji-btn:hover { border-color: rgba(255,255,255,0.2); transform: scale(1.1); }
 .emoji-btn.active { border-color: var(--pink); box-shadow: 0 0 12px rgba(255,45,120,0.4); }
 .emoji-none-btn { color: rgba(255,255,255,0.4); font-size: 18px; font-weight: 700; }
