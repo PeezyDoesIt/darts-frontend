@@ -126,25 +126,25 @@ export function playBullseye(): Promise<void> {
     if (!AudioCtx) { resolve(); return }
     const ctx = new AudioCtx()
     const now = ctx.currentTime
-    const duration = 2.8
+    const duration = 5.5
 
     const master = ctx.createGain()
-    master.gain.setValueAtTime(1.0, now)
+    master.gain.setValueAtTime(2.0, now)
     master.connect(ctx.destination)
 
     // ── SUB THUD ────────────────────────────────────────────────────────────
-    // Deep sine drop: 120Hz → 25Hz — the physical pressure wave
+    // Deep sine drop: 120Hz → 18Hz — the physical pressure wave
     const thud = ctx.createOscillator()
     const thudGain = ctx.createGain()
     thud.type = 'sine'
     thud.frequency.setValueAtTime(120, now)
-    thud.frequency.exponentialRampToValueAtTime(25, now + 0.6)
-    thudGain.gain.setValueAtTime(1.0, now)
-    thudGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8)
+    thud.frequency.exponentialRampToValueAtTime(18, now + 1.0)
+    thudGain.gain.setValueAtTime(1.5, now)
+    thudGain.gain.exponentialRampToValueAtTime(0.001, now + 1.4)
     thud.connect(thudGain)
     thudGain.connect(master)
     thud.start(now)
-    thud.stop(now + 0.8)
+    thud.stop(now + 1.4)
 
     // ── NOISE BUFFER ────────────────────────────────────────────────────────
     const bufSize = Math.ceil(ctx.sampleRate * duration)
@@ -154,13 +154,13 @@ export function playBullseye(): Promise<void> {
     const noise = ctx.createBufferSource()
     noise.buffer = noiseBuf
 
-    // Low rumble — the explosion body, decays slowly
+    // Low rumble — the explosion body, long slow decay
     const lpf = ctx.createBiquadFilter()
     lpf.type = 'lowpass'
-    lpf.frequency.setValueAtTime(600, now)
-    lpf.frequency.exponentialRampToValueAtTime(60, now + 1.2)
+    lpf.frequency.setValueAtTime(800, now)
+    lpf.frequency.exponentialRampToValueAtTime(50, now + 2.5)
     const lpfGain = ctx.createGain()
-    lpfGain.gain.setValueAtTime(0.9, now)
+    lpfGain.gain.setValueAtTime(1.4, now)
     lpfGain.gain.exponentialRampToValueAtTime(0.001, now + duration)
     noise.connect(lpf)
     lpf.connect(lpfGain)
@@ -172,8 +172,8 @@ export function playBullseye(): Promise<void> {
     bpf.frequency.value = 900
     bpf.Q.value = 0.6
     const bpfGain = ctx.createGain()
-    bpfGain.gain.setValueAtTime(0.5, now)
-    bpfGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6)
+    bpfGain.gain.setValueAtTime(1.0, now)
+    bpfGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2)
     noise.connect(bpf)
     bpf.connect(bpfGain)
     bpfGain.connect(master)
@@ -183,8 +183,8 @@ export function playBullseye(): Promise<void> {
     hpf.type = 'highpass'
     hpf.frequency.value = 3500
     const hpfGain = ctx.createGain()
-    hpfGain.gain.setValueAtTime(0.6, now)
-    hpfGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12)
+    hpfGain.gain.setValueAtTime(1.2, now)
+    hpfGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2)
     noise.connect(hpf)
     hpf.connect(hpfGain)
     hpfGain.connect(master)
