@@ -59,7 +59,7 @@ import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
 import { speak } from '../composables/useSpeech'
-import { playCarCrash, playBuzzer } from '../composables/useSounds'
+import { playShotgun, playBuzzer } from '../composables/useSounds'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -122,7 +122,7 @@ async function handleTurnAnnouncement() {
     return
   }
   if (gameStore.lastTurnHadBull) {
-    await playCarCrash()
+    await playShotgun()
     await new Promise(r => setTimeout(r, 200))
   }
   if (gameStore.lastTurnWasTimeout) {
@@ -130,6 +130,7 @@ async function handleTurnAnnouncement() {
     await playBuzzer()
     await new Promise(r => setTimeout(r, 200))
     await speak(`${prevPlayer.value.name} missed their turn.`)
+    await speak(`Be better.`)
     if (count >= 3) {
       await speak(`This is why nobody wants to play darts with you, ${prevPlayer.value.name}.`)
     } else {

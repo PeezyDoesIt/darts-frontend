@@ -25,6 +25,28 @@
           </div>
 
           <div class="field">
+            <label class="label">Avatar</label>
+            <div class="avatar-tabs">
+              <button v-ripple class="tab" :class="{ active: avatarMode === 'emoji' }" @click="avatarMode = 'emoji'">Emoji</button>
+              <button v-ripple class="tab" :class="{ active: avatarMode === 'photo' }" @click="avatarMode = 'photo'">Photo</button>
+            </div>
+            <div v-if="avatarMode === 'emoji'" class="emoji-grid">
+              <button v-ripple class="emoji-btn emoji-none-btn" :class="{ active: avatarUrl === null }" @click="avatarUrl = null" title="No emoji">✕</button>
+              <button v-for="e in PRESET_AVATARS" :key="e" v-ripple class="emoji-btn" :class="{ active: avatarUrl === e }" @click="avatarUrl = e">{{ e }}</button>
+            </div>
+            <div v-else class="photo-area">
+              <div class="photo-preview" :style="{ background: color, boxShadow: `0 0 20px ${color}60` }">
+                <img v-if="photoPreview" :src="photoPreview" alt="avatar" />
+                <span v-else style="font-size:40px">📷</span>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button v-ripple class="btn btn-spray btn-lg" @click="cameraOpen = true">📷 Open Camera</button>
+                <button v-if="photoPreview" v-ripple class="btn btn-outline btn-sm" @click="photoPreview = null; avatarUrl = PRESET_AVATARS[0]!">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
             <label class="label">Background</label>
             <div class="bg-tabs">
               <button v-ripple class="tab" :class="{ active: bgMode === 'theme' }" @click="bgMode = 'theme'">Themes</button>
@@ -68,28 +90,6 @@
                 :class="{ active: transitionEffect === (fx.value ?? null) }"
                 @click="selectTransition(fx.value ?? null)"
               >{{ fx.label }}</button>
-            </div>
-          </div>
-
-          <div class="field">
-            <label class="label">Avatar</label>
-            <div class="avatar-tabs">
-              <button v-ripple class="tab" :class="{ active: avatarMode === 'emoji' }" @click="avatarMode = 'emoji'">Emoji</button>
-              <button v-ripple class="tab" :class="{ active: avatarMode === 'photo' }" @click="avatarMode = 'photo'">Photo</button>
-            </div>
-            <div v-if="avatarMode === 'emoji'" class="emoji-grid">
-              <button v-ripple class="emoji-btn emoji-none-btn" :class="{ active: avatarUrl === null }" @click="avatarUrl = null" title="No emoji">✕</button>
-              <button v-for="e in PRESET_AVATARS" :key="e" v-ripple class="emoji-btn" :class="{ active: avatarUrl === e }" @click="avatarUrl = e">{{ e }}</button>
-            </div>
-            <div v-else class="photo-area">
-              <div class="photo-preview" :style="{ background: color, boxShadow: `0 0 20px ${color}60` }">
-                <img v-if="photoPreview" :src="photoPreview" alt="avatar" />
-                <span v-else style="font-size:40px">📷</span>
-              </div>
-              <div style="display:flex;gap:10px;flex-wrap:wrap">
-                <button v-ripple class="btn btn-spray btn-lg" @click="cameraOpen = true">📷 Open Camera</button>
-                <button v-if="photoPreview" v-ripple class="btn btn-outline btn-sm" @click="photoPreview = null; avatarUrl = PRESET_AVATARS[0]!">Clear</button>
-              </div>
             </div>
           </div>
         </div>
@@ -295,7 +295,7 @@ function save() {
 .page-title { font-size: 26px; letter-spacing: 0.1em; background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 
 .setup-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
-.setup-form-scroll { flex: 1; min-height: 0; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.06); }
+.setup-form-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; border-right: 1px solid rgba(255,255,255,0.06); }
 .setup-form { padding: 28px; display: flex; flex-direction: column; gap: 24px; }
 
 .field { display: flex; flex-direction: column; gap: 10px; }
@@ -304,7 +304,7 @@ function save() {
 .tab { padding: 8px 20px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: var(--text-muted); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
 .tab.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
 
-.theme-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.theme-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
 .theme-swatch { width: 72px; height: 52px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.1); cursor: pointer; position: relative; overflow: hidden; transition: transform 0.15s, border-color 0.15s; background: rgba(255,255,255,0.06); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
 .theme-swatch:hover { transform: scale(1.05); }
 .theme-swatch.active { border-color: #fff; transform: scale(1.08); }
@@ -316,7 +316,7 @@ function save() {
 .field-hint { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.4; }
 .fx-selected-label { font-size: 12px; color: var(--text-muted); }
 .fx-selected-label strong { color: var(--blue); }
-.fx-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.fx-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
 .fx-btn {
   padding: 8px 16px; border-radius: 6px;
   border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
@@ -326,7 +326,7 @@ function save() {
 .fx-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
 .fx-btn.active { border-color: var(--blue); color: var(--blue); background: rgba(0,212,255,0.1); box-shadow: 0 0 10px rgba(0,212,255,0.2); }
 
-.emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
 .emoji-btn { width: 50px; height: 50px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-size: 24px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; }
 .emoji-btn:hover { border-color: rgba(255,255,255,0.2); transform: scale(1.1); }
 .emoji-btn.active { border-color: var(--pink); box-shadow: 0 0 12px rgba(255,45,120,0.4); }

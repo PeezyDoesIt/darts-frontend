@@ -80,7 +80,11 @@
           <section class="ng-section">
             <span class="label">Scoring Screen Theme</span>
             <p class="hint">Shared background for all players during their throw. Overrides individual player themes.</p>
-            <div class="theme-swatch-grid">
+            <div class="bg-tabs">
+              <button v-ripple class="tab" :class="{ active: gameThemeMode === 'theme' }" @click="gameThemeMode = 'theme'">Themes</button>
+              <button v-ripple class="tab" :class="{ active: gameThemeMode === 'image' }" @click="gameThemeMode = 'image'">Upload Photo</button>
+            </div>
+            <div v-if="gameThemeMode === 'theme'" class="theme-swatch-grid">
               <button
                 v-for="t in PLAYER_THEMES"
                 :key="String(t.value)"
@@ -93,7 +97,20 @@
                 <span v-if="!t.value" class="swatch-none-icon">✕</span>
               </button>
             </div>
-            <span v-if="gameTheme" class="selected-theme-name">{{ PLAYER_THEMES.find(t => t.value === gameTheme)?.label }}</span>
+            <div v-else class="game-theme-photo-row">
+              <div class="game-theme-preview" :style="gameThemePreviewStyle">
+                <span v-if="!gameThemeImage" style="font-size:28px;opacity:0.4">🖼️</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label v-ripple class="btn btn-spray btn-lg" style="cursor:pointer;position:relative;overflow:hidden">
+                  📁 Choose Photo
+                  <input type="file" accept="image/*" style="display:none" @change="onGameThemeFileChange" />
+                </label>
+                <button v-if="gameThemeImage" v-ripple class="btn btn-outline btn-sm" @click="gameThemeImage = null; gameTheme = null">Clear</button>
+              </div>
+            </div>
+            <span v-if="gameTheme && gameThemeMode === 'theme'" class="selected-theme-name">{{ PLAYER_THEMES.find(t => t.value === gameTheme)?.label }}</span>
+            <span v-if="gameThemeImage && gameThemeMode === 'image'" class="selected-theme-name">Photo selected</span>
           </section>
         </div>
       </div>
@@ -160,7 +177,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
@@ -177,9 +194,29 @@ const throwTimerDuration = ref(0)
 const throwTimerOptions = [0, 30, 45, 60, 90, 120]
 const hideClosedTargets = ref(false)
 const gameTheme = ref<string | null>(null)
+const gameThemeMode = ref<'theme' | 'image'>('theme')
+const gameThemeImage = ref<string | null>(null)
 const selectedPlayers = ref<Player[]>([])
 
-function selectGameTheme(val: string | null) { gameTheme.value = val }
+function selectGameTheme(val: string | null) { gameTheme.value = val; gameThemeImage.value = null }
+
+function onGameThemeFileChange(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = ev => {
+    const url = ev.target?.result as string
+    gameThemeImage.value = url
+    gameTheme.value = url
+  }
+  reader.readAsDataURL(file)
+}
+
+const gameThemePreviewStyle = computed(() =>
+  gameThemeImage.value
+    ? { backgroundImage: `url(${gameThemeImage.value})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : { background: 'rgba(255,255,255,0.05)' }
+)
 
 function isSelected(id: string) { return selectedPlayers.value.some(p => p.id === id) }
 function isPhoto(url: string | null) { return url?.startsWith('data:') || url?.startsWith('http') }
@@ -303,6 +340,13 @@ function startGame() {
 .order-num { font-size: 28px; font-family: var(--font-display); width: 28px; text-align: center; }
 .order-name { flex: 1; font-size: 16px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; }
 .order-btns { display: flex; gap: 6px; }
+
+.bg-tabs { display: flex; gap: 8px; }
+.tab { padding: 8px 20px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: var(--text-muted); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+.tab.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
+
+.game-theme-photo-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.game-theme-preview { width: 88px; height: 64px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 
 .theme-swatch-grid {
   display: flex; flex-wrap: wrap; gap: 6px;

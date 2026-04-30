@@ -11,16 +11,8 @@ export type Player = {
 }
 
 export const TRANSITION_EFFECTS = [
-  { label: 'None',      value: null },
-  { label: 'Fade',      value: 'fx-fade' },
-  { label: 'Slide Up',  value: 'fx-slide-up' },
-  { label: 'Slide Left', value: 'fx-slide-left' },
-  { label: 'Zoom Out',  value: 'fx-zoom-out' },
-  { label: 'Flash',     value: 'fx-flash' },
-  { label: 'Glitch',    value: 'fx-glitch' },
-  { label: 'Spin',      value: 'fx-spin' },
-  { label: 'Flip',      value: 'fx-flip' },
-  { label: 'Wipe',      value: 'fx-wipe' },
+  { label: 'None',              value: null },
+  { label: 'Glitch',            value: 'fx-glitch' },
   { label: '🎆 Fireworks',      value: 'fx-fireworks' },
   { label: '🔥 Flames',         value: 'fx-flames' },
   { label: '⚡ Lightning',      value: 'fx-lightning' },

@@ -723,5 +723,6 @@ defineExpose({
   height: 100dvh;
   pointer-events: none;
   z-index: 9999;
+  opacity: 0.55;
 }
 </style>

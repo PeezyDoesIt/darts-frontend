@@ -65,6 +65,86 @@ export function playBuzzer(): Promise<void> {
   })
 }
 
+export function playShotgun(): Promise<void> {
+  return new Promise(resolve => {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioCtx) { resolve(); return }
+    const ctx = new AudioCtx()
+    const now = ctx.currentTime
+
+    const master = ctx.createGain()
+    master.gain.setValueAtTime(1.0, now)
+    master.connect(ctx.destination)
+
+    function makeNoiseSrc(duration: number): AudioBufferSourceNode {
+      const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * duration), ctx.sampleRate)
+      const d = buf.getChannelData(0)
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1
+      const src = ctx.createBufferSource(); src.buffer = buf; return src
+    }
+
+    // ── PUMP: slide back ───────────────────────────────────────────────────
+    const n1 = makeNoiseSrc(0.09)
+    const bpf1 = ctx.createBiquadFilter(); bpf1.type = 'bandpass'; bpf1.frequency.setValueAtTime(1400, now); bpf1.frequency.linearRampToValueAtTime(700, now + 0.09); bpf1.Q.value = 2.8
+    const g1 = ctx.createGain(); g1.gain.setValueAtTime(0, now); g1.gain.linearRampToValueAtTime(0.75, now + 0.005); g1.gain.setValueAtTime(0.75, now + 0.04); g1.gain.linearRampToValueAtTime(0, now + 0.09)
+    n1.connect(bpf1); bpf1.connect(g1); g1.connect(master); n1.start(now); n1.stop(now + 0.09)
+    // low thud 1
+    const t1 = ctx.createOscillator(); const tg1 = ctx.createGain()
+    t1.type = 'sine'; t1.frequency.setValueAtTime(110, now); t1.frequency.exponentialRampToValueAtTime(55, now + 0.07)
+    tg1.gain.setValueAtTime(0.65, now); tg1.gain.exponentialRampToValueAtTime(0.001, now + 0.07)
+    t1.connect(tg1); tg1.connect(master); t1.start(now); t1.stop(now + 0.07)
+
+    // ── PUMP: slide forward + lock ─────────────────────────────────────────
+    const t2 = now + 0.23
+    const n2 = makeNoiseSrc(0.11)
+    const bpf2 = ctx.createBiquadFilter(); bpf2.type = 'bandpass'; bpf2.frequency.setValueAtTime(900, t2); bpf2.frequency.linearRampToValueAtTime(450, t2 + 0.11); bpf2.Q.value = 2.2
+    const g2 = ctx.createGain(); g2.gain.setValueAtTime(0, t2); g2.gain.linearRampToValueAtTime(1.0, t2 + 0.006); g2.gain.setValueAtTime(1.0, t2 + 0.03); g2.gain.linearRampToValueAtTime(0, t2 + 0.11)
+    n2.connect(bpf2); bpf2.connect(g2); g2.connect(master); n2.start(t2); n2.stop(t2 + 0.11)
+    // heavier thud 2
+    const osc2 = ctx.createOscillator(); const tg2 = ctx.createGain()
+    osc2.type = 'sine'; osc2.frequency.setValueAtTime(75, t2); osc2.frequency.exponentialRampToValueAtTime(28, t2 + 0.1)
+    tg2.gain.setValueAtTime(1.1, t2); tg2.gain.exponentialRampToValueAtTime(0.001, t2 + 0.1)
+    osc2.connect(tg2); tg2.connect(master); osc2.start(t2); osc2.stop(t2 + 0.1)
+
+    // ── BLAST ──────────────────────────────────────────────────────────────
+    const tFire = now + 0.52
+    const blastDur = 1.35
+
+    const bMaster = ctx.createGain()
+    bMaster.gain.setValueAtTime(1.3, tFire)
+    bMaster.gain.linearRampToValueAtTime(0, tFire + blastDur)
+    bMaster.connect(ctx.destination)
+
+    const blastNoise = makeNoiseSrc(blastDur)
+
+    // Ultra-sharp initial crack
+    const crackGain = ctx.createGain()
+    crackGain.gain.setValueAtTime(3.0, tFire)
+    crackGain.gain.exponentialRampToValueAtTime(0.001, tFire + 0.03)
+    blastNoise.connect(crackGain); crackGain.connect(bMaster)
+
+    // Low boom
+    const boomLpf = ctx.createBiquadFilter(); boomLpf.type = 'lowpass'; boomLpf.frequency.setValueAtTime(220, tFire); boomLpf.frequency.exponentialRampToValueAtTime(55, tFire + 0.9)
+    const boomGain = ctx.createGain(); boomGain.gain.setValueAtTime(0, tFire); boomGain.gain.linearRampToValueAtTime(2.2, tFire + 0.018); boomGain.gain.exponentialRampToValueAtTime(0.001, tFire + 1.0)
+    blastNoise.connect(boomLpf); boomLpf.connect(boomGain); boomGain.connect(bMaster)
+
+    // Mid crack
+    const midBpf = ctx.createBiquadFilter(); midBpf.type = 'bandpass'; midBpf.frequency.setValueAtTime(1400, tFire); midBpf.frequency.exponentialRampToValueAtTime(350, tFire + 0.28); midBpf.Q.value = 0.7
+    const midGain = ctx.createGain(); midGain.gain.setValueAtTime(1.6, tFire); midGain.gain.exponentialRampToValueAtTime(0.001, tFire + 0.32)
+    blastNoise.connect(midBpf); midBpf.connect(midGain); midGain.connect(bMaster)
+
+    // Sub cannon oscillator
+    const sub = ctx.createOscillator(); const subGain = ctx.createGain()
+    sub.type = 'sine'; sub.frequency.setValueAtTime(85, tFire); sub.frequency.exponentialRampToValueAtTime(28, tFire + 0.55)
+    subGain.gain.setValueAtTime(2.0, tFire); subGain.gain.exponentialRampToValueAtTime(0.001, tFire + 0.65)
+    sub.connect(subGain); subGain.connect(bMaster); sub.start(tFire); sub.stop(tFire + 0.65)
+
+    blastNoise.start(tFire); blastNoise.stop(tFire + blastDur)
+
+    setTimeout(() => { ctx.close(); resolve() }, (tFire - now + blastDur) * 1000 + 100)
+  })
+}
+
 export function playBrakeSqueal(): Promise<void> {
   return new Promise(resolve => {
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
