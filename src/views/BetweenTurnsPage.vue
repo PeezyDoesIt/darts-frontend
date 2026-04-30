@@ -220,7 +220,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   opacity: 0.55; border-radius: 12px 0 0 0;
 }
 .between-avatar-bg span {
-  font-size: 45vmin; line-height: 1; opacity: 0.50;
+  font-size: 70vmin; line-height: 1; opacity: 0.50;
   filter: drop-shadow(0 0 32px rgba(0,0,0,0.5));
 }
 
