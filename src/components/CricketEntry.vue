@@ -159,8 +159,8 @@ function submit() {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   pointer-events: none; overflow: hidden; z-index: 0;
 }
-.board-avatar-bg img { width: 70%; height: 85%; object-fit: contain; object-position: center; opacity: 0.18; }
-.board-avatar-bg span { font-size: 45dvh; line-height: 1; opacity: 0.22; filter: drop-shadow(0 0 24px rgba(0,0,0,0.4)); }
+.board-avatar-bg img { width: 90%; height: 95%; object-fit: contain; object-position: center; opacity: 0.18; }
+.board-avatar-bg span { font-size: 65dvh; line-height: 1; opacity: 0.22; filter: drop-shadow(0 0 24px rgba(0,0,0,0.4)); }
 
 .submit-row {
   display: flex; align-items: center; justify-content: space-between;
