@@ -137,7 +137,7 @@ function submit() {
 .board-tile {
   display: flex; align-items: stretch; width: 100%; padding: 8px 24px; gap: 0;
   flex: 1; min-height: 48px;
-  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.18); border-radius: 8px;
+  background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.35); border-radius: 8px;
   cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent; text-align: left;
   position: relative; overflow: hidden;
 }
@@ -184,10 +184,10 @@ function submit() {
 @media (orientation: landscape) and (max-height: 900px) {
   .cricket-board { padding: 4px 12px; gap: 4px; }
   .board-tile { min-height: 50px; padding: 4px 16px; }
-  .target-label { font-size: clamp(30px, 6dvh, 52px); width: clamp(80px, 10dvh, 110px); }
+  .target-label { font-size: clamp(44px, 9dvh, 90px); width: clamp(100px, 14dvh, 160px); }
   .pips-wrap { gap: 12px; }
-  .hit-badge { font-size: 14px; width: 50px; }
-  .closed-badge { width: 50px; font-size: 8px; }
+  .hit-badge { font-size: 18px; width: 60px; }
+  .closed-badge { width: 60px; font-size: 10px; }
   .submit-row { padding: 6px 16px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
   .submit-btn { height: 44px; font-size: 16px; }
 }
