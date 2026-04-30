@@ -388,9 +388,10 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .lb-header .btn { padding: 8px 28px; font-size: 14px; }
 .game-type-badge { font-size: 15px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); font-family: var(--font-display); }
 .round-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
-.lb-players-scroll { flex: 1; min-height: 0; overflow-y: auto; }
-.lb-players { display: flex; flex-direction: column; gap: 0; padding: 0; }
+.lb-players-scroll { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.lb-players { flex: 1; display: flex; flex-direction: column; gap: 0; padding: 0; }
 .lb-player-row {
+  flex: 1; min-height: 0; overflow: hidden;
   display: flex; align-items: center; gap: 14px; padding: 10px 20px;
   background: transparent; border: none; border-left: 6px solid transparent;
   border-bottom: 1px solid rgba(255,255,255,0.06);
@@ -410,7 +411,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .mini-pip { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); transition: background 0.1s; flex-shrink: 0; }
 .mini-pip.filled { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 6px rgba(255,45,120,0.8); }
 .lb-score { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
-.lb-score-val { font-size: 28vw; font-weight: 900; font-family: var(--font-display); line-height: 1; color: #fff; }
+.lb-score-val { font-size: clamp(48px, 8dvh, 120px); font-weight: 900; font-family: var(--font-display); line-height: 1; color: #fff; }
 .lb-score-label { font-size: 13px; color: rgba(255,255,255,0.45); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-align: right; }
 .remove-player-btn { background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: rgba(255,255,255,0.3); cursor: pointer; font-size: 12px; padding: 4px 7px; flex-shrink: 0; transition: all 0.15s; align-self: flex-start; position: relative; overflow: hidden; }
 .remove-player-btn:hover { border-color: #ef4444; color: #ef4444; }
@@ -478,7 +479,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .lb-player-row { padding: 8px 16px; }
   .lb-avatar { width: 40px; height: 40px; font-size: 20px; }
   .lb-player-name { font-size: 18px; }
-  .lb-score-val { font-size: 32vw; }
+  .lb-score-val { font-size: clamp(48px, 8dvh, 120px); }
   .mini-label { font-size: 32px; }
   .mini-pip { width: 12px; height: 12px; }
 }
