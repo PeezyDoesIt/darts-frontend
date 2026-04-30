@@ -126,6 +126,9 @@ export const PLAYER_COLORS = [
   { label: 'Rose',        value: '#f43f5e' },
   { label: 'White',       value: '#f0f0f0' },
   { label: 'Silver',      value: '#94a3b8' },
+  { label: 'Steel',       value: '#7090a8' },
+  { label: 'Toxic',       value: '#aaff00' },
+  { label: 'Coffee',      value: '#9a5c2e' },
 ] as const
 
 export const PRESET_AVATARS = [
