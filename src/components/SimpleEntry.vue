@@ -3,6 +3,7 @@
     <div class="round-info">
       <span class="round-label">{{ gameLabel }}</span>
       <span class="round-sub">Round {{ round }} — enter score for this round</span>
+      <span v-if="hint" class="round-hint">{{ hint }}</span>
     </div>
 
     <div class="score-display">
@@ -28,7 +29,7 @@
 import { ref, computed } from 'vue'
 import { GAME_TYPE_LABELS, type GameType } from '../types/index'
 
-const props = defineProps<{ gameType: GameType; round: number }>()
+const props = defineProps<{ gameType: GameType; round: number; hint?: string | null }>()
 const emit = defineEmits<{ submit: [score: number] }>()
 
 const entered = ref('')
@@ -50,6 +51,7 @@ function submit() {
 .round-info { text-align: center; }
 .round-label { font-size: 20px; font-weight: 800; color: var(--gold); display: block; }
 .round-sub { font-size: 14px; color: var(--text-muted); }
+.round-hint { font-size: 18px; font-weight: 800; color: var(--pink); margin-top: 4px; display: block; }
 
 .score-display { display: flex; align-items: center; }
 .score-entered { font-size: 52px; font-weight: 900; min-width: 100px; text-align: center; font-family: var(--font-display); }

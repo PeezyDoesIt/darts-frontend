@@ -53,6 +53,8 @@ export type GameType =
   | 'killer'
   | 'halveit'
   | 'baseball'
+  | 'horse'
+  | 'suddenDeath'
 
 export const GAME_TYPE_LABELS: Record<GameType, string> = {
   cricket: 'Cricket',
@@ -65,6 +67,8 @@ export const GAME_TYPE_LABELS: Record<GameType, string> = {
   killer: 'Killer',
   halveit: 'Halve-It',
   baseball: 'Baseball',
+  horse: 'Horse',
+  suddenDeath: 'Sudden Death',
 }
 
 export const CRICKET_TARGETS = [20, 19, 18, 17, 16, 15, 'bull'] as const
@@ -86,10 +90,24 @@ export type SimplePlayerScore = {
   history: number[]
 }
 
+export type HorsePlayerScore = {
+  letters: number   // 0–5; at 5 the player is eliminated
+  history: number[]
+}
+
+export type SuddenDeathPlayerScore = {
+  total: number
+  history: number[]
+}
+
+export const HORSE_LETTERS = ['H', 'O', 'R', 'S', 'E'] as const
+
 export type PlayerScore =
   | { kind: 'cricket'; data: CricketPlayerScore }
   | { kind: 'ohOne'; data: OhOnePlayerScore }
   | { kind: 'simple'; data: SimplePlayerScore }
+  | { kind: 'horse'; data: HorsePlayerScore }
+  | { kind: 'suddenDeath'; data: SuddenDeathPlayerScore }
 
 export type ActiveGame = {
   id: string

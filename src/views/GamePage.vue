@@ -55,6 +55,7 @@
             :key="currentPlayer.id"
             :gameType="game.gameType"
             :round="game.round"
+            :hint="horseHint"
             @submit="handleNumpadSubmit"
           />
         </div>
@@ -225,7 +226,19 @@ const scoreLabel = computed(() => {
   if (!gt) return ''
   if (gt === 'cricket' || gt === 'cutThroat') return 'pts'
   if (['301','501','701','1001'].includes(gt)) return 'left'
+  if (gt === 'horse') return 'letters'
   return 'total'
+})
+
+const horseHint = computed((): string | null => {
+  if (game.value?.gameType !== 'horse') return null
+  if (game.value.currentPlayerIndex === 0) return 'You set the target — throw your best score'
+  const p0 = game.value.players[0]
+  if (!p0) return null
+  const p0Score = game.value.scores[p0.id]
+  if (p0Score?.kind !== 'horse') return null
+  const target = p0Score.data.history.at(-1)
+  return target !== undefined ? `Target to beat: ${target}` : null
 })
 
 function isPhoto(url: string | null) { return url?.startsWith('data:') || url?.startsWith('http') }
@@ -239,6 +252,8 @@ function displayScore(playerId: string): string {
   if (s.kind === 'ohOne') return String(s.data.remaining)
   if (s.kind === 'cricket') return String(s.data.points)
   if (s.kind === 'simple') return String(s.data.total)
+  if (s.kind === 'horse') return s.data.letters === 0 ? '—' : 'HORSE'.slice(0, s.data.letters)
+  if (s.kind === 'suddenDeath') return String(s.data.total)
   return '—'
 }
 function handleCricketSubmit(marks: CricketHits) { gameStore.submitScore(currentPlayer.value.id, marks as Record<CricketTarget, number>) }

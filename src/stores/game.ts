@@ -4,6 +4,8 @@ import { v4 as uuid } from 'uuid'
 import type { ActiveGame, GameType, Player, PlayerScore, CricketTarget } from '../types/index'
 import { CRICKET_TARGETS } from '../types/index'
 
+const HORSE_MAX = 5
+
 function initScore(gameType: GameType, players: Player[]): Record<string, PlayerScore> {
   const scores: Record<string, PlayerScore> = {}
 
@@ -21,11 +23,12 @@ function initScore(gameType: GameType, players: Player[]): Record<string, Player
         kind: 'ohOne',
         data: { remaining: Number(gameType), history: [] },
       }
+    } else if (gameType === 'horse') {
+      scores[p.id] = { kind: 'horse', data: { letters: 0, history: [] } }
+    } else if (gameType === 'suddenDeath') {
+      scores[p.id] = { kind: 'suddenDeath', data: { total: 0, history: [] } }
     } else {
-      scores[p.id] = {
-        kind: 'simple',
-        data: { total: 0, history: [] },
-      }
+      scores[p.id] = { kind: 'simple', data: { total: 0, history: [] } }
     }
   }
 
@@ -169,9 +172,79 @@ export const useGameStore = defineStore('game', () => {
     } else if (score.kind === 'simple' && typeof value === 'number') {
       score.data.total += value
       score.data.history.push(value)
+
+    } else if (score.kind === 'horse' && typeof value === 'number') {
+      score.data.history.push(value)
+      const isLastPlayer = game.value.currentPlayerIndex === game.value.players.length - 1
+      if (isLastPlayer) {
+        // Target = first player's score this round
+        const p0Score = game.value.scores[game.value.players[0]!.id]
+        const target = p0Score?.kind === 'horse' ? (p0Score.data.history.at(-1) ?? 0) : 0
+        const toEliminate: string[] = []
+        for (let i = 1; i < game.value.players.length; i++) {
+          const ps = game.value.scores[game.value.players[i]!.id]
+          if (ps?.kind !== 'horse') continue
+          if ((ps.data.history.at(-1) ?? 0) < target) {
+            ps.data.letters++
+            if (ps.data.letters >= HORSE_MAX) toEliminate.push(game.value.players[i]!.id)
+          }
+        }
+        for (const pid of toEliminate) eliminatePlayer(pid)
+        if (game.value.players.length === 1) {
+          game.value.winnerId = game.value.players[0]!.id
+          game.value.status = 'finished'
+          saveGame(game.value)
+          return
+        }
+        // Manual end-of-round advance
+        game.value.round++
+        game.value.currentPlayerIndex = 0
+        game.value.status = 'between_turns'
+        saveGame(game.value)
+        return
+      }
+
+    } else if (score.kind === 'suddenDeath' && typeof value === 'number') {
+      score.data.total += value
+      score.data.history.push(value)
+      const isLastPlayer = game.value.currentPlayerIndex === game.value.players.length - 1
+      if (isLastPlayer) {
+        const roundScores = game.value.players.map(p => ({
+          id: p.id,
+          score: (() => { const ps = game.value!.scores[p.id]; return ps?.kind === 'suddenDeath' ? (ps.data.history.at(-1) ?? 0) : 0 })()
+        }))
+        const minScore = Math.min(...roundScores.map(x => x.score))
+        const toEliminate = roundScores.filter(x => x.score === minScore).map(x => x.id)
+        if (toEliminate.length < game.value.players.length) {
+          for (const pid of toEliminate) eliminatePlayer(pid)
+        }
+        if (game.value.players.length === 1) {
+          game.value.winnerId = game.value.players[0]!.id
+          game.value.status = 'finished'
+          saveGame(game.value)
+          return
+        }
+        game.value.round++
+        game.value.currentPlayerIndex = 0
+        game.value.status = 'between_turns'
+        saveGame(game.value)
+        return
+      }
     }
 
     advanceTurn()
+  }
+
+  function eliminatePlayer(playerId: string) {
+    if (!game.value) return
+    const idx = game.value.players.findIndex(p => p.id === playerId)
+    if (idx === -1) return
+    game.value.players = game.value.players.filter(p => p.id !== playerId)
+    delete game.value.scores[playerId]
+    if (idx < game.value.currentPlayerIndex) game.value.currentPlayerIndex--
+    else if (idx === game.value.currentPlayerIndex) {
+      game.value.currentPlayerIndex = game.value.currentPlayerIndex % Math.max(1, game.value.players.length)
+    }
   }
 
   function advanceTurn() {
@@ -204,15 +277,13 @@ export const useGameStore = defineStore('game', () => {
         },
       }
     } else if (['301', '501', '701', '1001'].includes(gameType)) {
-      game.value.scores[player.id] = {
-        kind: 'ohOne',
-        data: { remaining: Number(gameType), history: [] },
-      }
+      game.value.scores[player.id] = { kind: 'ohOne', data: { remaining: Number(gameType), history: [] } }
+    } else if (gameType === 'horse') {
+      game.value.scores[player.id] = { kind: 'horse', data: { letters: 0, history: [] } }
+    } else if (gameType === 'suddenDeath') {
+      game.value.scores[player.id] = { kind: 'suddenDeath', data: { total: 0, history: [] } }
     } else {
-      game.value.scores[player.id] = {
-        kind: 'simple',
-        data: { total: 0, history: [] },
-      }
+      game.value.scores[player.id] = { kind: 'simple', data: { total: 0, history: [] } }
     }
     saveGame(game.value)
   }
