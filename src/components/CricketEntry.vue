@@ -61,7 +61,7 @@ const props = defineProps<{
 
 const WHITE_LABEL_THEMES = new Set<string | null>(
   PLAYER_THEMES
-    .filter(t => t.label === 'Magma' || t.label === 'Steel' || t.label === 'Obsidian')
+    .filter(t => ['Magma', 'Steel', 'Obsidian', 'Blood', 'Oil Slick', 'Midnight'].includes(t.label))
     .map(t => t.value as string | null)
 )
 
