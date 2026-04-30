@@ -50,7 +50,6 @@ export type GameType =
   | '701'
   | '1001'
   | 'aroundTheClock'
-  | 'shanghai'
   | 'killer'
   | 'halveit'
   | 'baseball'
@@ -63,7 +62,6 @@ export const GAME_TYPE_LABELS: Record<GameType, string> = {
   '701': '701',
   '1001': '1001',
   aroundTheClock: 'Around the Clock',
-  shanghai: 'Shanghai',
   killer: 'Killer',
   halveit: 'Halve-It',
   baseball: 'Baseball',
