@@ -217,10 +217,10 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 }
 .between-avatar-bg img {
   width: 100%; height: 100%; object-fit: cover; object-position: center top;
-  opacity: 0.25; border-radius: 12px 0 0 0;
+  opacity: 0.55; border-radius: 12px 0 0 0;
 }
 .between-avatar-bg span {
-  font-size: 45vmin; line-height: 1; opacity: 0.22;
+  font-size: 45vmin; line-height: 1; opacity: 0.50;
   filter: drop-shadow(0 0 32px rgba(0,0,0,0.5));
 }
 
