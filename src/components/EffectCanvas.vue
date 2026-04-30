@@ -42,20 +42,20 @@ function playFireworks(done: () => void) {
 
   function burst(x: number, y: number) {
     const color = palette[Math.floor(Math.random() * palette.length)]!
-    const count = 70 + Math.floor(Math.random() * 40)
+    const count = 90 + Math.floor(Math.random() * 50)
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4
-      const speed = 2.5 + Math.random() * 5
-      particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, alpha: 1, radius: 2 + Math.random() * 2.5, color, decay: 0.012 + Math.random() * 0.012 })
+      const speed = 3.5 + Math.random() * 7
+      particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, alpha: 1, radius: 3 + Math.random() * 4, color, decay: 0.007 + Math.random() * 0.008 })
     }
   }
 
-  const burstTimes = Array.from({ length: 7 }, (_, i) => ({ t: i * 140 + Math.random() * 80, x: W * (0.15 + Math.random() * 0.7), y: H * (0.1 + Math.random() * 0.55) }))
+  const burstTimes = Array.from({ length: 10 }, (_, i) => ({ t: i * 150 + Math.random() * 80, x: W * (0.1 + Math.random() * 0.8), y: H * (0.08 + Math.random() * 0.6) }))
   const startTime = performance.now()
 
   function frame(now: number) {
     const elapsed = now - startTime
-    ctx.fillStyle = 'rgba(0,0,0,0.18)'
+    ctx.fillStyle = 'rgba(0,0,0,0.15)'
     ctx.fillRect(0, 0, W, H)
     for (const b of burstTimes) {
       if (elapsed >= b.t && !('fired' in b)) { burst(b.x, b.y); (b as any).fired = true }
@@ -68,7 +68,7 @@ function playFireworks(done: () => void) {
       ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill()
     }
     ctx.globalAlpha = 1
-    if (elapsed < 2600 || particles.length > 0) { animId = requestAnimationFrame(frame) }
+    if (elapsed < 4600 || particles.length > 0) { animId = requestAnimationFrame(frame) }
     else { ctx.clearRect(0, 0, W, H); done() }
   }
   animId = requestAnimationFrame(frame)
@@ -84,10 +84,10 @@ function playFlames(done: () => void) {
   const embers: Ember[] = []
 
   function spawn() {
-    const count = Math.floor(W / 8)
+    const count = Math.floor(W / 5)
     for (let i = 0; i < count; i++) {
-      const maxLife = 60 + Math.random() * 80
-      embers.push({ x: Math.random() * W, y: H + 10, vx: (Math.random() - 0.5) * 2.5, vy: -(3 + Math.random() * 5), life: maxLife, maxLife, size: 4 + Math.random() * 14, hue: Math.random() * 40 })
+      const maxLife = 70 + Math.random() * 90
+      embers.push({ x: Math.random() * W, y: H + 10, vx: (Math.random() - 0.5) * 3, vy: -(3.5 + Math.random() * 6), life: maxLife, maxLife, size: 6 + Math.random() * 20, hue: Math.random() * 40 })
     }
   }
 
@@ -95,7 +95,7 @@ function playFlames(done: () => void) {
   function frame(now: number) {
     const elapsed = now - startTime
     ctx.clearRect(0, 0, W, H)
-    if (elapsed < 1400) spawn()
+    if (elapsed < 3400) spawn()
     for (let i = embers.length - 1; i >= 0; i--) {
       const e = embers[i]!
       e.x += e.vx + Math.sin(e.life * 0.15) * 0.8; e.y += e.vy; e.vy *= 0.985; e.size *= 0.985; e.life--
@@ -109,7 +109,7 @@ function playFlames(done: () => void) {
       grad.addColorStop(1, `hsla(${e.hue},100%,20%,0)`)
       ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2); ctx.fill()
     }
-    if (elapsed < 2000 || embers.length > 0) { animId = requestAnimationFrame(frame) }
+    if (elapsed < 4000 || embers.length > 0) { animId = requestAnimationFrame(frame) }
     else { ctx.clearRect(0, 0, W, H); done() }
   }
   animId = requestAnimationFrame(frame)
@@ -127,11 +127,11 @@ function playLightning(done: () => void) {
     const my = (y1 + y2) / 2 + (Math.random() - 0.5) * 20
     bolt(x1, y1, mx, my, depth - 1); bolt(mx, my, x2, y2, depth - 1)
     const alpha = Math.min(1, depth / 5)
-    ctx.strokeStyle = `rgba(160,180,255,${alpha * 0.4})`; ctx.lineWidth = depth * 2.5
+    ctx.strokeStyle = `rgba(160,180,255,${alpha * 0.4})`; ctx.lineWidth = depth * 3.5
     ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke()
-    ctx.strokeStyle = `rgba(200,220,255,${alpha * 0.7})`; ctx.lineWidth = depth * 1.2
+    ctx.strokeStyle = `rgba(200,220,255,${alpha * 0.7})`; ctx.lineWidth = depth * 1.8
     ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke()
-    ctx.strokeStyle = `rgba(255,255,255,${alpha})`; ctx.lineWidth = depth * 0.4
+    ctx.strokeStyle = `rgba(255,255,255,${alpha})`; ctx.lineWidth = depth * 0.6
     ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke()
     if (depth >= 3 && Math.random() < 0.45) bolt(mx, my, mx + (Math.random() - 0.5) * W * 0.3, my + H * 0.15, depth - 2)
   }
@@ -144,10 +144,14 @@ function playLightning(done: () => void) {
   }
 
   const strikes = [
-    { t: 0,   x: W * (0.3 + Math.random() * 0.4) },
-    { t: 220, x: W * (0.2 + Math.random() * 0.6) },
-    { t: 450, x: W * (0.25 + Math.random() * 0.5) },
-    { t: 620, x: W * (0.3 + Math.random() * 0.4) },
+    { t: 0,    x: W * (0.3 + Math.random() * 0.4) },
+    { t: 220,  x: W * (0.2 + Math.random() * 0.6) },
+    { t: 450,  x: W * (0.25 + Math.random() * 0.5) },
+    { t: 700,  x: W * (0.3 + Math.random() * 0.4) },
+    { t: 1050, x: W * (0.15 + Math.random() * 0.7) },
+    { t: 1400, x: W * (0.2 + Math.random() * 0.6) },
+    { t: 1750, x: W * (0.3 + Math.random() * 0.4) },
+    { t: 2200, x: W * (0.1 + Math.random() * 0.8) },
   ]
   const startTime = performance.now()
   let lastStrike = -1
@@ -159,7 +163,7 @@ function playLightning(done: () => void) {
       if (elapsed >= strikes[i]!.t && lastStrike < i) { drawStrike(strikes[i]!.x); lastStrike = i; struck = true; break }
     }
     if (!struck && elapsed > (strikes.at(-1)?.t ?? 0) + 120) ctx.clearRect(0, 0, W, H)
-    if (elapsed < 900) { animId = requestAnimationFrame(frame) }
+    if (elapsed < 2900) { animId = requestAnimationFrame(frame) }
     else { ctx.clearRect(0, 0, W, H); done() }
   }
   animId = requestAnimationFrame(frame)
@@ -175,7 +179,7 @@ function playMoneyRain(done: () => void) {
   const bills: Bill[] = []
 
   function spawnBill() {
-    const w = 52 + Math.random() * 28
+    const w = 70 + Math.random() * 40
     bills.push({
       x: Math.random() * (W + 80) - 40,
       y: -60,
@@ -237,7 +241,7 @@ function playMoneyRain(done: () => void) {
     const elapsed = now - startTime
     ctx.clearRect(0, 0, W, H)
 
-    if (elapsed < 1800) {
+    if (elapsed < 3800) {
       spawnAcc += 0.4
       while (spawnAcc >= 1) { spawnBill(); spawnAcc-- }
     }
@@ -248,13 +252,13 @@ function playMoneyRain(done: () => void) {
       b.y += b.vy
       b.rot += b.rotV
       b.wobble += b.wobbleSpeed
-      if (elapsed > 1600) b.alpha -= 0.015
+      if (elapsed > 3600) b.alpha -= 0.015
       if (b.y > H + 80 || b.alpha <= 0) { bills.splice(i, 1); continue }
       drawBill(b)
     }
     ctx.globalAlpha = 1
 
-    if (elapsed < 2400 || bills.length > 0) { animId = requestAnimationFrame(frame) }
+    if (elapsed < 4400 || bills.length > 0) { animId = requestAnimationFrame(frame) }
     else { ctx.clearRect(0, 0, W, H); done() }
   }
   animId = requestAnimationFrame(frame)
@@ -277,7 +281,7 @@ function playBloodSplatter(done: () => void) {
         x: cx, y: cy,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed - 1,
-        r: 3 + Math.random() * 10,
+        r: 5 + Math.random() * 16,
         stuck: false,
         drip: 0,
         dripSpeed: Math.random() < 0.4 ? 0.4 + Math.random() * 1.2 : 0,
@@ -312,7 +316,7 @@ function playBloodSplatter(done: () => void) {
       } else if (d.dripSpeed > 0) {
         d.drip += d.dripSpeed
       }
-      if (elapsed > 1400) d.alpha -= 0.008
+      if (elapsed > 3400) d.alpha -= 0.008
       if (d.alpha <= 0) { drops.splice(i, 1); continue }
 
       ctx.globalAlpha = d.alpha
@@ -334,7 +338,7 @@ function playBloodSplatter(done: () => void) {
     }
     ctx.globalAlpha = 1
 
-    if (elapsed < 2000 || drops.length > 0) { animId = requestAnimationFrame(frame) }
+    if (elapsed < 4000 || drops.length > 0) { animId = requestAnimationFrame(frame) }
     else { ctx.clearRect(0, 0, W, H); done() }
   }
   animId = requestAnimationFrame(frame)
@@ -350,7 +354,7 @@ function playVortex(done: () => void) {
   type Mote = { angle: number; radius: number; speed: number; inSpeed: number; size: number; alpha: number; hue: number }
   const motes: Mote[] = []
 
-  for (let i = 0; i < 220; i++) {
+  for (let i = 0; i < 350; i++) {
     const radius = 80 + Math.random() * Math.max(W, H) * 0.6
     motes.push({
       angle: Math.random() * Math.PI * 2,
@@ -367,7 +371,7 @@ function playVortex(done: () => void) {
 
   function frame(now: number) {
     const elapsed = now - startTime
-    const t = elapsed / 1800
+    const t = elapsed / 3800
     ctx.fillStyle = `rgba(0,0,0,${0.12 + t * 0.08})`
     ctx.fillRect(0, 0, W, H)
 
@@ -378,7 +382,7 @@ function playVortex(done: () => void) {
 
       const x = cx + Math.cos(m.angle) * m.radius
       const y = cy + Math.sin(m.angle) * m.radius
-      const fade = Math.max(0, 1 - elapsed / 1800)
+      const fade = Math.max(0, 1 - elapsed / 3800)
       const alpha = m.alpha * fade
 
       ctx.globalAlpha = alpha
@@ -387,7 +391,7 @@ function playVortex(done: () => void) {
     }
 
     // Dark center hole growing
-    const holeR = t * t * Math.min(W, H) * 0.4
+    const holeR = t * t * Math.min(W, H) * 0.5
     if (holeR > 2) {
       const hGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, holeR)
       hGrad.addColorStop(0, 'rgba(0,0,0,0.95)')
@@ -398,7 +402,7 @@ function playVortex(done: () => void) {
     }
     ctx.globalAlpha = 1
 
-    if (elapsed < 1800) { animId = requestAnimationFrame(frame) }
+    if (elapsed < 3800) { animId = requestAnimationFrame(frame) }
     else { ctx.clearRect(0, 0, W, H); done() }
   }
   animId = requestAnimationFrame(frame)
@@ -413,18 +417,18 @@ function playPortal(done: () => void) {
 
   type Orb = { angle: number; dist: number; speed: number; size: number; hue: number; alpha: number }
   const orbs: Orb[] = []
-  for (let i = 0; i < 60; i++) {
-    orbs.push({ angle: Math.random() * Math.PI * 2, dist: 0.3 + Math.random() * 0.7, speed: 0.02 + Math.random() * 0.04, size: 2 + Math.random() * 4, hue: 160 + Math.random() * 120, alpha: 0.5 + Math.random() * 0.5 })
+  for (let i = 0; i < 90; i++) {
+    orbs.push({ angle: Math.random() * Math.PI * 2, dist: 0.3 + Math.random() * 0.7, speed: 0.02 + Math.random() * 0.04, size: 3 + Math.random() * 6, hue: 160 + Math.random() * 120, alpha: 0.5 + Math.random() * 0.5 })
   }
 
   const startTime = performance.now()
 
   function frame(now: number) {
     const elapsed = now - startTime
-    const t = Math.min(1, elapsed / 1600)
+    const t = Math.min(1, elapsed / 3600)
     ctx.clearRect(0, 0, W, H)
 
-    const maxR = Math.min(W, H) * 0.45 * t
+    const maxR = Math.min(W, H) * 0.52 * t
     const innerR = maxR * 0.35
 
     if (maxR > 4) {
@@ -468,14 +472,14 @@ function playPortal(done: () => void) {
     }
 
     // Fade out
-    if (t > 0.75) {
-      ctx.globalAlpha = (t - 0.75) / 0.25
+    if (t > 0.8) {
+      ctx.globalAlpha = (t - 0.8) / 0.2
       ctx.fillStyle = '#000010'
       ctx.fillRect(0, 0, W, H)
     }
     ctx.globalAlpha = 1
 
-    if (elapsed < 1600) { animId = requestAnimationFrame(frame) }
+    if (elapsed < 3600) { animId = requestAnimationFrame(frame) }
     else { ctx.clearRect(0, 0, W, H); done() }
   }
   animId = requestAnimationFrame(frame)
@@ -497,7 +501,7 @@ function playSmoke(done: () => void) {
       y: H + 20,
       vx: (Math.random() - 0.5) * 1.2,
       vy: -(1.2 + Math.random() * 2.5),
-      r: 30 + Math.random() * 60,
+      r: 50 + Math.random() * 90,
       alpha: 0,
       rot: Math.random() * Math.PI * 2,
       rotV: (Math.random() - 0.5) * 0.012,
@@ -513,7 +517,7 @@ function playSmoke(done: () => void) {
     const elapsed = now - startTime
     ctx.clearRect(0, 0, W, H)
 
-    if (elapsed < 1500) { acc += 0.3; while (acc >= 1) { spawnPuff(); acc-- } }
+    if (elapsed < 3500) { acc += 0.3; while (acc >= 1) { spawnPuff(); acc-- } }
 
     for (let i = puffs.length - 1; i >= 0; i--) {
       const p = puffs[i]!
@@ -521,7 +525,7 @@ function playSmoke(done: () => void) {
       p.r += 0.4; p.rot += p.rotV; p.life++
       const t = p.life / p.maxLife
       p.alpha = t < 0.2 ? t / 0.2 * 0.55 : t > 0.6 ? (1 - t) / 0.4 * 0.55 : 0.55
-      if (elapsed > 1400) p.alpha *= Math.max(0, 1 - (elapsed - 1400) / 800)
+      if (elapsed > 3400) p.alpha *= Math.max(0, 1 - (elapsed - 3400) / 1000)
       if (p.life >= p.maxLife || p.alpha <= 0) { puffs.splice(i, 1); continue }
 
       ctx.save()
@@ -536,7 +540,7 @@ function playSmoke(done: () => void) {
       ctx.restore()
     }
 
-    if (elapsed < 2200 || puffs.length > 0) { animId = requestAnimationFrame(frame) }
+    if (elapsed < 4200 || puffs.length > 0) { animId = requestAnimationFrame(frame) }
     else { ctx.clearRect(0, 0, W, H); done() }
   }
   animId = requestAnimationFrame(frame)
@@ -549,11 +553,11 @@ function playInkSplat(done: () => void) {
   const W = c.width, H = c.height
 
   const startTime = performance.now()
-  const impacts = Array.from({ length: 3 }, (_, i) => ({
-    t: i * 180,
-    x: W * (0.2 + Math.random() * 0.6),
-    y: H * (0.2 + Math.random() * 0.6),
-    maxR: Math.min(W, H) * (0.25 + Math.random() * 0.2),
+  const impacts = Array.from({ length: 5 }, (_, i) => ({
+    t: i * 200,
+    x: W * (0.15 + Math.random() * 0.7),
+    y: H * (0.15 + Math.random() * 0.7),
+    maxR: Math.min(W, H) * (0.35 + Math.random() * 0.25),
   }))
 
   // Tentacles per impact
@@ -595,7 +599,7 @@ function playInkSplat(done: () => void) {
       if (r < 1) continue
 
       // Blob
-      const fadeAlpha = elapsed > 1100 ? Math.max(0, 1 - (elapsed - 1100) / 400) : 1
+      const fadeAlpha = elapsed > 3100 ? Math.max(0, 1 - (elapsed - 3100) / 400) : 1
       ctx.globalAlpha = fadeAlpha
       ctx.fillStyle = '#0a0a0a'
       ctx.beginPath(); ctx.arc(imp.x, imp.y, r, 0, Math.PI * 2); ctx.fill()
@@ -616,7 +620,7 @@ function playInkSplat(done: () => void) {
       const ratio = drawLen / ten.maxLen
       const ex = ten.cx + Math.cos(ten.angle) * drawLen
       const ey = ten.cy + Math.sin(ten.angle) * drawLen
-      const fadeAlpha = elapsed > 1100 ? Math.max(0, 1 - (elapsed - 1100) / 400) : 1
+      const fadeAlpha = elapsed > 3100 ? Math.max(0, 1 - (elapsed - 3100) / 400) : 1
       ctx.globalAlpha = fadeAlpha
       ctx.strokeStyle = '#0a0a0a'
       ctx.lineWidth = ten.w * (1 - ratio * 0.6)
@@ -629,7 +633,7 @@ function playInkSplat(done: () => void) {
 
     ctx.globalAlpha = 1
 
-    if (elapsed < 1500) { animId = requestAnimationFrame(frame) }
+    if (elapsed < 3500) { animId = requestAnimationFrame(frame) }
     else { ctx.clearRect(0, 0, W, H); done() }
   }
   animId = requestAnimationFrame(frame)
@@ -641,7 +645,7 @@ function playPixelDissolve(done: () => void) {
   const ctx = c.getContext('2d')!
   const W = c.width, H = c.height
 
-  const TILE = 18
+  const TILE = 24
   const cols = Math.ceil(W / TILE)
   const rows = Math.ceil(H / TILE)
 
@@ -654,10 +658,10 @@ function playPixelDissolve(done: () => void) {
     for (let col = 0; col < cols; col++) {
       tiles.push({
         x: col * TILE, y: r * TILE,
-        vx: (Math.random() - 0.5) * 4,
-        vy: 1 + Math.random() * 5,
+        vx: (Math.random() - 0.5) * 5,
+        vy: 1 + Math.random() * 4,
         alpha: 1,
-        delay: Math.random() * 600,
+        delay: Math.random() * 1400,
         color: palette[Math.floor(Math.random() * palette.length)]!,
       })
     }
@@ -677,7 +681,7 @@ function playPixelDissolve(done: () => void) {
         ctx.fillRect(t.x, t.y, TILE - 1, TILE - 1)
         anyAlive = true; continue
       }
-      const progress = localT / 500
+      const progress = localT / 700
       t.alpha = Math.max(0, 1 - progress)
       t.x += t.vx * progress * 0.5
       t.y += t.vy * progress
@@ -723,6 +727,6 @@ defineExpose({
   height: 100dvh;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.55;
+  opacity: 0.72;
 }
 </style>

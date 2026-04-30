@@ -8,7 +8,33 @@
       <span v-else-if="nextPlayer.avatarUrl">{{ nextPlayer.avatarUrl }}</span>
     </div>
 
-    <div class="between-inner">
+    <!-- Cricket layout: timer top-center, name, button -->
+    <div v-if="isCricket" class="between-inner cricket-layout">
+      <div class="timer-wrap timer-center" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
+        <svg class="timer-ring" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6" />
+          <circle cx="60" cy="60" r="52" fill="none"
+            :stroke="showAlert ? '#ef4444' : nextPlayer.color" stroke-width="6" stroke-linecap="round"
+            stroke-dasharray="326.7" :stroke-dashoffset="326.7 - (326.7 * progress)"
+            transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 8px currentColor)' }" />
+        </svg>
+        <span class="timer-count display" :style="showAlert ? { color: '#ef4444' } : {}">
+          {{ paused ? '⏸' : timeLeft }}
+        </span>
+      </div>
+
+      <div class="cricket-player-name display"
+        :style="{ color: showAlert ? '#ef4444' : nextPlayer.color, filter: `drop-shadow(0 0 24px ${showAlert ? '#ef4444' : nextPlayer.color})` }">
+        {{ nextPlayer.name }}
+      </div>
+
+      <button v-ripple class="btn-ready" :style="{ borderColor: nextPlayer.color, color: nextPlayer.color, boxShadow: `0 0 24px ${nextPlayer.color}40` }" @click="startTurn">
+        I'M READY — START TURN
+      </button>
+    </div>
+
+    <!-- Default layout (non-cricket) -->
+    <div v-else class="between-inner">
       <transition name="swap" mode="out-in">
         <!-- HURRY UP alert -->
         <div v-if="showAlert" key="alert" class="alert-wrap">
@@ -37,8 +63,8 @@
       </button>
     </div>
 
-    <!-- Timer ring — absolutely positioned top-left -->
-    <div class="timer-wrap" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
+    <!-- Timer ring — absolutely positioned top-left (non-cricket only) -->
+    <div v-if="!isCricket" class="timer-wrap" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
       <svg class="timer-ring" viewBox="0 0 120 120">
         <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6" />
         <circle cx="60" cy="60" r="52" fill="none"
@@ -67,6 +93,7 @@ const settingsStore = useSettingsStore()
 const game = computed(() => gameStore.game)
 if (!game.value) router.push('/')
 const nextPlayer = computed(() => game.value!.players[game.value!.currentPlayerIndex]!)
+const isCricket = computed(() => game.value?.gameType === 'cricket' || game.value?.gameType === 'cutThroat')
 
 const betweenStyle = computed((): CSSProperties => {
   const bg = nextPlayer.value.playerBackground
@@ -202,6 +229,29 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .alert-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .alert-name { font-size: 80px; letter-spacing: 0.04em; line-height: 1; }
 
+/* Cricket layout */
+.cricket-layout {
+  justify-content: center;
+  gap: 36px;
+  padding-top: calc(48px + env(safe-area-inset-top));
+  padding-bottom: calc(48px + env(safe-area-inset-bottom));
+}
+.cricket-player-name {
+  font-size: clamp(72px, 14dvh, 130px);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-align: center;
+  transition: color 0.3s;
+}
+.timer-center {
+  position: relative !important;
+  top: auto !important; left: auto !important;
+  width: 220px; height: 220px;
+}
+.timer-center .timer-ring { width: 220px; height: 220px; }
+.timer-center .timer-count { font-size: 88px; }
+
+/* Default (non-cricket) absolute timer */
 .timer-wrap {
   position: absolute;
   top: calc(28px + env(safe-area-inset-top));
@@ -253,6 +303,11 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .timer-ring { width: 110px; height: 110px; }
   .timer-count { font-size: 42px; }
   .btn-ready { font-size: 16px; padding: 14px 0; max-width: 360px; }
+  .cricket-layout { flex-direction: row; gap: 24px; padding: 16px 32px; align-items: center; justify-content: center; padding-top: calc(16px + env(safe-area-inset-top)); }
+  .cricket-layout .timer-center { width: 140px; height: 140px; }
+  .cricket-layout .timer-center .timer-ring { width: 140px; height: 140px; }
+  .cricket-layout .timer-center .timer-count { font-size: 56px; }
+  .cricket-player-name { font-size: 52px; }
 }
 
 @media (max-width: 768px) {
@@ -263,5 +318,10 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .timer-ring { width: 124px; height: 124px; }
   .timer-count { font-size: 48px; }
   .btn-ready { font-size: 18px; padding: 18px 0; }
+  .cricket-layout { gap: 28px; }
+  .cricket-layout .timer-center { width: 180px; height: 180px; }
+  .cricket-layout .timer-center .timer-ring { width: 180px; height: 180px; }
+  .cricket-layout .timer-center .timer-count { font-size: 72px; }
+  .cricket-player-name { font-size: clamp(60px, 11dvh, 100px); }
 }
 </style>
