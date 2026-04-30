@@ -143,7 +143,7 @@ const timerDuration = ref(30)
 const timerOptions = [15, 20, 30, 45, 60]
 const throwTimerDuration = ref(0)
 const throwTimerOptions = [0, 30, 45, 60, 90, 120]
-const selectedPlayers = ref<Player[]>([...playersStore.players])
+const selectedPlayers = ref<Player[]>([])
 
 function isSelected(id: string) { return selectedPlayers.value.some(p => p.id === id) }
 function isPhoto(url: string | null) { return url?.startsWith('data:') || url?.startsWith('http') }
