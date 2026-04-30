@@ -92,18 +92,39 @@
           <div class="existing-scroll">
             <div class="existing-list">
               <div v-for="p in playersStore.players" :key="p.id" v-ripple class="existing-row" @click="loadPlayer(p)">
-                <div class="roster-avatar" :style="{ background: p.color, boxShadow: `0 0 8px ${p.color}60` }">{{ p.avatarUrl ?? '🎯' }}</div>
+                <div class="roster-avatar" :style="{ background: p.color, boxShadow: `0 0 8px ${p.color}60` }">
+                  <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
+                  <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+                </div>
                 <div class="existing-info">
                   <span>{{ p.name }}</span>
                   <span style="font-size:12px;color:var(--text-muted)">{{ p.wins }}W · {{ p.gamesPlayed }}G</span>
                 </div>
-                <button v-ripple class="btn btn-sm btn-danger" @click.stop="playersStore.deletePlayer(p.id)">✕</button>
+                <button v-ripple class="btn btn-sm btn-danger" @click.stop="confirmDelete(p)">🗑</button>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Delete confirm dialog -->
+    <transition name="fade">
+      <div v-if="deleteTarget" class="confirm-overlay" @click.self="deleteTarget = null">
+        <div class="confirm-panel">
+          <div class="confirm-avatar" :style="{ background: deleteTarget.color }">
+            <img v-if="isPhoto(deleteTarget.avatarUrl)" :src="deleteTarget.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover" />
+            <span v-else>{{ deleteTarget.avatarUrl ?? '🎯' }}</span>
+          </div>
+          <div class="confirm-name">{{ deleteTarget.name }}</div>
+          <p class="confirm-msg">Delete this player? Their stats will be gone forever.</p>
+          <div class="confirm-btns">
+            <button v-ripple class="btn btn-outline btn-lg" @click="deleteTarget = null">Cancel</button>
+            <button v-ripple class="btn btn-danger btn-lg" @click="doDelete">Delete</button>
+          </div>
+        </div>
+      </div>
+    </transition>
 
     <!-- Camera dialog -->
     <q-dialog v-model="cameraOpen" @hide="closeCamera">
@@ -144,6 +165,16 @@ const cameraOpen = ref(false)
 const videoEl = ref<HTMLVideoElement | null>(null)
 const canvasEl = ref<HTMLCanvasElement | null>(null)
 let stream: MediaStream | null = null
+
+function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:') || url?.startsWith('http')) }
+const deleteTarget = ref<Player | null>(null)
+function confirmDelete(p: Player) { deleteTarget.value = p }
+function doDelete() {
+  if (!deleteTarget.value) return
+  if (editingId.value === deleteTarget.value.id) resetForm()
+  playersStore.deletePlayer(deleteTarget.value.id)
+  deleteTarget.value = null
+}
 
 const bgMode = ref<'theme' | 'image'>('theme')
 const playerBackground = ref<string | null>(null)
@@ -289,6 +320,25 @@ function save() {
 .camera-header { display: flex; align-items: center; justify-content: space-between; }
 .camera-feed { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #000; display: block; }
 .camera-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.08); }
+
+.confirm-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.confirm-panel {
+  background: #111; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px;
+  padding: 32px 28px; width: 100%; max-width: 360px;
+  display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center;
+}
+.confirm-avatar { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; overflow: hidden; flex-shrink: 0; }
+.confirm-name { font-size: 24px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; }
+.confirm-msg { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin: 0; }
+.confirm-btns { display: flex; gap: 12px; width: 100%; }
+.confirm-btns .btn { flex: 1; }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 
 @media (max-width: 768px) {
   .page { height: auto; min-height: 100vh; min-height: 100dvh; overflow: auto; }
