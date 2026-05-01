@@ -324,4 +324,11 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .cricket-layout .timer-center .timer-count { font-size: 72px; }
   .cricket-player-name { font-size: clamp(60px, 11dvh, 100px); }
 }
+
+@media (orientation: portrait) {
+  .cricket-layout {
+    justify-content: flex-start;
+    padding-top: calc(72px + env(safe-area-inset-top));
+  }
+}
 </style>
