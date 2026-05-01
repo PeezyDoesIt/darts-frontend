@@ -4,6 +4,7 @@ export type Player = {
   avatarUrl: string | null
   color: string
   playerBackground: string | null
+  pinned: boolean
   wins: number
   gamesPlayed: number
   createdAt: string

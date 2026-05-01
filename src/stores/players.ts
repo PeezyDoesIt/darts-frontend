@@ -10,7 +10,7 @@ export const usePlayersStore = defineStore('players', () => {
     const raw = localStorage.getItem('darts_players')
     if (raw) {
       const loaded = JSON.parse(raw) as Player[]
-      players.value = loaded.map(p => ({ ...p, playerBackground: p.playerBackground ?? null }))
+      players.value = loaded.map(p => ({ ...p, playerBackground: p.playerBackground ?? null, pinned: p.pinned ?? false }))
     } else {
       // Seed default players
       players.value = [
@@ -20,6 +20,7 @@ export const usePlayersStore = defineStore('players', () => {
           color: '#ff2d78',
           avatarUrl: '🎯',
           playerBackground: null,
+          pinned: true,
           wins: 100,
           gamesPlayed: 100,
           createdAt: '2024-01-01T00:00:00.000Z',
@@ -37,6 +38,7 @@ export const usePlayersStore = defineStore('players', () => {
     const player: Player = {
       ...data,
       playerBackground: data.playerBackground ?? null,
+      pinned: data.pinned ?? false,
       id: uuid(),
       wins: 0,
       gamesPlayed: 0,
