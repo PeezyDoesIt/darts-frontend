@@ -222,6 +222,12 @@ import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
 import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore, type CricketTarget } from '../types/index'
+import { playEffect } from '../composables/useEffectCanvas'
+
+const CANVAS_EFFECTS = new Set([
+  'fx-fireworks', 'fx-flames', 'fx-lightning', 'fx-money-rain',
+  'fx-blood', 'fx-vortex', 'fx-portal', 'fx-smoke', 'fx-ink-splat', 'fx-pixel-dissolve',
+])
 
 const WHITE_LABEL_THEMES = new Set<string | null>(
   PLAYER_THEMES
@@ -330,11 +336,20 @@ function handleNumpadSubmit(score: number) {
   revealTimeout = setTimeout(() => {
     showScoreReveal.value = false
     pendingRevealNavigation = false
-    router.push('/between')
+    navigateToBetween()
   }, 4000)
 }
 
 function quitGame() { gameStore.endGame(); router.push('/') }
+
+async function navigateToBetween() {
+  const fx = gameStore.pendingTransition
+  if (CANVAS_EFFECTS.has(fx)) {
+    gameStore.consumeTransition()
+    await playEffect(fx)
+  }
+  router.push('/between')
+}
 
 // Throw timer
 const throwTimerDuration = computed(() => game.value?.throwTimerDuration ?? 0)
@@ -392,7 +407,7 @@ onUnmounted(() => {
 })
 
 watch(() => game.value?.status, (status) => {
-  if (status === 'between_turns') { clearThrowTimer(); if (!pendingRevealNavigation) router.push('/between') }
+  if (status === 'between_turns') { clearThrowTimer(); if (!pendingRevealNavigation) navigateToBetween() }
   if (status === 'finished') { clearThrowTimer(); if (!pendingRevealNavigation) router.push('/win') }
   if (status === 'playing') startThrowTimer()
 })

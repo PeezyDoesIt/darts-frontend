@@ -12,28 +12,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useGameStore } from './stores/game'
 import EffectCanvas from './components/EffectCanvas.vue'
-
-const CANVAS_EFFECTS = new Set([
-  'fx-fireworks', 'fx-flames', 'fx-lightning',
-  'fx-money-rain', 'fx-blood', 'fx-vortex', 'fx-portal',
-  'fx-smoke', 'fx-ink-splat', 'fx-pixel-dissolve',
-])
+import { registerEffectCanvas } from './composables/useEffectCanvas'
 
 const gameStore = useGameStore()
 const activeTransition = ref('fx-fade')
 const effectCanvas = ref<InstanceType<typeof EffectCanvas> | null>(null)
 
+watch(effectCanvas, c => registerEffectCanvas(c), { immediate: true })
+
 function onBeforeLeave() {
+  // Canvas effects are played before navigation in GamePage; only CSS transitions handled here
   const fx = gameStore.consumeTransition()
-  if (CANVAS_EFFECTS.has(fx)) {
-    activeTransition.value = 'fx-fade'
-    effectCanvas.value?.play(fx, () => {})
-  } else {
-    activeTransition.value = fx
-  }
+  activeTransition.value = fx
 }
 function onAfterEnter() {
   activeTransition.value = 'fx-fade'
