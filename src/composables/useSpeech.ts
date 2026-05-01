@@ -26,10 +26,21 @@ function selectVoice(name: string): SpeechSynthesisVoice | null {
   return voices.find(v => v.name === name) ?? voices.find(v => v.lang.startsWith('en')) ?? null
 }
 
+const PRONUNCIATIONS: [RegExp, string][] = [
+  [/Neshaun/gi, 'Neshawn'],
+]
+
+function applyPronunciations(text: string): string {
+  for (const [pattern, replacement] of PRONUNCIATIONS) {
+    text = text.replace(pattern, replacement)
+  }
+  return text
+}
+
 function doSpeak(text: string, resolve: () => void) {
   const settings = useSettingsStore()
   window.speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(text)
+  const u = new SpeechSynthesisUtterance(applyPronunciations(text))
   const voice = selectVoice(settings.voiceName)
   if (voice) u.voice = voice
   u.rate = 0.88
