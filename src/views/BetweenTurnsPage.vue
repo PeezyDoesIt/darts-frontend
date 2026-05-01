@@ -28,8 +28,8 @@
         </span>
       </div>
 
-      <button v-ripple class="btn-ready" :style="{ borderColor: nextPlayer.color, color: nextPlayer.color, boxShadow: `0 0 24px ${nextPlayer.color}40` }" @click="startTurn">
-        I'M READY — START TURN
+      <button v-ripple class="btn-ready" :style="{ borderColor: nextPlayer.color, color: '#fff', boxShadow: `0 0 24px ${nextPlayer.color}40` }" @click="startTurn">
+        START TURN
       </button>
     </div>
 
@@ -58,8 +58,8 @@
         </div>
       </transition>
 
-      <button v-ripple class="btn-ready" :style="{ borderColor: nextPlayer.color, color: nextPlayer.color, boxShadow: `0 0 24px ${nextPlayer.color}40` }" @click="startTurn">
-        I'M READY — START TURN
+      <button v-ripple class="btn-ready" :style="{ borderColor: nextPlayer.color, color: '#fff', boxShadow: `0 0 24px ${nextPlayer.color}40` }" @click="startTurn">
+        START TURN
       </button>
     </div>
 
@@ -279,7 +279,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 
 .between-avatar-bg {
   position: absolute; bottom: calc(0px + env(safe-area-inset-bottom)); right: 0;
-  width: 55vmin; height: 55vmin;
+  width: 36vmin; height: 36vmin;
   pointer-events: none; user-select: none; z-index: 1;
   display: flex; align-items: flex-end; justify-content: flex-end;
 }
@@ -288,7 +288,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   opacity: 0.55; border-radius: 12px 0 0 0;
 }
 .between-avatar-bg span {
-  font-size: 70vmin; line-height: 1; opacity: 0.50;
+  font-size: 36vmin; line-height: 1; opacity: 0.35;
   filter: drop-shadow(0 0 32px rgba(0,0,0,0.5));
 }
 
@@ -327,8 +327,8 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 
 @media (orientation: portrait) {
   .cricket-layout {
-    justify-content: flex-start;
-    padding-top: calc(72px + env(safe-area-inset-top));
+    justify-content: center;
+    padding-top: calc(48px + env(safe-area-inset-top));
   }
 }
 </style>

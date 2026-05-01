@@ -273,136 +273,83 @@ export function playBullseye(): Promise<void> {
     if (!AudioCtx) { resolve(); return }
     const ctx = new AudioCtx()
     const now = ctx.currentTime
-    const duration = 9.0
+    const duration = 2.2
 
     const master = ctx.createGain()
-    master.gain.setValueAtTime(2.8, now)
+    master.gain.setValueAtTime(0, now)
+    master.gain.linearRampToValueAtTime(0.85, now + 0.1)   // soft attack
+    master.gain.setValueAtTime(0.85, now + 1.6)
+    master.gain.linearRampToValueAtTime(0, now + duration)
     master.connect(ctx.destination)
 
-    // ── INITIAL CRACK ───────────────────────────────────────────────────────
-    // Ultra-sharp transient — the dart impact point
-    const crackBuf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.06), ctx.sampleRate)
-    const crackData = crackBuf.getChannelData(0)
-    for (let i = 0; i < crackData.length; i++) crackData[i] = (Math.random() * 2 - 1) * (1 - i / crackData.length)
-    const crack = ctx.createBufferSource()
-    crack.buffer = crackBuf
-    const crackGain = ctx.createGain()
-    crackGain.gain.setValueAtTime(3.0, now)
-    crackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06)
-    crack.connect(crackGain)
-    crackGain.connect(master)
-    crack.start(now)
+    // Vocal formant filter — shapes sawtooth into a voice-like timbre
+    const formant = ctx.createBiquadFilter()
+    formant.type = 'bandpass'
+    formant.frequency.setValueAtTime(800, now)    // "mmm" closed
+    formant.frequency.linearRampToValueAtTime(1200, now + 0.35) // mouth opens → "ohh"
+    formant.frequency.linearRampToValueAtTime(900, now + 1.5)   // trailing off
+    formant.Q.value = 3.5
+    formant.connect(master)
 
-    // ── SUB CANNON THUD ─────────────────────────────────────────────────────
-    // Three stacked sine waves for chest-thumping low end
-    const subFreqs = [60, 90, 140]
-    subFreqs.forEach((freq, i) => {
-      const sub = ctx.createOscillator()
-      const subGain = ctx.createGain()
-      sub.type = 'sine'
-      sub.frequency.setValueAtTime(freq * (1 + i * 0.05), now)
-      sub.frequency.exponentialRampToValueAtTime(freq * 0.12, now + 1.8)
-      subGain.gain.setValueAtTime(1.8 - i * 0.3, now)
-      subGain.gain.exponentialRampToValueAtTime(0.001, now + 2.2 + i * 0.4)
-      sub.connect(subGain)
-      subGain.connect(master)
-      sub.start(now)
-      sub.stop(now + 2.6 + i * 0.4)
-    })
+    // Second formant for body / chest resonance
+    const formant2 = ctx.createBiquadFilter()
+    formant2.type = 'bandpass'
+    formant2.frequency.setValueAtTime(280, now)
+    formant2.frequency.linearRampToValueAtTime(340, now + 0.4)
+    formant2.frequency.linearRampToValueAtTime(260, now + 1.8)
+    formant2.Q.value = 6
+    formant2.connect(master)
 
-    // ── NOISE BUFFER (full duration) ────────────────────────────────────────
+    // Main vocal oscillator — sawtooth for rich harmonic content
+    const osc = ctx.createOscillator()
+    osc.type = 'sawtooth'
+    // Pitch arc: starts low-ish, peaks, then relaxes down — the classic moan contour
+    osc.frequency.setValueAtTime(290, now)
+    osc.frequency.linearRampToValueAtTime(370, now + 0.55)
+    osc.frequency.linearRampToValueAtTime(410, now + 0.9)
+    osc.frequency.linearRampToValueAtTime(300, now + 1.7)
+    osc.frequency.linearRampToValueAtTime(260, now + duration)
+    osc.connect(formant)
+    osc.connect(formant2)
+    osc.start(now)
+    osc.stop(now + duration)
+
+    // Vibrato LFO — kicks in after the initial attack
+    const lfo = ctx.createOscillator()
+    const lfoGain = ctx.createGain()
+    lfo.type = 'sine'
+    lfo.frequency.value = 5.8
+    lfoGain.gain.setValueAtTime(0, now)
+    lfoGain.gain.linearRampToValueAtTime(0, now + 0.2)
+    lfoGain.gain.linearRampToValueAtTime(14, now + 0.6)  // vibrato depth in Hz
+    lfoGain.gain.setValueAtTime(14, now + 1.4)
+    lfoGain.gain.linearRampToValueAtTime(6, now + duration)
+    lfo.connect(lfoGain)
+    lfoGain.connect(osc.frequency)
+    lfo.start(now)
+    lfo.stop(now + duration)
+
+    // Breathiness — filtered noise adds air/texture
     const bufSize = Math.ceil(ctx.sampleRate * duration)
     const noiseBuf = ctx.createBuffer(1, bufSize, ctx.sampleRate)
     const nd = noiseBuf.getChannelData(0)
     for (let i = 0; i < bufSize; i++) nd[i] = Math.random() * 2 - 1
     const noise = ctx.createBufferSource()
     noise.buffer = noiseBuf
-
-    // Very low rumble — ground shake, fades over full duration
-    const subLpf = ctx.createBiquadFilter()
-    subLpf.type = 'lowpass'
-    subLpf.frequency.setValueAtTime(120, now)
-    subLpf.frequency.exponentialRampToValueAtTime(30, now + 4.0)
-    const subLpfGain = ctx.createGain()
-    subLpfGain.gain.setValueAtTime(2.2, now)
-    subLpfGain.gain.exponentialRampToValueAtTime(0.001, now + duration)
-    noise.connect(subLpf)
-    subLpf.connect(subLpfGain)
-    subLpfGain.connect(master)
-
-    // Mid-low body — roiling explosion cloud
-    const bodyLpf = ctx.createBiquadFilter()
-    bodyLpf.type = 'lowpass'
-    bodyLpf.frequency.setValueAtTime(1200, now)
-    bodyLpf.frequency.exponentialRampToValueAtTime(80, now + 3.5)
-    const bodyGain = ctx.createGain()
-    bodyGain.gain.setValueAtTime(1.8, now + 0.04)
-    bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 5.5)
-    noise.connect(bodyLpf)
-    bodyLpf.connect(bodyGain)
-    bodyGain.connect(master)
-
-    // Mid crunch — debris scatter
-    const bpf = ctx.createBiquadFilter()
-    bpf.type = 'bandpass'
-    bpf.frequency.setValueAtTime(1800, now)
-    bpf.frequency.exponentialRampToValueAtTime(400, now + 2.0)
-    bpf.Q.value = 0.5
-    const bpfGain = ctx.createGain()
-    bpfGain.gain.setValueAtTime(1.4, now)
-    bpfGain.gain.exponentialRampToValueAtTime(0.001, now + 2.0)
-    noise.connect(bpf)
-    bpf.connect(bpfGain)
-    bpfGain.connect(master)
-
-    // High sizzle — shrapnel / air pressure
-    const hpf = ctx.createBiquadFilter()
-    hpf.type = 'highpass'
-    hpf.frequency.value = 4000
-    const hpfGain = ctx.createGain()
-    hpfGain.gain.setValueAtTime(1.6, now)
-    hpfGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35)
-    noise.connect(hpf)
-    hpf.connect(hpfGain)
-    hpfGain.connect(master)
-
+    const noiseFilter = ctx.createBiquadFilter()
+    noiseFilter.type = 'bandpass'
+    noiseFilter.frequency.value = 2800
+    noiseFilter.Q.value = 1.5
+    const noiseGain = ctx.createGain()
+    noiseGain.gain.setValueAtTime(0, now)
+    noiseGain.gain.linearRampToValueAtTime(0.12, now + 0.08)
+    noiseGain.gain.setValueAtTime(0.12, now + 1.5)
+    noiseGain.gain.linearRampToValueAtTime(0, now + duration)
+    noise.connect(noiseFilter)
+    noiseFilter.connect(noiseGain)
+    noiseGain.connect(master)
     noise.start(now)
     noise.stop(now + duration)
-
-    // ── SECONDARY BLAST ─────────────────────────────────────────────────────
-    // A second pressure wave ~180ms later for a "double thump" feel
-    const buf2 = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * (duration - 0.18)), ctx.sampleRate)
-    const nd2 = buf2.getChannelData(0)
-    for (let i = 0; i < nd2.length; i++) nd2[i] = Math.random() * 2 - 1
-    const noise2 = ctx.createBufferSource()
-    noise2.buffer = buf2
-    const lpf2 = ctx.createBiquadFilter()
-    lpf2.type = 'lowpass'
-    lpf2.frequency.setValueAtTime(600, now + 0.18)
-    lpf2.frequency.exponentialRampToValueAtTime(40, now + 2.5)
-    const gain2 = ctx.createGain()
-    gain2.gain.setValueAtTime(1.6, now + 0.18)
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 4.5)
-    noise2.connect(lpf2)
-    lpf2.connect(gain2)
-    gain2.connect(master)
-    noise2.start(now + 0.18)
-    noise2.stop(now + duration)
-
-    // ── TAIL RUMBLE ─────────────────────────────────────────────────────────
-    // Faint low-freq decay extending the feel to full duration
-    const tailOsc = ctx.createOscillator()
-    const tailGain = ctx.createGain()
-    tailOsc.type = 'sine'
-    tailOsc.frequency.setValueAtTime(28, now + 1.5)
-    tailOsc.frequency.exponentialRampToValueAtTime(12, now + duration)
-    tailGain.gain.setValueAtTime(0.001, now + 1.5)
-    tailGain.gain.linearRampToValueAtTime(0.6, now + 2.2)
-    tailGain.gain.exponentialRampToValueAtTime(0.001, now + duration)
-    tailOsc.connect(tailGain)
-    tailGain.connect(master)
-    tailOsc.start(now + 1.5)
-    tailOsc.stop(now + duration)
 
     setTimeout(() => { ctx.close(); resolve() }, duration * 1000 + 100)
   })

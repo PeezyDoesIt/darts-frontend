@@ -47,6 +47,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { CRICKET_TARGETS, PLAYER_THEMES, type CricketTarget, type PlayerScore } from '../types/index'
+import { playBullseye } from '../composables/useSounds'
 
 const props = defineProps<{
   playerId: string
@@ -118,7 +119,9 @@ function handleTileClick(target: CricketTarget) {
   const existing = existingMarks.value[target] ?? 0
   const max = 3 - existing
   const current = roundHits.value[target] ?? 0
-  roundHits.value = { ...roundHits.value, [target]: current >= max ? 0 : current + 1 }
+  const next = current >= max ? 0 : current + 1
+  roundHits.value = { ...roundHits.value, [target]: next }
+  if (target === 'bull' && next > current) playBullseye()
 }
 function submit() {
   if (submitted.value) return
