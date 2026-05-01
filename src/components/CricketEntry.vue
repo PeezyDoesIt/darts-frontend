@@ -166,12 +166,12 @@ defineExpose({ submit, submitted })
 .board-tile {
   display: flex; align-items: stretch; width: 100%; padding: 8px 24px; gap: 0;
   flex: 1; min-height: 48px;
-  background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.35); border-radius: 8px;
+  background: rgba(0,0,0,0.72); border: 2px solid rgba(255,255,255,0.35); border-radius: 8px;
   cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent; text-align: left;
   position: relative; overflow: hidden;
 }
 .board-tile:not(:disabled):active { transform: scale(0.98); }
-.board-tile.active { border-color: var(--pink); background: rgba(255,45,120,0.18); box-shadow: 0 0 32px rgba(255,45,120,0.35), inset 0 0 40px rgba(255,45,120,0.08); }
+.board-tile.active { border-color: var(--pink); background: rgba(180,0,60,0.92); box-shadow: 0 0 32px rgba(255,45,120,0.35); }
 .board-tile.closed { opacity: 0.3; cursor: default; }
 
 .target-label { font-size: clamp(72px, 13dvh, 150px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; display: flex; align-items: center; }
@@ -188,8 +188,8 @@ defineExpose({ submit, submitted })
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   pointer-events: none; overflow: hidden; z-index: 0;
 }
-.board-avatar-bg img { width: 90%; height: 95%; object-fit: contain; object-position: center; opacity: 0.18; }
-.board-avatar-bg span { font-size: 65dvh; line-height: 1; opacity: 0.22; filter: drop-shadow(0 0 24px rgba(0,0,0,0.4)); }
+.board-avatar-bg img { width: 90%; height: 95%; object-fit: contain; object-position: center; opacity: 0.7; }
+.board-avatar-bg span { font-size: 65dvh; line-height: 1; opacity: 0.7; filter: drop-shadow(0 0 24px rgba(0,0,0,0.4)); }
 
 .submit-row {
   display: flex; align-items: center; justify-content: space-between;
