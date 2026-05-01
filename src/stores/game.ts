@@ -69,14 +69,6 @@ export const useGameStore = defineStore('game', () => {
   const playerTimeoutCounts = ref<Record<string, number>>({})
   const playerHurryUpCounts = ref<Record<string, number>>({})
   const _pendingTimeout = ref(false)
-  const pendingTransition = ref<string>('fx-fade')
-
-  function consumeTransition(): string {
-    const t = pendingTransition.value
-    pendingTransition.value = 'fx-fade'
-    return t
-  }
-
   function recordHurryUp(playerId: string) {
     playerHurryUpCounts.value[playerId] = (playerHurryUpCounts.value[playerId] ?? 0) + 1
   }
@@ -116,9 +108,6 @@ export const useGameStore = defineStore('game', () => {
     lastTurnWasTimeout.value = _pendingTimeout.value
     lastTurnHadBull.value = typeof value === 'object' && (value['bull'] ?? 0) > 0
     _pendingTimeout.value = false
-    const scoringPlayer = game.value.players.find(p => p.id === playerId)
-    pendingTransition.value = scoringPlayer?.transitionEffect ?? 'fx-fade'
-
     const score = game.value.scores[playerId]
     if (!score) return
 
@@ -338,7 +327,7 @@ export const useGameStore = defineStore('game', () => {
     saveGame(null)
   }
 
-  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, pendingTransition, consumeTransition, recordTimeout, recordHurryUp, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, setHideClosedTargets, endGame }
+  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, setHideClosedTargets, endGame }
 })
 
 function checkCricketWin(game: ActiveGame): string | null {

@@ -4,26 +4,11 @@ export type Player = {
   avatarUrl: string | null
   color: string
   playerBackground: string | null
-  transitionEffect: string | null
   wins: number
   gamesPlayed: number
   createdAt: string
 }
 
-export const TRANSITION_EFFECTS = [
-  { label: 'None',              value: null },
-  { label: 'Glitch',            value: 'fx-glitch' },
-  { label: '🎆 Fireworks',      value: 'fx-fireworks' },
-  { label: '🔥 Flames',         value: 'fx-flames' },
-  { label: '⚡ Lightning',      value: 'fx-lightning' },
-  { label: '💵 Money Rain',     value: 'fx-money-rain' },
-  { label: '🩸 Blood Splatter', value: 'fx-blood' },
-  { label: '🌀 Vortex',         value: 'fx-vortex' },
-  { label: '🔵 Portal',         value: 'fx-portal' },
-  { label: '💨 Smoke',          value: 'fx-smoke' },
-  { label: '🖋 Ink Splat',      value: 'fx-ink-splat' },
-  { label: '🟫 Pixel Dissolve', value: 'fx-pixel-dissolve' },
-] as const
 
 export const PLAYER_THEMES = [
   { label: 'None',         value: null },
