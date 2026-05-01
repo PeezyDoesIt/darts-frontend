@@ -178,7 +178,7 @@ defineExpose({ submit, submitted })
 .pips-wrap { display: flex; align-items: stretch; gap: 20px; flex: 1; padding: 14px 0; }
 .pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: block; transition: all 0.2s; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
-.pip.round { background: rgba(255,45,120,0.55); border-color: var(--pink); box-shadow: 0 0 16px rgba(255,45,120,0.6); }
+.pip.round { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 16px rgba(255,45,120,0.6); }
 
 .closed-badge { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--pink); text-transform: uppercase; font-family: var(--font-display); opacity: 0.7; width: 80px; text-align: right; flex-shrink: 0; align-self: center; }
 .hit-badge { font-size: 22px; font-weight: 900; font-family: var(--font-display); color: var(--pink); width: 80px; text-align: right; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(255,45,120,0.6)); align-self: center; }
