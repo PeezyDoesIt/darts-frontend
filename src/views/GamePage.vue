@@ -374,10 +374,7 @@ const entryPanelStyle = computed(() => {
   return { background: bg }
 })
 
-const currentPlayerNameColor = computed(() => {
-  const bg = game.value?.gameTheme ?? currentPlayer.value.playerBackground
-  return WHITE_LABEL_THEMES.has(bg ?? null) ? '#ffffff' : currentPlayer.value.color
-})
+const currentPlayerNameColor = computed(() => '#ffffff')
 
 function scrollActivePlayerIntoView() {
   nextTick(() => {
