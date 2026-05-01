@@ -236,11 +236,11 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .cricket-layout {
   justify-content: center;
   gap: 36px;
-  padding-top: calc(48px + env(safe-area-inset-top));
+  padding-top: calc(16px + env(safe-area-inset-top));
   padding-bottom: calc(48px + env(safe-area-inset-bottom));
 }
 .cricket-player-name {
-  font-size: clamp(72px, 14dvh, 130px);
+  font-size: clamp(90px, 18dvh, 170px);
   letter-spacing: 0.04em;
   line-height: 1;
   text-align: center;
@@ -331,7 +331,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 @media (orientation: portrait) {
   .cricket-layout {
     justify-content: center;
-    padding-top: calc(48px + env(safe-area-inset-top));
+    padding-top: calc(16px + env(safe-area-inset-top));
   }
 }
 </style>
