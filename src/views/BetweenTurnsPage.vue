@@ -15,7 +15,7 @@
         {{ nextPlayer.name }}
       </div>
 
-      <div class="timer-wrap timer-center" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
+      <div v-if="!timerOff" class="timer-wrap timer-center" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
         <svg class="timer-ring" viewBox="0 0 120 120">
           <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="6" />
           <circle cx="60" cy="60" r="52" fill="none"
@@ -64,7 +64,7 @@
     </div>
 
     <!-- Timer ring — absolutely positioned top-left (non-cricket only) -->
-    <div v-if="!isCricket" class="timer-wrap" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
+    <div v-if="!isCricket && !timerOff" class="timer-wrap" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
       <svg class="timer-ring" viewBox="0 0 120 120">
         <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6" />
         <circle cx="60" cy="60" r="52" fill="none"
@@ -111,10 +111,11 @@ const prevPlayer = computed(() => {
 })
 
 const total = computed(() => game.value!.timerDuration)
+const timerOff = computed(() => total.value === 0)
 const timeLeft = ref(total.value)
 const showAlert = ref(false)
 const paused = ref(false)
-const progress = computed(() => timeLeft.value / total.value)
+const progress = computed(() => timerOff.value ? 0 : timeLeft.value / total.value)
 let interval: ReturnType<typeof setInterval> | null = null
 
 function togglePause() { paused.value = !paused.value }
@@ -183,6 +184,8 @@ async function handleTurnAnnouncement() {
 
 onMounted(() => {
   handleTurnAnnouncement()
+
+  if (timerOff.value) return  // no timer — wait for manual tap
 
   interval = setInterval(() => {
     if (paused.value) return

@@ -41,11 +41,12 @@
 
           <section class="ng-section">
             <span class="label">Walk-up Timer</span>
-            <p class="hint">Seconds the next player has to walk up before the alert fires</p>
+            <p class="hint">Seconds the next player has to walk up before the alert fires. Off = manual tap to start each turn.</p>
             <div class="timer-options">
+              <button v-ripple class="timer-btn" :class="{ active: timerDuration === 0 }" @click="timerDuration = 0">Off</button>
               <button v-for="t in timerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: timerDuration === t }" @click="timerDuration = t">{{ t }}s</button>
             </div>
-            <div class="custom-timer-row">
+            <div v-if="timerDuration > 0" class="custom-timer-row">
               <span class="hint">Custom:</span>
               <q-input
                 v-model.number="timerDuration"
