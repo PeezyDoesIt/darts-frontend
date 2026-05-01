@@ -8,24 +8,24 @@
       <span v-else-if="nextPlayer.avatarUrl">{{ nextPlayer.avatarUrl }}</span>
     </div>
 
-    <!-- Cricket layout: timer top-center, name, button -->
+    <!-- Cricket layout: name, timer, button stacked top-aligned -->
     <div v-if="isCricket" class="between-inner cricket-layout">
-      <div class="timer-wrap timer-center" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
-        <svg class="timer-ring" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6" />
-          <circle cx="60" cy="60" r="52" fill="none"
-            :stroke="showAlert ? '#ef4444' : nextPlayer.color" stroke-width="6" stroke-linecap="round"
-            stroke-dasharray="326.7" :stroke-dashoffset="326.7 - (326.7 * progress)"
-            transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 8px currentColor)' }" />
-        </svg>
-        <span class="timer-count display" :style="showAlert ? { color: '#ef4444' } : {}">
-          {{ paused ? '⏸' : timeLeft }}
-        </span>
+      <div class="cricket-player-name display"
+        :style="{ color: showAlert ? '#ef4444' : '#ffffff', filter: showAlert ? `drop-shadow(0 0 24px #ef4444)` : 'drop-shadow(0 0 24px rgba(255,255,255,0.4))' }">
+        {{ nextPlayer.name }}
       </div>
 
-      <div class="cricket-player-name display"
-        :style="{ color: showAlert ? '#ef4444' : nextPlayer.color, filter: `drop-shadow(0 0 24px ${showAlert ? '#ef4444' : nextPlayer.color})` }">
-        {{ nextPlayer.name }}
+      <div class="timer-wrap timer-center" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
+        <svg class="timer-ring" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="6" />
+          <circle cx="60" cy="60" r="52" fill="none"
+            :stroke="showAlert ? '#ef4444' : '#ffffff'" stroke-width="6" stroke-linecap="round"
+            stroke-dasharray="326.7" :stroke-dashoffset="326.7 - (326.7 * progress)"
+            transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 10px currentColor)' }" />
+        </svg>
+        <span class="timer-count display" :style="showAlert ? { color: '#ef4444' } : { color: '#ffffff' }">
+          {{ paused ? '⏸' : timeLeft }}
+        </span>
       </div>
 
       <button v-ripple class="btn-ready" :style="{ borderColor: nextPlayer.color, color: nextPlayer.color, boxShadow: `0 0 24px ${nextPlayer.color}40` }" @click="startTurn">
@@ -303,10 +303,10 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .timer-ring { width: 110px; height: 110px; }
   .timer-count { font-size: 42px; }
   .btn-ready { font-size: 16px; padding: 14px 0; max-width: 360px; }
-  .cricket-layout { flex-direction: row; gap: 24px; padding: 16px 32px; align-items: center; justify-content: center; padding-top: calc(16px + env(safe-area-inset-top)); }
-  .cricket-layout .timer-center { width: 140px; height: 140px; }
-  .cricket-layout .timer-center .timer-ring { width: 140px; height: 140px; }
-  .cricket-layout .timer-center .timer-count { font-size: 56px; }
+  .cricket-layout { flex-direction: column; gap: 20px; padding: 16px 32px; align-items: center; justify-content: flex-start; padding-top: calc(28px + env(safe-area-inset-top)); }
+  .cricket-layout .timer-center { width: 130px; height: 130px; }
+  .cricket-layout .timer-center .timer-ring { width: 130px; height: 130px; }
+  .cricket-layout .timer-center .timer-count { font-size: 52px; }
   .cricket-player-name { font-size: 52px; }
 }
 
