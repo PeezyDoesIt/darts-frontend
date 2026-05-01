@@ -1,6 +1,24 @@
 import { useSettingsStore } from '../stores/settings'
 
-const ALLOWED_VOICES = ['Karen', 'Daniel', 'Moira', 'Fred', 'Rishi']
+const ALLOWED_VOICES = [
+  // macOS / iOS
+  'Karen', 'Daniel', 'Moira', 'Fred', 'Rishi',
+  // Windows built-in
+  'Microsoft Zira Desktop', 'Microsoft David Desktop', 'Microsoft Mark Desktop',
+  'Microsoft Hazel Desktop', 'Microsoft George Desktop',
+  // Windows neural (online)
+  'Microsoft Aria Online (Natural) - English (United States)',
+  'Microsoft Jenny Online (Natural) - English (United States)',
+  'Microsoft Michelle Online (Natural) - English (United States)',
+  'Microsoft Ana Online (Natural) - English (United States)',
+  'Microsoft Guy Online (Natural) - English (United States)',
+  'Microsoft Emma Online (Natural) - English (United Kingdom)',
+  'Microsoft Ryan Online (Natural) - English (United Kingdom)',
+  'Microsoft Natasha Online (Natural) - English (Australia)',
+  'Microsoft William Online (Natural) - English (Australia)',
+  // Chrome / Edge
+  'Google UK English Female', 'Google UK English Male', 'Google US English',
+]
 
 function selectVoice(name: string): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis.getVoices()
