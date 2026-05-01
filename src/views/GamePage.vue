@@ -574,7 +574,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .reveal-label {
   font-size: 13px; font-weight: 800; letter-spacing: 0.35em; text-transform: uppercase;
-  color: rgba(255,255,255,0.45); font-family: var(--font-display);
+  color: #fff; font-family: var(--font-display);
+  background: #000; border-radius: 4px; padding: 4px 12px;
 }
 .reveal-number {
   font-size: clamp(100px, 22dvh, 200px); font-family: var(--font-display);

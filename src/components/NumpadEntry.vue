@@ -119,8 +119,8 @@ function submit() {
 .dart-slot.filled:not(.active) .dart-slot-val { color: #fff; }
 
 /* Total */
-.total-row { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.total-label { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+.total-row { display: flex; align-items: center; gap: 10px; flex-shrink: 0; background: #000; border-radius: 6px; padding: 6px 12px; }
+.total-label { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #fff; }
 .total-val { font-size: 32px; font-weight: 900; font-family: var(--font-display); color: #fff; line-height: 1; }
 .total-val.bust { color: #ef4444; }
 .bust-tag { font-size: 11px; font-weight: 900; letter-spacing: 0.12em; color: #ef4444; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); border-radius: 4px; padding: 2px 6px; }
