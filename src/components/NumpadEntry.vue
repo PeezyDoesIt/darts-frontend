@@ -107,7 +107,7 @@ function submit() {
 .dart-slot {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 10px 8px; border-radius: 10px; cursor: pointer;
-  border: 2px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
+  border: 2px solid rgba(255,255,255,0.15); background: #000;
   transition: all 0.15s; -webkit-tap-highlight-color: transparent;
 }
 .dart-slot.active { border-color: var(--blue); background: rgba(0,212,255,0.08); box-shadow: 0 0 16px rgba(0,212,255,0.2); }
@@ -129,13 +129,13 @@ function submit() {
 .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; max-width: 480px; flex: 1; min-height: 0; }
 .key {
   height: auto; min-height: 0; border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);
-  color: var(--text); font-size: clamp(22px, 4dvh, 36px); font-weight: 700; cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.15); background: #000;
+  color: #fff; font-size: clamp(22px, 4dvh, 36px); font-weight: 700; cursor: pointer;
   transition: all 0.1s; display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); -webkit-tap-highlight-color: transparent;
   position: relative; overflow: hidden;
 }
-.key:hover { background: rgba(255,255,255,0.1); border-color: var(--blue); color: var(--blue); }
+.key:hover { background: #111; border-color: var(--blue); color: var(--blue); }
 .key:active { transform: scale(0.91); }
 .key.double { grid-column: span 2; }
 
