@@ -12,21 +12,40 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useGameStore } from './stores/game'
 import EffectCanvas from './components/EffectCanvas.vue'
-import { registerEffectCanvas } from './composables/useEffectCanvas'
 
+const CANVAS_EFFECTS = new Set([
+  'fx-fireworks', 'fx-flames', 'fx-lightning', 'fx-money-rain',
+  'fx-blood', 'fx-vortex', 'fx-portal', 'fx-smoke', 'fx-ink-splat', 'fx-pixel-dissolve',
+])
+
+const router = useRouter()
 const gameStore = useGameStore()
 const activeTransition = ref('fx-fade')
 const effectCanvas = ref<InstanceType<typeof EffectCanvas> | null>(null)
 
-watch(effectCanvas, c => registerEffectCanvas(c), { immediate: true })
+// beforeResolve is async — navigation is HELD until the promise resolves.
+// The current page stays visible while the canvas effect plays, then
+// the route completes and BetweenTurnsPage renders.
+router.beforeResolve(async (to, from) => {
+  if (to.path !== '/between' || from.path !== '/game') return
+  const fx = gameStore.pendingTransition  // peek without consuming
+  if (!CANVAS_EFFECTS.has(fx)) return     // CSS-only effect — handled in onBeforeLeave
+  gameStore.consumeTransition()           // consume so onBeforeLeave gets 'fx-fade'
+  await new Promise<void>(resolve => {
+    if (effectCanvas.value) effectCanvas.value.play(fx, resolve)
+    else resolve()
+  })
+})
 
 function onBeforeLeave() {
-  // Canvas effects are played before navigation in GamePage; only CSS transitions handled here
   const fx = gameStore.consumeTransition()
-  activeTransition.value = fx
+  // If a canvas effect was already consumed above, fx is 'fx-fade' here — fine.
+  // If it's a CSS effect (glitch) it wasn't consumed above, so we get it here.
+  activeTransition.value = CANVAS_EFFECTS.has(fx) ? 'fx-fade' : fx
 }
 function onAfterEnter() {
   activeTransition.value = 'fx-fade'
