@@ -221,6 +221,7 @@ import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
+import { useSettingsStore } from '../stores/settings'
 import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore, type CricketTarget } from '../types/index'
 
 const WHITE_LABEL_THEMES = new Set<string | null>(
@@ -237,6 +238,7 @@ type CricketHits = Record<string | number, number>
 const router = useRouter()
 const gameStore = useGameStore()
 const playersStore = usePlayersStore()
+const settingsStore = useSettingsStore()
 const game = computed(() => gameStore.game)
 const confirmQuit = ref(false)
 const showAllScores = ref(false)
@@ -341,7 +343,7 @@ function navigateToBetween() {
 }
 
 // Throw timer
-const throwTimerDuration = computed(() => game.value?.throwTimerDuration ?? 0)
+const throwTimerDuration = computed(() => settingsStore.disableTimers ? 0 : (game.value?.throwTimerDuration ?? 0))
 const throwTimeLeft = ref(0)
 const throwPaused = ref(false)
 let throwInterval: ReturnType<typeof setInterval> | null = null

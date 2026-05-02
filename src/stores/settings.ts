@@ -12,6 +12,11 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.getItem('quietNarrator') === 'true'
   )
 
+  // disableTimers: force both walk-up and throw timers off for all games
+  const disableTimers = ref<boolean>(
+    localStorage.getItem('disableTimers') === 'true'
+  )
+
   function setVoiceName(name: string) {
     voiceName.value = name
     localStorage.setItem('voiceName', name)
@@ -22,5 +27,10 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('quietNarrator', String(val))
   }
 
-  return { voiceName, setVoiceName, quietNarrator, setQuietNarrator }
+  function setDisableTimers(val: boolean) {
+    disableTimers.value = val
+    localStorage.setItem('disableTimers', String(val))
+  }
+
+  return { voiceName, setVoiceName, quietNarrator, setQuietNarrator, disableTimers, setDisableTimers }
 })

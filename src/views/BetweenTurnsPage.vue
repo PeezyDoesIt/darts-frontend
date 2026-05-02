@@ -111,7 +111,7 @@ const prevPlayer = computed(() => {
 })
 
 const total = computed(() => game.value!.timerDuration)
-const timerOff = computed(() => total.value === 0)
+const timerOff = computed(() => total.value === 0 || settingsStore.disableTimers)
 const timeLeft = ref(total.value)
 const showAlert = ref(false)
 const paused = ref(false)

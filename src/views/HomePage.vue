@@ -41,6 +41,19 @@
               </div>
             </div>
           </div>
+
+          <div class="settings-section">
+            <div class="settings-label">Timers</div>
+            <div class="toggle-row" @click="settingsStore.setDisableTimers(!settingsStore.disableTimers)">
+              <div class="toggle-track" :class="{ active: settingsStore.disableTimers }">
+                <div class="toggle-thumb" />
+              </div>
+              <div class="toggle-info">
+                <span class="toggle-title">Disable All Timers</span>
+                <span class="toggle-sub">Turns off walk-up and throw timers for all games</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </transition>
