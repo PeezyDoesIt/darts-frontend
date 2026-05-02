@@ -89,10 +89,10 @@
               <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
             </div>
             <div class="sb-info">
-              <span class="sb-name" :style="p.id === currentPlayer.id ? { color: p.color } : {}">{{ p.name }}</span>
+              <span class="sb-name" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">{{ p.name }}</span>
               <span v-if="p.id === currentPlayer.id" class="sb-throwing">throwing</span>
             </div>
-            <span class="sb-score" :style="p.id === currentPlayer.id ? { color: p.color } : {}">{{ displayScore(p.id) }}</span>
+            <span class="sb-score" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">{{ displayScore(p.id) }}</span>
           </div>
         </div>
         <div class="sb-footer">
