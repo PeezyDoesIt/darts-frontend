@@ -328,6 +328,14 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .cricket-player-name { font-size: clamp(60px, 11dvh, 100px); }
 }
 
+/* iPad — portrait & landscape */
+@media (min-width: 768px) and (max-width: 1366px) {
+  .cricket-player-name { font-size: clamp(56px, 10dvh, 90px); }
+  .cricket-layout .timer-center { width: 160px; height: 160px; }
+  .cricket-layout .timer-center .timer-ring { width: 160px; height: 160px; }
+  .cricket-layout .timer-center .timer-count { font-size: 64px; }
+}
+
 @media (orientation: portrait) {
   .cricket-layout {
     justify-content: center;
