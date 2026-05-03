@@ -40,43 +40,58 @@
           </section>
 
           <section class="ng-section">
-            <span class="label">Walk-up Timer</span>
-            <p class="hint">Seconds the next player has to walk up before the alert fires. Off = manual tap to start each turn.</p>
-            <div class="timer-options">
-              <button v-ripple class="timer-btn" :class="{ active: timerDuration === 0 }" @click="timerDuration = 0">Off</button>
-              <button v-for="t in timerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: timerDuration === t }" @click="timerDuration = t">{{ t }}s</button>
-            </div>
-            <div v-if="timerDuration > 0" class="custom-timer-row">
-              <span class="hint">Custom:</span>
-              <q-input
-                v-model.number="timerDuration"
-                type="number" min="10" max="300"
-                dense dark outlined
-                style="width:90px"
-                input-class="text-center"
-              />
-              <span class="hint">seconds</span>
+            <span class="label">Timers</span>
+            <div class="toggle-row" @click="disableTimers = !disableTimers">
+              <div class="toggle-track" :class="{ active: disableTimers }">
+                <div class="toggle-thumb" />
+              </div>
+              <div class="toggle-info">
+                <span class="toggle-title">Disable All Timers</span>
+                <span class="toggle-sub">Turns off walk-up and throw timers for this game</span>
+              </div>
             </div>
           </section>
 
-          <section class="ng-section">
-            <span class="label">Throw Timer</span>
-            <p class="hint">Auto-skip turn if player doesn't submit in time. Off = no limit.</p>
-            <div class="timer-options">
-              <button v-for="t in throwTimerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: throwTimerDuration === t }" @click="throwTimerDuration = t">{{ t === 0 ? 'Off' : t + 's' }}</button>
-            </div>
-            <div class="custom-timer-row">
-              <span class="hint">Custom:</span>
-              <q-input
-                v-model.number="throwTimerDuration"
-                type="number" min="0" max="300"
-                dense dark outlined
-                style="width:90px"
-                input-class="text-center"
-              />
-              <span class="hint">seconds (0 = off)</span>
-            </div>
-          </section>
+          <template v-if="!disableTimers">
+            <section class="ng-section">
+              <span class="label">Walk-up Timer</span>
+              <p class="hint">Seconds the next player has to walk up before the alert fires. Off = manual tap to start each turn.</p>
+              <div class="timer-options">
+                <button v-ripple class="timer-btn" :class="{ active: timerDuration === 0 }" @click="timerDuration = 0">Off</button>
+                <button v-for="t in timerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: timerDuration === t }" @click="timerDuration = t">{{ t }}s</button>
+              </div>
+              <div v-if="timerDuration > 0" class="custom-timer-row">
+                <span class="hint">Custom:</span>
+                <q-input
+                  v-model.number="timerDuration"
+                  type="number" min="30" max="300"
+                  dense dark outlined
+                  style="width:90px"
+                  input-class="text-center"
+                />
+                <span class="hint">seconds</span>
+              </div>
+            </section>
+
+            <section class="ng-section">
+              <span class="label">Throw Timer</span>
+              <p class="hint">Auto-skip turn if player doesn't submit in time. Off = no limit.</p>
+              <div class="timer-options">
+                <button v-for="t in throwTimerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: throwTimerDuration === t }" @click="throwTimerDuration = t">{{ t === 0 ? 'Off' : t + 's' }}</button>
+              </div>
+              <div class="custom-timer-row">
+                <span class="hint">Custom:</span>
+                <q-input
+                  v-model.number="throwTimerDuration"
+                  type="number" min="0" max="300"
+                  dense dark outlined
+                  style="width:90px"
+                  input-class="text-center"
+                />
+                <span class="hint">seconds (0 = off)</span>
+              </div>
+            </section>
+          </template>
 
           <section class="ng-section">
             <span class="label">Scoring Screen Theme</span>
@@ -190,10 +205,11 @@ const gameStore = useGameStore()
 
 const selectedGameType = ref<GameType | null>(null)
 const timerDuration = ref(30)
-const timerOptions = [15, 20, 30, 45, 60]
+const timerOptions = [30, 45, 60]
 const throwTimerDuration = ref(0)
 const throwTimerOptions = [0, 30, 45, 60, 90, 120]
 const hideClosedTargets = ref(false)
+const disableTimers = ref(false)
 const gameTheme = ref<string | null>(null)
 const gameThemeMode = ref<'theme' | 'image'>('theme')
 const gameThemeImage = ref<string | null>(null)
@@ -237,7 +253,9 @@ function moveDown(i: number) {
 }
 function startGame() {
   if (selectedPlayers.value.length < 2 || !selectedGameType.value) return
-  gameStore.startGame(selectedGameType.value, timerDuration.value, throwTimerDuration.value, hideClosedTargets.value, gameTheme.value, selectedPlayers.value)
+  const t = disableTimers.value ? 0 : timerDuration.value
+  const tt = disableTimers.value ? 0 : throwTimerDuration.value
+  gameStore.startGame(selectedGameType.value, t, tt, hideClosedTargets.value, gameTheme.value, selectedPlayers.value)
   router.push('/game')
 }
 </script>
