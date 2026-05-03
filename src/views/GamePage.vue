@@ -173,7 +173,7 @@
               <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
             </div>
             <div class="lb-player-info">
-              <span class="lb-player-name" :style="p.id === currentPlayer.id ? { color: p.color } : {}">
+              <span class="lb-player-name" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">
                 {{ p.name }}
                 <span v-if="p.id === currentPlayer.id" class="throwing-tag">throwing</span>
               </span>
@@ -187,7 +187,7 @@
               </div>
             </div>
             <div class="lb-score">
-              <span class="lb-score-val" :style="p.id === currentPlayer.id ? { color: p.color } : {}">{{ displayScore(p.id) }}</span>
+              <span class="lb-score-val" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">{{ displayScore(p.id) }}</span>
               <span class="lb-score-label">{{ scoreLabel }}</span>
             </div>
             <button v-if="game.players.length > 2" v-ripple class="remove-player-btn" @click.stop="gameStore.removePlayerFromGame(p.id)" title="Remove from game">✕</button>
