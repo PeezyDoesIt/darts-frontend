@@ -52,6 +52,7 @@
             :avatarUrl="currentPlayer.avatarUrl"
             :playerColor="currentPlayer.color"
             :playerBackground="currentPlayer.playerBackground"
+            :targetLabelColor="currentPlayer.targetLabelColor"
             @submit="handleCricketSubmit"
           />
           <NumpadEntry

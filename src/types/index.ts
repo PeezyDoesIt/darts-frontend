@@ -4,11 +4,24 @@ export type Player = {
   avatarUrl: string | null
   color: string
   playerBackground: string | null
+  targetLabelColor: string | null
   pinned: boolean
   wins: number
   gamesPlayed: number
   createdAt: string
 }
+
+export const TARGET_LABEL_COLORS = [
+  { label: 'Auto',   value: null },
+  { label: 'Green',  value: '#00ff88' },
+  { label: 'White',  value: '#ffffff' },
+  { label: 'Black',  value: '#000000' },
+  { label: 'Pink',   value: '#ff2d78' },
+  { label: 'Cyan',   value: '#00d4ff' },
+  { label: 'Yellow', value: '#ffdd00' },
+  { label: 'Orange', value: '#ff7700' },
+  { label: 'Red',    value: '#ef4444' },
+] as const
 
 
 export const PLAYER_THEMES = [

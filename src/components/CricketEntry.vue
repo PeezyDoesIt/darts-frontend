@@ -58,6 +58,7 @@ const props = defineProps<{
   avatarUrl?: string | null
   playerColor?: string
   playerBackground?: string | null
+  targetLabelColor?: string | null
 }>()
 
 const WHITE_LABEL_THEMES = new Set<string | null>(
@@ -86,6 +87,7 @@ function complementaryColor(hex: string): string {
 }
 
 const targetColor = computed(() => {
+  if (props.targetLabelColor) return props.targetLabelColor
   if (props.playerBackground && WHITE_LABEL_THEMES.has(props.playerBackground)) return '#ffffff'
   return props.playerColor ? complementaryColor(props.playerColor) : 'var(--pink)'
 })

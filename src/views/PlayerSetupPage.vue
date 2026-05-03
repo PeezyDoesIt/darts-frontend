@@ -76,6 +76,22 @@
             </div>
           </div>
 
+          <div class="field">
+            <label class="label">Cricket Number Color</label>
+            <div class="color-swatch-row">
+              <button
+                v-for="c in TARGET_LABEL_COLORS" :key="String(c.value)"
+                v-ripple class="color-swatch-btn"
+                :class="{ active: targetLabelColor === c.value }"
+                :style="c.value ? { background: c.value, border: '2px solid ' + c.value } : {}"
+                @click="targetLabelColor = c.value ?? null"
+              >
+                <span v-if="!c.value" class="swatch-auto">Auto</span>
+                <span v-if="targetLabelColor === c.value && c.value" class="swatch-check" :style="{ color: c.value === '#000000' ? '#fff' : '#000' }">✓</span>
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -151,7 +167,7 @@ import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
-import { PRESET_AVATARS, PLAYER_THEMES, type Player } from '../types/index'
+import { PRESET_AVATARS, PLAYER_THEMES, TARGET_LABEL_COLORS, type Player } from '../types/index'
 
 const router = useRouter()
 const route = useRoute()
@@ -186,6 +202,7 @@ function doDelete() {
 const bgMode = ref<'theme' | 'image'>('theme')
 const playerBackground = ref<string | null>(null)
 const bgImagePreview = ref<string | null>(null)
+const targetLabelColor = ref<string | null>(null)
 
 const bgPreviewStyle = computed(() => {
   if (bgImagePreview.value) return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: 'cover', backgroundPosition: 'center' }
@@ -233,7 +250,7 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
-  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'
+  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; targetLabelColor.value = null
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
@@ -242,26 +259,28 @@ function loadPlayer(p: Player) {
   playerBackground.value = p.playerBackground ?? null
   if (p.playerBackground?.startsWith('data:')) { bgMode.value = 'image'; bgImagePreview.value = p.playerBackground }
   else { bgMode.value = 'theme'; bgImagePreview.value = null }
+  targetLabelColor.value = p.targetLabelColor ?? null
 }
 function save() {
   if (!name.value.trim()) return
   const finalAvatar = avatarMode.value === 'photo' ? (photoPreview.value ?? PRESET_AVATARS[0]!) : avatarUrl.value
   const bg = playerBackground.value
+  const tlc = targetLabelColor.value
   if (editingId.value) {
-    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg })
+    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, targetLabelColor: tlc })
     editingId.value = null
   } else {
-    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, targetLabelColor: tlc })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
       name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
-      photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null
+      photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; targetLabelColor.value = null
       router.push('/game')
       return
     }
   }
   name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
-  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null
+  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; targetLabelColor.value = null
   router.back()
 }
 </script>
@@ -299,6 +318,12 @@ function save() {
 .bg-preview { width: 80px; height: 80px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 
 .field-hint { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.4; }
+.color-swatch-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.color-swatch-btn { width: 44px; height: 44px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; transition: all 0.15s; overflow: hidden; }
+.color-swatch-btn:hover { transform: scale(1.08); border-color: rgba(255,255,255,0.4); }
+.color-swatch-btn.active { border-color: #fff; transform: scale(1.12); box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+.swatch-auto { font-size: 9px; font-weight: 800; letter-spacing: 0.05em; color: rgba(255,255,255,0.6); text-transform: uppercase; }
+.swatch-check { font-size: 14px; font-weight: 900; position: absolute; }
 
 .emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
 .emoji-btn { width: 50px; height: 50px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-size: 24px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; touch-action: pan-y; }
