@@ -104,12 +104,20 @@
 
       <!-- Score reveal overlay — oh-one games -->
       <Transition name="score-reveal">
-        <div v-if="showScoreReveal && revealData" class="score-reveal-overlay">
-          <div class="reveal-label">REMAINING</div>
-          <div class="reveal-number" :style="{ color: revealData.playerColor, filter: `drop-shadow(0 0 40px ${revealData.playerColor}80)` }">
-            {{ revealData.remaining }}
-          </div>
-          <div v-if="revealData.isBust" class="reveal-bust-tag">BUST</div>
+        <div v-if="showScoreReveal && revealData" class="score-reveal-overlay" :class="{ 'bust-overlay': revealData.isBust }">
+          <template v-if="revealData.isBust">
+            <div class="reveal-label" style="background:#7f1d1d">BUST</div>
+            <div class="reveal-eliminated" :style="{ color: revealData.playerColor, filter: `drop-shadow(0 0 40px ${revealData.playerColor}80)` }">
+              ELIMINATED
+            </div>
+            <div class="reveal-bust-msg">Better luck next time 👋</div>
+          </template>
+          <template v-else>
+            <div class="reveal-label">REMAINING</div>
+            <div class="reveal-number" :style="{ color: revealData.playerColor, filter: `drop-shadow(0 0 40px ${revealData.playerColor}80)` }">
+              {{ revealData.remaining }}
+            </div>
+          </template>
         </div>
       </Transition>
     </div>
@@ -333,8 +341,10 @@ function handleNumpadSubmit(score: number) {
   revealTimeout = setTimeout(() => {
     showScoreReveal.value = false
     pendingRevealNavigation = false
+    // On bust the store already advanced the turn; if game finished (last player busted out) go to win
+    if (isBust && game.value?.status === 'finished') { router.push('/win'); return }
     navigateToBetween()
-  }, 4000)
+  }, isBust ? 3000 : 4000)
 }
 
 function quitGame() { gameStore.endGame(); router.push('/') }
@@ -580,6 +590,15 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .reveal-number {
   font-size: clamp(100px, 22dvh, 200px); font-family: var(--font-display);
   font-weight: 900; line-height: 1; letter-spacing: 0.02em;
+}
+.bust-overlay { background: rgba(60,0,0,0.92) !important; }
+.reveal-eliminated {
+  font-size: clamp(72px, 16dvh, 140px); font-family: var(--font-display);
+  font-weight: 900; line-height: 1; letter-spacing: 0.04em;
+}
+.reveal-bust-msg {
+  font-size: 22px; font-weight: 700; color: rgba(255,255,255,0.6);
+  letter-spacing: 0.08em;
 }
 .reveal-bust-tag {
   font-size: 22px; font-weight: 900; letter-spacing: 0.2em; color: #ef4444;

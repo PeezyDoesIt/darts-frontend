@@ -114,7 +114,16 @@ export const useGameStore = defineStore('game', () => {
     if (score.kind === 'ohOne' && typeof value === 'number') {
       const newRemaining = score.data.remaining - value
       if (newRemaining < 0) {
-        // Bust — no change
+        // Bust — eliminate player from game
+        eliminatePlayer(playerId)
+        if (game.value.players.length === 1) {
+          game.value.winnerId = game.value.players[0]!.id
+          game.value.status = 'finished'
+          saveGame(game.value)
+          return
+        }
+        advanceTurn()
+        return
       } else if (newRemaining === 0) {
         score.data.remaining = 0
         score.data.history.push(value)
