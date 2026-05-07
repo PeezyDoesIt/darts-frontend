@@ -38,17 +38,14 @@ export const PLAYER_THEMES = [
   // Reds / Oranges
   { label: 'Blood',        value: 'linear-gradient(160deg, #0a0000 0%, #3d0000 50%, #dc143c 100%)' },
   { label: 'Fire',         value: 'linear-gradient(160deg, #1a0000 0%, #8b0000 50%, #ff2d00 100%)' },
-  { label: 'Ember',        value: 'linear-gradient(160deg, #0a0802 0%, #2a1500 40%, #8b3a00 70%, #ff6600 90%, #ffaa44 100%)' },
   { label: 'Magma',        value: 'linear-gradient(160deg, #1a0500 0%, #8b2500 40%, #ff4500 75%, #ffa500 100%)' },
   { label: 'Bronze',       value: 'linear-gradient(160deg, #100800 0%, #4a2800 45%, #cd7f32 80%, #e8a050 100%)' },
   // Pinks
-  { label: 'Pink',         value: 'linear-gradient(160deg, #1a0010 0%, #660033 50%, #ff2d78 100%)' },
   { label: 'Rose',         value: 'linear-gradient(160deg, #140008 0%, #550022 40%, #cc0055 70%, #ff66aa 100%)' },
   // Purples
   { label: 'Candy',        value: 'linear-gradient(160deg, #1a0014 0%, #660055 35%, #cc00cc 65%, #ff66ff 100%)' },
   { label: 'Synthwave',    value: 'linear-gradient(160deg, #0d0020 0%, #330066 35%, #cc00ff 65%, #ff0066 100%)' },
   { label: 'Galaxy',       value: 'linear-gradient(160deg, #05001a 0%, #2d0066 50%, #bf5fff 100%)' },
-  { label: 'Ultraviolet',  value: 'linear-gradient(160deg, #030005 0%, #0d0020 40%, #3300aa 70%, #7700ff 90%, #bb44ff 100%)' },
   // Blues
   { label: 'Storm',        value: 'linear-gradient(160deg, #050510 0%, #0a0a40 40%, #1a1aaa 75%, #4466ff 100%)' },
   { label: 'Cyber',        value: 'linear-gradient(160deg, #000d14 0%, #001428 40%, #00aaff 70%, #00ffcc 100%)' },
