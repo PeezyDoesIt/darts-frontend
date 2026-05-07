@@ -15,7 +15,10 @@
         @click="activeDart = i - 1"
       >
         <span class="dart-slot-label">Dart {{ i }}</span>
-        <span class="dart-slot-val">{{ darts[i - 1] !== '' ? darts[i - 1] : '—' }}</span>
+        <div class="dart-slot-val-wrap">
+          <span class="dart-slot-val">{{ dartValues[i - 1] !== 0 ? dartValues[i - 1] : (darts[i - 1] !== '' ? dartValues[i-1] : '—') }}</span>
+          <span v-if="multipliers[i - 1] !== 1 && darts[i - 1] !== ''" class="mult-badge">×{{ multipliers[i - 1] }}</span>
+        </div>
       </div>
     </div>
 
@@ -30,6 +33,22 @@
       <button v-for="n in [1,2,3,4,5,6,7,8,9]" :key="n" v-ripple class="key" @click="press(n)">{{ n }}</button>
       <button v-ripple class="key" @click="press(0)">0</button>
       <button v-ripple class="key double" @click="backspace">⌫</button>
+    </div>
+
+    <!-- Multiplier row -->
+    <div class="mult-row">
+      <button
+        v-ripple class="mult-btn"
+        :class="{ active: multipliers[activeDart] === 2, disabled: !canMultiply(2) }"
+        :disabled="!canMultiply(2) && multipliers[activeDart] !== 2"
+        @click="applyMultiplier(2)"
+      >× 2</button>
+      <button
+        v-ripple class="mult-btn"
+        :class="{ active: multipliers[activeDart] === 3, disabled: !canMultiply(3) }"
+        :disabled="!canMultiply(3) && multipliers[activeDart] !== 3"
+        @click="applyMultiplier(3)"
+      >× 3</button>
     </div>
 
     <div class="numpad-footer">
@@ -50,26 +69,47 @@ const props = defineProps<{ remaining: number }>()
 const emit = defineEmits<{ submit: [score: number] }>()
 
 const darts = ref<string[]>(['', '', ''])
+const multipliers = ref<number[]>([1, 1, 1])
 const activeDart = ref(0)
 
+const dartValues = computed(() =>
+  darts.value.map((d, i) => (parseInt(d) || 0) * multipliers.value[i]!)
+)
+
 const dartTotal = computed(() =>
-  darts.value.reduce((sum, d) => sum + (parseInt(d) || 0), 0)
+  dartValues.value.reduce((sum, v) => sum + v, 0)
 )
 const isBust = computed(() => dartTotal.value > props.remaining)
+
+function canMultiply(mult: number): boolean {
+  const base = parseInt(darts.value[activeDart.value]!) || 0
+  return base > 0 && base * mult <= 60
+}
+
+function applyMultiplier(mult: number) {
+  const base = parseInt(darts.value[activeDart.value]!) || 0
+  if (base === 0) return
+  // Toggle off if already active
+  const current = multipliers.value[activeDart.value]
+  const newMult = current === mult ? 1 : mult
+  if (newMult !== 1 && base * newMult > 60) return
+  multipliers.value = multipliers.value.map((m, i) => i === activeDart.value ? newMult : m)
+  // Auto-advance after applying multiplier
+  if (newMult !== 1 && activeDart.value < 2) activeDart.value++
+}
 
 function press(n: number) {
   const current = darts.value[activeDart.value]!
   if (current.length >= 2) return
   const next = current + String(n)
   const val = parseInt(next)
-  if (val > 60) return // max single dart score
+  if (val > 60) return
   darts.value = darts.value.map((d, i) => i === activeDart.value ? next : d)
-  // Auto-advance: after 2 digits, or if any second digit would exceed 60
+  // Reset multiplier for this dart when re-entering a number
+  multipliers.value = multipliers.value.map((m, i) => i === activeDart.value ? 1 : m)
   const twoDigits = next.length === 2
   const cantExtend = parseInt(next + '0') > 60
-  if ((twoDigits || cantExtend) && activeDart.value < 2) {
-    activeDart.value++
-  }
+  if ((twoDigits || cantExtend) && activeDart.value < 2) activeDart.value++
 }
 
 function backspace() {
@@ -79,12 +119,14 @@ function backspace() {
     return
   }
   darts.value = darts.value.map((d, i) => i === activeDart.value ? d.slice(0, -1) : d)
+  multipliers.value = multipliers.value.map((m, i) => i === activeDart.value ? 1 : m)
 }
 
 function submit() {
   if (isBust.value || dartTotal.value === 0) return
   emit('submit', dartTotal.value)
   darts.value = ['', '', '']
+  multipliers.value = [1, 1, 1]
   activeDart.value = 0
 }
 </script>
@@ -114,9 +156,11 @@ function submit() {
 .dart-slot.filled { border-color: rgba(255,255,255,0.25); }
 .dart-slot.active.filled { border-color: var(--blue); }
 .dart-slot-label { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); }
+.dart-slot-val-wrap { display: flex; align-items: flex-end; gap: 4px; line-height: 1; }
 .dart-slot-val { font-size: 36px; font-weight: 900; font-family: var(--font-display); color: var(--text); line-height: 1; }
 .dart-slot.active .dart-slot-val { color: var(--blue); }
 .dart-slot.filled:not(.active) .dart-slot-val { color: #fff; }
+.mult-badge { font-size: 14px; font-weight: 900; font-family: var(--font-display); color: #f59e0b; margin-bottom: 4px; }
 
 /* Total */
 .total-row { display: flex; align-items: center; gap: 10px; flex-shrink: 0; background: #000; border-radius: 6px; padding: 6px 12px; }
@@ -139,6 +183,21 @@ function submit() {
 .key:active { transform: scale(0.91); }
 .key.double { grid-column: span 2; }
 
+/* Multiplier row */
+.mult-row { display: flex; gap: 10px; width: 100%; max-width: 480px; flex-shrink: 0; }
+.mult-btn {
+  flex: 1; padding: 10px 0; border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.15); background: #000;
+  color: rgba(255,255,255,0.5); font-size: clamp(16px, 2.5dvh, 22px);
+  font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em;
+  cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.mult-btn:hover:not(.disabled) { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.08); }
+.mult-btn.active { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.15); box-shadow: 0 0 16px rgba(245,158,11,0.3); }
+.mult-btn.disabled { opacity: 0.3; cursor: default; }
+.mult-btn:active:not(.disabled) { transform: scale(0.95); }
+
 .numpad-footer { width: 100%; max-width: 480px; flex-shrink: 0; }
 .submit-btn { width: 100%; position: relative; overflow: hidden; height: clamp(52px, 7dvh, 80px); font-size: clamp(16px, 2.5dvh, 24px); }
 
@@ -152,6 +211,7 @@ function submit() {
   .dart-slot-val { font-size: clamp(40px, 6dvh, 64px); }
   .total-val { font-size: clamp(36px, 5dvh, 52px); }
   .numpad { max-width: 640px; gap: clamp(10px, 1.5dvh, 18px); }
+  .mult-row { max-width: 640px; }
   .numpad-footer { max-width: 640px; }
 }
 
@@ -160,5 +220,6 @@ function submit() {
   .dart-slot-val { font-size: 28px; }
   .numpad { gap: 6px; }
   .key { font-size: 22px; }
+  .mult-btn { font-size: 16px; padding: 8px 0; }
 }
 </style>
