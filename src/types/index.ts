@@ -48,7 +48,6 @@ export const PLAYER_THEMES = [
   { label: 'Ultraviolet',  value: 'linear-gradient(160deg, #030005 0%, #0d0020 40%, #3300aa 70%, #7700ff 90%, #bb44ff 100%)' },
   // Blues
   { label: 'Storm',        value: 'linear-gradient(160deg, #050510 0%, #0a0a40 40%, #1a1aaa 75%, #4466ff 100%)' },
-  { label: 'Midnight',     value: 'linear-gradient(160deg, #000008 0%, #050520 40%, #0a0a60 75%, #1a1aaa 100%)' },
   { label: 'Cyber',        value: 'linear-gradient(160deg, #000d14 0%, #001428 40%, #00aaff 70%, #00ffcc 100%)' },
   // Greens
   { label: 'Toxic',        value: 'linear-gradient(160deg, #040800 0%, #143300 40%, #44cc00 72%, #ccff00 100%)' },
