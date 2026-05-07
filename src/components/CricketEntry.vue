@@ -52,7 +52,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { CRICKET_TARGETS, PLAYER_THEMES, type CricketTarget, type PlayerScore } from '../types/index'
-import { playShotgun } from '../composables/useSounds'
+import { playShotgun, playBuzzer } from '../composables/useSounds'
+import { speak } from '../composables/useSpeech'
+import { useSettingsStore } from '../stores/settings'
+
+const settingsStore = useSettingsStore()
 
 const props = defineProps<{
   playerId: string
@@ -128,7 +132,14 @@ function handleTileClick(target: CricketTarget) {
   const current = roundHits.value[target] ?? 0
   const next = current >= max ? 0 : current + 1
   roundHits.value = { ...roundHits.value, [target]: next }
-  if (target === 'bull' && next > current) playShotgun()
+  if (target === 'bull' && next > current) {
+    const s = settingsStore.bullseyeSound
+    if (s === 'buzzer') playBuzzer()
+    else if (s === 'tts-bullseye') speak('Bullseye!')
+    else if (s === 'tts-oh-baby') speak('Oh babyyy')
+    else if (s === 'tts-oh-yeah') speak('Oh yeah, right in the bull motherfucker')
+    else playShotgun()
+  }
 }
 function submit() {
   if (submitted.value) return

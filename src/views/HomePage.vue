@@ -54,6 +54,20 @@
               </div>
             </div>
           </div>
+
+          <div class="settings-section">
+            <div class="settings-label">Bullseye Sound (Cricket)</div>
+            <div class="voice-list">
+              <button
+                v-for="opt in bullseyeSoundOptions" :key="opt.value"
+                :class="['voice-btn', { active: settingsStore.bullseyeSound === opt.value }]"
+                @click="settingsStore.setBullseyeSound(opt.value)"
+              >
+                <span class="voice-btn-label">{{ opt.label }}</span>
+                <span class="voice-btn-sub">{{ opt.sub }}</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </transition>
@@ -159,6 +173,14 @@ function isPhoto(url: string | null) {
 
 const showSettings = ref(false)
 const availableVoices = ref<VoiceOption[]>([])
+
+const bullseyeSoundOptions = [
+  { value: 'shotgun',     label: 'Shotgun',             sub: 'Current — loud blast' },
+  { value: 'buzzer',      label: 'Buzzer',               sub: 'Game-show style alert' },
+  { value: 'tts-bullseye', label: '"Bullseye!"',         sub: 'Narrator says Bullseye' },
+  { value: 'tts-oh-baby', label: '"Oh babyyy"',          sub: 'Narrator draws it out' },
+  { value: 'tts-oh-yeah', label: '"Oh yeah, right in the bull"', sub: 'Full phrase' },
+]
 
 function openSettings() {
   availableVoices.value = getAvailableVoices()
