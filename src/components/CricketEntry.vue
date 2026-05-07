@@ -47,7 +47,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { CRICKET_TARGETS, PLAYER_THEMES, type CricketTarget, type PlayerScore } from '../types/index'
-import { speak } from '../composables/useSpeech'
+import { playShotgun } from '../composables/useSounds'
 
 const props = defineProps<{
   playerId: string
@@ -123,7 +123,7 @@ function handleTileClick(target: CricketTarget) {
   const current = roundHits.value[target] ?? 0
   const next = current >= max ? 0 : current + 1
   roundHits.value = { ...roundHits.value, [target]: next }
-  if (target === 'bull' && next > current) speak('Oh yeah baby, that hit the spot.')
+  if (target === 'bull' && next > current) playShotgun()
 }
 function submit() {
   if (submitted.value) return
