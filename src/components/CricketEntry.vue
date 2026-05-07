@@ -11,10 +11,15 @@
         <button
           v-for="target in CRICKET_TARGETS"
           :key="target"
-          v-show="!hideClosedTargets || !myClosed(target)"
+          v-show="closedTargetDisplay !== 'hide' || !myClosed(target)"
           v-ripple
           class="board-tile"
-          :class="{ closed: myClosed(target) && !hideClosedTargets, active: (roundHits[target] ?? 0) > 0 }"
+          :class="{
+            closed: myClosed(target) && closedTargetDisplay === 'show',
+            'closed-fade': myClosed(target) && closedTargetDisplay === 'fade',
+            'closed-strike': myClosed(target) && closedTargetDisplay === 'strike',
+            active: (roundHits[target] ?? 0) > 0
+          }"
           :disabled="myClosed(target)"
           @click="handleTileClick(target)"
         >
@@ -54,7 +59,7 @@ const props = defineProps<{
   scores: Record<string, PlayerScore>
   isCutThroat: boolean
   round: number
-  hideClosedTargets?: boolean
+  closedTargetDisplay?: 'show' | 'hide' | 'fade' | 'strike'
   avatarUrl?: string | null
   playerColor?: string
   playerBackground?: string | null
@@ -175,6 +180,12 @@ defineExpose({ submit, submitted })
 .board-tile:not(:disabled):active { transform: scale(0.98); }
 .board-tile.active { border-color: var(--pink); background: rgba(180,0,60,0.92); box-shadow: 0 0 32px rgba(255,45,120,0.35); }
 .board-tile.closed { opacity: 0.3; cursor: default; }
+.board-tile.closed-fade { opacity: 0.12; cursor: default; }
+.board-tile.closed-strike { opacity: 0.45; filter: grayscale(0.7); cursor: default; }
+.board-tile.closed-strike::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2;
+  background: linear-gradient(transparent 46%, rgba(255,255,255,0.45) 46%, rgba(255,255,255,0.45) 54%, transparent 54%);
+}
 
 .target-label { font-size: clamp(72px, 13dvh, 150px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; display: flex; align-items: center; }
 .pips-wrap { display: flex; align-items: stretch; gap: 20px; flex: 1; padding: 14px 0; }

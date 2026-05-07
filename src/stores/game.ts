@@ -44,7 +44,9 @@ function loadGame(): ActiveGame | null {
     const g = JSON.parse(raw) as ActiveGame
     // Backfill fields added after initial release
     if (g.throwTimerDuration === undefined) g.throwTimerDuration = 0
-    if (g.hideClosedTargets === undefined) g.hideClosedTargets = false
+    if ((g as any).hideClosedTargets !== undefined && (g as any).closedTargetDisplay === undefined)
+      g.closedTargetDisplay = (g as any).hideClosedTargets ? 'hide' : 'show'
+    if (g.closedTargetDisplay === undefined) g.closedTargetDisplay = 'show'
     if (g.gameTheme === undefined) g.gameTheme = null
     return g
   } catch {
@@ -78,7 +80,7 @@ export const useGameStore = defineStore('game', () => {
     _pendingTimeout.value = true
   }
 
-  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, hideClosedTargets: boolean, gameTheme: string | null, players: Player[]) {
+  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide' | 'fade' | 'strike', gameTheme: string | null, players: Player[]) {
     playerTimeoutCounts.value = {}
     playerHurryUpCounts.value = {}
     lastTurnWasTimeout.value = false
@@ -87,7 +89,7 @@ export const useGameStore = defineStore('game', () => {
       gameType,
       timerDuration,
       throwTimerDuration,
-      hideClosedTargets,
+      closedTargetDisplay,
       gameTheme,
       players,
       currentPlayerIndex: 0,
@@ -325,9 +327,9 @@ export const useGameStore = defineStore('game', () => {
     saveGame(game.value)
   }
 
-  function setHideClosedTargets(val: boolean) {
+  function setClosedTargetDisplay(val: 'show' | 'hide' | 'fade' | 'strike') {
     if (!game.value) return
-    game.value.hideClosedTargets = val
+    game.value.closedTargetDisplay = val
     saveGame(game.value)
   }
 
@@ -336,7 +338,7 @@ export const useGameStore = defineStore('game', () => {
     saveGame(null)
   }
 
-  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, setHideClosedTargets, endGame }
+  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, endGame }
 })
 
 function checkCricketWin(game: ActiveGame): string | null {

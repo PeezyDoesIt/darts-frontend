@@ -129,7 +129,7 @@ export type ActiveGame = {
   gameType: GameType
   timerDuration: number
   throwTimerDuration: number
-  hideClosedTargets: boolean
+  closedTargetDisplay: 'show' | 'hide' | 'fade' | 'strike'
   gameTheme: string | null
   players: Player[]
   currentPlayerIndex: number

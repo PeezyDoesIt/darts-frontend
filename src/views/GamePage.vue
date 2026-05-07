@@ -48,7 +48,7 @@
             :scores="game.scores"
             :isCutThroat="game.gameType === 'cutThroat'"
             :round="game.round"
-            :hideClosedTargets="game.hideClosedTargets"
+            :closedTargetDisplay="game.closedTargetDisplay"
             :avatarUrl="currentPlayer.avatarUrl"
             :playerColor="currentPlayer.color"
             :playerBackground="currentPlayer.playerBackground"
@@ -130,15 +130,10 @@
           <div class="round-label">Round {{ game.round }}</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
-          <div
-            v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'"
-            class="hide-targets-toggle"
-            @click="gameStore.setHideClosedTargets(!game.hideClosedTargets)"
-          >
-            <div class="htt-track" :class="{ active: game.hideClosedTargets }">
-              <div class="htt-thumb" />
-            </div>
-            <span class="htt-label">Hide closed</span>
+          <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'" class="ct-display-row">
+            <button v-for="opt in ctDisplayOptions" :key="opt.value" v-ripple
+              class="ct-display-btn" :class="{ active: game.closedTargetDisplay === opt.value }"
+              @click="gameStore.setClosedTargetDisplay(opt.value)">{{ opt.label }}</button>
           </div>
           <button v-ripple class="btn btn-sm btn-surface" @click="showAddPlayer = !showAddPlayer">+ Add</button>
           <button v-ripple class="btn btn-sm btn-surface" @click="showAllScores = false">✕</button>
@@ -253,6 +248,13 @@ const confirmQuit = ref(false)
 const showAllScores = ref(false)
 const showAddPlayer = ref(false)
 const cricketEntryRef = ref<InstanceType<typeof CricketEntry> | null>(null)
+
+const ctDisplayOptions = [
+  { value: 'show'   as const, label: 'Normal' },
+  { value: 'fade'   as const, label: 'Fade' },
+  { value: 'strike' as const, label: 'Strike' },
+  { value: 'hide'   as const, label: 'Hide' },
+]
 
 const availablePlayers = computed(() =>
   playersStore.players.filter(p => !game.value?.players.some(gp => gp.id === p.id))
@@ -555,26 +557,17 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .add-player-name { flex: 1; font-size: 18px; font-weight: 800; font-family: var(--font-display); color: #fff; letter-spacing: 0.03em; }
 .add-player-cta { font-size: 13px; font-weight: 700; color: var(--pink); letter-spacing: 0.08em; flex-shrink: 0; }
 
-/* Hide-closed-targets toggle in scores overlay */
-.hide-targets-toggle {
-  display: flex; align-items: center; gap: 8px; cursor: pointer;
-  padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1); user-select: none; transition: background 0.15s;
+/* Closed-target display selector in scores overlay */
+.ct-display-row { display: flex; gap: 4px; }
+.ct-display-btn {
+  padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6);
+  font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+  position: relative; overflow: hidden; white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
 }
-.hide-targets-toggle:hover { background: rgba(255,255,255,0.1); }
-.htt-track {
-  width: 34px; height: 18px; border-radius: 9px; flex-shrink: 0;
-  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
-  position: relative; transition: background 0.2s;
-}
-.htt-track.active { background: var(--pink); border-color: var(--pink); }
-.htt-thumb {
-  position: absolute; top: 2px; left: 2px; width: 12px; height: 12px;
-  border-radius: 50%; background: #fff; transition: transform 0.2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-}
-.htt-track.active .htt-thumb { transform: translateX(16px); }
-.htt-label { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.7); white-space: nowrap; letter-spacing: 0.04em; }
+.ct-display-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.ct-display-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.12); }
 
 /* Score reveal overlay */
 .score-reveal-overlay {

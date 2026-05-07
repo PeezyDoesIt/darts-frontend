@@ -28,14 +28,14 @@
 
           <section v-if="selectedGameType === 'cricket' || selectedGameType === 'cutThroat'" class="ng-section">
             <span class="label">Cricket Options</span>
-            <div class="toggle-row" @click="hideClosedTargets = !hideClosedTargets">
-              <div class="toggle-track" :class="{ active: hideClosedTargets }">
-                <div class="toggle-thumb" />
-              </div>
-              <div class="toggle-info">
-                <span class="toggle-title">Hide Closed Targets</span>
-                <span class="toggle-sub">Targets disappear from the board once closed</span>
-              </div>
+            <span class="hint">Closed target display</span>
+            <div class="closed-target-opts">
+              <button v-for="opt in closedTargetOptions" :key="opt.value" v-ripple
+                class="ct-opt-btn" :class="{ active: closedTargetDisplay === opt.value }"
+                @click="closedTargetDisplay = opt.value">
+                <span class="ct-opt-label">{{ opt.label }}</span>
+                <span class="ct-opt-sub">{{ opt.sub }}</span>
+              </button>
             </div>
           </section>
 
@@ -208,7 +208,13 @@ const timerDuration = ref(30)
 const timerOptions = [30, 45, 60]
 const throwTimerDuration = ref(0)
 const throwTimerOptions = [0, 30, 45, 60, 90, 120]
-const hideClosedTargets = ref(false)
+const closedTargetDisplay = ref<'show' | 'hide' | 'fade' | 'strike'>('show')
+const closedTargetOptions = [
+  { value: 'show'   as const, label: 'Normal',        sub: 'Closed targets stay visible' },
+  { value: 'fade'   as const, label: 'Fade Out',       sub: 'Closed targets go transparent' },
+  { value: 'strike' as const, label: 'Strikethrough',  sub: 'Closed targets get a line through them' },
+  { value: 'hide'   as const, label: 'Hide',           sub: 'Closed targets disappear' },
+]
 const disableTimers = ref(false)
 const gameTheme = ref<string | null>(null)
 const gameThemeMode = ref<'theme' | 'image'>('theme')
@@ -255,7 +261,7 @@ function startGame() {
   if (selectedPlayers.value.length < 2 || !selectedGameType.value) return
   const t = disableTimers.value ? 0 : timerDuration.value
   const tt = disableTimers.value ? 0 : throwTimerDuration.value
-  gameStore.startGame(selectedGameType.value, t, tt, hideClosedTargets.value, gameTheme.value, selectedPlayers.value)
+  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, gameTheme.value, selectedPlayers.value)
   router.push('/game')
 }
 </script>
@@ -330,6 +336,20 @@ function startGame() {
 .tile-check { width: 28px; height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: #000; border: 2px solid rgba(255,255,255,0.1); transition: all 0.15s; font-family: var(--font-display); }
 
 .ng-section .label, .players-header .label, .order-section .label { color: #ffffff; }
+
+.closed-target-opts { display: flex; flex-direction: column; gap: 6px; }
+.ct-opt-btn {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  padding: 10px 14px; border-radius: 8px; width: 100%; text-align: left;
+  border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
+  cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.ct-opt-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+.ct-opt-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.1); }
+.ct-opt-label { font-size: 14px; font-weight: 700; color: var(--text); }
+.ct-opt-btn.active .ct-opt-label { color: var(--pink); }
+.ct-opt-sub { font-size: 11px; color: var(--text-muted); line-height: 1.3; }
 
 .toggle-row {
   display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 8px;
