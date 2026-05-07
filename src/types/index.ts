@@ -30,8 +30,6 @@ export const PLAYER_THEMES = [
   { label: 'Graphite',     value: 'linear-gradient(160deg, #0a0a08 0%, #1a1a16 40%, #2e2e28 70%, #444440 100%)' },
   { label: 'Gunmetal',     value: 'linear-gradient(160deg, #050608 0%, #0e1018 40%, #1c2030 70%, #2a3040 100%)' },
   { label: 'Titanium',     value: 'linear-gradient(160deg, #0a0c10 0%, #1e2430 40%, #3a4455 70%, #8090a8 100%)' },
-  { label: 'Iron',         value: 'linear-gradient(160deg, #060608 0%, #111318 40%, #222530 70%, #3a3d48 100%)' },
-  { label: 'Slate',        value: 'linear-gradient(160deg, #080c12 0%, #141e2a 40%, #243040 70%, #3a4a5e 100%)' },
   { label: 'Chrome',       value: 'linear-gradient(160deg, #0c0c0e 0%, #242428 40%, #484850 70%, #a0a0b0 100%)' },
   { label: 'Deep Sea',     value: 'linear-gradient(160deg, #000508 0%, #001a33 40%, #006666 75%, #00ccaa 100%)' },
   { label: 'Oil Slick',    value: 'linear-gradient(135deg, #08000f 0%, #3d0066 22%, #001a4d 44%, #004040 66%, #00440a 88%, #0f0f00 100%)' },
