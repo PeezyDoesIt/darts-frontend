@@ -141,7 +141,7 @@ function submit() {
 /* Remaining */
 .remaining-display { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
 .remaining-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; }
-.remaining-val { font-size: 72px; font-family: var(--font-display); color: var(--pink); line-height: 1; filter: drop-shadow(0 0 16px rgba(255,45,120,0.5)); transition: color 0.2s; }
+.remaining-val { font-size: 72px; font-family: var(--font-display); color: var(--pink); line-height: 1; filter: drop-shadow(0 0 16px rgba(255,45,120,0.5)); transition: color 0.2s; background: rgba(0,0,0,0.72); border-radius: 10px; padding: 4px 20px; }
 .remaining-val.bust { color: #ef4444; filter: drop-shadow(0 0 16px rgba(239,68,68,0.5)); }
 
 /* Dart slots */
