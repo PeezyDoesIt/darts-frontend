@@ -47,6 +47,7 @@ function loadGame(): ActiveGame | null {
     if ((g as any).hideClosedTargets !== undefined && (g as any).closedTargetDisplay === undefined)
       g.closedTargetDisplay = (g as any).hideClosedTargets ? 'hide' : 'show'
     if (g.closedTargetDisplay === undefined) g.closedTargetDisplay = 'show'
+    if (g.bustEliminates === undefined) g.bustEliminates = false
     if (g.gameTheme === undefined) g.gameTheme = null
     return g
   } catch {
@@ -80,7 +81,7 @@ export const useGameStore = defineStore('game', () => {
     _pendingTimeout.value = true
   }
 
-  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide' | 'fade' | 'strike', gameTheme: string | null, players: Player[]) {
+  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide' | 'fade' | 'strike', bustEliminates: boolean, gameTheme: string | null, players: Player[]) {
     playerTimeoutCounts.value = {}
     playerHurryUpCounts.value = {}
     lastTurnWasTimeout.value = false
@@ -90,6 +91,7 @@ export const useGameStore = defineStore('game', () => {
       timerDuration,
       throwTimerDuration,
       closedTargetDisplay,
+      bustEliminates,
       gameTheme,
       players,
       currentPlayerIndex: 0,
@@ -116,8 +118,17 @@ export const useGameStore = defineStore('game', () => {
     if (score.kind === 'ohOne' && typeof value === 'number') {
       const newRemaining = score.data.remaining - value
       if (newRemaining < 0) {
-        // Bust — score stays the same, advance turn
-        score.data.history.push(0)
+        if (game.value.bustEliminates) {
+          eliminatePlayer(playerId)
+          if (game.value.players.length === 1) {
+            game.value.winnerId = game.value.players[0]!.id
+            game.value.status = 'finished'
+            saveGame(game.value)
+            return
+          }
+        } else {
+          score.data.history.push(0)
+        }
         advanceTurn()
         return
       } else if (newRemaining === 0) {

@@ -39,6 +39,19 @@
             </div>
           </section>
 
+          <section v-if="['301','501','701','1001'].includes(selectedGameType ?? '')" class="ng-section">
+            <span class="label">301 / 501 Options</span>
+            <div class="toggle-row" @click="bustEliminates = !bustEliminates">
+              <div class="toggle-track" :class="{ active: bustEliminates }">
+                <div class="toggle-thumb" />
+              </div>
+              <div class="toggle-info">
+                <span class="toggle-title">Bust Eliminates Player</span>
+                <span class="toggle-sub">Players are removed from the game when they bust</span>
+              </div>
+            </div>
+          </section>
+
           <section class="ng-section">
             <span class="label">Timers</span>
             <div class="toggle-row" @click="disableTimers = !disableTimers">
@@ -209,6 +222,7 @@ const timerOptions = [30, 45, 60]
 const throwTimerDuration = ref(0)
 const throwTimerOptions = [0, 30, 45, 60, 90, 120]
 const closedTargetDisplay = ref<'show' | 'hide' | 'fade' | 'strike'>('show')
+const bustEliminates = ref(false)
 const closedTargetOptions = [
   { value: 'show'   as const, label: 'Normal',        sub: 'Closed targets stay visible' },
   { value: 'fade'   as const, label: 'Fade Out',       sub: 'Closed targets go transparent' },
@@ -261,7 +275,7 @@ function startGame() {
   if (selectedPlayers.value.length < 2 || !selectedGameType.value) return
   const t = disableTimers.value ? 0 : timerDuration.value
   const tt = disableTimers.value ? 0 : throwTimerDuration.value
-  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, gameTheme.value, selectedPlayers.value)
+  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, gameTheme.value, selectedPlayers.value)
   router.push('/game')
 }
 </script>

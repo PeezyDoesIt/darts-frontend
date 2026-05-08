@@ -107,10 +107,14 @@
         <div v-if="showScoreReveal && revealData" class="score-reveal-overlay" :class="{ 'bust-overlay': revealData.isBust }">
           <template v-if="revealData.isBust">
             <div class="reveal-label" style="background:#7f1d1d">BUST</div>
-            <div class="reveal-number" :style="{ color: revealData.playerColor, filter: `drop-shadow(0 0 40px ${revealData.playerColor}80)` }">
-              {{ revealData.remaining }}
-            </div>
-            <div class="reveal-bust-msg">No change — next player 👋</div>
+            <template v-if="game.bustEliminates">
+              <div class="reveal-eliminated" :style="{ color: revealData.playerColor, filter: `drop-shadow(0 0 40px ${revealData.playerColor}80)` }">ELIMINATED</div>
+              <div class="reveal-bust-msg">Better luck next time 👋</div>
+            </template>
+            <template v-else>
+              <div class="reveal-number" :style="{ color: revealData.playerColor, filter: `drop-shadow(0 0 40px ${revealData.playerColor}80)` }">{{ revealData.remaining }}</div>
+              <div class="reveal-bust-msg">No change — next player 👋</div>
+            </template>
           </template>
           <template v-else>
             <div class="reveal-label">REMAINING</div>
