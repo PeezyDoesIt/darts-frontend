@@ -55,7 +55,7 @@
       <button
         v-ripple
         class="btn btn-gold btn-xl submit-btn"
-        :disabled="isBust || dartTotal === 0"
+        :disabled="false"
         @click="submit"
       >Submit Turn</button>
     </div>
