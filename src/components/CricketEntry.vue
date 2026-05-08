@@ -198,7 +198,7 @@ defineExpose({ submit, submitted })
   background: linear-gradient(transparent 46%, rgba(255,255,255,0.45) 46%, rgba(255,255,255,0.45) 54%, transparent 54%);
 }
 
-.target-label { font-size: clamp(72px, 13dvh, 150px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; display: flex; align-items: center; }
+.target-label { font-size: clamp(100px, 17dvh, 190px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; display: flex; align-items: center; overflow: hidden; }
 .pips-wrap { display: flex; align-items: stretch; gap: 20px; flex: 1; padding: 14px 0; }
 .pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: block; transition: all 0.2s; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
@@ -250,7 +250,7 @@ defineExpose({ submit, submitted })
 @media (max-width: 768px) {
   .cricket-board { padding: 5px 8px; gap: 5px; }
   .board-tile { padding: 6px 12px; min-height: 56px; }
-  .target-label { font-size: clamp(44px, 8dvh, 72px); width: clamp(90px, 12dvh, 130px); }
+  .target-label { font-size: clamp(60px, 11dvh, 100px); width: clamp(90px, 12dvh, 130px); }
   .pips-wrap { gap: 16px; }
   .hit-badge { font-size: 16px; width: 52px; }
   .closed-badge { width: 52px; font-size: 9px; }
