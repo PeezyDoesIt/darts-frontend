@@ -188,7 +188,7 @@ function submit() {
 .mult-btn {
   flex: 1; padding: 10px 0; border-radius: 10px;
   border: 2px solid rgba(255,255,255,0.15); background: #000;
-  color: rgba(255,255,255,0.5); font-size: clamp(16px, 2.5dvh, 22px);
+  color: rgba(255,255,255,0.8); font-size: clamp(26px, 4dvh, 38px);
   font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em;
   cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
   -webkit-tap-highlight-color: transparent;
@@ -220,6 +220,6 @@ function submit() {
   .dart-slot-val { font-size: 28px; }
   .numpad { gap: 6px; }
   .key { font-size: 22px; }
-  .mult-btn { font-size: 16px; padding: 8px 0; }
+  .mult-btn { font-size: 22px; padding: 8px 0; }
 }
 </style>
