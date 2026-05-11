@@ -38,11 +38,11 @@ export const PLAYER_THEMES = [
   { label: 'Oil Slick',    value: 'linear-gradient(135deg, #08000f 0%, #3d0066 22%, #001a4d 44%, #004040 66%, #00440a 88%, #0f0f00 100%)' },
   { label: 'Aurora',       value: 'linear-gradient(160deg, #000d08 0%, #003322 35%, #00aa66 60%, #44ffcc 80%, #88aaff 100%)' },
   { label: 'Emerald',      value: 'linear-gradient(160deg, #000d04 0%, #003d15 45%, #00a550 80%, #00ff88 100%)' },
+  { label: 'Toxic',        value: 'linear-gradient(160deg, #040800 0%, #143300 40%, #44cc00 72%, #ccff00 100%)' },
   // Reds / Oranges
   { label: 'Blood',        value: 'linear-gradient(160deg, #0a0000 0%, #3d0000 50%, #dc143c 100%)' },
   { label: 'Magma',        value: 'linear-gradient(160deg, #1a0500 0%, #8b2500 40%, #ff4500 75%, #ffa500 100%)' },
   { label: 'Coral',        value: 'linear-gradient(160deg, #0f0500 0%, #4a1500 40%, #cc4422 72%, #ff7755 100%)' },
-  { label: 'Bronze',       value: 'linear-gradient(160deg, #100800 0%, #4a2800 45%, #cd7f32 80%, #e8a050 100%)' },
   // Pinks
   { label: 'Rose',         value: 'linear-gradient(160deg, #140008 0%, #550022 40%, #cc0055 70%, #ff66aa 100%)' },
   { label: 'Flamingo',     value: 'linear-gradient(160deg, #12000a 0%, #4a0025 38%, #cc2266 65%, #ff5599 82%, #ff88bb 100%)' },
@@ -55,10 +55,9 @@ export const PLAYER_THEMES = [
   // Blues
   { label: 'Storm',        value: 'linear-gradient(160deg, #050510 0%, #0a0a40 40%, #1a1aaa 75%, #4466ff 100%)' },
   { label: 'Cyber',        value: 'linear-gradient(160deg, #000d14 0%, #001428 40%, #00aaff 70%, #00ffcc 100%)' },
-  // Greens
-  { label: 'Toxic',        value: 'linear-gradient(160deg, #040800 0%, #143300 40%, #44cc00 72%, #ccff00 100%)' },
   // Dark / Neutral
   { label: 'Coffee',       value: 'linear-gradient(160deg, #050200 0%, #1c0a00 40%, #4a2200 70%, #8b5a2b 100%)' },
+  { label: 'Bronze',       value: 'linear-gradient(160deg, #100800 0%, #4a2800 45%, #cd7f32 80%, #e8a050 100%)' },
 ] as const
 
 export type GameType =
