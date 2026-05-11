@@ -7,10 +7,6 @@
         <div class="turn-header" :style="{ '--player-color': currentPlayer.color }">
           <!-- Player box -->
           <div class="turn-player-box">
-            <div class="turn-avatar" :style="{ background: currentPlayer.color, boxShadow: `0 0 20px ${currentPlayer.color}99` }">
-              <img v-if="isPhoto(currentPlayer.avatarUrl)" :src="currentPlayer.avatarUrl!" alt="" />
-              <span v-else>{{ currentPlayer.avatarUrl ?? '🎯' }}</span>
-            </div>
             <div class="turn-player-info">
               <span class="turn-name display" :style="{ color: currentPlayerNameColor, filter: `drop-shadow(0 0 12px ${currentPlayer.color}80)` }">{{ currentPlayer.name }}</span>
             </div>
