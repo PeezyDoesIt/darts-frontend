@@ -53,20 +53,6 @@
           </section>
 
           <section class="ng-section">
-            <span class="label">Timers</span>
-            <div class="toggle-row" @click="disableTimers = !disableTimers">
-              <div class="toggle-track" :class="{ active: disableTimers }">
-                <div class="toggle-thumb" />
-              </div>
-              <div class="toggle-info">
-                <span class="toggle-title">Disable All Timers</span>
-                <span class="toggle-sub">Turns off walk-up and throw timers for this game</span>
-              </div>
-            </div>
-          </section>
-
-          <template v-if="!disableTimers">
-            <section class="ng-section">
               <span class="label">Walk-up Timer</span>
               <p class="hint">Seconds the next player has to walk up before the alert fires. Off = manual tap to start each turn.</p>
               <div class="timer-options">
@@ -103,8 +89,7 @@
                 />
                 <span class="hint">seconds (0 = off)</span>
               </div>
-            </section>
-          </template>
+          </section>
 
           <section class="ng-section">
             <span class="label">Scoring Screen Theme</span>
@@ -229,7 +214,6 @@ const closedTargetOptions = [
   { value: 'strike' as const, label: 'Strikethrough',  sub: 'Closed targets get a line through them' },
   { value: 'hide'   as const, label: 'Hide',           sub: 'Closed targets disappear' },
 ]
-const disableTimers = ref(false)
 const gameTheme = ref<string | null>(null)
 const gameThemeMode = ref<'theme' | 'image'>('theme')
 const gameThemeImage = ref<string | null>(null)
@@ -273,8 +257,8 @@ function moveDown(i: number) {
 }
 function startGame() {
   if (selectedPlayers.value.length < 2 || !selectedGameType.value) return
-  const t = disableTimers.value ? 0 : timerDuration.value
-  const tt = disableTimers.value ? 0 : throwTimerDuration.value
+  const t = timerDuration.value
+  const tt = throwTimerDuration.value
   gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, gameTheme.value, selectedPlayers.value)
   router.push('/game')
 }

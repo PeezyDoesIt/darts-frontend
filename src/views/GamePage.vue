@@ -356,7 +356,7 @@ function navigateToBetween() {
 }
 
 // Throw timer
-const throwTimerDuration = computed(() => settingsStore.disableTimers ? 0 : (game.value?.throwTimerDuration ?? 0))
+const throwTimerDuration = computed(() => settingsStore.disableThrowTimer ? 0 : (game.value?.throwTimerDuration ?? 0))
 const throwTimeLeft = ref(0)
 const throwPaused = ref(false)
 let throwInterval: ReturnType<typeof setInterval> | null = null

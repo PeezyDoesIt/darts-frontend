@@ -44,13 +44,22 @@
 
           <div class="settings-section">
             <div class="settings-label">Timers</div>
-            <div class="toggle-row" @click="settingsStore.setDisableTimers(!settingsStore.disableTimers)">
-              <div class="toggle-track" :class="{ active: settingsStore.disableTimers }">
+            <div class="toggle-row" @click="settingsStore.setDisableWalkUpTimer(!settingsStore.disableWalkUpTimer)">
+              <div class="toggle-track" :class="{ active: settingsStore.disableWalkUpTimer }">
                 <div class="toggle-thumb" />
               </div>
               <div class="toggle-info">
-                <span class="toggle-title">Disable All Timers</span>
-                <span class="toggle-sub">Turns off walk-up and throw timers for all games</span>
+                <span class="toggle-title">Disable Walk-up Timer</span>
+                <span class="toggle-sub">Turns off the between-turns countdown for all games</span>
+              </div>
+            </div>
+            <div class="toggle-row" @click="settingsStore.setDisableThrowTimer(!settingsStore.disableThrowTimer)">
+              <div class="toggle-track" :class="{ active: settingsStore.disableThrowTimer }">
+                <div class="toggle-thumb" />
+              </div>
+              <div class="toggle-info">
+                <span class="toggle-title">Disable Throw Timer</span>
+                <span class="toggle-sub">Turns off the per-throw countdown for all games</span>
               </div>
             </div>
           </div>
