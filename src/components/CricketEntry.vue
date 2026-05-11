@@ -30,7 +30,7 @@
               v-for="n in 3" :key="n"
               class="pip"
               :class="{ existing: pipIsExisting(target, n), round: pipIsRound(target, n) }"
-            >{{ myClosed(target) ? '✕' : '' }}</span>
+            >{{ myClosed(target) && closedTargetDisplay !== 'strike' ? '✕' : '' }}</span>
           </div>
 
           <span v-if="myClosed(target)" class="closed-badge">✓ CLOSED</span>
