@@ -34,47 +34,35 @@
     </div>
 
     <!-- Default layout (non-cricket) -->
-    <div v-else class="between-inner">
-      <transition name="swap" mode="out-in">
-        <!-- HURRY UP alert -->
-        <div v-if="showAlert" key="alert" class="alert-wrap">
-          <div v-if="isPhoto(nextPlayer.avatarUrl)" class="alert-avatar" :style="{ background: nextPlayer.color, boxShadow: `0 0 60px ${nextPlayer.color}` }">
-            <img :src="nextPlayer.avatarUrl!" alt="" />
-          </div>
-          <div class="alert-name display" :style="{ color: nextPlayer.color, filter: `drop-shadow(0 0 24px ${nextPlayer.color})` }">
-            {{ nextPlayer.name }}
-          </div>
+    <div v-else class="between-inner default-layout">
+
+      <!-- Large background timer ring (SVG only, no content inside) -->
+      <div v-if="!timerOff" class="timer-bg" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
+        <svg class="timer-bg-svg" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="54" fill="rgba(0,0,0,0.52)" stroke="rgba(255,255,255,0.07)" stroke-width="1.5" />
+          <circle cx="60" cy="60" r="54" fill="none"
+            :stroke="showAlert ? '#ef4444' : nextPlayer.color" stroke-width="4.5" stroke-linecap="round"
+            stroke-dasharray="339.3" :stroke-dashoffset="339.3 - (339.3 * progress)"
+            transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 10px currentColor)' }" />
+        </svg>
+      </div>
+
+      <!-- Content overlay: name → countdown → button stacked vertically -->
+      <div class="default-content">
+        <div class="default-name display"
+          :style="{ color: nextPlayer.color, filter: `drop-shadow(0 0 ${showAlert ? 28 : 20}px ${nextPlayer.color})` }">
+          {{ nextPlayer.name }}
         </div>
 
-        <!-- IT'S YOUR TURN announcement -->
-        <div v-else key="announce" class="up-state">
-          <div class="your-turn-label display">IT'S YOUR TURN</div>
-          <div v-if="isPhoto(nextPlayer.avatarUrl)" class="next-avatar" :style="{ background: nextPlayer.color, boxShadow: `0 0 80px ${nextPlayer.color}80` }">
-            <img :src="nextPlayer.avatarUrl!" alt="" />
-          </div>
-          <div class="next-name display" :style="{ color: nextPlayer.color, filter: `drop-shadow(0 0 20px ${nextPlayer.color})` }">
-            {{ nextPlayer.name }}
-          </div>
-        </div>
-      </transition>
+        <span v-if="!timerOff" class="default-count display" :style="showAlert ? { color: '#ef4444', filter: 'drop-shadow(0 0 16px #ef4444)' } : { color: '#ffffff', filter: `drop-shadow(0 0 16px ${nextPlayer.color})` }">
+          {{ paused ? '⏸' : timeLeft }}
+        </span>
 
-      <button v-ripple class="btn-ready" :style="{ borderColor: nextPlayer.color, color: '#fff', boxShadow: `0 0 24px ${nextPlayer.color}40` }" @click="startTurn">
-        START TURN
-      </button>
-    </div>
+        <button v-ripple class="btn-ready" :style="{ borderColor: nextPlayer.color, color: '#fff', boxShadow: `0 0 24px ${nextPlayer.color}40` }" @click="startTurn">
+          START TURN
+        </button>
+      </div>
 
-    <!-- Timer ring — absolutely positioned top-left (non-cricket only) -->
-    <div v-if="!isCricket && !timerOff" class="timer-wrap" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
-      <svg class="timer-ring" viewBox="0 0 120 120">
-        <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6" />
-        <circle cx="60" cy="60" r="52" fill="none"
-          :stroke="showAlert ? '#ef4444' : nextPlayer.color" stroke-width="6" stroke-linecap="round"
-          stroke-dasharray="326.7" :stroke-dashoffset="326.7 - (326.7 * progress)"
-          transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 8px currentColor)' }" />
-      </svg>
-      <span class="timer-count display" :style="showAlert ? { color: '#ef4444' } : {}">
-        {{ paused ? '⏸' : timeLeft }}
-      </span>
     </div>
   </div>
 </template>
@@ -222,15 +210,43 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .between::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.55); z-index: 0; }
 .between-inner { display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; width: 100%; height: 100%; padding: 32px 24px; position: relative; z-index: 2; }
 
-.your-turn-label { font-size: 28px; letter-spacing: 0.35em; color: rgba(255,255,255,0.5); text-transform: uppercase; }
-.next-avatar { width: 220px; height: 220px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 120px; border: 3px solid rgba(255,255,255,0.2); overflow: hidden; }
-.next-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.next-name { font-size: 96px; letter-spacing: 0.04em; line-height: 1; }
+/* Default layout — large background circle with content overlay */
+.default-layout {
+  position: relative;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+}
 
-.alert-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; max-width: 700px; }
-.alert-avatar { width: 140px; height: 140px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 72px; border: 3px solid rgba(255,255,255,0.2); overflow: hidden; }
-.alert-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.alert-name { font-size: 80px; letter-spacing: 0.04em; line-height: 1; }
+.timer-bg {
+  position: absolute;
+  width: 78vmin; height: 78vmin;
+  cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+  z-index: 1;
+}
+.timer-bg:active { transform: scale(0.995); }
+
+.timer-bg-svg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+}
+
+.default-content {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(16px, 4vmin, 48px);
+  width: 100%; max-width: 680px; padding: 0 32px;
+}
+
+.default-name {
+  font-size: clamp(48px, 9vmin, 110px);
+  letter-spacing: 0.04em; line-height: 1;
+  text-align: center; transition: color 0.3s;
+}
+
+.default-count {
+  font-size: clamp(80px, 18vmin, 200px);
+  line-height: 1; transition: color 0.3s;
+}
 
 /* Cricket layout */
 .cricket-layout {
@@ -254,18 +270,6 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .timer-center .timer-ring { width: clamp(220px, 30dvh, 340px); height: clamp(220px, 30dvh, 340px); }
 .timer-center .timer-count { font-size: clamp(88px, 12dvh, 140px); }
 
-/* Default (non-cricket) absolute timer */
-.timer-wrap {
-  position: absolute;
-  top: calc(28px + env(safe-area-inset-top));
-  left: 28px;
-  width: 148px; height: 148px;
-  cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
-  z-index: 3;
-}
-.timer-wrap:active { transform: scale(0.93); }
-.timer-ring { width: 148px; height: 148px; }
-.timer-count { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 58px; color: #fff; transition: color 0.3s; }
 
 .btn-ready {
   padding: clamp(22px, 3.5dvh, 36px) 0; font-size: clamp(22px, 3dvh, 34px); font-weight: 900; border-radius: 8px; width: 100%; max-width: 680px;
@@ -296,15 +300,9 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 }
 
 @media (orientation: landscape) and (max-height: 900px) {
-  .between-inner { flex-direction: row; flex-wrap: wrap; padding: 16px 32px; gap: 16px; align-content: center; justify-content: center; }
-  .up-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
-  .your-turn-label { font-size: 16px; }
-  .next-name, .alert-name { font-size: 52px; }
-  .next-avatar { width: 80px; height: 80px; font-size: 40px; }
-  .alert-avatar { width: 80px; height: 80px; font-size: 40px; }
-  .timer-wrap { top: calc(16px + env(safe-area-inset-top)); left: 16px; width: 110px; height: 110px; }
-  .timer-ring { width: 110px; height: 110px; }
-  .timer-count { font-size: 42px; }
+  .default-count { font-size: clamp(48px, 13vmin, 100px); }
+  .default-name { font-size: clamp(28px, 7vmin, 64px); }
+  .default-content { gap: clamp(10px, 2.5vmin, 24px); padding: 0 20px; }
   .btn-ready { font-size: 16px; padding: 14px 0; max-width: 360px; }
   .cricket-layout { flex-direction: column; gap: 16px; padding: 16px 32px; align-items: center; justify-content: center; padding-top: calc(20px + env(safe-area-inset-top)); }
   .cricket-layout .timer-center { width: 140px; height: 140px; }
@@ -315,11 +313,8 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 
 @media (max-width: 768px) {
   .between-inner { padding: 24px 20px; }
-  .your-turn-label { font-size: 20px; }
-  .next-name, .alert-name { font-size: 72px; }
-  .timer-wrap { top: calc(20px + env(safe-area-inset-top)); left: 20px; width: 124px; height: 124px; }
-  .timer-ring { width: 124px; height: 124px; }
-  .timer-count { font-size: 48px; }
+  .timer-bg { width: 80vmin; height: 80vmin; }
+  .default-name { font-size: clamp(48px, 10vmin, 96px); }
   .btn-ready { font-size: 20px; padding: 22px 0; }
   .cricket-layout { gap: 0; }
   .cricket-layout .timer-center { width: clamp(180px, 26dvh, 260px); height: clamp(180px, 26dvh, 260px); }
