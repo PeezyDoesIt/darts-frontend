@@ -14,16 +14,16 @@ export type Player = {
 
 export const TARGET_LABEL_COLORS = [
   { label: 'Auto',   value: null },
-  { label: 'Green',  value: '#00ff88' },
-  { label: 'White',  value: '#ffffff' },
   { label: 'Black',  value: '#000000' },
+  { label: 'White',  value: '#ffffff' },
   { label: 'Pink',   value: '#ff2d78' },
-  { label: 'Cyan',   value: '#00d4ff' },
-  { label: 'Yellow', value: '#ffdd00' },
-  { label: 'Orange', value: '#ff7700' },
   { label: 'Red',    value: '#ef4444' },
-  { label: 'Purple', value: '#a855f7' },
+  { label: 'Orange', value: '#ff7700' },
+  { label: 'Yellow', value: '#ffdd00' },
+  { label: 'Green',  value: '#00ff88' },
+  { label: 'Cyan',   value: '#00d4ff' },
   { label: 'Blue',   value: '#3b82f6' },
+  { label: 'Purple', value: '#a855f7' },
 ] as const
 
 
