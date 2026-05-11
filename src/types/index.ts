@@ -40,20 +40,15 @@ export const PLAYER_THEMES = [
   { label: 'Emerald',      value: 'linear-gradient(160deg, #000d04 0%, #003d15 45%, #00a550 80%, #00ff88 100%)' },
   // Reds / Oranges
   { label: 'Blood',        value: 'linear-gradient(160deg, #0a0000 0%, #3d0000 50%, #dc143c 100%)' },
-  { label: 'Crimson',      value: 'linear-gradient(160deg, #0a0000 0%, #4a0010 40%, #aa0020 75%, #dc143c 100%)' },
   { label: 'Scarlet',      value: 'linear-gradient(160deg, #0f0000 0%, #5a0000 45%, #cc1100 78%, #ff2200 100%)' },
-  { label: 'Ruby',         value: 'linear-gradient(160deg, #080004 0%, #3a0015 40%, #8b0030 72%, #cc0044 100%)' },
-  { label: 'Cherry',       value: 'linear-gradient(160deg, #050002 0%, #2a0010 35%, #7a0030 65%, #cc1155 85%, #ff3377 100%)' },
   { label: 'Fire',         value: 'linear-gradient(160deg, #1a0000 0%, #8b0000 50%, #ff2d00 100%)' },
   { label: 'Magma',        value: 'linear-gradient(160deg, #1a0500 0%, #8b2500 40%, #ff4500 75%, #ffa500 100%)' },
   { label: 'Coral',        value: 'linear-gradient(160deg, #0f0500 0%, #4a1500 40%, #cc4422 72%, #ff7755 100%)' },
   { label: 'Bronze',       value: 'linear-gradient(160deg, #100800 0%, #4a2800 45%, #cd7f32 80%, #e8a050 100%)' },
   // Pinks
   { label: 'Rose',         value: 'linear-gradient(160deg, #140008 0%, #550022 40%, #cc0055 70%, #ff66aa 100%)' },
-  { label: 'Strawberry',   value: 'linear-gradient(160deg, #0f0004 0%, #4a0018 38%, #aa0040 65%, #ee2266 82%, #ff66aa 100%)' },
   { label: 'Flamingo',     value: 'linear-gradient(160deg, #12000a 0%, #4a0025 38%, #cc2266 65%, #ff5599 82%, #ff88bb 100%)' },
   { label: 'Blush',        value: 'linear-gradient(160deg, #0f0008 0%, #3d0022 40%, #882255 72%, #cc6699 88%, #ffaabb 100%)' },
-  { label: 'Fuchsia',      value: 'linear-gradient(160deg, #0d0010 0%, #3d0044 38%, #aa0088 65%, #ee00bb 82%, #ff44dd 100%)' },
   { label: 'Neon Rose',    value: 'linear-gradient(160deg, #0a0008 0%, #330022 40%, #880055 68%, #ff0088 85%, #ff44cc 100%)' },
   // Purples
   { label: 'Candy',        value: 'linear-gradient(160deg, #1a0014 0%, #660055 35%, #cc00cc 65%, #ff66ff 100%)' },
