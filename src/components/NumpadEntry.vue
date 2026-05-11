@@ -188,7 +188,7 @@ function submit() {
 .mult-btn {
   flex: 1; padding: 10px 0; border-radius: 10px;
   border: 2px solid rgba(255,255,255,0.15); background: #000;
-  color: rgba(255,255,255,0.8); font-size: clamp(26px, 4dvh, 38px);
+  color: #fff; font-size: clamp(26px, 4dvh, 38px);
   font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em;
   cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
   -webkit-tap-highlight-color: transparent;
