@@ -186,7 +186,7 @@ defineExpose({ submit, submitted })
 .board-tile:not(:disabled):active { transform: scale(0.98); }
 .board-tile.active { border-color: var(--pink); background: rgba(180,0,60,0.92); box-shadow: 0 0 32px rgba(255,45,120,0.35); }
 .board-tile.closed { opacity: 0.3; cursor: default; }
-.board-tile.closed-fade { opacity: 0.12; cursor: default; }
+.board-tile.closed-fade { opacity: 0.35; cursor: default; }
 .board-tile.closed-strike { opacity: 0.45; filter: grayscale(0.7); cursor: default; }
 .board-tile.closed-strike::after {
   content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2;
