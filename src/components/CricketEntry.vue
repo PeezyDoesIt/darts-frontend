@@ -41,7 +41,7 @@
     </div>
 
     <!-- Corner avatar: bottom-right -->
-    <div v-if="avatarUrl" class="corner-avatar" aria-hidden="true">
+    <div v-if="avatarUrl && !playerBackground" class="corner-avatar" aria-hidden="true">
       <img v-if="avatarUrl.startsWith('data:') || avatarUrl.startsWith('http')" :src="avatarUrl" alt="" />
       <span v-else>{{ avatarUrl }}</span>
     </div>
