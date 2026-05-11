@@ -25,6 +25,7 @@
           </div>
           <div v-else class="throw-timer-spacer" />
 
+          <button v-ripple class="btn btn-sm btn-surface scores-btn" @click="showAllScores = !showAllScores">SCORES</button>
           <button
             v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'"
             v-ripple
@@ -32,7 +33,6 @@
             :disabled="cricketEntryRef?.submitted"
             @click="cricketEntryRef?.submit()"
           >SUBMIT TURN</button>
-          <button v-ripple class="btn btn-sm btn-surface scores-btn" @click="showAllScores = !showAllScores">SCORES</button>
         </div>
 
         <div class="entry-body">
