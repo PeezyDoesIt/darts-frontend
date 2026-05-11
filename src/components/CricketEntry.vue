@@ -40,6 +40,12 @@
       </TransitionGroup>
     </div>
 
+    <!-- Corner avatar: bottom-right -->
+    <div v-if="avatarUrl" class="corner-avatar" aria-hidden="true">
+      <img v-if="avatarUrl.startsWith('data:') || avatarUrl.startsWith('http')" :src="avatarUrl" alt="" />
+      <span v-else>{{ avatarUrl }}</span>
+    </div>
+
     <div class="submit-row">
       <span v-if="totalHitsThisRound > 0" class="hits-text">
         {{ totalHitsThisRound }} hit{{ totalHitsThisRound !== 1 ? 's' : '' }} this round
@@ -214,6 +220,13 @@ defineExpose({ submit, submitted })
 }
 .board-avatar-bg img { width: 90%; height: 95%; object-fit: contain; object-position: center; opacity: 0.7; }
 .board-avatar-bg span { font-size: 65dvh; line-height: 1; opacity: 0.7; filter: drop-shadow(0 0 24px rgba(0,0,0,0.4)); }
+
+.corner-avatar {
+  position: absolute; bottom: 80px; right: 16px; z-index: 2;
+  font-size: clamp(56px, 9dvh, 90px); line-height: 1;
+  opacity: 0.85; pointer-events: none;
+}
+.corner-avatar img { width: clamp(56px, 9dvh, 90px); height: clamp(56px, 9dvh, 90px); object-fit: cover; border-radius: 8px; }
 
 .submit-row {
   display: flex; align-items: center; justify-content: space-between;
