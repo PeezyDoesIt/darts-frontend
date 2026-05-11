@@ -140,7 +140,7 @@ function submit() {
 
 /* Remaining */
 .remaining-display { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
-.remaining-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; }
+.remaining-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; color: #fff; text-transform: uppercase; }
 .remaining-val { font-size: 72px; font-family: var(--font-display); color: #fff; line-height: 1; transition: color 0.2s; background: rgba(0,0,0,0.72); border-radius: 10px; padding: 4px 20px; }
 .remaining-val.bust { color: #ef4444; }
 
@@ -155,7 +155,7 @@ function submit() {
 .dart-slot.active { border-color: var(--blue); background: rgba(0,212,255,0.08); box-shadow: 0 0 16px rgba(0,212,255,0.2); }
 .dart-slot.filled { border-color: rgba(255,255,255,0.25); }
 .dart-slot.active.filled { border-color: var(--blue); }
-.dart-slot-label { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); }
+.dart-slot-label { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #fff; }
 .dart-slot-val-wrap { display: flex; align-items: flex-end; gap: 4px; line-height: 1; }
 .dart-slot-val { font-size: 36px; font-weight: 900; font-family: var(--font-display); color: var(--text); line-height: 1; }
 .dart-slot.active .dart-slot-val { color: var(--blue); }
