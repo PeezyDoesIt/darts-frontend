@@ -270,4 +270,12 @@ defineExpose({ submit, submitted })
   .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
   .submit-btn { height: 46px; font-size: 16px; }
 }
+
+@media (orientation: portrait) {
+  .cricket-board-scroll { overflow: hidden; display: flex; flex-direction: column; }
+  .cricket-board { flex: 1; height: 100%; min-height: 0; padding: 4px 8px; gap: 4px; }
+  .board-tile { min-height: 0; padding: 4px 12px; }
+  .target-label { font-size: clamp(44px, 8.5dvh, 90px); width: clamp(76px, 11dvh, 125px); }
+  .pips-wrap { gap: 12px; padding: 6px 0; }
+}
 </style>
