@@ -48,7 +48,7 @@
             :scores="game.scores"
             :isCutThroat="game.gameType === 'cutThroat'"
             :round="game.round"
-            :closedTargetDisplay="game.closedTargetDisplay"
+            :closedTargetDisplay="currentPlayer.cricketTargetDisplay ?? game.closedTargetDisplay"
             :avatarUrl="currentPlayer.avatarUrl"
             :playerColor="currentPlayer.color"
             :playerBackground="currentPlayer.playerBackground"

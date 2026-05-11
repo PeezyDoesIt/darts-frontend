@@ -49,6 +49,7 @@ function loadGame(): ActiveGame | null {
     if (g.closedTargetDisplay === undefined) g.closedTargetDisplay = 'show'
     if (g.bustEliminates === undefined) g.bustEliminates = false
     if (g.gameTheme === undefined) g.gameTheme = null
+    if (g.players) g.players = g.players.map((p: any) => ({ cricketTargetDisplay: null, ...p }))
     return g
   } catch {
     return null

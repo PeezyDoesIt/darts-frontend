@@ -77,6 +77,22 @@
           </div>
 
           <div class="field">
+            <label class="label">Cricket: Closed Targets</label>
+            <p class="field-hint">How completed targets appear on your turn. Overrides the game setting.</p>
+            <div class="ct-player-opts">
+              <button
+                v-for="opt in cricketTargetDisplayOpts" :key="String(opt.value)"
+                v-ripple class="ct-player-btn"
+                :class="{ active: cricketTargetDisplay === opt.value }"
+                @click="cricketTargetDisplay = opt.value"
+              >
+                <span class="ct-player-label">{{ opt.label }}</span>
+                <span class="ct-player-sub">{{ opt.sub }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
             <label class="label">Cricket Number Color</label>
             <div class="color-swatch-row">
               <button
@@ -203,6 +219,15 @@ const bgMode = ref<'theme' | 'image'>('theme')
 const playerBackground = ref<string | null>(null)
 const bgImagePreview = ref<string | null>(null)
 const targetLabelColor = ref<string | null>(null)
+const cricketTargetDisplay = ref<'show' | 'hide' | 'fade' | 'strike' | null>(null)
+
+const cricketTargetDisplayOpts: { value: 'show' | 'hide' | 'fade' | 'strike' | null; label: string; sub: string }[] = [
+  { value: null,     label: 'Default', sub: 'Use game setting' },
+  { value: 'show',   label: 'Normal',  sub: 'Standard opacity' },
+  { value: 'fade',   label: 'Fade',    sub: 'Ghost out' },
+  { value: 'strike', label: 'Strike',  sub: 'Line through' },
+  { value: 'hide',   label: 'Hide',    sub: 'Remove tile' },
+]
 
 const bgPreviewStyle = computed(() => {
   if (bgImagePreview.value) return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: 'cover', backgroundPosition: 'center' }
@@ -250,7 +275,7 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
-  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; targetLabelColor.value = null
+  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; targetLabelColor.value = null; cricketTargetDisplay.value = null
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
@@ -260,27 +285,29 @@ function loadPlayer(p: Player) {
   if (p.playerBackground?.startsWith('data:')) { bgMode.value = 'image'; bgImagePreview.value = p.playerBackground }
   else { bgMode.value = 'theme'; bgImagePreview.value = null }
   targetLabelColor.value = p.targetLabelColor ?? null
+  cricketTargetDisplay.value = p.cricketTargetDisplay ?? null
 }
 function save() {
   if (!name.value.trim()) return
   const finalAvatar = avatarMode.value === 'photo' ? (photoPreview.value ?? PRESET_AVATARS[0]!) : avatarUrl.value
   const bg = playerBackground.value
   const tlc = targetLabelColor.value
+  const ctd = cricketTargetDisplay.value
   if (editingId.value) {
-    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, targetLabelColor: tlc })
+    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, targetLabelColor: tlc, cricketTargetDisplay: ctd })
     editingId.value = null
   } else {
-    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, targetLabelColor: tlc, pinned: false })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, targetLabelColor: tlc, cricketTargetDisplay: ctd, pinned: false })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
       name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
-      photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; targetLabelColor.value = null
+      photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null
       router.push('/game')
       return
     }
   }
   name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
-  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; targetLabelColor.value = null
+  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null
   router.back()
 }
 </script>
@@ -375,6 +402,20 @@ function save() {
 .pinned-warn { color: #f59e0b; font-size: 13px; }
 .confirm-btns { display: flex; gap: 12px; width: 100%; }
 .confirm-btns .btn { flex: 1; }
+
+.ct-player-opts { display: flex; gap: 6px; flex-wrap: wrap; }
+.ct-player-btn {
+  flex: 1; min-width: 72px; padding: 8px 10px; border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
+  cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column;
+  align-items: center; gap: 2px; position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.ct-player-btn:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); }
+.ct-player-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); }
+.ct-player-label { font-size: 13px; font-weight: 800; font-family: var(--font-display); letter-spacing: 0.05em; color: #fff; }
+.ct-player-sub { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; color: var(--text-muted); text-transform: uppercase; }
+.ct-player-btn.active .ct-player-label { color: var(--pink); }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }

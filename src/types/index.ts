@@ -5,6 +5,7 @@ export type Player = {
   color: string
   playerBackground: string | null
   targetLabelColor: string | null
+  cricketTargetDisplay: 'show' | 'hide' | 'fade' | 'strike' | null  // null = use game setting
   pinned: boolean
   wins: number
   gamesPlayed: number
