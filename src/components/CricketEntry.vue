@@ -1,9 +1,9 @@
 <template>
   <div class="cricket">
-    <!-- Single avatar watermark behind the whole board -->
-    <div class="board-avatar-bg" aria-hidden="true">
-      <img v-if="avatarUrl?.startsWith('data:') || avatarUrl?.startsWith('http')" :src="avatarUrl" alt="" />
-      <span v-else-if="avatarUrl">{{ avatarUrl }}</span>
+    <!-- Single avatar watermark behind the whole board — hidden when player has a custom background -->
+    <div v-if="avatarUrl && !playerBackground" class="board-avatar-bg" aria-hidden="true">
+      <img v-if="avatarUrl.startsWith('data:') || avatarUrl.startsWith('http')" :src="avatarUrl" alt="" />
+      <span v-else>{{ avatarUrl }}</span>
     </div>
 
     <div class="cricket-board-scroll">
