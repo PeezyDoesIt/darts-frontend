@@ -1,10 +1,5 @@
 <template>
   <div class="cricket">
-    <!-- Single avatar watermark behind the whole board — hidden when player has a custom background -->
-    <div v-if="avatarUrl && !playerBackground" class="board-avatar-bg" aria-hidden="true">
-      <img v-if="avatarUrl.startsWith('data:') || avatarUrl.startsWith('http')" :src="avatarUrl" alt="" />
-      <span v-else>{{ avatarUrl }}</span>
-    </div>
 
     <div class="cricket-board-scroll">
       <TransitionGroup tag="div" name="tile-vanish" class="cricket-board">
@@ -40,13 +35,7 @@
       </TransitionGroup>
     </div>
 
-    <!-- Corner avatar: bottom-right -->
-    <div v-if="avatarUrl && !playerBackground" class="corner-avatar" aria-hidden="true">
-      <img v-if="avatarUrl.startsWith('data:') || avatarUrl.startsWith('http')" :src="avatarUrl" alt="" />
-      <span v-else>{{ avatarUrl }}</span>
-    </div>
-
-    <div class="submit-row">
+<div class="submit-row">
       <span v-if="totalHitsThisRound > 0" class="hits-text">
         {{ totalHitsThisRound }} hit{{ totalHitsThisRound !== 1 ? 's' : '' }} this round
       </span>
