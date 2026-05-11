@@ -22,6 +22,8 @@ export const TARGET_LABEL_COLORS = [
   { label: 'Yellow', value: '#ffdd00' },
   { label: 'Orange', value: '#ff7700' },
   { label: 'Red',    value: '#ef4444' },
+  { label: 'Purple', value: '#a855f7' },
+  { label: 'Blue',   value: '#3b82f6' },
 ] as const
 
 
