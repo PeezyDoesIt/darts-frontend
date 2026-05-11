@@ -234,13 +234,13 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 
 /* Cricket layout */
 .cricket-layout {
-  justify-content: center;
-  gap: 36px;
-  padding-top: calc(16px + env(safe-area-inset-top));
-  padding-bottom: calc(48px + env(safe-area-inset-bottom));
+  justify-content: space-evenly;
+  gap: 0;
+  padding-top: calc(24px + env(safe-area-inset-top));
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
 }
 .cricket-player-name {
-  font-size: clamp(90px, 18dvh, 170px);
+  font-size: clamp(100px, 20dvh, 220px);
   letter-spacing: 0.04em;
   line-height: 1;
   text-align: center;
@@ -249,10 +249,10 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .timer-center {
   position: relative !important;
   top: auto !important; left: auto !important;
-  width: 220px; height: 220px;
+  width: clamp(220px, 30dvh, 340px); height: clamp(220px, 30dvh, 340px);
 }
-.timer-center .timer-ring { width: 220px; height: 220px; }
-.timer-center .timer-count { font-size: 88px; }
+.timer-center .timer-ring { width: clamp(220px, 30dvh, 340px); height: clamp(220px, 30dvh, 340px); }
+.timer-center .timer-count { font-size: clamp(88px, 12dvh, 140px); }
 
 /* Default (non-cricket) absolute timer */
 .timer-wrap {
@@ -268,7 +268,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .timer-count { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 58px; color: #fff; transition: color 0.3s; }
 
 .btn-ready {
-  padding: 22px 0; font-size: 22px; font-weight: 900; border-radius: 6px; width: 100%; max-width: 480px;
+  padding: clamp(22px, 3.5dvh, 36px) 0; font-size: clamp(22px, 3dvh, 34px); font-weight: 900; border-radius: 8px; width: 100%; max-width: 680px;
   background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border: 2px solid; cursor: pointer; transition: all 0.15s; letter-spacing: 0.1em;
   font-family: var(--font-display); position: relative; overflow: hidden;
@@ -306,11 +306,11 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .timer-ring { width: 110px; height: 110px; }
   .timer-count { font-size: 42px; }
   .btn-ready { font-size: 16px; padding: 14px 0; max-width: 360px; }
-  .cricket-layout { flex-direction: column; gap: 20px; padding: 16px 32px; align-items: center; justify-content: flex-start; padding-top: calc(28px + env(safe-area-inset-top)); }
-  .cricket-layout .timer-center { width: 130px; height: 130px; }
-  .cricket-layout .timer-center .timer-ring { width: 130px; height: 130px; }
-  .cricket-layout .timer-center .timer-count { font-size: 52px; }
-  .cricket-player-name { font-size: 52px; }
+  .cricket-layout { flex-direction: column; gap: 16px; padding: 16px 32px; align-items: center; justify-content: center; padding-top: calc(20px + env(safe-area-inset-top)); }
+  .cricket-layout .timer-center { width: 140px; height: 140px; }
+  .cricket-layout .timer-center .timer-ring { width: 140px; height: 140px; }
+  .cricket-layout .timer-center .timer-count { font-size: 56px; }
+  .cricket-player-name { font-size: 56px; }
 }
 
 @media (max-width: 768px) {
@@ -320,19 +320,18 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .timer-wrap { top: calc(20px + env(safe-area-inset-top)); left: 20px; width: 124px; height: 124px; }
   .timer-ring { width: 124px; height: 124px; }
   .timer-count { font-size: 48px; }
-  .btn-ready { font-size: 18px; padding: 18px 0; }
-  .cricket-layout { gap: 28px; }
-  .cricket-layout .timer-center { width: 180px; height: 180px; }
-  .cricket-layout .timer-center .timer-ring { width: 180px; height: 180px; }
-  .cricket-layout .timer-center .timer-count { font-size: 72px; }
-  .cricket-player-name { font-size: clamp(60px, 11dvh, 100px); }
+  .btn-ready { font-size: 20px; padding: 22px 0; }
+  .cricket-layout { gap: 0; }
+  .cricket-layout .timer-center { width: clamp(180px, 26dvh, 260px); height: clamp(180px, 26dvh, 260px); }
+  .cricket-layout .timer-center .timer-ring { width: clamp(180px, 26dvh, 260px); height: clamp(180px, 26dvh, 260px); }
+  .cricket-layout .timer-center .timer-count { font-size: clamp(72px, 10dvh, 110px); }
+  .cricket-player-name { font-size: clamp(80px, 14dvh, 140px); }
 }
 
 
 @media (orientation: portrait) {
   .cricket-layout {
-    justify-content: center;
-    padding-top: calc(16px + env(safe-area-inset-top));
+    justify-content: space-evenly;
   }
 }
 </style>
