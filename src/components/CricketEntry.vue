@@ -30,7 +30,7 @@
               v-for="n in 3" :key="n"
               class="pip"
               :class="{ existing: pipIsExisting(target, n), round: pipIsRound(target, n) }"
-            />
+            >{{ myClosed(target) ? '✕' : '' }}</span>
           </div>
 
           <span v-if="myClosed(target)" class="closed-badge">✓ CLOSED</span>
@@ -206,7 +206,7 @@ defineExpose({ submit, submitted })
 
 .target-label { font-size: clamp(100px, 17dvh, 190px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; display: flex; align-items: center; overflow: hidden; }
 .pips-wrap { display: flex; align-items: stretch; gap: 20px; flex: 1; padding: 14px 0; }
-.pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: block; transition: all 0.2s; }
+.pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: clamp(14px, 2.5dvh, 22px); font-weight: 900; font-family: var(--font-display); color: rgba(0,0,0,0.55); line-height: 1; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
 .pip.round { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 16px rgba(255,45,120,0.6); }
 
