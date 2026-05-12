@@ -202,10 +202,10 @@ const playersStore = usePlayersStore()
 const gameStore = useGameStore()
 
 const selectedGameType = ref<GameType | null>(null)
-const timerDuration = ref(30)
-const timerOptions = [30, 45, 60]
+const timerDuration = ref(60)
+const timerOptions = [60, 90, 120, 180]
 const throwTimerDuration = ref(0)
-const throwTimerOptions = [0, 30, 45, 60, 90, 120]
+const throwTimerOptions = [0, 60, 90, 120, 180]
 const closedTargetDisplay = ref<'show' | 'hide' | 'fade' | 'strike'>('show')
 const bustEliminates = ref(false)
 const closedTargetOptions = [

@@ -261,11 +261,15 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   transition: color 0.3s;
 }
 .timer-center {
-  position: relative !important;
-  top: auto !important; left: auto !important;
+  position: relative;
   width: clamp(220px, 30dvh, 340px); height: clamp(220px, 30dvh, 340px);
 }
-.timer-center .timer-ring { width: clamp(220px, 30dvh, 340px); height: clamp(220px, 30dvh, 340px); }
+.timer-center .timer-ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+.timer-count {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; transition: color 0.3s;
+}
 .timer-center .timer-count { font-size: clamp(88px, 12dvh, 140px); }
 
 
