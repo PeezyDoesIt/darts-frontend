@@ -202,8 +202,8 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .between {
   width: 100vw; height: 100dvh; display: flex; align-items: center; justify-content: center;
   position: relative; overflow: hidden;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .between::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.55); z-index: 0; }
 .between-inner { display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; width: 100%; height: 100%; padding: 32px 24px; position: relative; z-index: 2; }
