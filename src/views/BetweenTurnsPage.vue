@@ -33,36 +33,34 @@
       </button>
     </div>
 
-    <!-- Default layout (non-cricket) -->
+    <!-- Default layout (non-cricket): name → circle with count inside → button -->
     <div v-else class="between-inner default-layout">
-
-      <!-- Large background timer ring (SVG only, no content inside) -->
-      <div v-if="!timerOff" class="timer-bg" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
-        <svg class="timer-bg-svg" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r="54" fill="rgba(0,0,0,0.52)" stroke="rgba(255,255,255,0.07)" stroke-width="1.5" />
-          <circle cx="60" cy="60" r="54" fill="none"
-            :stroke="showAlert ? '#ef4444' : nextPlayer.color" stroke-width="4.5" stroke-linecap="round"
-            stroke-dasharray="339.3" :stroke-dashoffset="339.3 - (339.3 * progress)"
-            transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 10px currentColor)' }" />
-        </svg>
-      </div>
-
-      <!-- Content overlay: name → countdown → button stacked vertically -->
       <div class="default-content">
+
         <div class="default-name display"
           :style="{ color: nextPlayer.color, filter: `drop-shadow(0 0 ${showAlert ? 28 : 20}px ${nextPlayer.color})` }">
           {{ nextPlayer.name }}
         </div>
 
-        <span v-if="!timerOff" class="default-count display" :style="showAlert ? { color: '#ef4444', filter: 'drop-shadow(0 0 16px #ef4444)' } : { color: '#ffffff', filter: `drop-shadow(0 0 16px ${nextPlayer.color})` }">
-          {{ paused ? '⏸' : timeLeft }}
-        </span>
+        <!-- Timer circle with countdown centered inside -->
+        <div v-if="!timerOff" class="timer-bg" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
+          <svg class="timer-bg-svg" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="54" fill="rgba(0,0,0,0.52)" stroke="rgba(255,255,255,0.07)" stroke-width="1.5" />
+            <circle cx="60" cy="60" r="54" fill="none"
+              :stroke="showAlert ? '#ef4444' : nextPlayer.color" stroke-width="4.5" stroke-linecap="round"
+              stroke-dasharray="339.3" :stroke-dashoffset="339.3 - (339.3 * progress)"
+              transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 10px currentColor)' }" />
+          </svg>
+          <span class="timer-bg-count display" :style="showAlert ? { color: '#ef4444', filter: 'drop-shadow(0 0 16px #ef4444)' } : { color: '#ffffff', filter: `drop-shadow(0 0 16px ${nextPlayer.color})` }">
+            {{ paused ? '⏸' : timeLeft }}
+          </span>
+        </div>
 
         <button v-ripple class="btn-ready" :style="{ borderColor: nextPlayer.color, color: '#fff', boxShadow: `0 0 24px ${nextPlayer.color}40` }" @click="startTurn">
           START TURN
         </button>
-      </div>
 
+      </div>
     </div>
   </div>
 </template>
@@ -210,19 +208,30 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .between::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.55); z-index: 0; }
 .between-inner { display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; width: 100%; height: 100%; padding: 32px 24px; position: relative; z-index: 2; }
 
-/* Default layout — large background circle with content overlay */
+/* Default layout — stacked column: name → circle → button */
 .default-layout {
-  position: relative;
   justify-content: center;
   align-items: center;
-  padding: 0;
+  padding: clamp(24px, 4dvh, 48px) 24px;
+}
+
+.default-content {
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(12px, 3vmin, 36px);
+  width: 100%; max-width: 560px;
+}
+
+.default-name {
+  font-size: clamp(44px, 8vmin, 100px);
+  letter-spacing: 0.04em; line-height: 1;
+  text-align: center; transition: color 0.3s;
 }
 
 .timer-bg {
-  position: absolute;
-  width: 78vmin; height: 78vmin;
+  position: relative;
+  width: clamp(200px, 52vmin, 440px); height: clamp(200px, 52vmin, 440px);
+  flex-shrink: 0;
   cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
-  z-index: 1;
 }
 .timer-bg:active { transform: scale(0.995); }
 
@@ -230,21 +239,10 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   position: absolute; inset: 0; width: 100%; height: 100%;
 }
 
-.default-content {
-  position: relative; z-index: 2;
-  display: flex; flex-direction: column; align-items: center;
-  gap: clamp(16px, 4vmin, 48px);
-  width: 100%; max-width: 680px; padding: 0 32px;
-}
-
-.default-name {
-  font-size: clamp(48px, 9vmin, 110px);
-  letter-spacing: 0.04em; line-height: 1;
-  text-align: center; transition: color 0.3s;
-}
-
-.default-count {
-  font-size: clamp(80px, 18vmin, 200px);
+.timer-bg-count {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(72px, 15vmin, 180px);
   line-height: 1; transition: color 0.3s;
 }
 
@@ -272,9 +270,9 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 
 
 .btn-ready {
-  padding: clamp(22px, 3.5dvh, 36px) 0; font-size: clamp(22px, 3dvh, 34px); font-weight: 900; border-radius: 8px; width: 100%; max-width: 680px;
+  padding: clamp(12px, 1.8dvh, 22px) 0; font-size: clamp(26px, 3.8dvh, 42px); font-weight: 900; border-radius: 8px; width: 100%; max-width: 480px;
   background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border: 2px solid; cursor: pointer; transition: all 0.15s; letter-spacing: 0.1em;
+  border: 2px solid; cursor: pointer; transition: all 0.15s; letter-spacing: 0.14em;
   font-family: var(--font-display); position: relative; overflow: hidden;
 }
 .btn-ready:hover { background: rgba(255,255,255,0.1); }
@@ -287,7 +285,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .between-avatar-bg {
   position: absolute; bottom: calc(0px + env(safe-area-inset-bottom)); right: 0;
   width: 36vmin; height: 36vmin;
-  pointer-events: none; user-select: none; z-index: 1;
+  pointer-events: none; user-select: none; z-index: 3;
   display: flex; align-items: flex-end; justify-content: flex-end;
 }
 .between-avatar-bg img {
@@ -299,11 +297,13 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   filter: drop-shadow(0 0 32px rgba(0,0,0,0.5));
 }
 
-@media (orientation: landscape) and (max-height: 900px) {
-  .default-count { font-size: clamp(48px, 13vmin, 100px); }
-  .default-name { font-size: clamp(28px, 7vmin, 64px); }
-  .default-content { gap: clamp(10px, 2.5vmin, 24px); padding: 0 20px; }
-  .btn-ready { font-size: 16px; padding: 14px 0; max-width: 360px; }
+/* Phone landscape only (max-width: 767px excludes tablets) */
+@media (orientation: landscape) and (max-height: 900px) and (max-width: 767px) {
+  .timer-bg { width: clamp(120px, 44vmin, 220px); height: clamp(120px, 44vmin, 220px); }
+  .timer-bg-count { font-size: clamp(44px, 11vmin, 88px); }
+  .default-name { font-size: clamp(24px, 6vmin, 52px); }
+  .default-content { gap: clamp(8px, 2vmin, 18px); padding: 0 16px; }
+  .btn-ready { font-size: clamp(18px, 4vmin, 28px); padding: 8px 0; max-width: 300px; }
   .cricket-layout { flex-direction: column; gap: 16px; padding: 16px 32px; align-items: center; justify-content: center; padding-top: calc(20px + env(safe-area-inset-top)); }
   .cricket-layout .timer-center { width: 140px; height: 140px; }
   .cricket-layout .timer-center .timer-ring { width: 140px; height: 140px; }
@@ -311,11 +311,13 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .cricket-player-name { font-size: 56px; }
 }
 
-@media (max-width: 768px) {
+/* Phone portrait and small screens */
+@media (max-width: 767px) {
   .between-inner { padding: 24px 20px; }
-  .timer-bg { width: 80vmin; height: 80vmin; }
-  .default-name { font-size: clamp(48px, 10vmin, 96px); }
-  .btn-ready { font-size: 20px; padding: 22px 0; }
+  .timer-bg { width: clamp(180px, 58vmin, 320px); height: clamp(180px, 58vmin, 320px); }
+  .timer-bg-count { font-size: clamp(60px, 14vmin, 120px); }
+  .default-name { font-size: clamp(40px, 9vmin, 80px); }
+  .btn-ready { font-size: clamp(22px, 5vmin, 32px); padding: 10px 0; max-width: 380px; }
   .cricket-layout { gap: 0; }
   .cricket-layout .timer-center { width: clamp(180px, 26dvh, 260px); height: clamp(180px, 26dvh, 260px); }
   .cricket-layout .timer-center .timer-ring { width: clamp(180px, 26dvh, 260px); height: clamp(180px, 26dvh, 260px); }
@@ -323,10 +325,17 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .cricket-player-name { font-size: clamp(80px, 14dvh, 140px); }
 }
 
-
-@media (orientation: portrait) {
+/* iPad and tablets (both portrait and landscape) — centered, symmetrical spacing */
+@media (min-width: 768px) {
   .cricket-layout {
     justify-content: space-evenly;
+    gap: 0;
+    padding: calc(48px + env(safe-area-inset-top)) 64px calc(48px + env(safe-area-inset-bottom));
   }
+  .cricket-player-name { font-size: clamp(80px, 11dvh, 160px); }
+  .timer-center { width: clamp(180px, 22dvh, 270px); height: clamp(180px, 22dvh, 270px); }
+  .timer-center .timer-ring { width: clamp(180px, 22dvh, 270px); height: clamp(180px, 22dvh, 270px); }
+  .timer-center .timer-count { font-size: clamp(72px, 9dvh, 112px); }
+  .btn-ready { max-width: 640px; font-size: clamp(22px, 2.8dvh, 32px); padding: clamp(20px, 3dvh, 36px) 0; }
 }
 </style>
