@@ -31,7 +31,7 @@
             <div class="settings-label">Speed & Pitch</div>
             <div class="slider-row">
               <span class="slider-label">Speed</span>
-              <input type="range" class="voice-slider" min="0.5" max="1.5" step="0.05"
+              <input type="range" class="voice-slider" min="0.1" max="3.0" step="0.05"
                 :value="settingsStore.voiceRate"
                 @input="settingsStore.setVoiceRate(+($event.target as HTMLInputElement).value)"
               />
@@ -39,7 +39,7 @@
             </div>
             <div class="slider-row">
               <span class="slider-label">Pitch</span>
-              <input type="range" class="voice-slider" min="0.5" max="1.5" step="0.05"
+              <input type="range" class="voice-slider" min="0.1" max="3.0" step="0.05"
                 :value="settingsStore.voicePitch"
                 @input="settingsStore.setVoicePitch(+($event.target as HTMLInputElement).value)"
               />
