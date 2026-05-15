@@ -25,21 +25,16 @@ const ALLOWED_VOICES = [
   'Google UK English Female', 'Google UK English Male', 'Google US English',
 ]
 
-const FEMALE_DEFAULTS = [
-  'Microsoft Zira Desktop - English (United States)', // Windows / Chrome
-  'Microsoft Zira Desktop',                           // Windows / Edge
-  'Microsoft Aria Online (Natural) - English (United States)', // Edge neural
-  'Samantha',                                         // macOS
-  'Karen',                                            // macOS / iOS
-]
+// Preferred female voice name fragments, in priority order
+const FEMALE_FRAGMENTS = ['Zira', 'Aria', 'Jenny', 'Michelle', 'Ana', 'Emma', 'Natasha', 'Samantha', 'Karen', 'Allison', 'Zoe', 'Tessa']
 
 function selectVoice(name: string): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis.getVoices()
   if (!voices.length) return null
   if (name) return voices.find(v => v.name === name) ?? voices.find(v => v.lang.startsWith('en')) ?? null
-  // No preference set — try female defaults before falling back to any English voice
-  for (const fn of FEMALE_DEFAULTS) {
-    const v = voices.find(v => v.name === fn)
+  // No preference set — find a female English voice using partial name matching
+  for (const fragment of FEMALE_FRAGMENTS) {
+    const v = voices.find(v => v.name.includes(fragment) && v.lang.startsWith('en'))
     if (v) return v
   }
   return voices.find(v => v.lang.startsWith('en')) ?? null

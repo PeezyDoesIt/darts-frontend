@@ -90,7 +90,7 @@
               <button
                 v-for="opt in bullseyeSoundOptions" :key="opt.value"
                 :class="['voice-btn', { active: settingsStore.bullseyeSound === opt.value }]"
-                @click="settingsStore.setBullseyeSound(opt.value)"
+                @click="previewBullseyeSound(opt.value)"
               >
                 <span class="voice-btn-label">{{ opt.label }}</span>
                 <span class="voice-btn-sub">{{ opt.sub }}</span>
@@ -180,6 +180,7 @@ import { useRouter } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
 import { speak, getAvailableVoices, type VoiceOption } from '../composables/useSpeech'
+import { playShotgun, playBuzzer } from '../composables/useSounds'
 import type { Player } from '../types/index'
 
 const router = useRouter()
@@ -227,6 +228,15 @@ function openSettings() {
 
 function testVoice() {
   speak('Testing. One, two, three. Ready to play some darts?')
+}
+
+function previewBullseyeSound(value: string) {
+  settingsStore.setBullseyeSound(value)
+  if (value === 'shotgun') playShotgun()
+  else if (value === 'buzzer') playBuzzer()
+  else if (value === 'tts-bullseye') speak('Bullseye!')
+  else if (value === 'tts-oh-baby') speak('Oh babyyy', { rate: 0.60, pitch: 1.1 })
+  else if (value === 'tts-oh-yeah') speak('Oh yeah, right in the bull motherfucker')
 }
 </script>
 
@@ -361,7 +371,7 @@ function testVoice() {
 .settings-label { font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); }
 .settings-muted { font-size: 13px; color: var(--text-muted); }
 
-.voice-list { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; }
+.voice-list { display: flex; flex-direction: column; gap: 6px; }
 .voice-btn {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 10px 14px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; text-align: left;
