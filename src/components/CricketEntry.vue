@@ -131,7 +131,7 @@ function handleTileClick(target: CricketTarget) {
     const s = settingsStore.bullseyeSound
     if (s === 'buzzer') playBuzzer()
     else if (s === 'tts-bullseye') speak('Bullseye!')
-    else if (s === 'tts-oh-baby') speak('Oh babyyy')
+    else if (s === 'tts-oh-baby') speak('Oh babyyy', { rate: 0.60, pitch: 1.1 })
     else if (s === 'tts-oh-yeah') speak('Oh yeah, right in the bull motherfucker')
     else playShotgun()
   }

@@ -28,6 +28,9 @@ function selectVoice(name: string): SpeechSynthesisVoice | null {
 
 const PRONUNCIATIONS: [RegExp, string][] = [
   [/Neshaun/gi, 'Neshawn'],
+  [/Meho/gi, 'Meh-oh'],
+  [/Oh babyyy/gi, 'Ohhhhh... bay... beee'],
+  [/babyyy/gi, 'bay... beee'],
 ]
 
 function applyPronunciations(text: string): string {
@@ -37,29 +40,29 @@ function applyPronunciations(text: string): string {
   return text
 }
 
-function doSpeak(text: string, resolve: () => void) {
+function doSpeak(text: string, resolve: () => void, opts?: { rate?: number; pitch?: number }) {
   const settings = useSettingsStore()
   window.speechSynthesis.cancel()
   const u = new SpeechSynthesisUtterance(applyPronunciations(text))
   const voice = selectVoice(settings.voiceName)
   if (voice) u.voice = voice
-  u.rate = 0.88
-  u.pitch = 1.0
+  u.rate = opts?.rate ?? 0.88
+  u.pitch = opts?.pitch ?? 1.0
   u.onend = () => resolve()
   window.speechSynthesis.speak(u)
 }
 
-export function speak(text: string): Promise<void> {
+export function speak(text: string, opts?: { rate?: number; pitch?: number }): Promise<void> {
   return new Promise(resolve => {
     const voices = window.speechSynthesis.getVoices()
     if (voices.length > 0) {
-      doSpeak(text, resolve)
+      doSpeak(text, resolve, opts)
     } else {
       window.speechSynthesis.onvoiceschanged = () => {
         window.speechSynthesis.onvoiceschanged = null
-        doSpeak(text, resolve)
+        doSpeak(text, resolve, opts)
       }
-      setTimeout(() => doSpeak(text, resolve), 600)
+      setTimeout(() => doSpeak(text, resolve, opts), 600)
     }
   })
 }

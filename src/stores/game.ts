@@ -339,12 +339,24 @@ export const useGameStore = defineStore('game', () => {
     saveGame(game.value)
   }
 
+  function setTimerDuration(val: number) {
+    if (!game.value) return
+    game.value.timerDuration = val
+    saveGame(game.value)
+  }
+
+  function setThrowTimerDuration(val: number) {
+    if (!game.value) return
+    game.value.throwTimerDuration = val
+    saveGame(game.value)
+  }
+
   function endGame() {
     game.value = null
     saveGame(null)
   }
 
-  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, endGame }
+  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, setTimerDuration, setThrowTimerDuration, endGame }
 })
 
 function checkCricketWin(game: ActiveGame): string | null {

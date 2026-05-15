@@ -141,6 +141,24 @@
         </div>
       </div>
 
+      <!-- Timer controls -->
+      <div class="timer-controls-row">
+        <div class="timer-control-group">
+          <span class="timer-control-label">Walk-up</span>
+          <div class="timer-control-btns">
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: game.timerDuration === 0 }" @click="gameStore.setTimerDuration(0)">Off</button>
+            <button v-for="t in TIMER_OPTIONS" :key="t" v-ripple class="timer-ctrl-btn" :class="{ active: game.timerDuration === t }" @click="gameStore.setTimerDuration(t)">{{ t }}s</button>
+          </div>
+        </div>
+        <div class="timer-control-group">
+          <span class="timer-control-label">Throw</span>
+          <div class="timer-control-btns">
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: game.throwTimerDuration === 0 }" @click="gameStore.setThrowTimerDuration(0)">Off</button>
+            <button v-for="t in TIMER_OPTIONS" :key="t" v-ripple class="timer-ctrl-btn" :class="{ active: game.throwTimerDuration === t }" @click="gameStore.setThrowTimerDuration(t)">{{ t }}s</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Add player picker -->
       <div v-if="showAddPlayer" class="add-player-panel">
         <button v-ripple class="add-player-row add-player-create" @click="router.push('/player-setup?addToGame=true'); showAddPlayer = false; showAllScores = false">
@@ -248,6 +266,8 @@ const confirmQuit = ref(false)
 const showAllScores = ref(false)
 const showAddPlayer = ref(false)
 const cricketEntryRef = ref<InstanceType<typeof CricketEntry> | null>(null)
+
+const TIMER_OPTIONS = [60, 90, 120, 180]
 
 const ctDisplayOptions = [
   { value: 'show'   as const, label: 'Normal' },
@@ -592,6 +612,25 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .ct-display-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
 .ct-display-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.12); }
+
+/* In-game timer controls */
+.timer-controls-row {
+  display: flex; gap: 16px; flex-wrap: wrap;
+  padding: 10px 20px; border-bottom: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.02); flex-shrink: 0;
+}
+.timer-control-group { display: flex; align-items: center; gap: 8px; }
+.timer-control-label { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.45); white-space: nowrap; min-width: 52px; }
+.timer-control-btns { display: flex; gap: 4px; }
+.timer-ctrl-btn {
+  padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6);
+  font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+  position: relative; overflow: hidden; white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.timer-ctrl-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.timer-ctrl-btn.active { border-color: var(--blue); color: var(--blue); background: rgba(0,212,255,0.1); }
 
 /* Score reveal overlay */
 .score-reveal-overlay {
