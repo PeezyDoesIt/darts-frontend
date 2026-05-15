@@ -27,6 +27,26 @@
             </div>
           </div>
 
+          <div class="settings-section">
+            <div class="settings-label">Speed & Pitch</div>
+            <div class="slider-row">
+              <span class="slider-label">Speed</span>
+              <input type="range" class="voice-slider" min="0.5" max="1.5" step="0.05"
+                :value="settingsStore.voiceRate"
+                @input="settingsStore.setVoiceRate(+($event.target as HTMLInputElement).value)"
+              />
+              <span class="slider-val">{{ settingsStore.voiceRate.toFixed(2) }}x</span>
+            </div>
+            <div class="slider-row">
+              <span class="slider-label">Pitch</span>
+              <input type="range" class="voice-slider" min="0.5" max="1.5" step="0.05"
+                :value="settingsStore.voicePitch"
+                @input="settingsStore.setVoicePitch(+($event.target as HTMLInputElement).value)"
+              />
+              <span class="slider-val">{{ settingsStore.voicePitch.toFixed(2) }}</span>
+            </div>
+          </div>
+
           <button v-ripple class="btn btn-outline test-btn" @click="testVoice">Test Voice</button>
 
           <div class="settings-section">
@@ -352,6 +372,30 @@ function testVoice() {
 .voice-btn-sub { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.4); flex-shrink: 0; }
 
 .test-btn { align-self: flex-end; }
+
+.slider-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 14px; border-radius: 8px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+}
+.slider-label { font-size: 13px; font-weight: 700; color: var(--text-muted); width: 36px; flex-shrink: 0; }
+.slider-val { font-size: 13px; font-weight: 700; color: var(--pink); width: 40px; text-align: right; flex-shrink: 0; font-family: var(--font-display); }
+.voice-slider {
+  flex: 1; -webkit-appearance: none; appearance: none;
+  height: 4px; border-radius: 2px; outline: none; cursor: pointer;
+  background: linear-gradient(to right, var(--pink) 0%, var(--pink) calc((var(--val, 50%) )), rgba(255,255,255,0.15) calc((var(--val, 50%))) , rgba(255,255,255,0.15) 100%);
+}
+.voice-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; border: 2px solid var(--pink);
+  box-shadow: 0 0 8px rgba(255,45,120,0.5); cursor: pointer;
+}
+.voice-slider::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; border: 2px solid var(--pink);
+  box-shadow: 0 0 8px rgba(255,45,120,0.5); cursor: pointer;
+}
 
 .toggle-row {
   display: flex; align-items: center; gap: 14px;

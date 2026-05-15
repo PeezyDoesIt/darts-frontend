@@ -3,18 +3,23 @@ import { useSettingsStore } from '../stores/settings'
 const ALLOWED_VOICES = [
   // macOS / iOS
   'Karen', 'Zoe', 'Tessa', 'Allison', 'Samantha', 'Serena', 'Kate', 'Daniel', 'Moira', 'Fred', 'Rishi', 'Veena',
-  // Windows built-in
-  'Microsoft Zira Desktop', 'Microsoft David Desktop', 'Microsoft Mark Desktop',
-  'Microsoft Hazel Desktop', 'Microsoft George Desktop',
-  // Windows neural (online)
+  // macOS character voices
+  'Ralph', 'Bad News', 'Deranged', 'Hysterical', 'Bells', 'Boing', 'Bubbles', 'Cellos', 'Good News', 'Pipe Organ', 'Trinoids', 'Wobble', 'Zarvox',
+  // Windows built-in (Edge reports short names; Chrome appends the language)
+  'Microsoft Zira Desktop', 'Microsoft Zira Desktop - English (United States)',
+  'Microsoft Hazel Desktop', 'Microsoft Hazel Desktop - English (Great Britain)',
+  'Microsoft David Desktop', 'Microsoft David Desktop - English (United States)',
+  'Microsoft Mark Desktop', 'Microsoft Mark Desktop - English (United States)',
+  'Microsoft George Desktop', 'Microsoft George Desktop - English (Great Britain)',
+  // Windows neural (online) — available in Edge; female voices listed first
   'Microsoft Aria Online (Natural) - English (United States)',
   'Microsoft Jenny Online (Natural) - English (United States)',
   'Microsoft Michelle Online (Natural) - English (United States)',
   'Microsoft Ana Online (Natural) - English (United States)',
-  'Microsoft Guy Online (Natural) - English (United States)',
   'Microsoft Emma Online (Natural) - English (United Kingdom)',
-  'Microsoft Ryan Online (Natural) - English (United Kingdom)',
   'Microsoft Natasha Online (Natural) - English (Australia)',
+  'Microsoft Guy Online (Natural) - English (United States)',
+  'Microsoft Ryan Online (Natural) - English (United Kingdom)',
   'Microsoft William Online (Natural) - English (Australia)',
   // Chrome / Edge
   'Google UK English Female', 'Google UK English Male', 'Google US English',
@@ -29,8 +34,8 @@ function selectVoice(name: string): SpeechSynthesisVoice | null {
 const PRONUNCIATIONS: [RegExp, string][] = [
   [/Neshaun/gi, 'Neshawn'],
   [/Meho/gi, 'Meh-oh'],
-  [/Oh babyyy/gi, 'Ohhhh, babyyyy'],
-  [/babyyy/gi, 'babyyyy'],
+  [/Oh babyyy/gi, 'Ohhhhh, bay beeeeeeeee'],
+  [/babyyy/gi, 'bay beeeeeeeee'],
 ]
 
 function applyPronunciations(text: string): string {
@@ -46,8 +51,8 @@ function doSpeak(text: string, resolve: () => void, opts?: { rate?: number; pitc
   const u = new SpeechSynthesisUtterance(applyPronunciations(text))
   const voice = selectVoice(settings.voiceName)
   if (voice) u.voice = voice
-  u.rate = opts?.rate ?? 0.88
-  u.pitch = opts?.pitch ?? 1.0
+  u.rate = opts?.rate ?? settings.voiceRate
+  u.pitch = opts?.pitch ?? settings.voicePitch
   u.onend = () => resolve()
   window.speechSynthesis.speak(u)
 }

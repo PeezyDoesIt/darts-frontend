@@ -20,9 +20,24 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.getItem('disableThrowTimer') === 'true'
   )
 
+  const voiceRate = ref<number>(
+    parseFloat(localStorage.getItem('voiceRate') ?? '0.88')
+  )
+  const voicePitch = ref<number>(
+    parseFloat(localStorage.getItem('voicePitch') ?? '1.0')
+  )
+
   function setVoiceName(name: string) {
     voiceName.value = name
     localStorage.setItem('voiceName', name)
+  }
+  function setVoiceRate(val: number) {
+    voiceRate.value = val
+    localStorage.setItem('voiceRate', String(val))
+  }
+  function setVoicePitch(val: number) {
+    voicePitch.value = val
+    localStorage.setItem('voicePitch', String(val))
   }
 
   function setQuietNarrator(val: boolean) {
@@ -47,5 +62,5 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('bullseyeSound', val)
   }
 
-  return { voiceName, setVoiceName, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound }
+  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound }
 })
