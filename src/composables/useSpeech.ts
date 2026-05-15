@@ -25,10 +25,24 @@ const ALLOWED_VOICES = [
   'Google UK English Female', 'Google UK English Male', 'Google US English',
 ]
 
+const FEMALE_DEFAULTS = [
+  'Microsoft Zira Desktop - English (United States)', // Windows / Chrome
+  'Microsoft Zira Desktop',                           // Windows / Edge
+  'Microsoft Aria Online (Natural) - English (United States)', // Edge neural
+  'Samantha',                                         // macOS
+  'Karen',                                            // macOS / iOS
+]
+
 function selectVoice(name: string): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis.getVoices()
   if (!voices.length) return null
-  return voices.find(v => v.name === name) ?? voices.find(v => v.lang.startsWith('en')) ?? null
+  if (name) return voices.find(v => v.name === name) ?? voices.find(v => v.lang.startsWith('en')) ?? null
+  // No preference set — try female defaults before falling back to any English voice
+  for (const fn of FEMALE_DEFAULTS) {
+    const v = voices.find(v => v.name === fn)
+    if (v) return v
+  }
+  return voices.find(v => v.lang.startsWith('en')) ?? null
 }
 
 const PRONUNCIATIONS: [RegExp, string][] = [

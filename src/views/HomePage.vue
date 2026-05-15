@@ -31,7 +31,7 @@
             <div class="settings-label">Speed & Pitch</div>
             <div class="slider-row">
               <span class="slider-label">Speed</span>
-              <input type="range" class="voice-slider" min="0.1" max="3.0" step="0.05"
+              <input type="range" class="voice-slider" min="0.1" max="1.2" step="0.05"
                 :value="settingsStore.voiceRate"
                 @input="settingsStore.setVoiceRate(+($event.target as HTMLInputElement).value)"
               />
@@ -349,6 +349,8 @@ function testVoice() {
   background: #111; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px;
   padding: 28px; width: 100%; max-width: 480px;
   display: flex; flex-direction: column; gap: 24px;
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
 }
 .settings-header { display: flex; align-items: center; justify-content: space-between; }
 .settings-title { font-size: 20px; letter-spacing: 0.15em; color: var(--pink); }
