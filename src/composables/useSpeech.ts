@@ -2,7 +2,7 @@ import { useSettingsStore } from '../stores/settings'
 
 const ALLOWED_VOICES = [
   // macOS / iOS
-  'Karen', 'Daniel', 'Moira', 'Fred', 'Rishi',
+  'Karen', 'Zoe', 'Tessa', 'Allison', 'Samantha', 'Serena', 'Kate', 'Daniel', 'Moira', 'Fred', 'Rishi', 'Veena',
   // Windows built-in
   'Microsoft Zira Desktop', 'Microsoft David Desktop', 'Microsoft Mark Desktop',
   'Microsoft Hazel Desktop', 'Microsoft George Desktop',
@@ -29,8 +29,8 @@ function selectVoice(name: string): SpeechSynthesisVoice | null {
 const PRONUNCIATIONS: [RegExp, string][] = [
   [/Neshaun/gi, 'Neshawn'],
   [/Meho/gi, 'Meh-oh'],
-  [/Oh babyyy/gi, 'Ohhhhh... bay... beee'],
-  [/babyyy/gi, 'bay... beee'],
+  [/Oh babyyy/gi, 'Ohhhh, babyyyy'],
+  [/babyyy/gi, 'babyyyy'],
 ]
 
 function applyPronunciations(text: string): string {

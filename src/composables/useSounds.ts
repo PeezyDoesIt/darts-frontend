@@ -4,74 +4,73 @@ export function playBuzzer(): Promise<void> {
     if (!AudioCtx) { resolve(); return }
     const ctx = new AudioCtx()
     const now = ctx.currentTime
-    const duration = 0.75
+    const duration = 0.49
 
-    // Heavy hard-clip waveshaper — turns oscillators into ugly, electric square-ish buzz
-    function makeShaper(amount: number): WaveShaperNode {
-      const shaper = ctx.createWaveShaper()
-      const n = 512
-      const curve = new Float32Array(n)
-      for (let i = 0; i < n; i++) {
-        const x = (i * 2) / n - 1
-        curve[i] = ((Math.PI + amount) * x) / (Math.PI + amount * Math.abs(x))
-      }
-      shaper.curve = curve
-      shaper.oversample = '4x'
-      return shaper
+    // Brick-wall clipper: converts sawtooth into a filthy, square-ish buzz
+    const shaper = ctx.createWaveShaper()
+    const n = 512
+    const curve = new Float32Array(n)
+    for (let i = 0; i < n; i++) {
+      const x = (i * 2) / n - 1
+      curve[i] = Math.max(-0.95, Math.min(0.95, x * 18))
     }
+    shaper.curve = curve
+    shaper.oversample = '4x'
 
     const master = ctx.createGain()
     master.gain.setValueAtTime(0, now)
-    master.gain.linearRampToValueAtTime(1.0, now + 0.004) // instant slam
-    master.gain.setValueAtTime(1.0, now + 0.60)
-    master.gain.linearRampToValueAtTime(0, now + duration)
+    master.gain.linearRampToValueAtTime(0.9, now + 0.003) // instant slam on
+    master.gain.setValueAtTime(0.9, now + 0.39)
+    master.gain.linearRampToValueAtTime(0, now + duration) // hard cutoff
     master.connect(ctx.destination)
 
-    // Three detuned square oscillators — the beating between them creates
-    // the harsh "electric" character of a game show wrong-answer buzzer
-    const freqs = [220, 227, 234]
-    for (const freq of freqs) {
-      const osc = ctx.createOscillator()
-      osc.type = 'square'
-      osc.frequency.setValueAtTime(freq, now)
-      // Tiny pitch drop at the very end so it feels "final", not sci-fi
-      osc.frequency.linearRampToValueAtTime(freq * 0.95, now + duration)
-      const shaper = makeShaper(120)
-      const oscGain = ctx.createGain()
-      oscGain.gain.setValueAtTime(0.5, now)
-      osc.connect(shaper)
-      shaper.connect(oscGain)
-      oscGain.connect(master)
-      osc.start(now)
-      osc.stop(now + duration)
-    }
+    // Main buzz — sawtooth at 130 Hz, no pitch sweep (sweep = laser, not buzzer)
+    // Sawtooth through a brick-wall clip becomes brutally harsh
+    const osc = ctx.createOscillator()
+    osc.type = 'sawtooth'
+    osc.frequency.value = 130
+    osc.connect(shaper)
+    shaper.connect(master)
+    osc.start(now)
+    osc.stop(now + duration)
 
-    // Sub rumble — gives it physical weight, like a relay slamming closed
-    const sub = ctx.createOscillator()
-    const subGain = ctx.createGain()
-    sub.type = 'sawtooth'
-    sub.frequency.setValueAtTime(110, now)
-    sub.frequency.linearRampToValueAtTime(100, now + duration)
-    subGain.gain.setValueAtTime(0.7, now)
-    subGain.gain.linearRampToValueAtTime(0, now + duration)
-    sub.connect(subGain)
-    subGain.connect(master)
-    sub.start(now)
-    sub.stop(now + duration)
+    // Octave harmonic — adds grit/buzz texture without creating beating
+    const osc2 = ctx.createOscillator()
+    const osc2Gain = ctx.createGain()
+    osc2.type = 'sawtooth'
+    osc2.frequency.value = 260
+    osc2Gain.gain.setValueAtTime(0.35, now)
+    osc2Gain.gain.linearRampToValueAtTime(0, now + duration)
+    osc2.connect(osc2Gain)
+    osc2Gain.connect(master)
+    osc2.start(now)
+    osc2.stop(now + duration)
 
-    // Electrical noise burst — crackle/spark texture at the attack
-    const bufSize = Math.ceil(ctx.sampleRate * 0.06)
+    // Electrical tremolo — fast amplitude modulation (12 Hz) simulates a buzzing relay
+    // Adds the choppy "electric" texture without a pitch sweep
+    const tremLFO = ctx.createOscillator()
+    const tremDepth = ctx.createGain()
+    tremLFO.type = 'square'
+    tremLFO.frequency.value = 12
+    tremDepth.gain.value = 0.18  // modulates master gain ±0.18 around its base
+    tremLFO.connect(tremDepth)
+    tremDepth.connect(master.gain)
+    tremLFO.start(now)
+    tremLFO.stop(now + duration)
+
+    // Electric crack at the attack — the "spark" when the relay first closes
+    const bufSize = Math.ceil(ctx.sampleRate * 0.035)
     const noiseBuf = ctx.createBuffer(1, bufSize, ctx.sampleRate)
     const nd = noiseBuf.getChannelData(0)
     for (let i = 0; i < bufSize; i++) nd[i] = Math.random() * 2 - 1
     const noise = ctx.createBufferSource()
     noise.buffer = noiseBuf
-    const noiseHpf = ctx.createBiquadFilter(); noiseHpf.type = 'highpass'; noiseHpf.frequency.value = 1200
     const noiseGain = ctx.createGain()
-    noiseGain.gain.setValueAtTime(1.8, now)
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06)
-    noise.connect(noiseHpf); noiseHpf.connect(noiseGain); noiseGain.connect(master)
-    noise.start(now); noise.stop(now + 0.06)
+    noiseGain.gain.setValueAtTime(3.0, now)
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.035)
+    noise.connect(noiseGain)
+    noiseGain.connect(master)
+    noise.start(now); noise.stop(now + 0.035)
 
     setTimeout(() => { ctx.close(); resolve() }, duration * 1000 + 80)
   })
