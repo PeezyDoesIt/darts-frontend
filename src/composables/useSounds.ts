@@ -3,6 +3,8 @@ export function playBuzzer(): Promise<void> {
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
     if (!AudioCtx) { resolve(); return }
     const ctx = new AudioCtx()
+
+    const schedule = () => {
     const now = ctx.currentTime
     const duration = 0.49
 
@@ -73,6 +75,9 @@ export function playBuzzer(): Promise<void> {
     noise.start(now); noise.stop(now + 0.035)
 
     setTimeout(() => { ctx.close(); resolve() }, duration * 1000 + 80)
+    }
+
+    if (ctx.state === 'suspended') { ctx.resume().then(schedule) } else { schedule() }
   })
 }
 
@@ -281,36 +286,46 @@ export function playCountdownBeep(): void {
   const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
   if (!AudioCtx) return
   const ctx = new AudioCtx()
-  const now = ctx.currentTime
 
-  // Sharp sine "pip" — the classic digital countdown beep
-  const osc = ctx.createOscillator()
-  osc.type = 'sine'
-  osc.frequency.value = 880  // A5 — bright and alarm-like
+  const schedule = () => {
+    const now = ctx.currentTime
 
-  // Short click transient at attack for that hard digital "tick"
-  const clickOsc = ctx.createOscillator()
-  clickOsc.type = 'square'
-  clickOsc.frequency.value = 1760
+    // Sharp sine "pip" — the classic digital countdown beep
+    const osc = ctx.createOscillator()
+    osc.type = 'sine'
+    osc.frequency.value = 880  // A5 — bright and alarm-like
 
-  const master = ctx.createGain()
-  master.gain.setValueAtTime(0, now)
-  master.gain.linearRampToValueAtTime(0.7, now + 0.004)   // hard attack
-  master.gain.setValueAtTime(0.7, now + 0.06)
-  master.gain.exponentialRampToValueAtTime(0.001, now + 0.18) // quick decay
-  master.connect(ctx.destination)
+    // Short click transient at attack for that hard digital "tick"
+    const clickOsc = ctx.createOscillator()
+    clickOsc.type = 'square'
+    clickOsc.frequency.value = 1760
 
-  const clickGain = ctx.createGain()
-  clickGain.gain.setValueAtTime(0.25, now)
-  clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.012)
-  clickOsc.connect(clickGain)
-  clickGain.connect(master)
+    const master = ctx.createGain()
+    master.gain.setValueAtTime(0, now)
+    master.gain.linearRampToValueAtTime(0.7, now + 0.004)
+    master.gain.setValueAtTime(0.7, now + 0.06)
+    master.gain.exponentialRampToValueAtTime(0.001, now + 0.18)
+    master.connect(ctx.destination)
 
-  osc.connect(master)
-  osc.start(now); osc.stop(now + 0.18)
-  clickOsc.start(now); clickOsc.stop(now + 0.012)
+    const clickGain = ctx.createGain()
+    clickGain.gain.setValueAtTime(0.25, now)
+    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.012)
+    clickOsc.connect(clickGain)
+    clickGain.connect(master)
 
-  setTimeout(() => ctx.close(), 250)
+    osc.connect(master)
+    osc.start(now); osc.stop(now + 0.18)
+    clickOsc.start(now); clickOsc.stop(now + 0.012)
+
+    setTimeout(() => ctx.close(), 250)
+  }
+
+  // AudioContext created outside a user gesture may start suspended — resume first
+  if (ctx.state === 'suspended') {
+    ctx.resume().then(schedule)
+  } else {
+    schedule()
+  }
 }
 
 export function playBullseye(): Promise<void> {
