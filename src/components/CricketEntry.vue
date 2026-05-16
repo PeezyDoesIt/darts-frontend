@@ -48,7 +48,7 @@
 import { ref, computed } from 'vue'
 import { CRICKET_TARGETS, PLAYER_THEMES, type CricketTarget, type PlayerScore } from '../types/index'
 import { playShotgun, playBuzzer } from '../composables/useSounds'
-import { speak } from '../composables/useSpeech'
+import { speak, speakOhBaby } from '../composables/useSpeech'
 import { useSettingsStore } from '../stores/settings'
 
 const settingsStore = useSettingsStore()
@@ -131,7 +131,7 @@ function handleTileClick(target: CricketTarget) {
     const s = settingsStore.bullseyeSound
     if (s === 'buzzer') playBuzzer()
     else if (s === 'tts-bullseye') speak('Bullseye!')
-    else if (s === 'tts-oh-baby') speak('Oh babyyy', { rate: 0.60, pitch: 1.1 })
+    else if (s === 'tts-oh-baby') speakOhBaby()
     else if (s === 'tts-oh-yeah') speak('Oh yeah, right in the bull motherfucker')
     else playShotgun()
   }

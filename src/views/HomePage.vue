@@ -179,7 +179,7 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
-import { speak, getAvailableVoices, type VoiceOption } from '../composables/useSpeech'
+import { speak, speakOhBaby, getAvailableVoices, type VoiceOption } from '../composables/useSpeech'
 import { playShotgun, playBuzzer } from '../composables/useSounds'
 import type { Player } from '../types/index'
 
@@ -235,7 +235,7 @@ function previewBullseyeSound(value: string) {
   if (value === 'shotgun') playShotgun()
   else if (value === 'buzzer') playBuzzer()
   else if (value === 'tts-bullseye') speak('Bullseye!')
-  else if (value === 'tts-oh-baby') speak('Oh babyyy', { rate: 0.60, pitch: 1.1 })
+  else if (value === 'tts-oh-baby') speakOhBaby()
   else if (value === 'tts-oh-yeah') speak('Oh yeah, right in the bull motherfucker')
 }
 </script>

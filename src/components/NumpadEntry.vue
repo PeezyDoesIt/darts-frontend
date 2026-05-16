@@ -42,13 +42,13 @@
         :class="{ active: multipliers[activeDart] === 2, disabled: !canMultiply(2) }"
         :disabled="!canMultiply(2) && multipliers[activeDart] !== 2"
         @click="applyMultiplier(2)"
-      >× 2</button>
+      >DOUBLE</button>
       <button
         v-ripple class="mult-btn"
         :class="{ active: multipliers[activeDart] === 3, disabled: !canMultiply(3) }"
         :disabled="!canMultiply(3) && multipliers[activeDart] !== 3"
         @click="applyMultiplier(3)"
-      >× 3</button>
+      >TRIPLE</button>
     </div>
 
     <div class="numpad-footer">

@@ -43,8 +43,7 @@ function selectVoice(name: string): SpeechSynthesisVoice | null {
 const PRONUNCIATIONS: [RegExp, string][] = [
   [/Neshaun/gi, 'Neshawn'],
   [/Meho/gi, 'Meh-oh'],
-  [/Oh babyyy/gi, 'Ohhhhh, bay beeeeeeeee'],
-  [/babyyy/gi, 'bay beeeeeeeee'],
+  [/babyyy/gi, 'baby'],
 ]
 
 function applyPronunciations(text: string): string {
@@ -77,6 +76,38 @@ export function speak(text: string, opts?: { rate?: number; pitch?: number }): P
         doSpeak(text, resolve, opts)
       }
       setTimeout(() => doSpeak(text, resolve, opts), 600)
+    }
+  })
+}
+
+export function speakOhBaby(): Promise<void> {
+  return new Promise(resolve => {
+    const settings = useSettingsStore()
+
+    function go() {
+      const voices = window.speechSynthesis.getVoices()
+      const voice = voices.find(v => v.name === settings.voiceName)
+        ?? voices.find(v => v.lang.startsWith('en'))
+        ?? null
+
+      window.speechSynthesis.cancel()
+
+      const u = new SpeechSynthesisUtterance('Ooooh baby')
+      u.rate = 0.22; u.pitch = 1.2
+      if (voice) u.voice = voice
+      u.onend = () => resolve()
+
+      window.speechSynthesis.speak(u)
+    }
+
+    if (window.speechSynthesis.getVoices().length > 0) {
+      go()
+    } else {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.onvoiceschanged = null
+        go()
+      }
+      setTimeout(go, 600)
     }
   })
 }
