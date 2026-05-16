@@ -27,6 +27,8 @@ function initScore(gameType: GameType, players: Player[]): Record<string, Player
       scores[p.id] = { kind: 'horse', data: { letters: 0, history: [] } }
     } else if (gameType === 'suddenDeath') {
       scores[p.id] = { kind: 'suddenDeath', data: { total: 0, history: [] } }
+    } else if (gameType === 'bobs27') {
+      scores[p.id] = { kind: 'bobs27', data: { score: 27, history: [], busted: false } }
     } else {
       scores[p.id] = { kind: 'simple', data: { total: 0, history: [] } }
     }
@@ -262,6 +264,35 @@ export const useGameStore = defineStore('game', () => {
         saveGame(game.value)
         return
       }
+    } else if (score.kind === 'bobs27' && typeof value === 'number') {
+      const target = game.value.round
+      const doubleValue = target * 2
+      const delta = value === 0 ? -doubleValue : value * doubleValue
+      const newScore = score.data.score + delta
+      score.data.history.push({ hits: value, delta })
+      if (newScore <= 0) {
+        score.data.busted = true
+        score.data.score = 0
+      } else {
+        score.data.score = newScore
+      }
+
+      const isLastPlayer = game.value.currentPlayerIndex === game.value.players.length - 1
+      const isLastRound = game.value.round === 20
+      const allBusted = Object.values(game.value.scores).every(s => s.kind !== 'bobs27' || s.data.busted)
+
+      if (allBusted || (isLastPlayer && isLastRound)) {
+        let winnerId: string | null = null
+        let bestScore = -Infinity
+        for (const [pid, ps] of Object.entries(game.value.scores)) {
+          if (ps.kind !== 'bobs27') continue
+          if (ps.data.score > bestScore) { bestScore = ps.data.score; winnerId = pid }
+        }
+        game.value.winnerId = winnerId
+        game.value.status = 'finished'
+        saveGame(game.value)
+        return
+      }
     }
 
     advanceTurn()
@@ -282,6 +313,22 @@ export const useGameStore = defineStore('game', () => {
   function advanceTurn() {
     if (!game.value) return
     const { players, currentPlayerIndex } = game.value
+
+    if (game.value.gameType === 'bobs27') {
+      let nextIndex = (currentPlayerIndex + 1) % players.length
+      let steps = 0
+      while (steps < players.length) {
+        const ps = game.value.scores[players[nextIndex]!.id]
+        if (!ps || ps.kind !== 'bobs27' || !ps.data.busted) break
+        nextIndex = (nextIndex + 1) % players.length
+        steps++
+      }
+      if (nextIndex <= currentPlayerIndex) game.value.round++
+      game.value.currentPlayerIndex = nextIndex
+      game.value.status = 'between_turns'
+      saveGame(game.value)
+      return
+    }
 
     if (game.value.cricketPlayToCompletion && game.value.cricketFinishOrder.length > 0) {
       const finishSet = new Set(game.value.cricketFinishOrder)

@@ -75,6 +75,7 @@ export type GameType =
   | 'baseball'
   | 'horse'
   | 'suddenDeath'
+  | 'bobs27'
 
 export const GAME_TYPE_LABELS: Record<GameType, string> = {
   cricket: 'Cricket',
@@ -89,6 +90,7 @@ export const GAME_TYPE_LABELS: Record<GameType, string> = {
   baseball: 'Baseball',
   horse: 'Horse',
   suddenDeath: 'Sudden Death',
+  bobs27: "Bob's 27",
 }
 
 export const CRICKET_TARGETS = [20, 19, 18, 17, 16, 15, 'bull'] as const
@@ -120,6 +122,12 @@ export type SuddenDeathPlayerScore = {
   history: number[]
 }
 
+export type Bobs27PlayerScore = {
+  score: number
+  history: { hits: number; delta: number }[]
+  busted: boolean
+}
+
 export const HORSE_LETTERS = ['H', 'O', 'R', 'S', 'E'] as const
 
 export type PlayerScore =
@@ -128,6 +136,7 @@ export type PlayerScore =
   | { kind: 'simple'; data: SimplePlayerScore }
   | { kind: 'horse'; data: HorsePlayerScore }
   | { kind: 'suddenDeath'; data: SuddenDeathPlayerScore }
+  | { kind: 'bobs27'; data: Bobs27PlayerScore }
 
 export type ActiveGame = {
   id: string

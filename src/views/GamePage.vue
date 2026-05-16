@@ -57,6 +57,15 @@
             :remaining="(game.scores[currentPlayer.id] as OhOneScore).data.remaining"
             @submit="handleNumpadSubmit"
           />
+          <Bobs27Entry
+            v-else-if="game.gameType === 'bobs27'"
+            :key="currentPlayer.id"
+            :playerId="currentPlayer.id"
+            :scores="game.scores"
+            :round="game.round"
+            :playerColor="currentPlayer.color"
+            @submit="handleBobs27Submit"
+          />
           <SimpleEntry
             v-else
             :key="currentPlayer.id"
@@ -259,6 +268,7 @@ const WHITE_LABEL_THEMES = new Set<string | null>(
 import CricketEntry from '../components/CricketEntry.vue'
 import NumpadEntry from '../components/NumpadEntry.vue'
 import SimpleEntry from '../components/SimpleEntry.vue'
+import Bobs27Entry from '../components/Bobs27Entry.vue'
 type OhOneScore = Extract<PlayerScore, { kind: 'ohOne' }>
 type CricketHits = Record<string | number, number>
 
@@ -304,6 +314,7 @@ const scoreLabel = computed(() => {
   if (gt === 'cricket' || gt === 'cutThroat') return 'pts'
   if (['301','501','701','1001'].includes(gt)) return 'left'
   if (gt === 'horse') return 'letters'
+  if (gt === 'bobs27') return 'pts'
   return 'total'
 })
 
@@ -340,9 +351,11 @@ function displayScore(playerId: string): string {
   if (s.kind === 'simple') return String(s.data.total)
   if (s.kind === 'horse') return s.data.letters === 0 ? '—' : 'HORSE'.slice(0, s.data.letters)
   if (s.kind === 'suddenDeath') return String(s.data.total)
+  if (s.kind === 'bobs27') return s.data.busted ? 'BUST' : String(s.data.score)
   return '—'
 }
 function handleCricketSubmit(marks: CricketHits) { gameStore.submitScore(currentPlayer.value.id, marks as Record<CricketTarget, number>) }
+function handleBobs27Submit(hits: number) { gameStore.submitScore(currentPlayer.value.id, hits) }
 
 // Score reveal (oh-one games)
 const showScoreReveal = ref(false)

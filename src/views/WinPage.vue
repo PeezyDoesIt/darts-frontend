@@ -85,6 +85,7 @@ function displayScore(playerId: string) {
   if (s.kind === 'ohOne') return `${s.data.remaining} left`
   if (s.kind === 'cricket') return `${s.data.points} pts`
   if (s.kind === 'simple') return String(s.data.total)
+  if (s.kind === 'bobs27') return s.data.busted ? 'BUST' : `${s.data.score} pts`
   return '—'
 }
 function isPhoto(url: string | null | undefined) { return url?.startsWith('data:') || url?.startsWith('http') }
