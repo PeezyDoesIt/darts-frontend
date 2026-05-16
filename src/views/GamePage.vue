@@ -185,7 +185,10 @@
           <div
             v-for="p in game.players" :key="p.id"
             class="lb-player-row"
-            :class="{ active: p.id === currentPlayer.id }"
+            :class="{
+              active: p.id === currentPlayer.id,
+              'ptc-finished': game.cricketPlayToCompletion && game.cricketFinishOrder.includes(p.id)
+            }"
             :style="p.id === currentPlayer.id ? { '--active-color': p.color, background: p.color + '12', boxShadow: `0 0 20px ${p.color}20` } : {}"
           >
             <div class="active-dot" :style="{ background: p.color, opacity: p.id === currentPlayer.id ? 1 : 0 }" />
@@ -197,6 +200,7 @@
               <span class="lb-player-name" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">
                 {{ p.name }}
                 <span v-if="p.id === currentPlayer.id" class="throwing-tag">throwing</span>
+                <span v-else-if="game.cricketPlayToCompletion && game.cricketFinishOrder.includes(p.id)" class="finished-tag">finished</span>
               </span>
               <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'" class="cricket-mini">
                 <div v-for="t in CRICKET_TARGETS" :key="t" class="mini-target">
@@ -211,7 +215,7 @@
               <span class="lb-score-val" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">{{ displayScore(p.id) }}</span>
               <span class="lb-score-label">{{ scoreLabel }}</span>
             </div>
-            <button v-if="game.players.length > 2" v-ripple class="remove-player-btn" @click.stop="gameStore.removePlayerFromGame(p.id)" title="Remove from game">✕</button>
+            <button v-if="game.players.length > 2 && !(game.cricketPlayToCompletion && game.cricketFinishOrder.includes(p.id))" v-ripple class="remove-player-btn" @click.stop="gameStore.removePlayerFromGame(p.id)" title="Remove from game">✕</button>
           </div>
         </div>
       </div>
@@ -245,6 +249,7 @@ import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
 import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore, type CricketTarget } from '../types/index'
+import { speak } from '../composables/useSpeech'
 
 const WHITE_LABEL_THEMES = new Set<string | null>(
   PLAYER_THEMES
@@ -295,6 +300,7 @@ const upNext = computed(() => {
 const scoreLabel = computed(() => {
   const gt = game.value?.gameType
   if (!gt) return ''
+  if ((gt === 'cricket' || gt === 'cutThroat') && game.value?.cricketPlayToCompletion) return 'place'
   if (gt === 'cricket' || gt === 'cutThroat') return 'pts'
   if (['301','501','701','1001'].includes(gt)) return 'left'
   if (gt === 'horse') return 'letters'
@@ -317,9 +323,18 @@ function getCricketMarks(playerId: string) {
   const s = game.value?.scores[playerId]
   return s?.kind === 'cricket' ? s.data.marks : null
 }
+function ordinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return n + (s[(v - 20) % 10] ?? s[v] ?? s[0]!)
+}
 function displayScore(playerId: string): string {
   const s = game.value?.scores[playerId]
   if (!s) return '—'
+  if (s.kind === 'cricket' && game.value?.cricketPlayToCompletion) {
+    const pos = game.value.cricketFinishOrder.indexOf(playerId)
+    return pos >= 0 ? ordinal(pos + 1) : '—'
+  }
   if (s.kind === 'ohOne') return String(s.data.remaining)
   if (s.kind === 'cricket') return String(s.data.points)
   if (s.kind === 'simple') return String(s.data.total)
@@ -391,6 +406,7 @@ function startThrowTimer() {
   throwInterval = setInterval(() => {
     if (throwPaused.value) return
     throwTimeLeft.value--
+    if (throwTimeLeft.value === Math.floor(throwTimerDuration.value / 2)) speak(`${currentPlayer.value.name}, it's your turn`)
     if (throwTimeLeft.value <= 0) {
       clearThrowTimer()
       gameStore.recordTimeout(currentPlayer.value.id)
@@ -567,11 +583,13 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .lb-player-info { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .lb-player-name { font-size: 22px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; display: flex; align-items: center; gap: 10px; color: #fff; }
 .throwing-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.12); border-radius: 3px; padding: 2px 5px; font-family: var(--font-body); }
+.finished-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); border-radius: 3px; padding: 2px 5px; font-family: var(--font-body); }
+.lb-player-row.ptc-finished { opacity: 0.45; }
 .cricket-mini { display: flex; flex-wrap: nowrap; gap: 4px; }
 .mini-target { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; min-width: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; padding: 10px 2px; }
 .mini-label { font-size: 40px; font-weight: 800; color: rgba(255,255,255,0.9); letter-spacing: 0.02em; font-family: var(--font-display); }
-.mini-marks { display: flex; gap: 5px; }
-.mini-pip { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); transition: background 0.1s; flex-shrink: 0; }
+.mini-marks { display: flex; gap: 4px; }
+.mini-pip { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); transition: background 0.1s; flex-shrink: 0; }
 .mini-pip.filled { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 6px rgba(255,45,120,0.8); }
 .lb-score { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
 .lb-score-val { font-size: clamp(48px, 8dvh, 120px); font-weight: 900; font-family: var(--font-display); line-height: 1; color: #fff; }
@@ -709,6 +727,6 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .lb-player-name { font-size: 18px; }
   .lb-score-val { font-size: clamp(48px, 8dvh, 120px); }
   .mini-label { font-size: 32px; }
-  .mini-pip { width: 12px; height: 12px; }
+  .mini-pip { width: 18px; height: 18px; }
 }
 </style>

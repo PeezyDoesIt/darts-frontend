@@ -74,7 +74,7 @@ import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
 import { speak } from '../composables/useSpeech'
-import { playShotgun, playBuzzer } from '../composables/useSounds'
+import { playShotgun, playBuzzer, playCountdownBeep } from '../composables/useSounds'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -180,6 +180,7 @@ onMounted(() => {
     if (paused.value) return
     if (timeLeft.value <= 0) { clearInterval(interval!); startTurn(); return }
     timeLeft.value--
+    if (timeLeft.value > 0 && timeLeft.value <= 10) playCountdownBeep()
     if (timeLeft.value <= 30 && !showAlert.value) {
       showAlert.value = true
       const hurryCount = gameStore.playerHurryUpCounts[nextPlayer.value.id] ?? 0
@@ -322,9 +323,9 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   border: 2px solid;
   color: #fff;
   font-family: var(--font-display);
-  font-size: clamp(18px, 3dvh, 30px);
+  font-size: clamp(26px, 4.5dvh, 48px);
   font-weight: 900;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   line-height: 1.3;
   cursor: pointer;
   transition: all 0.15s;
@@ -375,6 +376,6 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .timer-center { width: clamp(180px, 22dvh, 270px); height: clamp(180px, 22dvh, 270px); }
   .timer-center .timer-ring { width: clamp(180px, 22dvh, 270px); height: clamp(180px, 22dvh, 270px); }
   .timer-center .timer-count { font-size: clamp(72px, 9dvh, 112px); }
-  .btn-cricket-start { font-size: clamp(18px, 3dvh, 30px); }
+  .btn-cricket-start { font-size: clamp(26px, 4.5dvh, 48px); }
 }
 </style>

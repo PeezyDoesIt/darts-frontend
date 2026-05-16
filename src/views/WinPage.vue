@@ -22,12 +22,13 @@
         <div class="winner-sub">takes the glory</div>
 
         <div class="final-scores">
-          <div v-for="p in game?.players" :key="p.id" class="final-row"
+          <div v-for="(p, i) in finalPlayers" :key="p.id" class="final-row"
             :class="{ winner: p.id === winner?.id }"
             :style="p.id === winner?.id ? { borderColor: p.color, background: `${p.color}20` } : {}">
+            <span v-if="game?.cricketPlayToCompletion" class="final-place" :style="i === 0 ? { color: p.color } : {}">{{ ordinal(i + 1) }}</span>
             <div class="final-avatar" :style="{ background: p.color, boxShadow: `0 0 10px ${p.color}80` }">{{ p.avatarUrl ?? '🎯' }}</div>
             <span class="final-name">{{ p.name }}</span>
-            <span class="final-score" :style="p.id === winner?.id ? { color: p.color } : {}">{{ displayScore(p.id) }}</span>
+            <span v-if="!game?.cricketPlayToCompletion" class="final-score" :style="p.id === winner?.id ? { color: p.color } : {}">{{ displayScore(p.id) }}</span>
           </div>
         </div>
 
@@ -52,6 +53,20 @@ const gameStore = useGameStore()
 const playersStore = usePlayersStore()
 const game = computed(() => gameStore.game)
 const winner = computed(() => game.value?.players.find(p => p.id === game.value!.winnerId) ?? null)
+const finalPlayers = computed(() => {
+  if (!game.value) return []
+  if (game.value.cricketPlayToCompletion && game.value.cricketFinishOrder?.length) {
+    return game.value.cricketFinishOrder
+      .map(id => game.value!.players.find(p => p.id === id))
+      .filter(Boolean) as typeof game.value.players
+  }
+  return game.value.players
+})
+function ordinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return n + (s[(v - 20) % 10] ?? s[v] ?? s[0]!)
+}
 
 onMounted(() => {
   if (!game.value) return
@@ -103,6 +118,7 @@ function goHome() { gameStore.endGame(); router.push('/') }
 .final-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
 .final-row.winner { border-width: 2px; }
 .final-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.final-place { font-size: 13px; font-weight: 900; font-family: var(--font-display); color: rgba(255,255,255,0.5); min-width: 32px; }
 .final-name { flex: 1; font-size: 15px; font-weight: 700; }
 .final-score { font-size: 15px; font-weight: 800; color: rgba(255,255,255,0.6); }
 

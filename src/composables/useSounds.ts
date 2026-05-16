@@ -277,6 +277,42 @@ export function playCarCrash(): Promise<void> {
   })
 }
 
+export function playCountdownBeep(): void {
+  const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+  if (!AudioCtx) return
+  const ctx = new AudioCtx()
+  const now = ctx.currentTime
+
+  // Sharp sine "pip" — the classic digital countdown beep
+  const osc = ctx.createOscillator()
+  osc.type = 'sine'
+  osc.frequency.value = 880  // A5 — bright and alarm-like
+
+  // Short click transient at attack for that hard digital "tick"
+  const clickOsc = ctx.createOscillator()
+  clickOsc.type = 'square'
+  clickOsc.frequency.value = 1760
+
+  const master = ctx.createGain()
+  master.gain.setValueAtTime(0, now)
+  master.gain.linearRampToValueAtTime(0.7, now + 0.004)   // hard attack
+  master.gain.setValueAtTime(0.7, now + 0.06)
+  master.gain.exponentialRampToValueAtTime(0.001, now + 0.18) // quick decay
+  master.connect(ctx.destination)
+
+  const clickGain = ctx.createGain()
+  clickGain.gain.setValueAtTime(0.25, now)
+  clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.012)
+  clickOsc.connect(clickGain)
+  clickGain.connect(master)
+
+  osc.connect(master)
+  osc.start(now); osc.stop(now + 0.18)
+  clickOsc.start(now); clickOsc.stop(now + 0.012)
+
+  setTimeout(() => ctx.close(), 250)
+}
+
 export function playBullseye(): Promise<void> {
   return new Promise(resolve => {
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext

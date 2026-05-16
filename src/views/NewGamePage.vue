@@ -37,6 +37,15 @@
                 <span class="ct-opt-sub">{{ opt.sub }}</span>
               </button>
             </div>
+            <div class="toggle-row" style="margin-top:12px" @click="cricketPlayToCompletion = !cricketPlayToCompletion">
+              <div class="toggle-track" :class="{ active: cricketPlayToCompletion }">
+                <div class="toggle-thumb" />
+              </div>
+              <div class="toggle-info">
+                <span class="toggle-label">Play to Completion</span>
+                <span class="toggle-sub">Game continues until all players have closed every target</span>
+              </div>
+            </div>
           </section>
 
           <section v-if="['301','501','701','1001'].includes(selectedGameType ?? '')" class="ng-section">
@@ -56,17 +65,18 @@
               <span class="label">Walk-up Timer</span>
               <p class="hint">Seconds the next player has to walk up before the alert fires. Off = manual tap to start each turn.</p>
               <div class="timer-options">
-                <button v-ripple class="timer-btn" :class="{ active: timerDuration === 0 }" @click="timerDuration = 0">Off</button>
-                <button v-for="t in timerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: timerDuration === t }" @click="timerDuration = t">{{ t }}s</button>
+                <button v-ripple class="timer-btn" :class="{ active: timerDuration === 0 }" @click="setWalkUp(0)">Off</button>
+                <button v-for="t in timerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: timerDuration === t }" @click="setWalkUp(t)">{{ t }}s</button>
               </div>
               <div v-if="timerDuration > 0" class="custom-timer-row">
                 <span class="hint">Custom:</span>
                 <q-input
-                  v-model.number="timerDuration"
-                  type="number" min="30" max="300"
+                  :model-value="walkUpInput"
+                  type="number" min="1" max="300"
                   dense dark outlined
                   style="width:90px"
                   input-class="text-center"
+                  @update:model-value="onWalkUpInput"
                 />
                 <span class="hint">seconds</span>
               </div>
@@ -76,16 +86,17 @@
               <span class="label">Throw Timer</span>
               <p class="hint">Auto-skip turn if player doesn't submit in time. Off = no limit.</p>
               <div class="timer-options">
-                <button v-for="t in throwTimerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: throwTimerDuration === t }" @click="throwTimerDuration = t">{{ t === 0 ? 'Off' : t + 's' }}</button>
+                <button v-for="t in throwTimerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: throwTimerDuration === t }" @click="setThrow(t)">{{ t === 0 ? 'Off' : t + 's' }}</button>
               </div>
               <div class="custom-timer-row">
                 <span class="hint">Custom:</span>
                 <q-input
-                  v-model.number="throwTimerDuration"
+                  :model-value="throwInput"
                   type="number" min="0" max="300"
                   dense dark outlined
                   style="width:90px"
                   input-class="text-center"
+                  @update:model-value="onThrowInput"
                 />
                 <span class="hint">seconds (0 = off)</span>
               </div>
@@ -204,10 +215,32 @@ const gameStore = useGameStore()
 const selectedGameType = ref<GameType | null>(null)
 const timerDuration = ref(60)
 const timerOptions = [60, 90, 120, 180]
+const walkUpInput = ref('60')
 const throwTimerDuration = ref(0)
 const throwTimerOptions = [0, 60, 90, 120, 180]
+const throwInput = ref('0')
+
+function setWalkUp(t: number) {
+  timerDuration.value = t
+  walkUpInput.value = String(t)
+}
+function onWalkUpInput(val: string | number | null) {
+  walkUpInput.value = String(val ?? '')
+  const n = parseInt(String(val))
+  if (!isNaN(n) && n > 0) timerDuration.value = n
+}
+function setThrow(t: number) {
+  throwTimerDuration.value = t
+  throwInput.value = String(t)
+}
+function onThrowInput(val: string | number | null) {
+  throwInput.value = String(val ?? '')
+  const n = parseInt(String(val))
+  if (!isNaN(n) && n >= 0) throwTimerDuration.value = n
+}
 const closedTargetDisplay = ref<'show' | 'hide' | 'fade' | 'strike'>('show')
 const bustEliminates = ref(false)
+const cricketPlayToCompletion = ref(false)
 const closedTargetOptions = [
   { value: 'show'   as const, label: 'Normal',        sub: 'Closed targets stay visible' },
   { value: 'fade'   as const, label: 'Fade Out',       sub: 'Closed targets go transparent' },
@@ -259,7 +292,7 @@ function startGame() {
   if (selectedPlayers.value.length < 2 || !selectedGameType.value) return
   const t = timerDuration.value
   const tt = throwTimerDuration.value
-  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, gameTheme.value, selectedPlayers.value)
+  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, gameTheme.value, selectedPlayers.value)
   router.push('/game')
 }
 </script>
