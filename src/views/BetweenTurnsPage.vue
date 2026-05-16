@@ -178,7 +178,7 @@ onMounted(() => {
 
   interval = setInterval(() => {
     if (paused.value) return
-    if (timeLeft.value <= 0) { clearInterval(interval!); startTurn(); return }
+    if (timeLeft.value <= 0) { clearInterval(interval!); playBuzzer(); startTurn(); return }
     timeLeft.value--
     if (timeLeft.value > 0 && timeLeft.value <= 10) playCountdownBeep()
     if (timeLeft.value <= 30 && !showAlert.value) {
