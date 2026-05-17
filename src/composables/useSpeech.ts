@@ -82,13 +82,17 @@ export function speak(text: string, opts?: { rate?: number; pitch?: number }): P
 
 export function speakOhBaby(): Promise<void> {
   return new Promise(resolve => {
-    const settings = useSettingsStore()
+    function findFemaleVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
+      for (const fragment of FEMALE_FRAGMENTS) {
+        const v = voices.find(v => v.name.includes(fragment) && v.lang.startsWith('en'))
+        if (v) return v
+      }
+      return voices.find(v => v.lang.startsWith('en')) ?? null
+    }
 
     function go() {
       const voices = window.speechSynthesis.getVoices()
-      const voice = voices.find(v => v.name === settings.voiceName)
-        ?? voices.find(v => v.lang.startsWith('en'))
-        ?? null
+      const voice = findFemaleVoice(voices)
 
       window.speechSynthesis.cancel()
 
@@ -116,10 +120,7 @@ export type VoiceOption = { label: string; value: string; sublabel?: string }
 
 export function getAvailableVoices(): VoiceOption[] {
   const voices = window.speechSynthesis.getVoices()
-  const result: VoiceOption[] = []
-  for (const name of ALLOWED_VOICES) {
-    const v = voices.find(v => v.name === name)
-    if (v) result.push({ label: v.name, value: v.name, sublabel: v.lang })
-  }
-  return result
+  return voices
+    .filter(v => v.lang.startsWith('en'))
+    .map(v => ({ label: v.name, value: v.name, sublabel: v.lang }))
 }

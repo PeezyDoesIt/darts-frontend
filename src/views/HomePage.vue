@@ -214,14 +214,16 @@ const bullseyeSoundOptions = [
 
 function openSettings() {
   availableVoices.value = getAvailableVoices()
+  window.speechSynthesis.onvoiceschanged = () => {
+    availableVoices.value = getAvailableVoices()
+  }
   if (availableVoices.value.length === 0) {
-    window.speechSynthesis.onvoiceschanged = () => {
-      window.speechSynthesis.onvoiceschanged = null
-      availableVoices.value = getAvailableVoices()
-    }
-    setTimeout(() => {
-      if (availableVoices.value.length === 0) availableVoices.value = getAvailableVoices()
-    }, 600)
+    // Poll until voices load (some browsers delay the onvoiceschanged event)
+    const poll = setInterval(() => {
+      const v = getAvailableVoices()
+      if (v.length > 0) { availableVoices.value = v; clearInterval(poll) }
+    }, 200)
+    setTimeout(() => clearInterval(poll), 5000)
   }
   showSettings.value = true
 }
@@ -368,20 +370,20 @@ function previewBullseyeSound(value: string) {
 .settings-close:hover { color: #fff; }
 
 .settings-section { display: flex; flex-direction: column; gap: 10px; }
-.settings-label { font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); }
-.settings-muted { font-size: 13px; color: var(--text-muted); }
+.settings-label { font-size: 14px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #fff; }
+.settings-muted { font-size: 15px; color: rgba(255,255,255,0.7); }
 
 .voice-list { display: flex; flex-direction: column; gap: 6px; }
 .voice-btn {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 10px 14px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; text-align: left;
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted);
+  padding: 12px 16px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; text-align: left;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.9);
   transition: all 0.15s; width: 100%;
 }
 .voice-btn.active { background: rgba(255,45,120,0.2); border-color: var(--pink); color: #fff; box-shadow: 0 0 12px rgba(255,45,120,0.25); }
 .voice-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
 .voice-btn-label { font-weight: 700; }
-.voice-btn-sub { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.4); flex-shrink: 0; }
+.voice-btn-sub { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.6); flex-shrink: 0; }
 
 .test-btn { align-self: flex-end; }
 
@@ -390,8 +392,8 @@ function previewBullseyeSound(value: string) {
   padding: 8px 14px; border-radius: 8px;
   background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
 }
-.slider-label { font-size: 13px; font-weight: 700; color: var(--text-muted); width: 36px; flex-shrink: 0; }
-.slider-val { font-size: 13px; font-weight: 700; color: var(--pink); width: 40px; text-align: right; flex-shrink: 0; font-family: var(--font-display); }
+.slider-label { font-size: 15px; font-weight: 700; color: #fff; width: 42px; flex-shrink: 0; }
+.slider-val { font-size: 15px; font-weight: 700; color: var(--pink); width: 50px; text-align: right; flex-shrink: 0; font-family: var(--font-display); }
 .voice-slider {
   flex: 1; -webkit-appearance: none; appearance: none;
   height: 4px; border-radius: 2px; outline: none; cursor: pointer;
@@ -430,8 +432,8 @@ function previewBullseyeSound(value: string) {
 }
 .toggle-track.active .toggle-thumb { transform: translateX(20px); }
 .toggle-info { display: flex; flex-direction: column; gap: 2px; }
-.toggle-title { font-size: 14px; font-weight: 700; color: var(--text); }
-.toggle-sub { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+.toggle-title { font-size: 16px; font-weight: 700; color: #fff; }
+.toggle-sub { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.4; }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }

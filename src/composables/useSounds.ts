@@ -77,7 +77,7 @@ export function playBuzzer(): Promise<void> {
     setTimeout(() => { ctx.close(); resolve() }, duration * 1000 + 80)
     }
 
-    if (ctx.state === 'suspended') { ctx.resume().then(schedule) } else { schedule() }
+    ctx.resume().then(schedule)
   })
 }
 
@@ -320,12 +320,7 @@ export function playCountdownBeep(): void {
     setTimeout(() => ctx.close(), 250)
   }
 
-  // AudioContext created outside a user gesture may start suspended — resume first
-  if (ctx.state === 'suspended') {
-    ctx.resume().then(schedule)
-  } else {
-    schedule()
-  }
+  ctx.resume().then(schedule)
 }
 
 export function playBullseye(): Promise<void> {
