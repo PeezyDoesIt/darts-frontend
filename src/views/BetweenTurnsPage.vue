@@ -146,10 +146,10 @@ async function handleTurnAnnouncement() {
     const count = gameStore.playerTimeoutCounts[prevPlayer.value.id] ?? 0
     await playBuzzer()
     await new Promise(r => setTimeout(r, 200))
-    await speak(`${prevPlayer.value.name} missed their turn.`)
+    await speak(`Missed their turn.`)
     await speak(`Be better.`)
     if (count >= 3) {
-      await speak(`This is why nobody wants to play darts with you, ${prevPlayer.value.name}.`)
+      await speak(`This is why nobody wants to play darts with you.`)
     } else {
       await new Promise(r => setTimeout(r, 150))
       await playWhistle()
@@ -160,9 +160,9 @@ async function handleTurnAnnouncement() {
     speak(nextLine)
   } else if (gameStore.lastTurnWasZero) {
     const zeroPhrases = [
-      `Be better, ${prevPlayer.value.name}.`,
-      `You suck, ${prevPlayer.value.name}.`,
-      `This is going to be a long one, ${prevPlayer.value.name}.`,
+      `Be better.`,
+      `You suck.`,
+      `This is going to be a long one.`,
     ]
     await speak(zeroPhrases[Math.floor(Math.random() * zeroPhrases.length)]!)
     speak(nextLine)
