@@ -39,8 +39,12 @@
                 <img v-if="photoPreview" :src="photoPreview" alt="avatar" />
                 <span v-else style="font-size:40px">📷</span>
               </div>
-              <div style="display:flex;gap:10px;flex-wrap:wrap">
-                <button v-ripple class="btn btn-spray btn-lg" @click="cameraOpen = true">📷 Open Camera</button>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                <button v-ripple class="btn btn-spray btn-lg" @click="cameraOpen = true">📷 Camera</button>
+                <label v-ripple class="btn btn-outline btn-lg" style="cursor:pointer;position:relative;overflow:hidden">
+                  📁 Upload
+                  <input type="file" accept="image/*" style="display:none" @change="onAvatarFileChange" />
+                </label>
                 <button v-if="photoPreview" v-ripple class="btn btn-outline btn-sm" @click="photoPreview = null; avatarUrl = PRESET_AVATARS[0]!">Clear</button>
               </div>
             </div>
@@ -238,6 +242,17 @@ const previewCardStyle = computed(() => {
   if (playerBackground.value) return { background: playerBackground.value, boxShadow: `0 0 40px ${color.value}40` }
   return { background: `linear-gradient(135deg, ${color.value}cc, ${color.value}66)`, boxShadow: `0 0 40px ${color.value}40` }
 })
+
+function onAvatarFileChange(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = ev => {
+    photoPreview.value = ev.target?.result as string
+    avatarUrl.value = ev.target?.result as string
+  }
+  reader.readAsDataURL(file)
+}
 
 function onBgFileChange(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
