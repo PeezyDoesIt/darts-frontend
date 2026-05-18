@@ -25,6 +25,7 @@
               v-for="n in 3" :key="n"
               class="pip"
               :class="{ existing: pipIsExisting(target, n), round: pipIsRound(target, n) }"
+              @click.stop="handlePipClick(target, n)"
             >{{ myClosed(target) && closedTargetDisplay !== 'strike' ? '✕' : '' }}</span>
           </div>
 
@@ -120,6 +121,15 @@ function pipIsRound(target: CricketTarget, n: number) {
   const existing = existingMarks.value[target] ?? 0
   return existing < n && existing + (roundHits.value[target] ?? 0) >= n
 }
+function playBullSound() {
+  const s = settingsStore.bullseyeSound
+  if (s === 'buzzer') playBuzzer()
+  else if (s === 'tts-bullseye') speak('Bullseye!')
+  else if (s === 'tts-oh-baby') speakOhBaby()
+  else if (s === 'tts-oh-yeah') speak('Oh yeah, right in the bull motherfucker')
+  else playShotgun()
+}
+
 function handleTileClick(target: CricketTarget) {
   if (myClosed(target)) return
   const existing = existingMarks.value[target] ?? 0
@@ -127,14 +137,20 @@ function handleTileClick(target: CricketTarget) {
   const current = roundHits.value[target] ?? 0
   const next = current >= max ? 0 : current + 1
   roundHits.value = { ...roundHits.value, [target]: next }
-  if (target === 'bull' && next > current) {
-    const s = settingsStore.bullseyeSound
-    if (s === 'buzzer') playBuzzer()
-    else if (s === 'tts-bullseye') speak('Bullseye!')
-    else if (s === 'tts-oh-baby') speakOhBaby()
-    else if (s === 'tts-oh-yeah') speak('Oh yeah, right in the bull motherfucker')
-    else playShotgun()
-  }
+  if (target === 'bull' && next > current) playBullSound()
+}
+
+// Tapping pip N directly sets the hit count so that pips 1..N are all lit.
+// Tapping the already-selected pip resets to 0.
+function handlePipClick(target: CricketTarget, n: number) {
+  if (myClosed(target)) return
+  const existing = existingMarks.value[target] ?? 0
+  if (n <= existing) return // already a committed mark, can't change it
+  const hitsNeeded = n - existing
+  const current = roundHits.value[target] ?? 0
+  const next = current === hitsNeeded ? 0 : hitsNeeded
+  roundHits.value = { ...roundHits.value, [target]: next }
+  if (target === 'bull' && next > current) playBullSound()
 }
 function submit() {
   if (submitted.value) return
@@ -196,7 +212,7 @@ defineExpose({ submit, submitted })
 
 .target-label { font-size: clamp(100px, 17dvh, 190px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; display: flex; align-items: center; overflow: hidden; }
 .pips-wrap { display: flex; align-items: stretch; gap: 20px; flex: 1; padding: 14px 0; }
-.pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: clamp(28px, 5dvh, 60px); font-weight: 900; font-family: var(--font-display); color: rgba(0,0,0,0.6); line-height: 1; }
+.pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: clamp(28px, 5dvh, 60px); font-weight: 900; font-family: var(--font-display); color: rgba(0,0,0,0.6); line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
 .pip.round { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 16px rgba(255,45,120,0.6); }
 
