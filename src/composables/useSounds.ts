@@ -1,3 +1,58 @@
+// Shared AudioContext kept alive for beeps fired from setInterval.
+// Call unlockAudio() from any user-gesture handler to pre-warm it.
+const AudioCtxCtor = () => window.AudioContext || (window as any).webkitAudioContext
+let _beepCtx: AudioContext | null = null
+
+function getBeepCtx(): AudioContext | null {
+  const Ctor = AudioCtxCtor()
+  if (!Ctor) return null
+  if (!_beepCtx || _beepCtx.state === 'closed') _beepCtx = new Ctor()
+  return _beepCtx
+}
+
+export function unlockAudio(): void {
+  const ctx = getBeepCtx()
+  if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {})
+}
+
+function scheduleBeep(ctx: AudioContext): void {
+  const now = ctx.currentTime
+  const osc = ctx.createOscillator()
+  osc.type = 'sine'
+  osc.frequency.value = 880
+
+  const clickOsc = ctx.createOscillator()
+  clickOsc.type = 'square'
+  clickOsc.frequency.value = 1760
+
+  const master = ctx.createGain()
+  master.gain.setValueAtTime(0, now)
+  master.gain.linearRampToValueAtTime(0.75, now + 0.004)
+  master.gain.setValueAtTime(0.75, now + 0.06)
+  master.gain.exponentialRampToValueAtTime(0.001, now + 0.2)
+  master.connect(ctx.destination)
+
+  const clickGain = ctx.createGain()
+  clickGain.gain.setValueAtTime(0.3, now)
+  clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.012)
+  clickOsc.connect(clickGain)
+  clickGain.connect(master)
+
+  osc.connect(master)
+  osc.start(now); osc.stop(now + 0.2)
+  clickOsc.start(now); clickOsc.stop(now + 0.012)
+}
+
+export function playCountdownBeep(): void {
+  const ctx = getBeepCtx()
+  if (!ctx) return
+  if (ctx.state === 'suspended') {
+    ctx.resume().then(() => scheduleBeep(ctx)).catch(() => {})
+  } else {
+    scheduleBeep(ctx)
+  }
+}
+
 export function playBuzzer(): Promise<void> {
   return new Promise(resolve => {
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
@@ -282,46 +337,6 @@ export function playCarCrash(): Promise<void> {
   })
 }
 
-export function playCountdownBeep(): void {
-  const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
-  if (!AudioCtx) return
-  const ctx = new AudioCtx()
-
-  const schedule = () => {
-    const now = ctx.currentTime
-
-    // Sharp sine "pip" — the classic digital countdown beep
-    const osc = ctx.createOscillator()
-    osc.type = 'sine'
-    osc.frequency.value = 880  // A5 — bright and alarm-like
-
-    // Short click transient at attack for that hard digital "tick"
-    const clickOsc = ctx.createOscillator()
-    clickOsc.type = 'square'
-    clickOsc.frequency.value = 1760
-
-    const master = ctx.createGain()
-    master.gain.setValueAtTime(0, now)
-    master.gain.linearRampToValueAtTime(0.7, now + 0.004)
-    master.gain.setValueAtTime(0.7, now + 0.06)
-    master.gain.exponentialRampToValueAtTime(0.001, now + 0.18)
-    master.connect(ctx.destination)
-
-    const clickGain = ctx.createGain()
-    clickGain.gain.setValueAtTime(0.25, now)
-    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.012)
-    clickOsc.connect(clickGain)
-    clickGain.connect(master)
-
-    osc.connect(master)
-    osc.start(now); osc.stop(now + 0.18)
-    clickOsc.start(now); clickOsc.stop(now + 0.012)
-
-    setTimeout(() => ctx.close(), 250)
-  }
-
-  ctx.resume().then(schedule)
-}
 
 export function playBullseye(): Promise<void> {
   return new Promise(resolve => {

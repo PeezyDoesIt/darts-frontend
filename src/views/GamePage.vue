@@ -259,6 +259,7 @@ import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
 import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore, type CricketTarget } from '../types/index'
 import { speak } from '../composables/useSpeech'
+import { playCountdownBeep, unlockAudio } from '../composables/useSounds'
 
 const WHITE_LABEL_THEMES = new Set<string | null>(
   PLAYER_THEMES
@@ -354,8 +355,8 @@ function displayScore(playerId: string): string {
   if (s.kind === 'bobs27') return s.data.busted ? 'BUST' : String(s.data.score)
   return '—'
 }
-function handleCricketSubmit(marks: CricketHits) { gameStore.submitScore(currentPlayer.value.id, marks as Record<CricketTarget, number>) }
-function handleBobs27Submit(hits: number) { gameStore.submitScore(currentPlayer.value.id, hits) }
+function handleCricketSubmit(marks: CricketHits) { unlockAudio(); gameStore.submitScore(currentPlayer.value.id, marks as Record<CricketTarget, number>) }
+function handleBobs27Submit(hits: number) { unlockAudio(); gameStore.submitScore(currentPlayer.value.id, hits) }
 
 // Score reveal (oh-one games)
 const showScoreReveal = ref(false)
@@ -364,6 +365,7 @@ let pendingRevealNavigation = false
 let revealTimeout: ReturnType<typeof setTimeout> | null = null
 
 function handleNumpadSubmit(score: number) {
+  unlockAudio()
   const isOhOne = ['301','501','701','1001'].includes(game.value?.gameType ?? '')
   if (!isOhOne) { gameStore.submitScore(currentPlayer.value.id, score); return }
 
@@ -419,6 +421,7 @@ function startThrowTimer() {
   throwInterval = setInterval(() => {
     if (throwPaused.value) return
     throwTimeLeft.value--
+    if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 10) playCountdownBeep()
     if (throwTimeLeft.value === Math.floor(throwTimerDuration.value / 2)) speak(`${currentPlayer.value.name}, it's your turn`)
     if (throwTimeLeft.value <= 0) {
       clearThrowTimer()
