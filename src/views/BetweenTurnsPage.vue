@@ -162,7 +162,7 @@ async function handleTurnAnnouncement() {
     const zeroPhrases = [
       `Be better.`,
       `You suck.`,
-      `This is going to be a long one.`,
+      `This is gonna be a long one.`,
     ]
     await speak(zeroPhrases[Math.floor(Math.random() * zeroPhrases.length)]!)
     speak(nextLine)
