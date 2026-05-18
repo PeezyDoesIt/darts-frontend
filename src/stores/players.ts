@@ -10,18 +10,19 @@ export const usePlayersStore = defineStore('players', () => {
     const raw = localStorage.getItem('darts_players')
     if (raw) {
       const loaded = JSON.parse(raw) as Player[]
-      players.value = loaded.map(p => ({
-        ...p,
-        // Migrate default player name from old seed
-        name: p.id === 'brannon-default' && p.name === 'Brannon' ? 'Peezy' : p.name,
-        // Apply default cricketTargetDisplay for Peezy if not yet customised
-        cricketTargetDisplay: p.id === 'brannon-default' && p.cricketTargetDisplay == null
-          ? 'hide'
-          : (p.cricketTargetDisplay ?? null),
-        playerBackground: p.playerBackground ?? null,
-        pinned: p.pinned ?? false,
-        targetLabelColor: p.targetLabelColor ?? null,
-      }))
+      const PEEZY_BG = 'linear-gradient(160deg, #050505 0%, #111111 40%, #222222 75%, #333344 100%)'
+      players.value = loaded.map(p => {
+        if (p.id !== 'brannon-default') return { ...p, playerBackground: p.playerBackground ?? null, pinned: p.pinned ?? false, targetLabelColor: p.targetLabelColor ?? null, cricketTargetDisplay: p.cricketTargetDisplay ?? null }
+        return {
+          ...p,
+          name: p.name === 'Brannon' ? 'Peezy' : p.name,
+          avatarUrl: p.avatarUrl === '🎯' || p.avatarUrl == null ? '☣️' : p.avatarUrl,
+          playerBackground: p.playerBackground == null ? PEEZY_BG : p.playerBackground,
+          cricketTargetDisplay: p.cricketTargetDisplay == null ? 'hide' : p.cricketTargetDisplay,
+          pinned: p.pinned ?? true,
+          targetLabelColor: p.targetLabelColor ?? null,
+        }
+      })
       persist()
     } else {
       // Seed default players
@@ -30,8 +31,8 @@ export const usePlayersStore = defineStore('players', () => {
           id: 'brannon-default',
           name: 'Peezy',
           color: '#ff2d78',
-          avatarUrl: '🎯',
-          playerBackground: null,
+          avatarUrl: '☣️',
+          playerBackground: 'linear-gradient(160deg, #050505 0%, #111111 40%, #222222 75%, #333344 100%)',
           targetLabelColor: null,
           cricketTargetDisplay: 'hide',
           pinned: true,
