@@ -128,7 +128,7 @@
           <span class="label">Existing Players</span>
           <div class="existing-scroll">
             <div class="existing-list">
-              <div v-for="p in sortedPlayers" :key="p.id" v-ripple class="existing-row" :class="{ pinned: p.pinned }" @click="loadPlayer(p)">
+              <div v-for="p in sortedPlayers" :key="p.id" class="existing-row" :class="{ pinned: p.pinned, editing: editingId === p.id }">
                 <div class="roster-avatar" :style="{ background: p.color, boxShadow: `0 0 8px ${p.color}60` }">
                   <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
                   <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
@@ -137,6 +137,7 @@
                   <span>{{ p.name }}</span>
                   <span style="font-size:12px;color:var(--text-muted)">{{ p.wins }}W · {{ p.gamesPlayed }}G</span>
                 </div>
+                <button v-ripple class="btn btn-sm edit-btn" :class="{ active: editingId === p.id }" @click.stop="loadPlayer(p)" title="Edit">✏️</button>
                 <button v-ripple class="btn btn-sm pin-btn" :class="{ active: p.pinned }" :title="p.pinned ? 'Unpin' : 'Pin'" @click.stop="playersStore.updatePlayer(p.id, { pinned: !p.pinned })">📌</button>
                 <button v-ripple class="btn btn-sm btn-danger" @click.stop="confirmDelete(p)">🗑</button>
               </div>
@@ -389,6 +390,10 @@ function save() {
 .existing-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
 .existing-row:hover { background: rgba(255,255,255,0.07); }
 .existing-row.pinned { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.06); }
+.edit-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); font-size: 14px; padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: all 0.15s; filter: grayscale(1); }
+.edit-btn.active { filter: none; border-color: var(--pink); background: rgba(255,45,120,0.15); }
+.edit-btn:hover { filter: none; opacity: 0.8; }
+.existing-row.editing { border-color: rgba(255,45,120,0.4); background: rgba(255,45,120,0.06); }
 .pin-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); font-size: 14px; padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: all 0.15s; filter: grayscale(1); }
 .pin-btn.active { filter: none; border-color: rgba(245,158,11,0.5); background: rgba(245,158,11,0.12); }
 .pin-btn:hover { filter: none; opacity: 0.8; }

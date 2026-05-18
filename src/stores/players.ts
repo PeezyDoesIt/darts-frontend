@@ -14,10 +14,13 @@ export const usePlayersStore = defineStore('players', () => {
         ...p,
         // Migrate default player name from old seed
         name: p.id === 'brannon-default' && p.name === 'Brannon' ? 'Peezy' : p.name,
+        // Apply default cricketTargetDisplay for Peezy if not yet customised
+        cricketTargetDisplay: p.id === 'brannon-default' && p.cricketTargetDisplay == null
+          ? 'hide'
+          : (p.cricketTargetDisplay ?? null),
         playerBackground: p.playerBackground ?? null,
         pinned: p.pinned ?? false,
         targetLabelColor: p.targetLabelColor ?? null,
-        cricketTargetDisplay: p.cricketTargetDisplay ?? null,
       }))
       persist()
     } else {
@@ -30,7 +33,7 @@ export const usePlayersStore = defineStore('players', () => {
           avatarUrl: '🎯',
           playerBackground: null,
           targetLabelColor: null,
-          cricketTargetDisplay: null,
+          cricketTargetDisplay: 'hide',
           pinned: true,
           wins: 100,
           gamesPlayed: 100,
