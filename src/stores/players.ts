@@ -10,7 +10,7 @@ export const usePlayersStore = defineStore('players', () => {
     const raw = localStorage.getItem('darts_players')
     if (raw) {
       const loaded = JSON.parse(raw) as Player[]
-      const PEEZY_BG = 'linear-gradient(160deg, #050505 0%, #111111 40%, #222222 75%, #333344 100%)'
+      const PEEZY_BG = 'linear-gradient(160deg, #0c0c0e 0%, #242428 40%, #484850 70%, #a0a0b0 100%)'
       players.value = loaded.map(p => {
         if (p.id !== 'brannon-default') return { ...p, playerBackground: p.playerBackground ?? null, pinned: p.pinned ?? false, targetLabelColor: p.targetLabelColor ?? null, cricketTargetDisplay: p.cricketTargetDisplay ?? null }
         return {
@@ -32,7 +32,7 @@ export const usePlayersStore = defineStore('players', () => {
           name: 'Peezy',
           color: '#ff2d78',
           avatarUrl: '☣️',
-          playerBackground: 'linear-gradient(160deg, #050505 0%, #111111 40%, #222222 75%, #333344 100%)',
+          playerBackground: 'linear-gradient(160deg, #0c0c0e 0%, #242428 40%, #484850 70%, #a0a0b0 100%)',
           targetLabelColor: null,
           cricketTargetDisplay: 'hide',
           pinned: true,
