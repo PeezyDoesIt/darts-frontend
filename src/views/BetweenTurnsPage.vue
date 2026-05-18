@@ -15,7 +15,7 @@
         {{ nextPlayer.name }}
       </div>
 
-      <div v-if="!timerOff" class="timer-wrap timer-center" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
+      <div v-if="!timerOff" class="timer-wrap timer-center" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
         <svg class="timer-ring" viewBox="0 0 120 120">
           <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="6" />
           <circle cx="60" cy="60" r="52" fill="none"
@@ -24,7 +24,7 @@
             transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 10px currentColor)' }" />
         </svg>
         <span class="timer-count display" :style="showAlert ? { color: '#ef4444' } : { color: '#ffffff' }">
-          {{ paused ? '⏸' : timeLeft }}
+          {{ !settingsStore.disableTimerPause && paused ? '⏸' : timeLeft }}
         </span>
       </div>
     </div>
@@ -46,7 +46,7 @@
         </div>
 
         <!-- Timer circle with countdown centered inside -->
-        <div v-if="!timerOff" class="timer-bg" @click="togglePause" :title="paused ? 'Resume' : 'Pause'">
+        <div v-if="!timerOff" class="timer-bg" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
           <svg class="timer-bg-svg" viewBox="0 0 120 120">
             <circle cx="60" cy="60" r="54" fill="rgba(0,0,0,0.52)" stroke="rgba(255,255,255,0.07)" stroke-width="1.5" />
             <circle cx="60" cy="60" r="54" fill="none"
@@ -55,7 +55,7 @@
               transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 10px currentColor)' }" />
           </svg>
           <span class="timer-bg-count display" :style="showAlert ? { color: '#ef4444', filter: 'drop-shadow(0 0 16px #ef4444)' } : { color: '#ffffff', filter: `drop-shadow(0 0 16px ${nextPlayer.color})` }">
-            {{ paused ? '⏸' : timeLeft }}
+            {{ !settingsStore.disableTimerPause && paused ? '⏸' : timeLeft }}
           </span>
         </div>
 
@@ -107,7 +107,7 @@ const paused = ref(false)
 const progress = computed(() => timerOff.value ? 0 : timeLeft.value / total.value)
 let interval: ReturnType<typeof setInterval> | null = null
 
-function togglePause() { paused.value = !paused.value }
+function togglePause() { if (!settingsStore.disableTimerPause) paused.value = !paused.value }
 
 function playWhistle(): Promise<void> {
   return new Promise(resolve => {

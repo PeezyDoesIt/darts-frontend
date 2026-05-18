@@ -62,5 +62,13 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('bullseyeSound', val)
   }
 
-  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound }
+  const disableTimerPause = ref<boolean>(
+    localStorage.getItem('disableTimerPause') === 'true'
+  )
+  function setDisableTimerPause(val: boolean) {
+    disableTimerPause.value = val
+    localStorage.setItem('disableTimerPause', String(val))
+  }
+
+  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause }
 })

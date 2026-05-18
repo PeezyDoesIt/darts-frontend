@@ -20,8 +20,9 @@
               :style="{ width: `${(throwTimeLeft / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }"
             />
             <span class="throw-timer-text" :class="{ urgent: throwTimeLeft <= 10 }">
-              {{ throwPaused ? '⏸ PAUSED' : throwTimeLeft + 's' }}
+              {{ settingsStore.disableTimerPause ? throwTimeLeft + 's' : throwPaused ? '⏸ PAUSED' : throwTimeLeft + 's' }}
             </span>
+            <span v-if="settingsStore.disableTimerPause" class="throw-timer-lock">🔒</span>
           </div>
           <div v-else class="throw-timer-spacer" />
 
@@ -164,6 +165,13 @@
           <div class="timer-control-btns">
             <button v-ripple class="timer-ctrl-btn" :class="{ active: game.throwTimerDuration === 0 }" @click="gameStore.setThrowTimerDuration(0)">Off</button>
             <button v-for="t in TIMER_OPTIONS" :key="t" v-ripple class="timer-ctrl-btn" :class="{ active: game.throwTimerDuration === t }" @click="gameStore.setThrowTimerDuration(t)">{{ t }}s</button>
+          </div>
+        </div>
+        <div class="timer-control-group">
+          <span class="timer-control-label">Pause</span>
+          <div class="timer-control-btns">
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.disableTimerPause }" @click="settingsStore.setDisableTimerPause(false)">Allow</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.disableTimerPause }" @click="settingsStore.setDisableTimerPause(true)">Lock</button>
           </div>
         </div>
       </div>
@@ -412,7 +420,7 @@ const throwPaused = ref(false)
 let throwInterval: ReturnType<typeof setInterval> | null = null
 
 function clearThrowTimer() { if (throwInterval) { clearInterval(throwInterval); throwInterval = null } }
-function toggleThrowPause() { throwPaused.value = !throwPaused.value }
+function toggleThrowPause() { if (!settingsStore.disableTimerPause) throwPaused.value = !throwPaused.value }
 function startThrowTimer() {
   clearThrowTimer()
   throwPaused.value = false
@@ -528,6 +536,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .throw-timer-fill.paused { background: var(--text-muted); }
 .throw-timer-text { position: relative; z-index: 1; font-size: 22px; font-weight: 800; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); padding: 0 16px; font-family: var(--font-display); }
 .throw-timer-text.urgent { color: #fff; }
+.throw-timer-lock { position: relative; z-index: 1; font-size: 14px; margin-left: -8px; opacity: 0.6; }
 
 .submit-header-btn { flex-shrink: 0; align-self: center; margin-left: 16px; font-size: 14px; letter-spacing: 0.1em; padding: 12px 28px; }
 .submit-header-btn:disabled { opacity: 0.4; }
