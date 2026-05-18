@@ -180,7 +180,7 @@ onMounted(() => {
     if (paused.value) return
     if (timeLeft.value <= 0) { clearInterval(interval!); playBuzzer(); startTurn(); return }
     timeLeft.value--
-    if (timeLeft.value > 0 && timeLeft.value <= 10) playCountdownBeep()
+    if (timeLeft.value > 0 && timeLeft.value <= 5) playCountdownBeep()
     if (timeLeft.value <= 30 && !showAlert.value) {
       showAlert.value = true
       const hurryCount = gameStore.playerHurryUpCounts[nextPlayer.value.id] ?? 0

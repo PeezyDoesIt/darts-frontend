@@ -429,7 +429,7 @@ function startThrowTimer() {
   throwInterval = setInterval(() => {
     if (throwPaused.value) return
     throwTimeLeft.value--
-    if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 10) playCountdownBeep()
+    if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 5) playCountdownBeep()
     if (throwTimeLeft.value === Math.floor(throwTimerDuration.value / 2)) speak(`${currentPlayer.value.name}, it's your turn`)
     if (throwTimeLeft.value <= 0) {
       clearThrowTimer()
