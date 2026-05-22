@@ -56,13 +56,18 @@ function applyPronunciations(text: string): string {
 function doSpeak(text: string, resolve: () => void, opts?: { rate?: number; pitch?: number }) {
   const settings = useSettingsStore()
   window.speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(applyPronunciations(text))
-  const voice = selectVoice(settings.voiceName)
-  if (voice) u.voice = voice
-  u.rate = opts?.rate ?? settings.voiceRate
-  u.pitch = opts?.pitch ?? settings.voicePitch
-  u.onend = () => resolve()
-  window.speechSynthesis.speak(u)
+  // Chrome drops speak() called in the same tick as cancel(), and can pause
+  // synthesis during page transitions — resume() + a small gap fixes both.
+  setTimeout(() => {
+    window.speechSynthesis.resume()
+    const u = new SpeechSynthesisUtterance(applyPronunciations(text))
+    const voice = selectVoice(settings.voiceName)
+    if (voice) u.voice = voice
+    u.rate = opts?.rate ?? settings.voiceRate
+    u.pitch = opts?.pitch ?? settings.voicePitch
+    u.onend = () => resolve()
+    window.speechSynthesis.speak(u)
+  }, 50)
 }
 
 export function speak(text: string, opts?: { rate?: number; pitch?: number }): Promise<void> {
