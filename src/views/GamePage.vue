@@ -432,6 +432,8 @@ function startThrowTimer() {
     if (throwPaused.value) return
     throwTimeLeft.value--
     if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 5) playCountdownBeep()
+    const half = Math.floor(throwTimerDuration.value / 2)
+    if (throwTimeLeft.value === half && half > 30) speak(`${currentPlayer.value.name}, it's your turn`)
     if (throwTimeLeft.value <= 30 && !throwHurryUpSaid) {
       throwHurryUpSaid = true
       const hurryCount = gameStore.playerHurryUpCounts[currentPlayer.value.id] ?? 0
