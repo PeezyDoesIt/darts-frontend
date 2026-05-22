@@ -418,19 +418,29 @@ const throwTimerDuration = computed(() => settingsStore.disableThrowTimer ? 0 : 
 const throwTimeLeft = ref(0)
 const throwPaused = ref(false)
 let throwInterval: ReturnType<typeof setInterval> | null = null
+let throwHurryUpSaid = false
 
 function clearThrowTimer() { if (throwInterval) { clearInterval(throwInterval); throwInterval = null } }
 function toggleThrowPause() { if (!settingsStore.disableTimerPause) throwPaused.value = !throwPaused.value }
 function startThrowTimer() {
   clearThrowTimer()
   throwPaused.value = false
+  throwHurryUpSaid = false
   if (!throwTimerDuration.value) return
   throwTimeLeft.value = throwTimerDuration.value
   throwInterval = setInterval(() => {
     if (throwPaused.value) return
     throwTimeLeft.value--
     if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 5) playCountdownBeep()
-    if (throwTimeLeft.value === Math.floor(throwTimerDuration.value / 2)) speak(`${currentPlayer.value.name}, it's your turn`)
+    if (throwTimeLeft.value <= 30 && !throwHurryUpSaid) {
+      throwHurryUpSaid = true
+      const hurryCount = gameStore.playerHurryUpCounts[currentPlayer.value.id] ?? 0
+      gameStore.recordHurryUp(currentPlayer.value.id)
+      const line = hurryCount > 0
+        ? `${currentPlayer.value.name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`
+        : `${currentPlayer.value.name}. Hurry the fuck up. It's your turn.`
+      speak(line)
+    }
     if (throwTimeLeft.value <= 0) {
       clearThrowTimer()
       gameStore.recordTimeout(currentPlayer.value.id)
