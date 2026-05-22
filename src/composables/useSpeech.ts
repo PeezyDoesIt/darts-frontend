@@ -55,19 +55,23 @@ function applyPronunciations(text: string): string {
 
 function doSpeak(text: string, resolve: () => void, opts?: { rate?: number; pitch?: number }) {
   const settings = useSettingsStore()
-  window.speechSynthesis.cancel()
-  // Chrome drops speak() called in the same tick as cancel(), and can pause
-  // synthesis during page transitions — resume() + a small gap fixes both.
+  // Chrome bug: cancel() while paused can corrupt the queue.
+  // resume() first, then cancel() clears cleanly, then a delay before speak().
+  window.speechSynthesis.resume()
+  if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+    window.speechSynthesis.cancel()
+  }
   setTimeout(() => {
     window.speechSynthesis.resume()
     const u = new SpeechSynthesisUtterance(applyPronunciations(text))
     const voice = selectVoice(settings.voiceName)
     if (voice) u.voice = voice
-    u.rate = opts?.rate ?? settings.voiceRate
+    u.rate = Math.max(0.1, opts?.rate ?? settings.voiceRate)
     u.pitch = opts?.pitch ?? settings.voicePitch
     u.onend = () => resolve()
+    u.onerror = () => resolve()
     window.speechSynthesis.speak(u)
-  }, 50)
+  }, 120)
 }
 
 export function speak(text: string, opts?: { rate?: number; pitch?: number }): Promise<void> {
@@ -76,11 +80,10 @@ export function speak(text: string, opts?: { rate?: number; pitch?: number }): P
     if (voices.length > 0) {
       doSpeak(text, resolve, opts)
     } else {
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.onvoiceschanged = null
-        doSpeak(text, resolve, opts)
-      }
-      setTimeout(() => doSpeak(text, resolve, opts), 600)
+      let done = false
+      const go = () => { if (done) return; done = true; doSpeak(text, resolve, opts) }
+      window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.onvoiceschanged = null; go() }
+      setTimeout(go, 1000)
     }
   })
 }
@@ -112,11 +115,10 @@ export function speakOhBaby(): Promise<void> {
     if (window.speechSynthesis.getVoices().length > 0) {
       go()
     } else {
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.onvoiceschanged = null
-        go()
-      }
-      setTimeout(go, 600)
+      let done = false
+      const once = () => { if (done) return; done = true; go() }
+      window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.onvoiceschanged = null; once() }
+      setTimeout(once, 1000)
     }
   })
 }
