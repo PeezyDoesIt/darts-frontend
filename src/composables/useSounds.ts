@@ -29,13 +29,13 @@ function scheduleBeep(ctx: AudioContext): void {
 
   const master = ctx.createGain()
   master.gain.setValueAtTime(0, now)
-  master.gain.linearRampToValueAtTime(0.75, now + 0.004)
-  master.gain.setValueAtTime(0.75, now + 0.06)
+  master.gain.linearRampToValueAtTime(1.0, now + 0.004)
+  master.gain.setValueAtTime(1.0, now + 0.06)
   master.gain.exponentialRampToValueAtTime(0.001, now + 0.2)
   master.connect(ctx.destination)
 
   const clickGain = ctx.createGain()
-  clickGain.gain.setValueAtTime(0.3, now)
+  clickGain.gain.setValueAtTime(0.45, now)
   clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.012)
   clickOsc.connect(clickGain)
   clickGain.connect(master)
