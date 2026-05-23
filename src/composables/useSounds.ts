@@ -45,6 +45,31 @@ function scheduleBeep(ctx: AudioContext): void {
   clickOsc.start(now); clickOsc.stop(now + 0.012)
 }
 
+export function playStartChime(): void {
+  const ctx = getBeepCtx()
+  if (!ctx) return
+  const go = () => {
+    const now = ctx.currentTime
+    // 4-note ascending arpeggio: C5 → E5 → G5 → C6
+    const notes = [523.25, 659.25, 783.99, 1046.50]
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.value = freq
+      const t = now + i * 0.13
+      gain.gain.setValueAtTime(0, t)
+      gain.gain.linearRampToValueAtTime(0.6, t + 0.01)
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.55)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(t)
+      osc.stop(t + 0.55)
+    })
+  }
+  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+}
+
 export function playChime(): void {
   const ctx = getBeepCtx()
   if (!ctx) return

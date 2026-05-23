@@ -122,7 +122,7 @@
       </div>
 
       <div class="home-actions">
-        <button v-ripple class="btn btn-spray btn-xl w-full" @click="router.push('/new-game')">
+        <button v-ripple class="btn btn-spray btn-xl w-full" @click="unlockAudio(); playStartChime(); router.push('/new-game')">
           START NEW GAME
         </button>
         <div class="home-secondary">
@@ -145,7 +145,7 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSettingsStore } from '../stores/settings'
 import { speak, speakOhBaby, getAvailableVoices, type VoiceOption } from '../composables/useSpeech'
-import { playShotgun, playBuzzer } from '../composables/useSounds'
+import { playShotgun, playBuzzer, playStartChime, unlockAudio } from '../composables/useSounds'
 
 const router = useRouter()
 const settingsStore = useSettingsStore()
