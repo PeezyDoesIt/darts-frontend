@@ -344,6 +344,7 @@ function save() {
 .setup-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
 .setup-form-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; border-right: 1px solid rgba(255,255,255,0.06); }
 .setup-form { padding: 28px; display: flex; flex-direction: column; gap: 24px; }
+.setup-form .label { color: #ffffff; font-weight: 800; }
 
 .field { display: flex; flex-direction: column; gap: 10px; }
 
