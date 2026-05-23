@@ -200,6 +200,9 @@ function previewBullseyeSound(value: string) {
   overflow: hidden;
   position: relative;
   flex-direction: row;
+  background-image: url('/Dartbg.avif');
+  background-size: cover;
+  background-position: center;
 }
 
 .home-left {
