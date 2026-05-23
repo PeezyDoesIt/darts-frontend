@@ -74,7 +74,7 @@ import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
 import { speak } from '../composables/useSpeech'
-import { playShotgun, playBuzzer, playCountdownBeep, unlockAudio } from '../composables/useSounds'
+import { playShotgun, playBuzzer, playCountdownBeep, playChime, unlockAudio } from '../composables/useSounds'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -200,7 +200,7 @@ onUnmounted(() => {
   window.speechSynthesis.cancel()
 })
 
-function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/game') }
+function startTurn() { unlockAudio(); playChime(); gameStore.startNextTurn(); router.push('/game') }
 function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:') || url?.startsWith('http')) }
 </script>
 
