@@ -243,7 +243,7 @@ defineExpose({ submit, submitted })
 }
 .round-summary { font-size: 14px; flex-shrink: 0; }
 .hits-text { color: var(--pink); font-weight: 700; }
-.muted { color: var(--text-muted); }
+.muted { color: var(--text-muted); font-weight: 700; }
 .submit-btn {
   flex: 1; height: 64px; font-size: 22px; font-weight: 900; font-family: var(--font-display);
   letter-spacing: 0.12em; border: none; border-radius: 8px; cursor: pointer;

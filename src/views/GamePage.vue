@@ -174,6 +174,13 @@
             <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.disableTimerPause }" @click="settingsStore.setDisableTimerPause(true)">Lock</button>
           </div>
         </div>
+        <div class="timer-control-group">
+          <span class="timer-control-label">Narrator</span>
+          <div class="timer-control-btns">
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.cleanMode }" @click="settingsStore.setCleanMode(false)">Normal</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.cleanMode }" @click="settingsStore.setCleanMode(true)">Clean</button>
+          </div>
+        </div>
       </div>
 
       <!-- Add player picker -->
@@ -438,9 +445,13 @@ function startThrowTimer() {
       throwHurryUpSaid = true
       const hurryCount = gameStore.playerHurryUpCounts[currentPlayer.value.id] ?? 0
       gameStore.recordHurryUp(currentPlayer.value.id)
-      const line = hurryCount > 0
-        ? `${currentPlayer.value.name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`
-        : `${currentPlayer.value.name}. Hurry the fuck up. It's your turn.`
+      const line = settingsStore.cleanMode
+        ? (hurryCount > 0
+            ? `${currentPlayer.value.name}. Hurry it up. It's your turn. This is why no one wants to play darts with you.`
+            : `${currentPlayer.value.name}. Hurry it up. It's your turn.`)
+        : (hurryCount > 0
+            ? `${currentPlayer.value.name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`
+            : `${currentPlayer.value.name}. Hurry the fuck up. It's your turn.`)
       speak(line)
     }
     if (throwTimeLeft.value <= 0) {
@@ -603,7 +614,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .lb-header .btn { padding: 8px 28px; font-size: 14px; }
 .game-type-badge { font-size: 15px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); font-family: var(--font-display); }
-.round-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
+.round-label { font-size: 11px; color: #fff; margin-top: 2px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 900; }
 .lb-players-scroll { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .lb-players { flex: 1; display: flex; flex-direction: column; gap: 0; padding: 0; }
 .lb-player-row {

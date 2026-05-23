@@ -159,11 +159,9 @@ async function handleTurnAnnouncement() {
     await new Promise(r => setTimeout(r, 300))
     speak(nextLine)
   } else if (gameStore.lastTurnWasZero) {
-    const zeroPhrases = [
-      `Be better.`,
-      `You suck.`,
-      `This is gonna be a long one.`,
-    ]
+    const zeroPhrases = settingsStore.cleanMode
+      ? [`Be better.`, `You stink.`, `This is gonna be a long one.`]
+      : [`Be better.`, `You suck.`, `This is gonna be a long one.`]
     await speak(zeroPhrases[Math.floor(Math.random() * zeroPhrases.length)]!)
     speak(nextLine)
   } else {
@@ -185,9 +183,13 @@ onMounted(() => {
       showAlert.value = true
       const hurryCount = gameStore.playerHurryUpCounts[nextPlayer.value.id] ?? 0
       gameStore.recordHurryUp(nextPlayer.value.id)
-      const line = hurryCount > 0
-        ? `${nextPlayer.value.name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`
-        : `${nextPlayer.value.name}. Hurry the fuck up. It's your turn.`
+      const line = settingsStore.cleanMode
+        ? (hurryCount > 0
+            ? `${nextPlayer.value.name}. Hurry it up. It's your turn. This is why no one wants to play darts with you.`
+            : `${nextPlayer.value.name}. Hurry it up. It's your turn.`)
+        : (hurryCount > 0
+            ? `${nextPlayer.value.name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`
+            : `${nextPlayer.value.name}. Hurry the fuck up. It's your turn.`)
       speak(line)
     }
   }, 1000)

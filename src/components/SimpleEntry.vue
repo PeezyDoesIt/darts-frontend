@@ -50,7 +50,7 @@ function submit() {
 
 .round-info { text-align: center; }
 .round-label { font-size: 20px; font-weight: 800; color: var(--gold); display: block; }
-.round-sub { font-size: 14px; color: var(--text-muted); }
+.round-sub { font-size: 14px; color: var(--text-muted); font-weight: 700; }
 .round-hint { font-size: 18px; font-weight: 800; color: var(--pink); margin-top: 4px; display: block; }
 
 .score-display { display: flex; align-items: center; }

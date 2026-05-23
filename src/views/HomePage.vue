@@ -51,6 +51,15 @@
 
           <div class="settings-section">
             <div class="settings-label">Narrator Style</div>
+            <div class="toggle-row" @click="settingsStore.setCleanMode(!settingsStore.cleanMode)">
+              <div class="toggle-track" :class="{ active: settingsStore.cleanMode }">
+                <div class="toggle-thumb" />
+              </div>
+              <div class="toggle-info">
+                <span class="toggle-title">Clean Mode</span>
+                <span class="toggle-sub">Removes profanity from all narrator lines</span>
+              </div>
+            </div>
             <div class="toggle-row" @click="settingsStore.setQuietNarrator(!settingsStore.quietNarrator)">
               <div class="toggle-track" :class="{ active: settingsStore.quietNarrator }">
                 <div class="toggle-thumb" />
@@ -176,7 +185,7 @@ function previewBullseyeSound(value: string) {
   else if (value === 'buzzer') playBuzzer()
   else if (value === 'tts-bullseye') speak('Bullseye!')
   else if (value === 'tts-oh-baby') speakOhBaby()
-  else if (value === 'tts-oh-yeah') speak('Oh yeah, right in the bull motherfucker')
+  else if (value === 'tts-oh-yeah') speak(settingsStore.cleanMode ? 'Oh yeah, right in the bull' : 'Oh yeah, right in the bull motherfucker')
 }
 </script>
 
