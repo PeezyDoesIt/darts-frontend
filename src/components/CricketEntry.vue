@@ -40,7 +40,7 @@
       <span v-if="totalHitsThisRound > 0" class="hits-text">
         {{ totalHitsThisRound }} hit{{ totalHitsThisRound !== 1 ? 's' : '' }} this round
       </span>
-      <span v-else class="muted">Round {{ round }}</span>
+      <span v-else class="muted" :style="{ color: targetColor }">Round {{ round }}</span>
     </div>
   </div>
 </template>
