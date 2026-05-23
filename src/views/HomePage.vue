@@ -261,7 +261,7 @@ function previewBullseyeSound(value: string) {
 .brand-sub { font-size: 13px; font-weight: 800; letter-spacing: 0.25em; color: var(--text-muted); text-transform: uppercase; margin-top: 16px; }
 
 .home-actions { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 600px; position: relative; z-index: 1; }
-.home-secondary { display: flex; gap: 12px; }
+.home-secondary { display: flex; gap: 12px; justify-content: center; }
 .w-full { width: 100%; }
 
 @media (max-width: 768px) {
