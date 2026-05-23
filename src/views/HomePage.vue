@@ -194,7 +194,7 @@ function previewBullseyeSound(value: string) {
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding: 64px 56px;
   padding-top: calc(64px + env(safe-area-inset-top));
@@ -204,11 +204,11 @@ function previewBullseyeSound(value: string) {
   gap: 48px;
 }
 
-.brand { position: relative; z-index: 1; }
-.brand-tag { font-size: 12px; font-weight: 700; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+.brand { position: relative; z-index: 1; text-align: center; }
+.brand-tag { font-size: 14px; font-weight: 700; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
 .brand-title {
   font-family: var(--font-display);
-  font-size: 120px;
+  font-size: clamp(100px, 18vw, 220px);
   line-height: 0.9;
   letter-spacing: 0.05em;
   background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 40%, var(--blue) 80%);
@@ -217,15 +217,16 @@ function previewBullseyeSound(value: string) {
   background-clip: text;
   filter: drop-shadow(0 0 40px rgba(255,45,120,0.3));
 }
-.brand-sub { font-size: 12px; font-weight: 800; letter-spacing: 0.25em; color: var(--text-muted); text-transform: uppercase; margin-top: 16px; }
+.brand-sub { font-size: 13px; font-weight: 800; letter-spacing: 0.25em; color: var(--text-muted); text-transform: uppercase; margin-top: 16px; }
 
-.home-actions { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 380px; position: relative; z-index: 1; }
+.home-actions { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 600px; position: relative; z-index: 1; }
 .home-secondary { display: flex; gap: 12px; }
 .w-full { width: 100%; }
 
 @media (max-width: 768px) {
   .home-left { padding: 40px 24px; padding-top: calc(40px + env(safe-area-inset-top)); gap: 32px; }
-  .brand-title { font-size: 80px; }
+  .brand-title { font-size: clamp(72px, 20vw, 120px); }
+  .home-actions { max-width: 100%; }
 }
 
 /* Settings */
