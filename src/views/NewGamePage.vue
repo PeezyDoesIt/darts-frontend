@@ -300,6 +300,9 @@ function startGame() {
 <style scoped>
 .ng-page { display: flex; flex-direction: column; width: 100vw; height: 100dvh; overflow: hidden; }
 
+.btn-outline { color: #ffffff !important; font-weight: 700 !important; border: 2px solid #ffffff !important; }
+.btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
+
 .ng-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 40px;
@@ -322,22 +325,23 @@ function startGame() {
 .game-type-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .game-type-btn {
   padding: 8px 16px; border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
-  color: var(--text-muted); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+  border: 2px solid #ffffff; background: transparent;
+  color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s;
   position: relative; overflow: hidden;
 }
-.game-type-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+.game-type-btn:hover { border-color: var(--pink); color: var(--pink); }
 .game-type-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
 
 .hint { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
 .timer-options { display: flex; gap: 8px; flex-wrap: wrap; }
 .timer-btn {
   padding: 9px 16px; border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
-  color: var(--text-muted); font-size: 14px; font-weight: 700; cursor: pointer;
+  border: 2px solid #ffffff; background: transparent;
+  color: #ffffff; font-size: 14px; font-weight: 700; cursor: pointer;
   transition: all 0.15s; position: relative; overflow: hidden;
 }
-.timer-btn.active { border-color: var(--blue); color: var(--blue); background: rgba(0,212,255,0.1); }
+.timer-btn:hover { border-color: var(--pink); color: var(--pink); }
+.timer-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
 .custom-timer-row { display: flex; align-items: center; gap: 10px; }
 
 .players-header { display: flex; align-items: center; justify-content: space-between; }
