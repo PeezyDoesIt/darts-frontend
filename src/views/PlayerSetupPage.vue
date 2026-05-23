@@ -345,11 +345,14 @@ function save() {
 .setup-form-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; border-right: 1px solid rgba(255,255,255,0.06); }
 .setup-form { padding: 28px; display: flex; flex-direction: column; gap: 24px; }
 .setup-form .label { color: #ffffff; font-weight: 800; }
+.page-header .btn-outline, .setup-form .btn-outline { color: #ffffff; font-weight: 700; border: 2px solid #ffffff; }
+.page-header .btn-outline:hover, .setup-form .btn-outline:hover { color: var(--pink); border-color: var(--pink); }
 
 .field { display: flex; flex-direction: column; gap: 10px; }
 
 .bg-tabs, .avatar-tabs { display: flex; gap: 8px; }
-.tab { padding: 8px 20px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: var(--text-muted); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+.tab { padding: 8px 20px; border-radius: 6px; border: 2px solid #ffffff; background: transparent; color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+.tab:hover { border-color: var(--pink); color: var(--pink); }
 .tab.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
 
 .theme-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
@@ -427,12 +430,12 @@ function save() {
 .ct-player-opts { display: flex; gap: 6px; flex-wrap: wrap; }
 .ct-player-btn {
   flex: 1; min-width: 72px; padding: 8px 10px; border-radius: 8px;
-  border: 2px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
+  border: 2px solid #ffffff; background: transparent;
   cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column;
   align-items: center; gap: 2px; position: relative; overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
-.ct-player-btn:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); }
+.ct-player-btn:hover { border-color: var(--pink); background: rgba(255,45,120,0.08); }
 .ct-player-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); }
 .ct-player-label { font-size: 13px; font-weight: 800; font-family: var(--font-display); letter-spacing: 0.05em; color: #fff; }
 .ct-player-sub { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; color: var(--text-muted); text-transform: uppercase; }
