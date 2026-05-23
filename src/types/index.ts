@@ -48,13 +48,11 @@ export const PLAYER_THEMES = [
   { label: 'Candy',        value: 'linear-gradient(160deg, #1a0014 0%, #660055 35%, #cc00cc 65%, #ff66ff 100%)' },
   { label: 'Synthwave',    value: 'linear-gradient(160deg, #0d0020 0%, #330066 35%, #cc00ff 65%, #ff0066 100%)' },
   { label: 'Nebula',       value: 'linear-gradient(160deg, #020008 0%, #0a0030 35%, #3a0088 65%, #8833cc 82%, #cc66ff 100%)' },
-  { label: 'Astral',       value: 'linear-gradient(160deg, #030008 0%, #0d0040 35%, #2200aa 65%, #5533ff 82%, #88aaff 100%)' },
   // Blues
   { label: 'Storm',        value: 'linear-gradient(160deg, #050510 0%, #0a0a40 40%, #1a1aaa 75%, #4466ff 100%)' },
   { label: 'Cyber',        value: 'linear-gradient(160deg, #000d14 0%, #001428 40%, #00aaff 70%, #00ffcc 100%)' },
   // Dark / Neutral
   { label: 'Coffee',       value: 'linear-gradient(160deg, #050200 0%, #1c0a00 40%, #4a2200 70%, #8b5a2b 100%)' },
-  { label: 'Bronze',       value: 'linear-gradient(160deg, #100800 0%, #4a2800 45%, #cd7f32 80%, #e8a050 100%)' },
 ] as const
 
 export type GameType =
