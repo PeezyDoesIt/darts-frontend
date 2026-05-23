@@ -116,7 +116,8 @@
     <!-- Left: Branding -->
     <div class="home-left">
       <div class="brand">
-        <h1 class="brand-title">DARTS</h1>
+        <h1 class="brand-headline">PEEZY DOES IT</h1>
+        <h2 class="brand-title">DARTS</h2>
         <div class="brand-sub">WHO'S UP. WHO'S DOWN. WHO'S NEXT.</div>
       </div>
 
@@ -233,7 +234,7 @@ function previewBullseyeSound(value: string) {
 .brand-tag-emoji { font-size: 16.1px; }
 
 .brand { position: relative; z-index: 1; text-align: center; }
-.brand-title {
+.brand-headline {
   font-family: var(--font-display);
   font-size: clamp(100px, 18vw, 220px);
   line-height: 0.9;
@@ -243,6 +244,19 @@ function previewBullseyeSound(value: string) {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   filter: drop-shadow(0 0 40px rgba(255,45,120,0.3));
+  margin: 0;
+}
+.brand-title {
+  font-family: var(--font-display);
+  font-size: clamp(50px, 9vw, 110px);
+  line-height: 0.9;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 40%, var(--blue) 80%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 40px rgba(255,45,120,0.3));
+  margin: 0;
 }
 .brand-sub { font-size: 13px; font-weight: 800; letter-spacing: 0.25em; color: var(--text-muted); text-transform: uppercase; margin-top: 16px; }
 
@@ -252,7 +266,8 @@ function previewBullseyeSound(value: string) {
 
 @media (max-width: 768px) {
   .home-left { padding: 40px 24px; padding-top: calc(40px + env(safe-area-inset-top)); gap: 32px; }
-  .brand-title { font-size: clamp(72px, 20vw, 120px); }
+  .brand-headline { font-size: clamp(72px, 20vw, 120px); }
+  .brand-title { font-size: clamp(36px, 10vw, 60px); }
   .home-actions { max-width: 100%; }
 }
 
