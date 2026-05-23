@@ -263,8 +263,8 @@ function previewBullseyeSound(value: string) {
 }
 .brand-sub { font-size: 13px; font-weight: 800; letter-spacing: 0.25em; color: #ffffff; text-transform: uppercase; margin-top: 16px; }
 
-.home-secondary .btn-outline { color: #ffffff; font-weight: 700; }
-.home-secondary .btn-outline:hover { color: var(--pink); }
+.home-secondary .btn-outline { color: #ffffff; font-weight: 700; border-color: #ffffff; }
+.home-secondary .btn-outline:hover { color: var(--pink); border-color: var(--pink); }
 
 .home-actions { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 600px; position: relative; z-index: 1; }
 .home-secondary { display: flex; gap: 12px; justify-content: center; }
