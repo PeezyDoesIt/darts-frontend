@@ -110,10 +110,12 @@
       </div>
     </transition>
 
+    <!-- Bottom-right watermark -->
+    <div class="brand-tag-corner"><span class="brand-tag-emoji">🎯</span> EST. TONIGHT</div>
+
     <!-- Left: Branding -->
     <div class="home-left">
       <div class="brand">
-        <div class="brand-tag">🎯 EST. TONIGHT</div>
         <h1 class="brand-title">DARTS</h1>
         <div class="brand-sub">WHO'S UP. WHO'S DOWN. WHO'S NEXT.</div>
       </div>
@@ -213,8 +215,24 @@ function previewBullseyeSound(value: string) {
   gap: 48px;
 }
 
+.brand-tag-corner {
+  position: fixed;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  right: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.brand-tag-emoji { font-size: 16.1px; }
+
 .brand { position: relative; z-index: 1; text-align: center; }
-.brand-tag { font-size: 14px; font-weight: 700; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
 .brand-title {
   font-family: var(--font-display);
   font-size: clamp(100px, 18vw, 220px);
