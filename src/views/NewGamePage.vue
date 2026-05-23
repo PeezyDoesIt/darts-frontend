@@ -313,10 +313,10 @@ function startGame() {
 
 .ng-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
 
-.ng-left { width: 360px; flex-shrink: 0; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+.ng-left { flex: 1; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
 .ng-left-inner { padding: 28px; display: flex; flex-direction: column; gap: 28px; }
 
-.ng-right { flex: 1; padding: 28px; display: flex; flex-direction: column; gap: 20px; overflow: hidden; }
+.ng-right { width: 360px; flex-shrink: 0; padding: 28px; display: flex; flex-direction: column; gap: 20px; overflow: hidden; }
 .ng-section { display: flex; flex-direction: column; gap: 10px; }
 
 .game-type-grid { display: flex; flex-wrap: wrap; gap: 8px; }
