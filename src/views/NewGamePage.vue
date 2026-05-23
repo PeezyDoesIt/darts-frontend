@@ -416,7 +416,8 @@ function startGame() {
 .order-btns { display: flex; gap: 6px; }
 
 .bg-tabs { display: flex; gap: 8px; }
-.tab { padding: 8px 20px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: var(--text-muted); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+.tab { padding: 8px 20px; border-radius: 6px; border: 2px solid #ffffff; background: transparent; color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+.tab:hover { border-color: var(--pink); color: var(--pink); }
 .tab.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
 
 .game-theme-photo-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
