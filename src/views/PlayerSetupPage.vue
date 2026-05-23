@@ -345,8 +345,8 @@ function save() {
 .setup-form-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; border-right: 1px solid rgba(255,255,255,0.06); }
 .setup-form { padding: 28px; display: flex; flex-direction: column; gap: 24px; }
 .setup-form .label { color: #ffffff; font-weight: 800; }
-.page-header .btn-outline, .setup-form .btn-outline { color: #ffffff; font-weight: 700; border: 2px solid #ffffff; }
-.page-header .btn-outline:hover, .setup-form .btn-outline:hover { color: var(--pink); border-color: var(--pink); }
+.btn-outline { color: #ffffff !important; font-weight: 700 !important; border: 2px solid #ffffff !important; }
+.btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
 
 .field { display: flex; flex-direction: column; gap: 10px; }
 
