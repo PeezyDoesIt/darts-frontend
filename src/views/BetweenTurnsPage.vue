@@ -73,7 +73,7 @@ import { ref, computed, onMounted, onUnmounted, type CSSProperties } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
-import { speak } from '../composables/useSpeech'
+import { speak, cancelPendingSpeak } from '../composables/useSpeech'
 import { playShotgun, playBuzzer, playCountdownBeep, playChime, unlockAudio } from '../composables/useSounds'
 
 const router = useRouter()
@@ -197,7 +197,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (interval) clearInterval(interval)
-  window.speechSynthesis.cancel()
+  cancelPendingSpeak()
 })
 
 function startTurn() { unlockAudio(); playChime(); gameStore.startNextTurn(); router.push('/game') }

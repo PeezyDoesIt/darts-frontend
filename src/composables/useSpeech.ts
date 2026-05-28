@@ -53,6 +53,16 @@ function applyPronunciations(text: string): string {
   return text
 }
 
+let _pendingSpeakTimer: ReturnType<typeof setTimeout> | null = null
+let _pendingVoiceTimer: ReturnType<typeof setTimeout> | null = null
+
+export function cancelPendingSpeak(): void {
+  if (_pendingSpeakTimer !== null) { clearTimeout(_pendingSpeakTimer); _pendingSpeakTimer = null }
+  if (_pendingVoiceTimer !== null) { clearTimeout(_pendingVoiceTimer); _pendingVoiceTimer = null }
+  window.speechSynthesis.onvoiceschanged = null
+  try { window.speechSynthesis.cancel() } catch {}
+}
+
 function doSpeak(text: string, resolve: () => void, opts?: { rate?: number; pitch?: number }) {
   const settings = useSettingsStore()
   // Chrome bug: cancel() while paused can corrupt the queue.
@@ -61,7 +71,9 @@ function doSpeak(text: string, resolve: () => void, opts?: { rate?: number; pitc
   if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
     window.speechSynthesis.cancel()
   }
-  setTimeout(() => {
+  if (_pendingSpeakTimer !== null) clearTimeout(_pendingSpeakTimer)
+  _pendingSpeakTimer = setTimeout(() => {
+    _pendingSpeakTimer = null
     window.speechSynthesis.resume()
     const u = new SpeechSynthesisUtterance(applyPronunciations(text))
     const voice = selectVoice(settings.voiceName)
@@ -83,7 +95,8 @@ export function speak(text: string, opts?: { rate?: number; pitch?: number }): P
       let done = false
       const go = () => { if (done) return; done = true; doSpeak(text, resolve, opts) }
       window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.onvoiceschanged = null; go() }
-      setTimeout(go, 1000)
+      if (_pendingVoiceTimer !== null) clearTimeout(_pendingVoiceTimer)
+      _pendingVoiceTimer = setTimeout(() => { _pendingVoiceTimer = null; go() }, 1000)
     }
   })
 }
