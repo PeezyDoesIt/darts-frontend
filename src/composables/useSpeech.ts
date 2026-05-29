@@ -136,11 +136,13 @@ export function speakOhBaby(): Promise<void> {
   })
 }
 
+const BLOCKED_VOICES = ['Good News', 'Bad News', 'Bubbles', 'Sandy', 'Junior']
+
 export type VoiceOption = { label: string; value: string; sublabel?: string }
 
 export function getAvailableVoices(): VoiceOption[] {
   const voices = window.speechSynthesis.getVoices()
   return voices
-    .filter(v => v.lang.startsWith('en'))
+    .filter(v => v.lang.startsWith('en') && !BLOCKED_VOICES.some(b => v.name.includes(b)))
     .map(v => ({ label: v.name, value: v.name, sublabel: v.lang }))
 }
