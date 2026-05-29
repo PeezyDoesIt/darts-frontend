@@ -293,7 +293,7 @@ function startGame() {
   const t = timerDuration.value
   const tt = throwTimerDuration.value
   gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, gameTheme.value, selectedPlayers.value)
-  router.push('/game')
+  router.push('/between')
 }
 </script>
 
