@@ -179,7 +179,7 @@ function openSettings() {
 }
 
 function testVoice() {
-  speak('Testing. One, two, three. Ready to play some darts?')
+  speak('Testing. 1, 2, 3.')
 }
 
 function previewBullseyeSound(value: string) {
