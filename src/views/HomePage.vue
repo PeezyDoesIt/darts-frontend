@@ -207,10 +207,11 @@ function previewBullseyeSound(value: string) {
 
 .home-left {
   width: 100%;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 64px 56px;
   padding-top: calc(64px + env(safe-area-inset-top));
   padding-bottom: calc(64px + env(safe-area-inset-bottom));
@@ -273,6 +274,14 @@ function previewBullseyeSound(value: string) {
   .home-left { padding: 40px 24px; padding-top: calc(40px + env(safe-area-inset-top)); gap: 32px; }
   .brand-headline { font-size: clamp(72px, 20vw, 120px); }
   .brand-title { font-size: clamp(36px, 10vw, 60px); }
+  .home-actions { max-width: 100%; }
+}
+
+/* iPad portrait (769px–1100px) — scale down so content fits without wrapping */
+@media (min-width: 769px) and (max-width: 1100px) and (orientation: portrait) {
+  .home-left { padding: 48px 40px; padding-top: calc(48px + env(safe-area-inset-top)); gap: 36px; }
+  .brand-headline { font-size: clamp(64px, 10vw, 100px); }
+  .brand-title { font-size: clamp(32px, 5vw, 50px); }
   .home-actions { max-width: 100%; }
 }
 
