@@ -136,13 +136,25 @@ export function speakOhBaby(): Promise<void> {
   })
 }
 
-const BLOCKED_VOICES = ['Good News', 'Bad News', 'Bubbles', 'Sandy', 'Junior']
+const BLOCKED_VOICES = ['Good News', 'Bad News', 'Bubbles', 'Sandy', 'Junior', 'Whisper', 'Wobble']
 
 export type VoiceOption = { label: string; value: string; sublabel?: string }
 
+// Strip " - Language (Region)" suffix to get a base name for deduplication
+function baseName(name: string): string {
+  return name.replace(/\s*-\s*[A-Z][\w\s]+\([\w\s]+\)\s*$/, '').trim()
+}
+
 export function getAvailableVoices(): VoiceOption[] {
   const voices = window.speechSynthesis.getVoices()
+  const seen = new Set<string>()
   return voices
     .filter(v => v.lang.startsWith('en') && !BLOCKED_VOICES.some(b => v.name.includes(b)))
-    .map(v => ({ label: v.name, value: v.name, sublabel: v.lang }))
+    .filter(v => {
+      const base = baseName(v.name)
+      if (seen.has(base)) return false
+      seen.add(base)
+      return true
+    })
+    .map(v => ({ label: baseName(v.name), value: v.name, sublabel: v.lang }))
 }
