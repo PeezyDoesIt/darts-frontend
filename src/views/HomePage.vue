@@ -196,8 +196,8 @@ function previewBullseyeSound(value: string) {
 .home {
   display: flex;
   width: 100vw;
-  height: 100dvh;
-  overflow: hidden;
+  min-height: 100dvh;
+  overflow-y: auto;
   position: relative;
   flex-direction: row;
   background-image: url('/Dartbg.avif');
@@ -215,7 +215,6 @@ function previewBullseyeSound(value: string) {
   padding-top: calc(64px + env(safe-area-inset-top));
   padding-bottom: calc(64px + env(safe-area-inset-bottom));
   position: relative;
-  overflow: hidden;
   gap: 48px;
 }
 
