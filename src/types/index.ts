@@ -66,7 +66,6 @@ export type GameType =
   | 'baseball'
   | 'horse'
   | 'suddenDeath'
-  | 'bobs27'
 
 export const GAME_TYPE_LABELS: Record<GameType, string> = {
   cricket: 'Cricket',
@@ -81,7 +80,6 @@ export const GAME_TYPE_LABELS: Record<GameType, string> = {
   baseball: 'Baseball',
   horse: 'Horse',
   suddenDeath: 'Sudden Death',
-  bobs27: "Bob's 27",
 }
 
 export const CRICKET_TARGETS = [20, 19, 18, 17, 16, 15, 'bull'] as const
