@@ -110,7 +110,7 @@
               <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
             </div>
             <div class="sb-info">
-              <span class="sb-name" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">{{ p.name }}</span>
+              <span class="sb-name">{{ p.name }}</span>
               <span class="sb-score" :style="p.id === currentPlayer.id ? { color: p.color } : {}">{{ displayScore(p.id) }}</span>
             </div>
           </div>
@@ -567,7 +567,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .throw-timer-text.urgent { color: #fff; }
 .throw-timer-lock { position: relative; z-index: 1; font-size: 14px; margin-left: -8px; opacity: 0.6; }
 
-.submit-header-btn { flex-shrink: 0; align-self: center; margin-left: 16px; font-size: 14px; letter-spacing: 0.1em; padding: 12px 28px; }
+.submit-header-btn { flex-shrink: 0; align-self: center; margin-left: 16px; font-size: 14px; letter-spacing: 0.1em; padding: 12px 44px; }
 .submit-header-btn:disabled { opacity: 0.4; }
 .scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; font-size: 14px; letter-spacing: 0.1em; padding: 12px 40px; }
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
@@ -641,9 +641,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .sb-player-row.active { background: rgba(255,255,255,0.07); }
 .sb-avatar { display: none; }
 .sb-info { width: 100%; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.sb-name { font-size: 11px; font-weight: 800; font-family: var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.03em; color: rgba(255,255,255,0.55); }
-.sb-player-row.active .sb-name { color: #fff; }
-.sb-score { font-size: 22px; font-weight: 900; font-family: var(--font-display); line-height: 1; color: rgba(255,255,255,0.35); }
+.sb-name { font-size: 11px; font-weight: 900; font-family: var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.03em; color: #ffffff; }
+.sb-score { font-size: 22px; font-weight: 900; font-family: var(--font-display); line-height: 1; color: #ffffff; }
 .sb-player-row.active .sb-score { font-size: 26px; }
 
 /* Fullscreen scores overlay */
