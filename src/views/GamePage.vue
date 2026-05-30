@@ -36,6 +36,23 @@
           >SUBMIT TURN</button>
         </div>
 
+        <!-- Persistent mini scoreboard strip -->
+        <div class="mini-scoreboard">
+          <div
+            v-for="p in game.players" :key="p.id"
+            class="mini-player-card"
+            :class="{ active: p.id === currentPlayer.id }"
+            :style="p.id === currentPlayer.id ? { borderColor: p.color, background: p.color + '18' } : {}"
+          >
+            <div class="mini-avatar" :style="{ background: p.color }">
+              <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
+              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+            </div>
+            <span class="mini-name" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">{{ p.name }}</span>
+            <span class="mini-score" :style="p.id === currentPlayer.id ? { color: p.color } : {}">{{ displayScore(p.id) }}</span>
+          </div>
+        </div>
+
         <div class="entry-body">
           <CricketEntry
             v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'"
@@ -553,6 +570,39 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .submit-header-btn:disabled { opacity: 0.4; }
 .scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; font-size: 14px; letter-spacing: 0.1em; padding: 12px 40px; }
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+
+/* Mini scoreboard strip */
+.mini-scoreboard {
+  display: flex; flex-direction: row; overflow-x: auto; flex-shrink: 0;
+  padding: 6px 10px; gap: 6px;
+  background: rgba(0,0,0,0.35); border-bottom: 1px solid rgba(255,255,255,0.07);
+  scrollbar-width: none;
+}
+.mini-scoreboard::-webkit-scrollbar { display: none; }
+.mini-player-card {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1px; padding: 6px 10px; border-radius: 8px; flex-shrink: 0;
+  border: 1.5px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
+  min-width: 72px; transition: border-color 0.2s, background 0.2s;
+}
+.mini-player-card.active { border-width: 2px; }
+.mini-avatar {
+  width: 26px; height: 26px; border-radius: 4px; display: flex; align-items: center;
+  justify-content: center; font-size: 14px; overflow: hidden; flex-shrink: 0;
+}
+.mini-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.mini-name {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.55); white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; max-width: 72px; text-align: center;
+  font-family: var(--font-display);
+}
+.mini-player-card.active .mini-name { color: #fff; }
+.mini-score {
+  font-size: 20px; font-weight: 900; font-family: var(--font-display);
+  line-height: 1; color: rgba(255,255,255,0.4);
+}
+.mini-player-card.active .mini-score { font-size: 24px; }
 
 /* Scores sidebar — always visible */
 .scores-sidebar {
