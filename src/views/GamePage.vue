@@ -618,36 +618,36 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .cricket-strip::-webkit-scrollbar { display: none; }
 .cs-header {
   display: flex; align-items: center;
-  padding: 2px 8px 1px;
+  padding: 4px 8px 2px;
   background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06);
   position: sticky; top: 0; z-index: 1;
 }
-.cs-name-col { width: 68px; flex-shrink: 0; }
+.cs-name-col { width: 72px; flex-shrink: 0; }
 .cs-target-head {
   flex: 1; text-align: center;
-  font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
-  color: rgba(255,255,255,0.45); font-family: var(--font-display); line-height: 1;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.45); font-family: var(--font-display);
 }
 .cs-row {
   display: flex; align-items: center;
-  padding: 2px 8px; border-left: 3px solid transparent;
+  padding: 3px 8px; border-left: 3px solid transparent;
   border-bottom: 1px solid rgba(255,255,255,0.05);
-  transition: border-color 0.2s; min-height: 0;
+  transition: border-color 0.2s;
 }
 .cs-active { background: rgba(255,255,255,0.04); }
 .cs-name {
-  width: 68px; flex-shrink: 0;
-  font-size: 11px; font-weight: 800; letter-spacing: 0.03em; line-height: 1;
+  width: 72px; flex-shrink: 0;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.03em;
   color: rgba(255,255,255,0.5); white-space: nowrap; overflow: hidden;
   text-overflow: ellipsis; font-family: var(--font-display);
 }
 .cs-cell {
   flex: 1; display: flex; justify-content: center; align-items: center; gap: 2px;
-  padding: 0;
+  padding: 1px 0;
 }
 .cs-closed { opacity: 0.35; }
 .cs-pip {
-  width: 6px; height: 6px; border-radius: 50%;
+  width: 7px; height: 7px; border-radius: 50%;
   border: 1.5px solid rgba(255,255,255,0.2);
   background: transparent; transition: background 0.1s;
 }
