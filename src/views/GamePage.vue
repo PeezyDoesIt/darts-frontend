@@ -648,7 +648,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .cs-closed { opacity: 0.35; }
 .cs-pip {
   width: 7px; height: 7px; border-radius: 50%;
-  border: 1.5px solid rgba(255,255,255,0.2);
+  border: 1.5px solid rgba(255,255,255,0.75);
   background: transparent; transition: background 0.1s;
 }
 .cs-pip.filled { border-color: transparent; }
