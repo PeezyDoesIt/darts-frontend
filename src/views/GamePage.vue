@@ -36,20 +36,26 @@
           >SUBMIT TURN</button>
         </div>
 
-        <!-- Persistent mini scoreboard strip -->
-        <div class="mini-scoreboard">
+        <!-- Cricket marks grid: all players × all targets, always visible -->
+        <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'" class="cricket-strip">
+          <div class="cs-header">
+            <div class="cs-name-col"></div>
+            <div v-for="t in CRICKET_TARGETS" :key="t" class="cs-target-head">{{ t === 'bull' ? 'B' : t }}</div>
+          </div>
           <div
             v-for="p in game.players" :key="p.id"
-            class="mini-player-card"
-            :class="{ active: p.id === currentPlayer.id }"
-            :style="p.id === currentPlayer.id ? { borderColor: p.color, background: p.color + '18' } : {}"
+            class="cs-row"
+            :class="{ 'cs-active': p.id === currentPlayer.id }"
+            :style="p.id === currentPlayer.id ? { borderLeftColor: p.color } : {}"
           >
-            <div class="mini-avatar" :style="{ background: p.color }">
-              <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+            <div class="cs-name" :style="p.id === currentPlayer.id ? { color: p.color } : {}">{{ p.name }}</div>
+            <div v-for="t in CRICKET_TARGETS" :key="t" class="cs-cell"
+              :class="{ 'cs-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }">
+              <span v-for="n in 3" :key="n" class="cs-pip"
+                :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
+                :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 4px ${p.color}` } : {}"
+              />
             </div>
-            <span class="mini-name" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">{{ p.name }}</span>
-            <span class="mini-score" :style="p.id === currentPlayer.id ? { color: p.color } : {}">{{ displayScore(p.id) }}</span>
           </div>
         </div>
 
@@ -571,38 +577,50 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; font-size: 14px; letter-spacing: 0.1em; padding: 12px 40px; }
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
-/* Mini scoreboard strip */
-.mini-scoreboard {
-  display: flex; flex-direction: row; overflow-x: auto; flex-shrink: 0;
-  padding: 6px 10px; gap: 6px;
-  background: rgba(0,0,0,0.35); border-bottom: 1px solid rgba(255,255,255,0.07);
-  scrollbar-width: none;
+/* Cricket marks grid strip */
+.cricket-strip {
+  flex-shrink: 0; overflow-y: auto;
+  background: rgba(0,0,0,0.4); border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex; flex-direction: column;
+  scrollbar-width: none; max-height: 45vh;
 }
-.mini-scoreboard::-webkit-scrollbar { display: none; }
-.mini-player-card {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 1px; padding: 6px 10px; border-radius: 8px; flex-shrink: 0;
-  border: 1.5px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
-  min-width: 72px; transition: border-color 0.2s, background 0.2s;
+.cricket-strip::-webkit-scrollbar { display: none; }
+.cs-header {
+  display: flex; align-items: center;
+  padding: 4px 8px 2px;
+  background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: sticky; top: 0; z-index: 1;
 }
-.mini-player-card.active { border-width: 2px; }
-.mini-avatar {
-  width: 26px; height: 26px; border-radius: 4px; display: flex; align-items: center;
-  justify-content: center; font-size: 14px; overflow: hidden; flex-shrink: 0;
+.cs-name-col { width: 80px; flex-shrink: 0; }
+.cs-target-head {
+  flex: 1; text-align: center;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.45); font-family: var(--font-display);
 }
-.mini-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.mini-name {
-  font-size: 10px; font-weight: 800; letter-spacing: 0.04em;
-  color: rgba(255,255,255,0.55); white-space: nowrap; overflow: hidden;
-  text-overflow: ellipsis; max-width: 72px; text-align: center;
-  font-family: var(--font-display);
+.cs-row {
+  display: flex; align-items: center;
+  padding: 6px 8px; border-left: 3px solid transparent;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: border-color 0.2s;
 }
-.mini-player-card.active .mini-name { color: #fff; }
-.mini-score {
-  font-size: 20px; font-weight: 900; font-family: var(--font-display);
-  line-height: 1; color: rgba(255,255,255,0.4);
+.cs-active { background: rgba(255,255,255,0.04); }
+.cs-name {
+  width: 80px; flex-shrink: 0;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.03em;
+  color: rgba(255,255,255,0.5); white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; font-family: var(--font-display);
 }
-.mini-player-card.active .mini-score { font-size: 24px; }
+.cs-cell {
+  flex: 1; display: flex; justify-content: center; align-items: center; gap: 2px;
+  padding: 2px 0;
+}
+.cs-closed { opacity: 0.35; }
+.cs-pip {
+  width: 8px; height: 8px; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  background: transparent; transition: background 0.1s;
+}
+.cs-pip.filled { border-color: transparent; }
 
 /* Scores sidebar — always visible */
 .scores-sidebar {
