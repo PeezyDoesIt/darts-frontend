@@ -277,9 +277,9 @@ function previewBullseyeSound(value: string) {
   .home-actions { max-width: 100%; }
 }
 
-/* iPad portrait (769px–1100px) — scale down so content fits without wrapping */
+/* iPad portrait (769px–1100px) — center content vertically like landscape */
 @media (min-width: 769px) and (max-width: 1100px) and (orientation: portrait) {
-  .home-left { padding: 48px 40px; padding-top: calc(48px + env(safe-area-inset-top)); gap: 36px; }
+  .home-left { padding: 48px 40px; padding-top: calc(48px + env(safe-area-inset-top)); gap: 36px; justify-content: center; }
   .brand-headline { font-size: clamp(64px, 10vw, 100px); }
   .brand-title { font-size: clamp(32px, 5vw, 50px); }
   .home-actions { max-width: 100%; }
