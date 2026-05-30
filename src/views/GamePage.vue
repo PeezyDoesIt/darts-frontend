@@ -92,11 +92,11 @@
         </div>
       </div>
 
-      <!-- Scores sidebar (hidden — use SCORES button overlay instead) -->
-      <div class="scores-sidebar" style="display:none">
+      <!-- Scores sidebar — always visible -->
+      <div class="scores-sidebar">
         <div class="sb-game-info">
           <span class="sb-game-type">{{ GAME_TYPE_LABELS[game.gameType] }}</span>
-          <span class="sb-round">Round {{ game.round }}</span>
+          <span class="sb-round">Rnd {{ game.round }}</span>
         </div>
         <div class="sb-players">
           <div
@@ -111,14 +111,9 @@
             </div>
             <div class="sb-info">
               <span class="sb-name" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">{{ p.name }}</span>
-              <span v-if="p.id === currentPlayer.id" class="sb-throwing">throwing</span>
+              <span class="sb-score" :style="p.id === currentPlayer.id ? { color: p.color } : {}">{{ displayScore(p.id) }}</span>
             </div>
-            <span class="sb-score" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">{{ displayScore(p.id) }}</span>
           </div>
-        </div>
-        <div class="sb-footer">
-          <button v-ripple class="btn btn-sm btn-surface" @click="showAllScores = true">Detail</button>
-          <button v-ripple class="btn btn-sm btn-danger" @click="confirmQuit = true">Quit</button>
         </div>
       </div>
 
@@ -593,7 +588,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .cs-name-col { width: 72px; flex-shrink: 0; }
 .cs-target-head {
-  width: 42px; flex-shrink: 0; text-align: center;
+  flex: 1; text-align: center;
   font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
   color: rgba(255,255,255,0.45); font-family: var(--font-display);
 }
@@ -611,7 +606,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   text-overflow: ellipsis; font-family: var(--font-display);
 }
 .cs-cell {
-  width: 42px; flex-shrink: 0; display: flex; justify-content: center; align-items: center; gap: 2px;
+  flex: 1; display: flex; justify-content: center; align-items: center; gap: 2px;
   padding: 2px 0;
 }
 .cs-closed { opacity: 0.35; }
@@ -624,37 +619,32 @@ watch(() => game.value?.currentPlayerIndex, () => {
 
 /* Scores sidebar — always visible */
 .scores-sidebar {
-  width: 260px; flex-shrink: 0; display: flex; flex-direction: column;
+  width: 110px; flex-shrink: 0; display: flex; flex-direction: column;
   border-left: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.02); overflow: hidden;
+  background: rgba(0,0,0,0.3); overflow: hidden;
 }
 .sb-game-info {
-  display: flex; flex-direction: column; padding: 14px 16px;
-  padding-top: calc(14px + env(safe-area-inset-top));
+  display: flex; flex-direction: column; padding: 8px 10px;
+  padding-top: calc(8px + env(safe-area-inset-top));
   border-bottom: 1px solid rgba(255,255,255,0.06);
   background: rgba(255,255,255,0.03); flex-shrink: 0;
 }
-.sb-game-type { font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); font-family: var(--font-display); }
-.sb-round { font-size: 11px; color: var(--text-muted); margin-top: 2px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
-.sb-players { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.sb-game-type { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pink); font-family: var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-round { font-size: 10px; color: var(--text-muted); margin-top: 1px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; }
+.sb-players { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 4px; scrollbar-width: none; }
+.sb-players::-webkit-scrollbar { display: none; }
 .sb-player-row {
-  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 7px 8px;
   background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
   border-left: 3px solid transparent; border-radius: 6px; transition: border-color 0.2s;
 }
-.sb-player-row.active { border-left-color: var(--pink); }
-.sb-avatar { width: 34px; height: 34px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; overflow: hidden; }
-.sb-info { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.sb-name { font-size: 13px; font-weight: 800; font-family: var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.03em; }
-.sb-throwing { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
-.sb-score { font-size: 36px; font-weight: 900; font-family: var(--font-display); flex-shrink: 0; line-height: 1; }
-.sb-player-row.active .sb-score { font-size: 72px; }
-.sb-footer {
-  display: flex; gap: 8px; padding: 10px;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0;
-}
-.sb-footer .btn { flex: 1; }
+.sb-player-row.active { background: rgba(255,255,255,0.07); }
+.sb-avatar { display: none; }
+.sb-info { width: 100%; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.sb-name { font-size: 11px; font-weight: 800; font-family: var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.03em; color: rgba(255,255,255,0.55); }
+.sb-player-row.active .sb-name { color: #fff; }
+.sb-score { font-size: 22px; font-weight: 900; font-family: var(--font-display); line-height: 1; color: rgba(255,255,255,0.35); }
+.sb-player-row.active .sb-score { font-size: 26px; }
 
 /* Fullscreen scores overlay */
 .scores-overlay {
