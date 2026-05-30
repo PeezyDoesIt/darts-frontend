@@ -70,16 +70,16 @@ export type GameType =
 export const GAME_TYPE_LABELS: Record<GameType, string> = {
   cricket: 'Cricket',
   cutThroat: 'Cut Throat Cricket',
-  '301': '301',
-  '501': '501',
-  '701': '701',
-  '1001': '1001',
   aroundTheClock: 'Around the Clock',
   killer: 'Killer',
   halveit: 'Halve-It',
   baseball: 'Baseball',
   horse: 'Horse',
   suddenDeath: 'Sudden Death',
+  '301': '301',
+  '501': '501',
+  '701': '701',
+  '1001': '1001',
 }
 
 export const CRICKET_TARGETS = [20, 19, 18, 17, 16, 15, 'bull'] as const
