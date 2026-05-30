@@ -41,27 +41,54 @@
         </div>
 
         <!-- Cricket marks grid: top strip (default) -->
-        <div v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat') && marksLayout === 'top'" class="cricket-strip">
-          <div class="cs-header">
-            <div class="cs-name-col"></div>
-            <div v-for="t in CRICKET_TARGETS" :key="t" class="cs-target-head">{{ t === 'bull' ? 'B' : t }}</div>
-          </div>
-          <div
-            v-for="p in game.players" :key="p.id"
-            class="cs-row"
-            :class="{ 'cs-active': p.id === currentPlayer.id }"
-            :style="p.id === currentPlayer.id ? { borderLeftColor: p.color } : {}"
-          >
-            <div class="cs-name" :style="p.id === currentPlayer.id ? { color: p.color } : {}">{{ p.name }}</div>
-            <div v-for="t in CRICKET_TARGETS" :key="t" class="cs-cell"
-              :class="{ 'cs-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }">
-              <span v-for="n in 3" :key="n" class="cs-pip"
-                :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
-                :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 4px ${p.color}` } : {}"
-              />
+        <template v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat') && marksLayout === 'top'">
+
+          <!-- 1-3 players: players as rows, targets as columns -->
+          <div v-if="game.players.length < 4" class="cricket-strip">
+            <div class="cs-header">
+              <div class="cs-name-col"></div>
+              <div v-for="t in CRICKET_TARGETS" :key="t" class="cs-target-head">{{ t === 'bull' ? 'B' : t }}</div>
+            </div>
+            <div
+              v-for="p in game.players" :key="p.id"
+              class="cs-row"
+              :class="{ 'cs-active': p.id === currentPlayer.id }"
+              :style="p.id === currentPlayer.id ? { borderLeftColor: p.color } : {}"
+            >
+              <div class="cs-name" :style="p.id === currentPlayer.id ? { color: p.color } : {}">{{ p.name }}</div>
+              <div v-for="t in CRICKET_TARGETS" :key="t" class="cs-cell"
+                :class="{ 'cs-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }">
+                <span v-for="n in 3" :key="n" class="cs-pip"
+                  :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
+                  :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 4px ${p.color}` } : {}"
+                />
+              </div>
             </div>
           </div>
-        </div>
+
+          <!-- 4+ players: transposed — targets as rows, players as columns -->
+          <div v-else class="cricket-strip cricket-strip-transposed">
+            <div class="cst-header">
+              <div class="cst-target-col"></div>
+              <div v-for="p in game.players" :key="p.id" class="cst-player-head"
+                :style="p.id === currentPlayer.id ? { color: p.color } : {}">
+                {{ p.name }}
+              </div>
+            </div>
+            <div v-for="t in CRICKET_TARGETS" :key="t" class="cst-row">
+              <div class="cst-target-label">{{ t === 'bull' ? 'B' : t }}</div>
+              <div v-for="p in game.players" :key="p.id" class="cst-cell"
+                :class="{ 'cs-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }"
+                :style="p.id === currentPlayer.id ? { background: p.color + '10' } : {}">
+                <span v-for="n in 3" :key="n" class="cs-pip"
+                  :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
+                  :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 4px ${p.color}` } : {}"
+                />
+              </div>
+            </div>
+          </div>
+
+        </template>
 
         <div class="entry-body">
           <CricketEntry
@@ -603,7 +630,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .cs-row {
   display: flex; align-items: center;
-  padding: 6px 8px; border-left: 3px solid transparent;
+  padding: 3px 8px; border-left: 3px solid transparent;
   border-bottom: 1px solid rgba(255,255,255,0.05);
   transition: border-color 0.2s;
 }
@@ -616,15 +643,41 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .cs-cell {
   flex: 1; display: flex; justify-content: center; align-items: center; gap: 2px;
-  padding: 2px 0;
+  padding: 1px 0;
 }
 .cs-closed { opacity: 0.35; }
 .cs-pip {
-  width: 8px; height: 8px; border-radius: 50%;
+  width: 7px; height: 7px; border-radius: 50%;
   border: 1.5px solid rgba(255,255,255,0.2);
   background: transparent; transition: background 0.1s;
 }
 .cs-pip.filled { border-color: transparent; }
+
+/* Transposed top strip (4+ players): targets as rows, players as columns */
+.cricket-strip-transposed { max-height: none; }
+.cst-header {
+  display: flex; align-items: center; padding: 3px 8px 2px;
+  background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: sticky; top: 0; z-index: 1;
+}
+.cst-target-col { width: 28px; flex-shrink: 0; }
+.cst-player-head {
+  flex: 1; text-align: center; font-size: 10px; font-weight: 900;
+  letter-spacing: 0.04em; color: rgba(255,255,255,0.5);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-family: var(--font-display);
+}
+.cst-row {
+  display: flex; align-items: center; padding: 3px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.cst-target-label {
+  width: 28px; flex-shrink: 0; font-size: 10px; font-weight: 800;
+  letter-spacing: 0.06em; color: rgba(255,255,255,0.45); font-family: var(--font-display);
+}
+.cst-cell {
+  flex: 1; display: flex; justify-content: center; align-items: center; gap: 2px; padding: 1px 0;
+}
 
 /* Layout toggle button */
 .marks-layout-btn { flex-shrink: 0; align-self: center; margin: 0 4px; padding: 12px 14px; font-size: 12px; }
