@@ -27,17 +27,21 @@
           <div v-else class="throw-timer-spacer" />
 
           <button v-ripple class="btn btn-sm btn-surface scores-btn" @click="showAllScores = !showAllScores">SCORES</button>
-          <button
-            v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'"
-            v-ripple
-            class="btn btn-sm btn-gold submit-header-btn"
-            :disabled="cricketEntryRef?.submitted"
-            @click="cricketEntryRef?.submit()"
-          >SUBMIT TURN</button>
+          <template v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'">
+            <button v-ripple class="btn btn-sm btn-surface marks-layout-btn" @click="toggleMarksLayout" :title="marksLayout === 'top' ? 'Move marks to right column' : 'Move marks to top strip'">
+              {{ marksLayout === 'top' ? '▶' : '▼' }}
+            </button>
+            <button
+              v-ripple
+              class="btn btn-sm btn-gold submit-header-btn"
+              :disabled="cricketEntryRef?.submitted"
+              @click="cricketEntryRef?.submit()"
+            >SUBMIT TURN</button>
+          </template>
         </div>
 
-        <!-- Cricket marks grid: all players × all targets, always visible -->
-        <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'" class="cricket-strip">
+        <!-- Cricket marks grid: top strip (default) -->
+        <div v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat') && marksLayout === 'top'" class="cricket-strip">
           <div class="cs-header">
             <div class="cs-name-col"></div>
             <div v-for="t in CRICKET_TARGETS" :key="t" class="cs-target-head">{{ t === 'bull' ? 'B' : t }}</div>
@@ -92,27 +96,25 @@
         </div>
       </div>
 
-      <!-- Scores sidebar — always visible -->
-      <div class="scores-sidebar">
-        <div class="sb-game-info">
-          <span class="sb-game-type">{{ GAME_TYPE_LABELS[game.gameType] }}</span>
-          <span class="sb-round">Rnd {{ game.round }}</span>
+      <!-- Cricket marks grid: right column (optional layout) -->
+      <div v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat') && marksLayout === 'right'" class="cricket-col">
+        <!-- Player name headers -->
+        <div class="cc-header">
+          <div class="cc-target-label"></div>
+          <div v-for="p in game.players" :key="p.id" class="cc-player-head"
+            :style="p.id === currentPlayer.id ? { color: p.color } : {}">
+            {{ p.name }}
+          </div>
         </div>
-        <div class="sb-players">
-          <div
-            v-for="p in game.players" :key="p.id"
-            class="sb-player-row"
-            :class="{ active: p.id === currentPlayer.id }"
-            :style="p.id === currentPlayer.id ? { borderLeftColor: p.color } : {}"
-          >
-            <div class="sb-avatar" :style="{ background: p.color }">
-              <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover" />
-              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
-            </div>
-            <div class="sb-info">
-              <span class="sb-name">{{ p.name }}</span>
-              <span class="sb-score" :style="p.id === currentPlayer.id ? { color: p.color } : {}">{{ displayScore(p.id) }}</span>
-            </div>
+        <!-- One row per target -->
+        <div v-for="t in CRICKET_TARGETS" :key="t" class="cc-target-row">
+          <div class="cc-target-label">{{ t === 'bull' ? 'B' : t }}</div>
+          <div v-for="p in game.players" :key="p.id" class="cc-cell"
+            :class="{ 'cc-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }">
+            <span v-for="n in 3" :key="n" class="cs-pip"
+              :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
+              :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 4px ${p.color}` } : {}"
+            />
           </div>
         </div>
       </div>
@@ -304,6 +306,13 @@ const game = computed(() => gameStore.game)
 const confirmQuit = ref(false)
 const showAllScores = ref(false)
 const showAddPlayer = ref(false)
+const marksLayout = ref<'top' | 'right'>(
+  (localStorage.getItem('cricketMarksLayout') as 'top' | 'right') ?? 'top'
+)
+function toggleMarksLayout() {
+  marksLayout.value = marksLayout.value === 'top' ? 'right' : 'top'
+  localStorage.setItem('cricketMarksLayout', marksLayout.value)
+}
 const cricketEntryRef = ref<InstanceType<typeof CricketEntry> | null>(null)
 
 const TIMER_OPTIONS = [60, 90, 120, 180]
@@ -617,33 +626,42 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .cs-pip.filled { border-color: transparent; }
 
-/* Scores sidebar — always visible */
-.scores-sidebar {
-  width: 110px; flex-shrink: 0; display: flex; flex-direction: column;
+/* Layout toggle button */
+.marks-layout-btn { flex-shrink: 0; align-self: center; margin: 0 4px; padding: 12px 14px; font-size: 12px; }
+
+/* Cricket marks right column */
+.cricket-col {
+  width: 130px; flex-shrink: 0; display: flex; flex-direction: column;
   border-left: 1px solid rgba(255,255,255,0.08);
-  background: rgba(0,0,0,0.3); overflow: hidden;
+  background: rgba(0,0,0,0.4); overflow-y: auto; scrollbar-width: none;
 }
-.sb-game-info {
-  display: flex; flex-direction: column; padding: 8px 10px;
-  padding-top: calc(8px + env(safe-area-inset-top));
+.cricket-col::-webkit-scrollbar { display: none; }
+.cc-header {
+  display: flex; flex-direction: row; align-items: center;
+  padding: 6px 6px 4px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.03); flex-shrink: 0;
+  background: rgba(255,255,255,0.03);
+  position: sticky; top: 0; z-index: 1; flex-shrink: 0;
 }
-.sb-game-type { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pink); font-family: var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sb-round { font-size: 10px; color: var(--text-muted); margin-top: 1px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; }
-.sb-players { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 4px; scrollbar-width: none; }
-.sb-players::-webkit-scrollbar { display: none; }
-.sb-player-row {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 7px 8px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
-  border-left: 3px solid transparent; border-radius: 6px; transition: border-color 0.2s;
+.cc-player-head {
+  flex: 1; text-align: center;
+  font-size: 10px; font-weight: 900; letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.55); white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; font-family: var(--font-display);
 }
-.sb-player-row.active { background: rgba(255,255,255,0.07); }
-.sb-avatar { display: none; }
-.sb-info { width: 100%; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.sb-name { font-size: 11px; font-weight: 900; font-family: var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.03em; color: #ffffff; }
-.sb-score { font-size: 22px; font-weight: 900; font-family: var(--font-display); line-height: 1; color: #ffffff; }
-.sb-player-row.active .sb-score { font-size: 26px; }
+.cc-target-row {
+  display: flex; flex-direction: row; align-items: center;
+  padding: 5px 6px; border-bottom: 1px solid rgba(255,255,255,0.05); flex-shrink: 0;
+}
+.cc-target-label {
+  width: 22px; flex-shrink: 0; text-align: center;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.45); font-family: var(--font-display);
+}
+.cc-cell {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.cc-closed { opacity: 0.3; }
 
 /* Fullscreen scores overlay */
 .scores-overlay {
@@ -794,18 +812,9 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .game { position: fixed; inset: 0; }
   .game-body { flex-direction: column; }
   .entry-panel { flex: 1; width: 100%; min-height: 0; }
-  .scores-sidebar { width: 100%; height: auto; flex-shrink: 0; border-left: none; border-top: 1px solid rgba(255,255,255,0.08); flex-direction: row; align-items: center; padding: 0; }
-  .sb-game-info { display: none; }
-  .sb-players { flex-direction: row; flex: 1; padding: 6px 8px; gap: 6px; overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap; align-items: center; }
-  .sb-player-row { flex-shrink: 0; flex-direction: column; align-items: center; gap: 4px; padding: 8px 10px; border-left: none; border-bottom: 3px solid transparent; border-radius: 6px; }
-  .sb-player-row.active { border-bottom-color: var(--pink); border-left-color: transparent; }
-  .sb-avatar { width: 28px; height: 28px; font-size: 14px; }
-  .sb-info { align-items: center; }
-  .sb-name { font-size: 11px; }
-  .sb-throwing { display: none; }
-  .sb-score { font-size: 28px; }
-  .sb-player-row.active .sb-score { font-size: 56px; }
-  .sb-footer { display: none; }
+  .cricket-col { width: 100px; }
+  .cc-player-head { font-size: 9px; }
+  .cc-target-label { font-size: 10px; width: 18px; }
   .turn-header { min-height: 58px; }
   .turn-player-box { padding: 8px 12px 8px 16px; gap: 8px; }
   .turn-avatar { width: 38px; height: 38px; font-size: 18px; }
