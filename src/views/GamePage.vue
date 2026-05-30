@@ -591,9 +591,9 @@ watch(() => game.value?.currentPlayerIndex, () => {
   background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06);
   position: sticky; top: 0; z-index: 1;
 }
-.cs-name-col { width: 80px; flex-shrink: 0; }
+.cs-name-col { width: 72px; flex-shrink: 0; }
 .cs-target-head {
-  flex: 1; text-align: center;
+  width: 42px; flex-shrink: 0; text-align: center;
   font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
   color: rgba(255,255,255,0.45); font-family: var(--font-display);
 }
@@ -605,13 +605,13 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .cs-active { background: rgba(255,255,255,0.04); }
 .cs-name {
-  width: 80px; flex-shrink: 0;
+  width: 72px; flex-shrink: 0;
   font-size: 12px; font-weight: 800; letter-spacing: 0.03em;
   color: rgba(255,255,255,0.5); white-space: nowrap; overflow: hidden;
   text-overflow: ellipsis; font-family: var(--font-display);
 }
 .cs-cell {
-  flex: 1; display: flex; justify-content: center; align-items: center; gap: 2px;
+  width: 42px; flex-shrink: 0; display: flex; justify-content: center; align-items: center; gap: 2px;
   padding: 2px 0;
 }
 .cs-closed { opacity: 0.35; }
