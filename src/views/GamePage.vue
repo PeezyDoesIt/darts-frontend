@@ -863,8 +863,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 
 @media (max-width: 768px) {
   .game { position: fixed; inset: 0; }
-  .game-body { flex-direction: column; }
-  .entry-panel { flex: 1; width: 100%; min-height: 0; }
+  .entry-panel { flex: 1; min-height: 0; }
   .cricket-col { width: 100px; }
   .cc-player-head { font-size: 9px; }
   .cc-target-label { font-size: 10px; width: 18px; }
