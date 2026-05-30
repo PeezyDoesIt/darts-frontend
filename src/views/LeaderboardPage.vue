@@ -73,6 +73,8 @@ const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !=
   background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0;
 }
 .page-title { font-size: 28px; letter-spacing: 0.12em; background: linear-gradient(135deg, var(--gold), var(--orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.btn-outline { color: #ffffff !important; font-weight: 700 !important; border: 2px solid #ffffff !important; }
+.btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
 
 .lb-body { flex: 1; display: flex; gap: 48px; padding: 36px 48px; overflow: hidden; }
 .empty { width: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 18px; }
