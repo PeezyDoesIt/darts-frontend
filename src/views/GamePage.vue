@@ -71,7 +71,7 @@
             <div class="cst-header">
               <div class="cst-target-col"></div>
               <div v-for="p in game.players" :key="p.id" class="cst-player-head"
-                :style="p.id === currentPlayer.id ? { color: p.color } : {}">
+                :style="{ color: p.color }">
                 {{ p.name }}
               </div>
             </div>
@@ -129,7 +129,7 @@
         <div class="cc-header">
           <div class="cc-target-label"></div>
           <div v-for="p in game.players" :key="p.id" class="cc-player-head"
-            :style="p.id === currentPlayer.id ? { color: p.color } : {}">
+            :style="{ color: p.color }">
             {{ p.name }}
           </div>
         </div>
@@ -663,7 +663,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .cst-target-col { width: 28px; flex-shrink: 0; }
 .cst-player-head {
   flex: 1; text-align: center; font-size: 10px; font-weight: 900;
-  letter-spacing: 0.04em; color: rgba(255,255,255,0.5);
+  letter-spacing: 0.04em;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   font-family: var(--font-display);
 }
@@ -672,8 +672,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 .cst-target-label {
-  width: 28px; flex-shrink: 0; font-size: 10px; font-weight: 800;
-  letter-spacing: 0.06em; color: rgba(255,255,255,0.45); font-family: var(--font-display);
+  width: 28px; flex-shrink: 0; font-size: 11px; font-weight: 900;
+  letter-spacing: 0.06em; color: #ffffff; font-family: var(--font-display);
 }
 .cst-cell {
   flex: 1; display: flex; justify-content: center; align-items: center; gap: 2px; padding: 1px 0;
@@ -699,7 +699,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .cc-player-head {
   flex: 1; text-align: center;
   font-size: 10px; font-weight: 900; letter-spacing: 0.04em;
-  color: rgba(255,255,255,0.55); white-space: nowrap; overflow: hidden;
+  white-space: nowrap; overflow: hidden;
   text-overflow: ellipsis; font-family: var(--font-display);
 }
 .cc-target-row {
@@ -708,8 +708,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .cc-target-label {
   width: 22px; flex-shrink: 0; text-align: center;
-  font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
-  color: rgba(255,255,255,0.45); font-family: var(--font-display);
+  font-size: 12px; font-weight: 900; letter-spacing: 0.06em;
+  color: #ffffff; font-family: var(--font-display);
 }
 .cc-cell {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
