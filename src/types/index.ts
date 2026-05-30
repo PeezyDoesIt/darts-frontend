@@ -82,6 +82,10 @@ export const GAME_TYPE_LABELS: Record<GameType, string> = {
   '1001': '1001',
 }
 
+export const GAME_TYPE_ORDER: GameType[] = [
+  'cricket', 'cutThroat', 'aroundTheClock', 'killer', 'halveit', 'baseball', 'horse', 'suddenDeath', '301', '501', '701', '1001',
+]
+
 export const CRICKET_TARGETS = [20, 19, 18, 17, 16, 15, 'bull'] as const
 export type CricketTarget = (typeof CRICKET_TARGETS)[number]
 

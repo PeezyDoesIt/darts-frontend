@@ -17,12 +17,12 @@
             <span class="label">Game Type</span>
             <div class="game-type-grid">
               <button
-                v-for="(label, type) in GAME_TYPE_LABELS" :key="type"
+                v-for="type in GAME_TYPE_ORDER" :key="type"
                 v-ripple
                 class="game-type-btn"
                 :class="{ active: selectedGameType === type }"
-                @click="selectedGameType = (type as GameType)"
-              >{{ label }}</button>
+                @click="selectedGameType = type"
+              >{{ GAME_TYPE_LABELS[type] }}</button>
             </div>
           </section>
 
@@ -206,7 +206,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
-import { GAME_TYPE_LABELS, PLAYER_THEMES, type GameType, type Player } from '../types/index'
+import { GAME_TYPE_LABELS, GAME_TYPE_ORDER, PLAYER_THEMES, type GameType, type Player } from '../types/index'
 
 const router = useRouter()
 const playersStore = usePlayersStore()
