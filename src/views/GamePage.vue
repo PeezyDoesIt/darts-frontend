@@ -47,7 +47,7 @@
           <div v-if="game.players.length < 4" class="cricket-strip">
             <div class="cs-header">
               <div class="cs-name-col"></div>
-              <div v-for="t in CRICKET_TARGETS" :key="t" class="cs-target-head">{{ t === 'bull' ? 'B' : t }}</div>
+              <div v-for="t in CRICKET_TARGETS" :key="t" class="cs-target-head" :style="{ color: currentPlayerNameColor }">{{ t === 'bull' ? 'B' : t }}</div>
             </div>
             <div
               v-for="p in game.players" :key="p.id"
@@ -76,7 +76,7 @@
               </div>
             </div>
             <div v-for="t in CRICKET_TARGETS" :key="t" class="cst-row">
-              <div class="cst-target-label">{{ t === 'bull' ? 'B' : t }}</div>
+              <div class="cst-target-label" :style="{ color: currentPlayerNameColor }">{{ t === 'bull' ? 'B' : t }}</div>
               <div v-for="p in game.players" :key="p.id" class="cst-cell"
                 :class="{ 'cs-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }"
                 :style="p.id === currentPlayer.id ? { background: p.color + '10' } : {}">
@@ -127,7 +127,7 @@
       <div v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat') && marksLayout === 'right'" class="cricket-col">
         <!-- Player name headers -->
         <div class="cc-header">
-          <div class="cc-target-label"></div>
+          <div class="cc-target-label" style="min-width:0"></div>
           <div v-for="p in game.players" :key="p.id" class="cc-player-head"
             :style="{ color: p.color }">
             {{ p.name }}
@@ -135,7 +135,7 @@
         </div>
         <!-- One row per target -->
         <div v-for="t in CRICKET_TARGETS" :key="t" class="cc-target-row">
-          <div class="cc-target-label">{{ t === 'bull' ? 'B' : t }}</div>
+          <div class="cc-target-label" :style="{ color: currentPlayerNameColor }">{{ t === 'bull' ? 'B' : t }}</div>
           <div v-for="p in game.players" :key="p.id" class="cc-cell"
             :class="{ 'cc-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }">
             <span v-for="n in 3" :key="n" class="cs-pip"
