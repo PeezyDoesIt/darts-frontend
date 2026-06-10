@@ -452,4 +452,12 @@ function save() {
   .page-header { padding: 14px 20px; padding-top: calc(14px + env(safe-area-inset-top)); }
   .existing-scroll { flex: none; height: auto; }
 }
+
+/* iPad portrait — allow page to scroll so keyboard doesn't clip content */
+@media (min-width: 769px) and (max-width: 1100px) and (orientation: portrait) {
+  .page { height: auto; min-height: 100dvh; overflow-y: auto; }
+  .setup-body { overflow: visible; height: auto; }
+  .setup-form-scroll { overflow-y: visible; }
+  .existing-scroll { flex: none; height: auto; }
+}
 </style>
