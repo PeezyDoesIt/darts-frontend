@@ -305,7 +305,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 
 
 .btn-ready {
-  padding: clamp(12px, 1.8dvh, 22px) 0; font-size: clamp(26px, 3.8dvh, 42px); font-weight: 900; border-radius: 999px; width: 100%; max-width: 480px;
+  padding: clamp(15px, 2.25dvh, 28px) 0; font-size: clamp(33px, 4.75dvh, 53px); font-weight: 900; border-radius: 999px; width: 100%; max-width: 600px;
   background: #dc2626; border: none; color: #fff;
   cursor: pointer; transition: all 0.15s; letter-spacing: 0.14em;
   font-family: var(--font-display); position: relative; overflow: hidden;
@@ -343,14 +343,14 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   position: absolute;
   bottom: calc(24px + env(safe-area-inset-bottom));
   right: 24px;
-  width: clamp(100px, 20vmin, 180px);
-  height: clamp(100px, 20vmin, 180px);
+  width: clamp(125px, 25vmin, 225px);
+  height: clamp(125px, 25vmin, 225px);
   border-radius: 50%;
   background: #dc2626;
   border: none;
   color: #fff;
   font-family: var(--font-display);
-  font-size: clamp(24px, 4dvh, 44px);
+  font-size: clamp(30px, 5dvh, 55px);
   font-weight: 900;
   letter-spacing: 0.1em;
   line-height: 1;
@@ -368,19 +368,19 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 @media (orientation: landscape) and (max-height: 900px) and (max-width: 767px) {
   .default-name { font-size: clamp(45px, 11vmin, 100px); }
   .default-content { gap: clamp(8px, 2vmin, 18px); padding: 0 16px; }
-  .btn-ready { font-size: clamp(18px, 4vmin, 28px); padding: 8px 0; max-width: 300px; }
+  .btn-ready { font-size: clamp(22px, 5vmin, 35px); padding: 10px 0; max-width: 375px; }
   .walkup-timer-bar { height: clamp(40px, 7dvh, 60px); }
   .walkup-timer-text { font-size: clamp(20px, 4dvh, 36px); }
   .cricket-layout { flex-direction: column; gap: 12px; padding: 12px 32px; align-items: center; justify-content: center; padding-top: calc(16px + env(safe-area-inset-top)); padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
   .cricket-player-name { font-size: clamp(80px, 17dvh, 150px); }
-  .btn-cricket-start { width: clamp(76px, 15vmin, 120px); height: clamp(76px, 15vmin, 120px); font-size: clamp(18px, 3dvh, 28px); bottom: calc(12px + env(safe-area-inset-bottom)); right: 16px; }
+  .btn-cricket-start { width: clamp(95px, 19vmin, 150px); height: clamp(95px, 19vmin, 150px); font-size: clamp(22px, 4dvh, 35px); bottom: calc(12px + env(safe-area-inset-bottom)); right: 16px; }
 }
 
 /* Phone portrait and small screens */
 @media (max-width: 767px) {
   .between-inner { padding: 24px 20px; }
   .default-name { font-size: clamp(75px, 16vmin, 150px); }
-  .btn-ready { font-size: clamp(22px, 5vmin, 32px); padding: 10px 0; max-width: 380px; }
+  .btn-ready { font-size: clamp(28px, 6vmin, 40px); padding: 12px 0; max-width: 475px; }
   .cricket-layout { gap: clamp(4px, 1.5dvh, 16px); }
   .cricket-player-name { font-size: clamp(138px, 25dvh, 275px); }
 }
@@ -393,7 +393,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
     padding: calc(48px + env(safe-area-inset-top)) 64px calc(120px + env(safe-area-inset-bottom));
   }
   .cricket-player-name { font-size: clamp(150px, 21dvh, 300px); }
-  .btn-cricket-start { width: clamp(110px, 18vmin, 160px); height: clamp(110px, 18vmin, 160px); font-size: clamp(24px, 3.8dvh, 40px); }
+  .btn-cricket-start { width: clamp(138px, 22vmin, 200px); height: clamp(138px, 22vmin, 200px); font-size: clamp(30px, 4.75dvh, 50px); }
   .walkup-timer-bar { height: clamp(60px, 9dvh, 90px); }
 }
 </style>
