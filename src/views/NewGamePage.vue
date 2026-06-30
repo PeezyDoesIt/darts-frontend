@@ -10,9 +10,68 @@
     </div>
 
     <div class="ng-body">
-      <!-- LEFT: Game type + Timers -->
+      <!-- LEFT: Players + Order -->
       <div class="ng-left">
         <div class="ng-left-inner">
+          <div class="players-header">
+            <span class="label" style="margin:0">
+              Players
+              <span v-if="selectedPlayers.length > 0" class="selected-count">({{ selectedPlayers.length }} selected)</span>
+            </span>
+            <button v-ripple class="btn btn-outline btn-sm" @click="router.push('/player-setup')">+ New Player</button>
+          </div>
+
+          <div v-if="playersStore.players.length === 0" class="empty-players">
+            No players yet.
+            <button v-ripple class="link-btn" @click="router.push('/player-setup')">Add one →</button>
+          </div>
+
+          <div v-else class="player-grid">
+            <div
+              v-for="p in playersStore.players" :key="p.id"
+              v-ripple
+              class="player-tile"
+              :class="{ selected: isSelected(p.id) }"
+              :style="{ '--tile-color': p.color }"
+              @click="togglePlayer(p)"
+            >
+              <div class="tile-avatar" :style="{ background: p.color, boxShadow: isSelected(p.id) ? `0 0 18px ${p.color}` : `0 0 0px transparent` }">
+                <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
+                <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+              </div>
+              <div class="tile-info">
+                <span class="tile-name">{{ p.name }}</span>
+                <span class="tile-stats">{{ p.wins }}W · {{ p.gamesPlayed }}G</span>
+              </div>
+              <div class="tile-check" :style="isSelected(p.id) ? { background: p.color, borderColor: p.color, boxShadow: `0 0 10px ${p.color}80` } : {}">
+                <span v-if="isSelected(p.id)" style="color:#000">✓</span>
+              </div>
+            </div>
+          </div>
+
+          <section v-if="selectedPlayers.length > 1" class="ng-section order-section">
+            <span class="label">Play Order</span>
+            <div class="order-list">
+              <div v-for="(p, i) in selectedPlayers" :key="p.id" class="order-row" :style="{ borderLeftColor: p.color }">
+                <span class="order-num display" :style="{ color: p.color }">{{ i + 1 }}</span>
+                <div class="tile-avatar sm" :style="{ background: p.color }">
+                  <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
+                  <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+                </div>
+                <span class="order-name">{{ p.name }}</span>
+                <div class="order-btns">
+                  <button v-ripple :disabled="i === 0" @click="moveUp(i)" class="btn btn-sm btn-surface">↑</button>
+                  <button v-ripple :disabled="i === selectedPlayers.length - 1" @click="moveDown(i)" class="btn btn-sm btn-surface">↓</button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- RIGHT: Game settings -->
+      <div class="ng-right">
+        <div class="ng-right-inner">
           <section class="ng-section">
             <span class="label">Game Type</span>
             <div class="game-type-grid">
@@ -49,7 +108,7 @@
           </section>
 
           <section v-if="['301','501','701','1001'].includes(selectedGameType ?? '')" class="ng-section">
-            <span class="label">301 / 501 Options</span>
+            <span class="label">X01 Options</span>
             <div class="toggle-row" @click="bustEliminates = !bustEliminates">
               <div class="toggle-track" :class="{ active: bustEliminates }">
                 <div class="toggle-thumb" />
@@ -62,52 +121,29 @@
           </section>
 
           <section class="ng-section">
-              <span class="label">Walk-up Timer</span>
-              <p class="hint">Seconds the next player has to walk up before the alert fires. Off = manual tap to start each turn.</p>
-              <div class="timer-options">
-                <button v-ripple class="timer-btn" :class="{ active: timerDuration === 0 }" @click="setWalkUp(0)">Off</button>
-                <button v-for="t in timerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: timerDuration === t }" @click="setWalkUp(t)">{{ t }}s</button>
+            <span class="label">Timers</span>
+            <div class="timer-pair">
+              <div class="timer-group">
+                <span class="timer-group-label">Walk-up</span>
+                <div class="timer-options">
+                  <button v-ripple class="timer-btn" :class="{ active: timerDuration === 0 }" @click="setWalkUp(0)">Off</button>
+                  <button v-for="t in timerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: timerDuration === t }" @click="setWalkUp(t)">{{ t }}s</button>
+                </div>
               </div>
-              <div v-if="timerDuration > 0" class="custom-timer-row">
-                <span class="hint">Custom:</span>
-                <q-input
-                  :model-value="walkUpInput"
-                  type="number" min="1" max="300"
-                  dense dark outlined
-                  style="width:90px"
-                  input-class="text-center"
-                  @update:model-value="onWalkUpInput"
-                />
-                <span class="hint">seconds</span>
+              <div class="timer-group">
+                <span class="timer-group-label">Throw</span>
+                <div class="timer-options">
+                  <button v-for="t in throwTimerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: throwTimerDuration === t }" @click="setThrow(t)">{{ t === 0 ? 'Off' : t + 's' }}</button>
+                </div>
               </div>
-            </section>
-
-            <section class="ng-section">
-              <span class="label">Throw Timer</span>
-              <p class="hint">Auto-skip turn if player doesn't submit in time. Off = no limit.</p>
-              <div class="timer-options">
-                <button v-for="t in throwTimerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: throwTimerDuration === t }" @click="setThrow(t)">{{ t === 0 ? 'Off' : t + 's' }}</button>
-              </div>
-              <div class="custom-timer-row">
-                <span class="hint">Custom:</span>
-                <q-input
-                  :model-value="throwInput"
-                  type="number" min="0" max="300"
-                  dense dark outlined
-                  style="width:90px"
-                  input-class="text-center"
-                  @update:model-value="onThrowInput"
-                />
-                <span class="hint">seconds (0 = off)</span>
-              </div>
+            </div>
           </section>
 
           <section class="ng-section">
             <span class="label">Scoring Screen Theme</span>
-            <p class="hint">Shared background for all players during their throw. Overrides individual player themes.</p>
             <div class="bg-tabs">
-              <button v-ripple class="tab" :class="{ active: gameThemeMode === 'theme' }" @click="gameThemeMode = 'theme'">Themes</button>
-              <button v-ripple class="tab" :class="{ active: gameThemeMode === 'image' }" @click="gameThemeMode = 'image'">Upload Photo</button>
+              <button v-ripple class="tab" :class="{ active: gameThemeMode === 'theme' }" @click="gameThemeMode = 'theme'">Colors</button>
+              <button v-ripple class="tab" :class="{ active: gameThemeMode === 'image' }" @click="gameThemeMode = 'image'">Photo</button>
             </div>
             <div v-if="gameThemeMode === 'theme'" class="theme-swatch-grid">
               <button
@@ -139,64 +175,6 @@
           </section>
         </div>
       </div>
-
-      <!-- RIGHT: Players -->
-      <div class="ng-right">
-        <section class="ng-section" style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:12px">
-          <div class="players-header">
-            <span class="label" style="margin:0">
-              Players
-              <span v-if="selectedPlayers.length > 0" class="selected-count">({{ selectedPlayers.length }} selected)</span>
-            </span>
-            <button v-ripple class="btn btn-outline btn-sm" @click="router.push('/player-setup')">+ New Player</button>
-          </div>
-
-          <div v-if="playersStore.players.length === 0" class="empty-players">
-            No players yet.
-            <button v-ripple class="link-btn" @click="router.push('/player-setup')">Add one →</button>
-          </div>
-
-          <div v-else class="player-scroll">
-            <div class="player-grid">
-              <div
-                v-for="p in playersStore.players" :key="p.id"
-                v-ripple
-                class="player-tile"
-                :class="{ selected: isSelected(p.id) }"
-                :style="{ '--tile-color': p.color }"
-                @click="togglePlayer(p)"
-              >
-                <div class="tile-avatar" :style="{ background: p.color, boxShadow: isSelected(p.id) ? `0 0 18px ${p.color}` : `0 0 0px transparent` }">
-                  <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-                  <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
-                </div>
-                <div class="tile-info">
-                  <span class="tile-name">{{ p.name }}</span>
-                  <span class="tile-stats">{{ p.wins }}W · {{ p.gamesPlayed }}G</span>
-                </div>
-                <div class="tile-check" :style="isSelected(p.id) ? { background: p.color, borderColor: p.color, boxShadow: `0 0 10px ${p.color}80` } : {}">
-                  <span v-if="isSelected(p.id)" style="color:#000">✓</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section v-if="selectedPlayers.length > 1" class="ng-section order-section">
-          <span class="label">Play Order</span>
-          <div class="order-list">
-            <div v-for="(p, i) in selectedPlayers" :key="p.id" class="order-row" :style="{ borderLeftColor: p.color }">
-              <span class="order-num display" :style="{ color: p.color }">{{ i + 1 }}</span>
-              <div class="tile-avatar sm" :style="{ background: p.color }">{{ p.avatarUrl ?? '🎯' }}</div>
-              <span class="order-name">{{ p.name }}</span>
-              <div class="order-btns">
-                <button v-ripple :disabled="i === 0" @click="moveUp(i)" class="btn btn-sm btn-surface">↑</button>
-                <button v-ripple :disabled="i === selectedPlayers.length - 1" @click="moveDown(i)" class="btn btn-sm btn-surface">↓</button>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
     </div>
   </div>
 </template>
@@ -214,10 +192,10 @@ const gameStore = useGameStore()
 
 const selectedGameType = ref<GameType | null>(null)
 const timerDuration = ref(60)
-const timerOptions = [60, 90, 120, 180]
+const timerOptions = [60, 90, 120]
 const walkUpInput = ref('60')
 const throwTimerDuration = ref(0)
-const throwTimerOptions = [0, 60, 90, 120, 180]
+const throwTimerOptions = [0, 60, 90, 120]
 const throwInput = ref('0')
 
 function setWalkUp(t: number) {
@@ -316,42 +294,23 @@ function startGame() {
 
 .ng-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
 
-.ng-left { flex: 1; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
-.ng-left-inner { padding: 28px; display: flex; flex-direction: column; gap: 28px; }
+/* LEFT: Players (wider) */
+.ng-left { flex: 1; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.06); }
+.ng-left-inner { padding: 28px; display: flex; flex-direction: column; gap: 20px; }
 
-.ng-right { width: 360px; flex-shrink: 0; padding: 28px; display: flex; flex-direction: column; gap: 20px; overflow: hidden; }
+/* RIGHT: Game settings (narrower, scrollable) */
+.ng-right { width: 380px; flex-shrink: 0; overflow-y: auto; background: rgba(255,255,255,0.02); }
+.ng-right-inner { padding: 28px; display: flex; flex-direction: column; gap: 28px; padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
+
 .ng-section { display: flex; flex-direction: column; gap: 10px; }
 
-.game-type-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.game-type-btn {
-  padding: 8px 16px; border-radius: 6px;
-  border: 2px solid #ffffff; background: transparent;
-  color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s;
-  position: relative; overflow: hidden;
-}
-.game-type-btn:hover { border-color: var(--pink); color: var(--pink); }
-.game-type-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
-
-.hint { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
-.timer-options { display: flex; gap: 8px; flex-wrap: wrap; }
-.timer-btn {
-  padding: 9px 16px; border-radius: 6px;
-  border: 2px solid #ffffff; background: transparent;
-  color: #ffffff; font-size: 14px; font-weight: 700; cursor: pointer;
-  transition: all 0.15s; position: relative; overflow: hidden;
-}
-.timer-btn:hover { border-color: var(--pink); color: var(--pink); }
-.timer-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
-.custom-timer-row { display: flex; align-items: center; gap: 10px; }
-
+/* Players */
 .players-header { display: flex; align-items: center; justify-content: space-between; }
 .selected-count { color: var(--pink); font-weight: 800; }
 .empty-players { color: var(--text-muted); font-size: 14px; display: flex; gap: 8px; align-items: center; }
 .link-btn { background: none; border: none; color: var(--pink); cursor: pointer; font-size: 14px; font-weight: 700; }
 
-.player-scroll { flex: 1; min-height: 0; overflow-y: auto; }
 .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
-
 .player-tile {
   display: flex; align-items: center; gap: 14px; padding: 14px 16px;
   background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.06); border-radius: 4px;
@@ -363,15 +322,37 @@ function startGame() {
 .player-tile.selected { border-color: var(--tile-color, var(--pink)); background: rgba(255,255,255,0.05); }
 
 .tile-avatar { width: 52px; height: 52px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; overflow: hidden; transition: box-shadow 0.2s; border: 2px solid rgba(255,255,255,0.15); }
-.tile-avatar.sm { width: 30px; height: 30px; font-size: 15px; border-radius: 3px; border: none; }
+.tile-avatar.sm { width: 30px; height: 30px; font-size: 15px; border-radius: 3px; border: none; flex-shrink: 0; }
 .tile-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .tile-info { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .tile-name { font-size: 16px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; }
 .tile-stats { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 .tile-check { width: 28px; height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: #000; border: 2px solid rgba(255,255,255,0.1); transition: all 0.15s; font-family: var(--font-display); }
 
-.ng-section .label, .players-header .label, .order-section .label { color: #ffffff; }
+/* Play order */
+.order-section { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; }
+.order-list { display: flex; flex-direction: column; gap: 8px; }
+.order-row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid rgba(255,255,255,0.1); border-radius: 4px; }
+.order-num { font-size: 28px; font-family: var(--font-display); width: 28px; text-align: center; }
+.order-name { flex: 1; font-size: 16px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; }
+.order-btns { display: flex; gap: 6px; }
 
+/* Labels */
+.ng-section .label, .players-header .label, .order-section .label { color: #ffffff; }
+.hint { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+/* Game type */
+.game-type-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.game-type-btn {
+  padding: 8px 16px; border-radius: 6px;
+  border: 2px solid #ffffff; background: transparent;
+  color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+  position: relative; overflow: hidden;
+}
+.game-type-btn:hover { border-color: var(--pink); color: var(--pink); }
+.game-type-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
+
+/* Cricket options */
 .closed-target-opts { display: flex; flex-direction: column; gap: 6px; }
 .ct-opt-btn {
   display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
@@ -386,6 +367,7 @@ function startGame() {
 .ct-opt-btn.active .ct-opt-label { color: var(--pink); }
 .ct-opt-sub { font-size: 11px; color: var(--text-muted); line-height: 1.3; }
 
+/* Toggles */
 .toggle-row {
   display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 8px;
   cursor: pointer; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
@@ -407,29 +389,34 @@ function startGame() {
 .toggle-info { display: flex; flex-direction: column; gap: 2px; }
 .toggle-title { font-size: 14px; font-weight: 700; color: var(--text); }
 .toggle-sub { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+.toggle-label { font-size: 14px; font-weight: 700; color: var(--text); }
 
-.order-section { flex-shrink: 0; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 18px; }
-.order-list { display: flex; flex-direction: column; gap: 8px; }
-.order-row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid rgba(255,255,255,0.1); border-radius: 4px; }
-.order-num { font-size: 28px; font-family: var(--font-display); width: 28px; text-align: center; }
-.order-name { flex: 1; font-size: 16px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; }
-.order-btns { display: flex; gap: 6px; }
+/* Timers — compact paired layout */
+.timer-pair { display: flex; flex-direction: column; gap: 12px; }
+.timer-group { display: flex; flex-direction: column; gap: 6px; }
+.timer-group-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+.timer-options { display: flex; gap: 6px; flex-wrap: wrap; }
+.timer-btn {
+  padding: 7px 13px; border-radius: 6px;
+  border: 2px solid #ffffff; background: transparent;
+  color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: all 0.15s; position: relative; overflow: hidden;
+}
+.timer-btn:hover { border-color: var(--pink); color: var(--pink); }
+.timer-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
 
+/* Theme */
 .bg-tabs { display: flex; gap: 8px; }
-.tab { padding: 8px 20px; border-radius: 6px; border: 2px solid #ffffff; background: transparent; color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+.tab { padding: 7px 16px; border-radius: 6px; border: 2px solid #ffffff; background: transparent; color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
 .tab:hover { border-color: var(--pink); color: var(--pink); }
 .tab.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
 
 .game-theme-photo-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .game-theme-preview { width: 88px; height: 64px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-
-.theme-swatch-grid {
-  display: flex; flex-wrap: wrap; gap: 6px;
-}
+.theme-swatch-grid { display: flex; flex-wrap: wrap; gap: 6px; }
 .theme-swatch {
-  width: 38px; height: 38px; border-radius: 6px; border: 2px solid rgba(255,255,255,0.12);
-  cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
-  flex-shrink: 0;
+  width: 36px; height: 36px; border-radius: 6px; border: 2px solid rgba(255,255,255,0.12);
+  cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; flex-shrink: 0;
 }
 .theme-swatch.none { background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; }
 .theme-swatch:hover { border-color: rgba(255,255,255,0.4); transform: scale(1.08); }
@@ -437,28 +424,22 @@ function startGame() {
 .swatch-none-icon { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 1; }
 .selected-theme-name { font-size: 12px; font-weight: 700; color: var(--blue); letter-spacing: 0.08em; text-transform: uppercase; }
 
+/* iPad */
 @media (min-width: 769px) and (max-width: 1199px) {
-  .ng-right { width: 460px; overflow-y: auto; padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
-  .player-scroll { flex: none; height: auto; overflow: visible; }
-  .player-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-  .player-tile { padding: 16px 18px; }
-  .tile-avatar { width: 56px; height: 56px; font-size: 28px; }
-  .tile-name { font-size: 18px; }
-  .order-section { padding-top: 20px; }
-  .order-list { gap: 10px; }
-  .order-row { padding: 14px 18px; }
-  .order-num { font-size: 32px; width: 32px; }
-  .order-name { font-size: 18px; }
-  .btn.btn-sm { padding: 10px 14px; font-size: 14px; }
+  .ng-right { width: 340px; }
+  .ng-left-inner { padding: 20px; }
+  .ng-right-inner { padding: 20px; }
+  .player-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
 }
 
+/* Mobile */
 @media (max-width: 768px) {
   .ng-header { padding: 14px 20px; padding-top: calc(14px + env(safe-area-inset-top)); }
   .ng-body { flex-direction: column; overflow-y: auto; }
-  .ng-left { width: 100%; height: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
-  .ng-left-inner { padding: 20px; gap: 20px; }
-  .ng-right { padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); overflow: visible; }
-  .player-scroll { flex: none; height: auto; }
-  .player-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  .ng-left { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); overflow: visible; }
+  .ng-left-inner { padding: 20px; }
+  .ng-right { width: 100%; overflow: visible; }
+  .ng-right-inner { padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+  .player-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
 }
 </style>
