@@ -147,16 +147,14 @@
             </div>
             <div v-if="gameThemeMode === 'theme'" class="theme-swatch-grid">
               <button
-                v-for="t in PLAYER_THEMES"
+                v-for="t in PLAYER_THEMES.filter(t => t.value)"
                 :key="String(t.value)"
                 class="theme-swatch"
-                :class="{ active: gameTheme === t.value, none: !t.value }"
-                :style="t.value ? { background: t.value } : {}"
+                :class="{ active: gameTheme === t.value }"
+                :style="{ background: t.value as string }"
                 :title="t.label"
-                @click="selectGameTheme(t.value as string | null)"
-              >
-                <span v-if="!t.value" class="swatch-none-icon">✕</span>
-              </button>
+                @click="selectGameTheme(t.value as string)"
+              />
             </div>
             <div v-else class="game-theme-photo-row">
               <div class="game-theme-preview" :style="gameThemePreviewStyle">
@@ -167,7 +165,7 @@
                   Choose Photo
                   <input type="file" accept="image/*" style="display:none" @change="onGameThemeFileChange" />
                 </label>
-                <button v-if="gameThemeImage" v-ripple class="btn btn-outline btn-sm" @click="gameThemeImage = null; gameTheme = null">Clear</button>
+                <button v-if="gameThemeImage" v-ripple class="btn btn-outline btn-sm" @click="gameThemeImage = null; gameTheme = OBSIDIAN">Clear</button>
               </div>
             </div>
             <span v-if="gameTheme && gameThemeMode === 'theme'" class="selected-theme-name">{{ PLAYER_THEMES.find(t => t.value === gameTheme)?.label }}</span>
@@ -225,12 +223,13 @@ const closedTargetOptions = [
   { value: 'strike' as const, label: 'Strikethrough',  sub: 'Closed targets get a line through them' },
   { value: 'hide'   as const, label: 'Hide',           sub: 'Closed targets disappear' },
 ]
-const gameTheme = ref<string | null>(null)
+const OBSIDIAN = 'linear-gradient(160deg, #050505 0%, #111111 40%, #222222 75%, #333344 100%)'
+const gameTheme = ref<string | null>(OBSIDIAN)
 const gameThemeMode = ref<'theme' | 'image'>('theme')
 const gameThemeImage = ref<string | null>(null)
 const selectedPlayers = ref<Player[]>([])
 
-function selectGameTheme(val: string | null) { gameTheme.value = val; gameThemeImage.value = null }
+function selectGameTheme(val: string) { gameTheme.value = val; gameThemeImage.value = null }
 
 function onGameThemeFileChange(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
