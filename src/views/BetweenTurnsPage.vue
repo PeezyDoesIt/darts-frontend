@@ -133,6 +133,10 @@ function playWhistle(): Promise<void> {
 }
 
 async function handleTurnAnnouncement() {
+  if (settingsStore.cleanMode) {
+    speak(nextPlayer.value.name)
+    return
+  }
   const nextLine = `${nextPlayer.value.name} — it's your turn.`
   if (settingsStore.quietNarrator) {
     speak(nextLine)
@@ -159,9 +163,7 @@ async function handleTurnAnnouncement() {
     await new Promise(r => setTimeout(r, 300))
     speak(nextLine)
   } else if (gameStore.lastTurnWasZero) {
-    const zeroPhrases = settingsStore.cleanMode
-      ? [`Be better.`, `You stink.`, `This is gonna be a long one.`]
-      : [`Be better.`, `You suck.`, `This is gonna be a long one.`]
+    const zeroPhrases = [`Be better.`, `You suck.`, `This is gonna be a long one.`]
     await speak(zeroPhrases[Math.floor(Math.random() * zeroPhrases.length)]!)
     speak(nextLine)
   } else {
@@ -181,16 +183,14 @@ onMounted(() => {
     if (timeLeft.value > 0 && timeLeft.value <= 5) playCountdownBeep()
     if (timeLeft.value <= 30 && !showAlert.value) {
       showAlert.value = true
-      const hurryCount = gameStore.playerHurryUpCounts[nextPlayer.value.id] ?? 0
-      gameStore.recordHurryUp(nextPlayer.value.id)
-      const line = settingsStore.cleanMode
-        ? (hurryCount > 0
-            ? `${nextPlayer.value.name}. Hurry it up. It's your turn. This is why no one wants to play darts with you.`
-            : `${nextPlayer.value.name}. Hurry it up. It's your turn.`)
-        : (hurryCount > 0
-            ? `${nextPlayer.value.name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`
-            : `${nextPlayer.value.name}. Hurry the fuck up. It's your turn.`)
-      speak(line)
+      if (!settingsStore.cleanMode) {
+        const hurryCount = gameStore.playerHurryUpCounts[nextPlayer.value.id] ?? 0
+        gameStore.recordHurryUp(nextPlayer.value.id)
+        const line = hurryCount > 0
+          ? `${nextPlayer.value.name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`
+          : `${nextPlayer.value.name}. Hurry the fuck up. It's your turn.`
+        speak(line)
+      }
     }
   }, 1000)
 })

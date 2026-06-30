@@ -482,18 +482,14 @@ function startThrowTimer() {
     throwTimeLeft.value--
     if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 5) playCountdownBeep()
     const half = Math.floor(throwTimerDuration.value / 2)
-    if (throwTimeLeft.value === half && half > 30) speak(`${currentPlayer.value.name}, it's your turn`)
-    if (throwTimeLeft.value <= 30 && !throwHurryUpSaid) {
+    if (throwTimeLeft.value === half && half > 30 && !settingsStore.cleanMode) speak(`${currentPlayer.value.name}, it's your turn`)
+    if (throwTimeLeft.value <= 30 && !throwHurryUpSaid && !settingsStore.cleanMode) {
       throwHurryUpSaid = true
       const hurryCount = gameStore.playerHurryUpCounts[currentPlayer.value.id] ?? 0
       gameStore.recordHurryUp(currentPlayer.value.id)
-      const line = settingsStore.cleanMode
-        ? (hurryCount > 0
-            ? `${currentPlayer.value.name}. Hurry it up. It's your turn. This is why no one wants to play darts with you.`
-            : `${currentPlayer.value.name}. Hurry it up. It's your turn.`)
-        : (hurryCount > 0
-            ? `${currentPlayer.value.name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`
-            : `${currentPlayer.value.name}. Hurry the fuck up. It's your turn.`)
+      const line = hurryCount > 0
+        ? `${currentPlayer.value.name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`
+        : `${currentPlayer.value.name}. Hurry the fuck up. It's your turn.`
       speak(line)
     }
     if (throwTimeLeft.value <= 0) {
