@@ -319,8 +319,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .swap-leave-to { opacity: 0; transform: scale(1.04); }
 
 .between-avatar-bg {
-  position: absolute; bottom: calc(0px + env(safe-area-inset-bottom)); right: 0;
-  width: 31vmin; height: 31vmin;
+  position: absolute; bottom: calc(14px + env(safe-area-inset-bottom)); right: 0;
   pointer-events: none; user-select: none; z-index: 3;
   display: flex; align-items: flex-end; justify-content: flex-end;
 }
@@ -329,12 +328,14 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   justify-content: flex-start;
 }
 .between-avatar-bg img {
-  width: 100%; height: 100%; object-fit: cover; object-position: center top;
-  opacity: 0.55; border-radius: 12px 0 0 0;
+  height: clamp(140px, 28vmin, 300px);
+  width: auto;
+  object-fit: contain;
+  opacity: 0.55; border-radius: 12px 0 0 12px;
 }
-.between-avatar-bg.avatar-left img { border-radius: 0 12px 0 0; }
+.between-avatar-bg.avatar-left img { border-radius: 0 12px 12px 0; }
 .between-avatar-bg span {
-  font-size: 31vmin; line-height: 1; opacity: 0.75;
+  font-size: 28vmin; line-height: 1; opacity: 0.75;
   filter: drop-shadow(0 0 32px rgba(0,0,0,0.5));
 }
 
