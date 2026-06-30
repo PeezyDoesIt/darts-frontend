@@ -48,7 +48,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { CRICKET_TARGETS, PLAYER_THEMES, type CricketTarget, type PlayerScore } from '../types/index'
-import { playShotgun, playBuzzer } from '../composables/useSounds'
+import { playShotgun, playThemedBuzzer, playThemedBullseye } from '../composables/useSounds'
 import { speak, speakOhBaby } from '../composables/useSpeech'
 import { useSettingsStore } from '../stores/settings'
 
@@ -123,11 +123,16 @@ function pipIsRound(target: CricketTarget, n: number) {
 }
 function playBullSound() {
   const s = settingsStore.bullseyeSound
-  if (s === 'buzzer') playBuzzer()
-  else if (s === 'tts-bullseye') speak('Bullseye!')
-  else if (s === 'tts-oh-baby') speakOhBaby()
-  else if (s === 'tts-oh-yeah') speak('Oh yeah, right in the bull motherfucker')
-  else playShotgun()
+  // TTS options always take priority
+  if (s === 'tts-bullseye') { speak('Bullseye!'); return }
+  if (s === 'tts-oh-baby') { speakOhBaby(); return }
+  if (s === 'tts-oh-yeah') { speak('Oh yeah, right in the bull motherfucker'); return }
+  // Non-default theme: play themed bullseye regardless of bullseyeSound setting
+  const theme = settingsStore.soundTheme
+  if (theme !== 'default') { playThemedBullseye(theme); return }
+  // Default theme: respect bullseyeSound setting
+  if (s === 'buzzer') { playThemedBuzzer('default'); return }
+  playShotgun()
 }
 
 function handleTileClick(target: CricketTarget) {

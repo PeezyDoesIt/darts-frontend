@@ -477,3 +477,466 @@ export function playBullseye(): Promise<void> {
     setTimeout(() => { ctx.close(); resolve() }, duration * 1000 + 100)
   })
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SPACE THEME
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function playSpaceChime(): void {
+  const ctx = getBeepCtx()
+  if (!ctx) return
+  const go = () => {
+    const now = ctx.currentTime
+    const notes = [330, 440, 660, 880, 1320]
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.value = freq
+      const t = now + i * 0.09
+      gain.gain.setValueAtTime(0, t)
+      gain.gain.linearRampToValueAtTime(0.5, t + 0.008)
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35)
+      osc.connect(gain); gain.connect(ctx.destination)
+      osc.start(t); osc.stop(t + 0.35)
+    })
+  }
+  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+}
+
+export function scheduleSpaceTick(ctx: AudioContext): void {
+  const now = ctx.currentTime
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.type = 'sine'
+  osc.frequency.setValueAtTime(1200, now)
+  osc.frequency.exponentialRampToValueAtTime(400, now + 0.08)
+  gain.gain.setValueAtTime(0.7, now)
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1)
+  osc.connect(gain); gain.connect(ctx.destination)
+  osc.start(now); osc.stop(now + 0.1)
+}
+
+export function playSpaceBuzzer(): Promise<void> {
+  return new Promise(resolve => {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioCtx) { resolve(); return }
+    const ctx = new AudioCtx()
+    const schedule = () => {
+      const now = ctx.currentTime
+      const duration = 0.9
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(300, now)
+      osc.frequency.exponentialRampToValueAtTime(60, now + duration)
+      gain.gain.setValueAtTime(0, now)
+      gain.gain.linearRampToValueAtTime(0.8, now + 0.02)
+      gain.gain.setValueAtTime(0.8, now + 0.5)
+      gain.gain.linearRampToValueAtTime(0, now + duration)
+      osc.connect(gain); gain.connect(ctx.destination)
+      osc.start(now); osc.stop(now + duration)
+      const lfo = ctx.createOscillator()
+      const lfoGain = ctx.createGain()
+      lfo.type = 'sine'; lfo.frequency.value = 18
+      lfoGain.gain.value = 30
+      lfo.connect(lfoGain); lfoGain.connect(osc.frequency)
+      lfo.start(now); lfo.stop(now + duration)
+      setTimeout(() => { ctx.close(); resolve() }, duration * 1000 + 80)
+    }
+    ctx.resume().then(schedule)
+  })
+}
+
+export function playSpaceLaser(): Promise<void> {
+  return new Promise(resolve => {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioCtx) { resolve(); return }
+    const ctx = new AudioCtx()
+    const schedule = () => {
+      const now = ctx.currentTime
+      const duration = 0.6
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sawtooth'
+      osc.frequency.setValueAtTime(2200, now)
+      osc.frequency.exponentialRampToValueAtTime(200, now + duration)
+      gain.gain.setValueAtTime(0, now)
+      gain.gain.linearRampToValueAtTime(0.7, now + 0.005)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration)
+      const filter = ctx.createBiquadFilter()
+      filter.type = 'lowpass'; filter.frequency.value = 3000
+      osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination)
+      osc.start(now); osc.stop(now + duration)
+      setTimeout(() => { ctx.close(); resolve() }, duration * 1000 + 80)
+    }
+    ctx.resume().then(schedule)
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RETRO ARCADE THEME
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function playArcadeChime(): void {
+  const ctx = getBeepCtx()
+  if (!ctx) return
+  const go = () => {
+    const now = ctx.currentTime
+    const notes = [261.63, 329.63, 392, 523.25]
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'square'
+      osc.frequency.value = freq
+      const t = now + i * 0.08
+      gain.gain.setValueAtTime(0.4, t)
+      gain.gain.setValueAtTime(0.4, t + 0.06)
+      gain.gain.linearRampToValueAtTime(0, t + 0.08)
+      osc.connect(gain); gain.connect(ctx.destination)
+      osc.start(t); osc.stop(t + 0.08)
+    })
+  }
+  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+}
+
+export function scheduleArcadeTick(ctx: AudioContext): void {
+  const now = ctx.currentTime
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.type = 'square'
+  osc.frequency.value = 1047
+  gain.gain.setValueAtTime(0.4, now)
+  gain.gain.setValueAtTime(0.4, now + 0.05)
+  gain.gain.linearRampToValueAtTime(0, now + 0.07)
+  osc.connect(gain); gain.connect(ctx.destination)
+  osc.start(now); osc.stop(now + 0.07)
+}
+
+export function playArcadeBuzzer(): Promise<void> {
+  return new Promise(resolve => {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioCtx) { resolve(); return }
+    const ctx = new AudioCtx()
+    const schedule = () => {
+      const now = ctx.currentTime
+      const freqs = [220, 196, 174.61, 155.56, 130.81]
+      freqs.forEach((freq, i) => {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.type = 'square'
+        osc.frequency.value = freq
+        const t = now + i * 0.07
+        gain.gain.setValueAtTime(0.4, t)
+        gain.gain.setValueAtTime(0.4, t + 0.06)
+        gain.gain.linearRampToValueAtTime(0, t + 0.07)
+        osc.connect(gain); gain.connect(ctx.destination)
+        osc.start(t); osc.stop(t + 0.07)
+      })
+      setTimeout(() => { ctx.close(); resolve() }, 500)
+    }
+    ctx.resume().then(schedule)
+  })
+}
+
+export function playArcadeFanfare(): Promise<void> {
+  return new Promise(resolve => {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioCtx) { resolve(); return }
+    const ctx = new AudioCtx()
+    const schedule = () => {
+      const now = ctx.currentTime
+      const notes = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5]
+      const times  = [0,      0.1,    0.2,    0.3,    0.45,   0.55]
+      const durs   = [0.09,   0.09,   0.09,   0.14,   0.09,   0.4]
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.type = 'square'
+        osc.frequency.value = freq
+        const t = now + times[i]
+        gain.gain.setValueAtTime(0.35, t)
+        gain.gain.setValueAtTime(0.35, t + durs[i] - 0.01)
+        gain.gain.linearRampToValueAtTime(0, t + durs[i])
+        osc.connect(gain); gain.connect(ctx.destination)
+        osc.start(t); osc.stop(t + durs[i])
+      })
+      setTimeout(() => { ctx.close(); resolve() }, 1100)
+    }
+    ctx.resume().then(schedule)
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WESTERN THEME
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function playWesternChime(): void {
+  const ctx = getBeepCtx()
+  if (!ctx) return
+  const go = () => {
+    const now = ctx.currentTime
+    const notes = [392, 493.88, 587.33]
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'triangle'
+      osc.frequency.value = freq
+      const t = now + i * 0.15
+      gain.gain.setValueAtTime(0, t)
+      gain.gain.linearRampToValueAtTime(0.7, t + 0.005)
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.7)
+      osc.connect(gain); gain.connect(ctx.destination)
+      osc.start(t); osc.stop(t + 0.7)
+    })
+  }
+  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+}
+
+export function scheduleWesternTick(ctx: AudioContext): void {
+  const now = ctx.currentTime
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.type = 'triangle'
+  osc.frequency.value = 1200
+  gain.gain.setValueAtTime(0, now)
+  gain.gain.linearRampToValueAtTime(0.6, now + 0.003)
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18)
+  osc.connect(gain); gain.connect(ctx.destination)
+  osc.start(now); osc.stop(now + 0.18)
+}
+
+export function playWesternBuzzer(): Promise<void> {
+  return new Promise(resolve => {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioCtx) { resolve(); return }
+    const ctx = new AudioCtx()
+    const schedule = () => {
+      const now = ctx.currentTime
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sawtooth'
+      osc.frequency.setValueAtTime(440, now)
+      osc.frequency.linearRampToValueAtTime(220, now + 0.3)
+      osc.frequency.setValueAtTime(349.23, now + 0.35)
+      osc.frequency.linearRampToValueAtTime(196, now + 0.65)
+      osc.frequency.setValueAtTime(261.63, now + 0.7)
+      osc.frequency.linearRampToValueAtTime(146.83, now + 1.1)
+      const bpf = ctx.createBiquadFilter()
+      bpf.type = 'bandpass'; bpf.frequency.value = 800; bpf.Q.value = 1.5
+      gain.gain.setValueAtTime(0, now)
+      gain.gain.linearRampToValueAtTime(0.55, now + 0.02)
+      gain.gain.setValueAtTime(0.55, now + 0.9)
+      gain.gain.linearRampToValueAtTime(0, now + 1.2)
+      osc.connect(bpf); bpf.connect(gain); gain.connect(ctx.destination)
+      osc.start(now); osc.stop(now + 1.2)
+      setTimeout(() => { ctx.close(); resolve() }, 1350)
+    }
+    ctx.resume().then(schedule)
+  })
+}
+
+export function playWesternGunshot(): Promise<void> {
+  return new Promise(resolve => {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioCtx) { resolve(); return }
+    const ctx = new AudioCtx()
+    const schedule = () => {
+      const now = ctx.currentTime
+      const duration = 1.2
+      const master = ctx.createGain()
+      master.gain.setValueAtTime(0.9, now)
+      master.connect(ctx.destination)
+      const bufSize = Math.ceil(ctx.sampleRate * 0.008)
+      const noiseBuf = ctx.createBuffer(1, bufSize, ctx.sampleRate)
+      const nd = noiseBuf.getChannelData(0)
+      for (let i = 0; i < bufSize; i++) nd[i] = Math.random() * 2 - 1
+      const crack = ctx.createBufferSource(); crack.buffer = noiseBuf
+      const crackGain = ctx.createGain()
+      crackGain.gain.setValueAtTime(4.0, now)
+      crackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.008)
+      crack.connect(crackGain); crackGain.connect(master)
+      crack.start(now); crack.stop(now + 0.008)
+      const bodyBuf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * duration), ctx.sampleRate)
+      const bd = bodyBuf.getChannelData(0)
+      for (let i = 0; i < bd.length; i++) bd[i] = Math.random() * 2 - 1
+      const body = ctx.createBufferSource(); body.buffer = bodyBuf
+      const lpf = ctx.createBiquadFilter(); lpf.type = 'lowpass'
+      lpf.frequency.setValueAtTime(600, now); lpf.frequency.exponentialRampToValueAtTime(80, now + 0.5)
+      const bodyGain = ctx.createGain()
+      bodyGain.gain.setValueAtTime(2.0, now)
+      bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55)
+      body.connect(lpf); lpf.connect(bodyGain); bodyGain.connect(master)
+      body.start(now); body.stop(now + duration)
+      setTimeout(() => { ctx.close(); resolve() }, duration * 1000 + 80)
+    }
+    ctx.resume().then(schedule)
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BOXING THEME
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function playBoxingChime(): void {
+  const ctx = getBeepCtx()
+  if (!ctx) return
+  const go = () => {
+    const now = ctx.currentTime
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(900, now)
+    osc.frequency.linearRampToValueAtTime(860, now + 0.5)
+    gain.gain.setValueAtTime(0, now)
+    gain.gain.linearRampToValueAtTime(0.9, now + 0.005)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2)
+    osc.connect(gain); gain.connect(ctx.destination)
+    osc.start(now); osc.stop(now + 1.2)
+    const osc2 = ctx.createOscillator()
+    const gain2 = ctx.createGain()
+    osc2.type = 'sine'; osc2.frequency.value = 1800
+    gain2.gain.setValueAtTime(0, now)
+    gain2.gain.linearRampToValueAtTime(0.3, now + 0.005)
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.6)
+    osc2.connect(gain2); gain2.connect(ctx.destination)
+    osc2.start(now); osc2.stop(now + 0.6)
+  }
+  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+}
+
+export function scheduleBoxingTick(ctx: AudioContext): void {
+  const now = ctx.currentTime
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.type = 'sine'
+  osc.frequency.setValueAtTime(200, now)
+  osc.frequency.exponentialRampToValueAtTime(80, now + 0.05)
+  gain.gain.setValueAtTime(0.8, now)
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07)
+  osc.connect(gain); gain.connect(ctx.destination)
+  osc.start(now); osc.stop(now + 0.07)
+}
+
+export function playBoxingBuzzer(): Promise<void> {
+  return new Promise(resolve => {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioCtx) { resolve(); return }
+    const ctx = new AudioCtx()
+    const schedule = () => {
+      const now = ctx.currentTime
+      const times = [0, 0.18, 0.36]
+      times.forEach(offset => {
+        const t = now + offset
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.type = 'sine'; osc.frequency.value = 900
+        gain.gain.setValueAtTime(0, t)
+        gain.gain.linearRampToValueAtTime(0.8, t + 0.005)
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15)
+        osc.connect(gain); gain.connect(ctx.destination)
+        osc.start(t); osc.stop(t + 0.15)
+      })
+      setTimeout(() => { ctx.close(); resolve() }, 600)
+    }
+    ctx.resume().then(schedule)
+  })
+}
+
+export function playBoxingImpact(): Promise<void> {
+  return new Promise(resolve => {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioCtx) { resolve(); return }
+    const ctx = new AudioCtx()
+    const schedule = () => {
+      const now = ctx.currentTime
+      const duration = 0.5
+      const master = ctx.createGain()
+      master.gain.setValueAtTime(0.9, now)
+      master.connect(ctx.destination)
+      const bufSize = Math.ceil(ctx.sampleRate * duration)
+      const noiseBuf = ctx.createBuffer(1, bufSize, ctx.sampleRate)
+      const nd = noiseBuf.getChannelData(0)
+      for (let i = 0; i < bufSize; i++) nd[i] = Math.random() * 2 - 1
+      const noise = ctx.createBufferSource(); noise.buffer = noiseBuf
+      const lpf = ctx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 300
+      const noiseGain = ctx.createGain()
+      noiseGain.gain.setValueAtTime(2.5, now)
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12)
+      noise.connect(lpf); lpf.connect(noiseGain); noiseGain.connect(master)
+      noise.start(now); noise.stop(now + duration)
+      const sub = ctx.createOscillator()
+      const subGain = ctx.createGain()
+      sub.type = 'sine'
+      sub.frequency.setValueAtTime(120, now)
+      sub.frequency.exponentialRampToValueAtTime(40, now + 0.15)
+      subGain.gain.setValueAtTime(2.0, now)
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2)
+      sub.connect(subGain); subGain.connect(master)
+      sub.start(now); sub.stop(now + 0.2)
+      const bufSize2 = Math.ceil(ctx.sampleRate * 0.01)
+      const slapBuf = ctx.createBuffer(1, bufSize2, ctx.sampleRate)
+      const sd = slapBuf.getChannelData(0)
+      for (let i = 0; i < bufSize2; i++) sd[i] = Math.random() * 2 - 1
+      const slap = ctx.createBufferSource(); slap.buffer = slapBuf
+      const hpf = ctx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 2000
+      const slapGain = ctx.createGain()
+      slapGain.gain.setValueAtTime(3.0, now)
+      slapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.01)
+      slap.connect(hpf); hpf.connect(slapGain); slapGain.connect(master)
+      slap.start(now); slap.stop(now + 0.01)
+      setTimeout(() => { ctx.close(); resolve() }, duration * 1000 + 80)
+    }
+    ctx.resume().then(schedule)
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// THEMED DISPATCHERS
+// theme: 'default' | 'space' | 'arcade' | 'western' | 'boxing'
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function playThemedChime(theme: string): void {
+  switch (theme) {
+    case 'space':   return playSpaceChime()
+    case 'arcade':  return playArcadeChime()
+    case 'western': return playWesternChime()
+    case 'boxing':  return playBoxingChime()
+    default:        return playChime()
+  }
+}
+
+export function playThemedTick(theme: string): void {
+  const ctx = getBeepCtx()
+  if (!ctx) return
+  const run = () => {
+    switch (theme) {
+      case 'space':   return scheduleSpaceTick(ctx)
+      case 'arcade':  return scheduleArcadeTick(ctx)
+      case 'western': return scheduleWesternTick(ctx)
+      case 'boxing':  return scheduleBoxingTick(ctx)
+      default:        return scheduleBeep(ctx)
+    }
+  }
+  ctx.state === 'suspended' ? ctx.resume().then(run).catch(() => {}) : run()
+}
+
+export function playThemedBuzzer(theme: string): Promise<void> {
+  switch (theme) {
+    case 'space':   return playSpaceBuzzer()
+    case 'arcade':  return playArcadeBuzzer()
+    case 'western': return playWesternBuzzer()
+    case 'boxing':  return playBoxingBuzzer()
+    default:        return playBuzzer()
+  }
+}
+
+export function playThemedBullseye(theme: string): Promise<void> {
+  switch (theme) {
+    case 'space':   return playSpaceLaser()
+    case 'arcade':  return playArcadeFanfare()
+    case 'western': return playWesternGunshot()
+    case 'boxing':  return playBoxingImpact()
+    default:        return playBullseye()
+  }
+}

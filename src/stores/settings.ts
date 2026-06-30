@@ -78,5 +78,13 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('cleanMode', String(val))
   }
 
-  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode }
+  const soundTheme = ref<string>(
+    localStorage.getItem('soundTheme') ?? 'default'
+  )
+  function setSoundTheme(val: string) {
+    soundTheme.value = val
+    localStorage.setItem('soundTheme', val)
+  }
+
+  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme }
 })

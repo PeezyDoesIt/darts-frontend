@@ -76,7 +76,7 @@ import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
 import { speak, cancelPendingSpeak } from '../composables/useSpeech'
-import { playShotgun, playBuzzer, playCountdownBeep, playChime, unlockAudio } from '../composables/useSounds'
+import { playShotgun, playThemedBuzzer, playThemedTick, playThemedChime, unlockAudio } from '../composables/useSounds'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -150,7 +150,7 @@ async function handleTurnAnnouncement() {
   }
   if (gameStore.lastTurnWasTimeout) {
     const count = gameStore.playerTimeoutCounts[prevPlayer.value.id] ?? 0
-    await playBuzzer()
+    await playThemedBuzzer(settingsStore.soundTheme)
     await new Promise(r => setTimeout(r, 200))
     await speak(`Missed their turn.`)
     await speak(`Be better.`)
@@ -180,9 +180,9 @@ onMounted(() => {
 
   interval = setInterval(() => {
     if (paused.value) return
-    if (timeLeft.value <= 0) { clearInterval(interval!); playBuzzer(); startTurn(); return }
+    if (timeLeft.value <= 0) { clearInterval(interval!); playThemedBuzzer(settingsStore.soundTheme); startTurn(); return }
     timeLeft.value--
-    if (timeLeft.value > 0 && timeLeft.value <= 5) playCountdownBeep()
+    if (timeLeft.value > 0 && timeLeft.value <= 5) playThemedTick(settingsStore.soundTheme)
     if (timeLeft.value <= 30 && !showAlert.value) {
       showAlert.value = true
       if (!settingsStore.cleanMode) {
@@ -202,7 +202,7 @@ onUnmounted(() => {
   cancelPendingSpeak()
 })
 
-function startTurn() { unlockAudio(); playChime(); gameStore.startNextTurn(); router.push('/game') }
+function startTurn() { unlockAudio(); playThemedChime(settingsStore.soundTheme); gameStore.startNextTurn(); router.push('/game') }
 function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:') || url?.startsWith('http')) }
 </script>
 

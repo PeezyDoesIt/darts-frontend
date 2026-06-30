@@ -219,6 +219,14 @@
             <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.cleanMode }" @click="settingsStore.setCleanMode(true)">Clean</button>
           </div>
         </div>
+        <div class="timer-control-group sound-theme-group">
+          <span class="timer-control-label">Sound</span>
+          <div class="timer-control-btns">
+            <button v-for="t in SOUND_THEMES" :key="t.value" v-ripple
+              class="timer-ctrl-btn" :class="{ active: settingsStore.soundTheme === t.value }"
+              @click="settingsStore.setSoundTheme(t.value)">{{ t.label }}</button>
+          </div>
+        </div>
       </div>
 
       <!-- Add player picker -->
@@ -312,7 +320,7 @@ import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
 import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore, type CricketTarget } from '../types/index'
 import { speak } from '../composables/useSpeech'
-import { playCountdownBeep, unlockAudio } from '../composables/useSounds'
+import { playThemedTick, unlockAudio } from '../composables/useSounds'
 
 const WHITE_LABEL_THEMES = new Set<string | null>(
   PLAYER_THEMES
@@ -324,6 +332,14 @@ import NumpadEntry from '../components/NumpadEntry.vue'
 import SimpleEntry from '../components/SimpleEntry.vue'
 type OhOneScore = Extract<PlayerScore, { kind: 'ohOne' }>
 type CricketHits = Record<string | number, number>
+
+const SOUND_THEMES = [
+  { value: 'default', label: 'Default' },
+  { value: 'space',   label: 'Space' },
+  { value: 'arcade',  label: 'Arcade' },
+  { value: 'western', label: 'Western' },
+  { value: 'boxing',  label: 'Boxing' },
+]
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -480,7 +496,7 @@ function startThrowTimer() {
   throwInterval = setInterval(() => {
     if (throwPaused.value) return
     throwTimeLeft.value--
-    if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 5) playCountdownBeep()
+    if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 5) playThemedTick(settingsStore.soundTheme)
     const half = Math.floor(throwTimerDuration.value / 2)
     if (throwTimeLeft.value === half && half > 30 && !settingsStore.cleanMode) speak(`${currentPlayer.value.name}, it's your turn`)
     if (throwTimeLeft.value <= 30 && !throwHurryUpSaid && !settingsStore.cleanMode) {
