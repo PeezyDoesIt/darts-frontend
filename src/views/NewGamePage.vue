@@ -78,12 +78,20 @@
                 <div class="timer-options">
                   <button v-ripple class="timer-btn" :class="{ active: timerDuration === 0 }" @click="setWalkUp(0)">Off</button>
                   <button v-for="t in timerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: timerDuration === t }" @click="setWalkUp(t)">{{ t }}s</button>
+                  <div class="custom-time-bubble" :class="{ active: timerDuration !== 0 && !timerOptions.includes(timerDuration) }">
+                    <input type="number" class="custom-time-input" v-model="walkUpInput" min="1" max="600" placeholder="—" @change="onWalkUpInput(walkUpInput)" @focus="($event.target as HTMLInputElement).select()" />
+                    <span class="custom-time-unit">s</span>
+                  </div>
                 </div>
               </div>
               <div class="timer-group">
                 <span class="timer-group-label">Throw</span>
                 <div class="timer-options">
                   <button v-for="t in throwTimerOptions" :key="t" v-ripple class="timer-btn" :class="{ active: throwTimerDuration === t }" @click="setThrow(t)">{{ t === 0 ? 'Off' : t + 's' }}</button>
+                  <div class="custom-time-bubble" :class="{ active: throwTimerDuration !== 0 && !throwTimerOptions.includes(throwTimerDuration) }">
+                    <input type="number" class="custom-time-input" v-model="throwInput" min="1" max="600" placeholder="—" @change="onThrowInput(throwInput)" @focus="($event.target as HTMLInputElement).select()" />
+                    <span class="custom-time-unit">s</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -413,6 +421,27 @@ function startGame() {
 }
 .timer-btn:hover { border-color: var(--pink); color: var(--pink); }
 .timer-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
+
+.custom-time-bubble {
+  display: flex; align-items: center; gap: 2px;
+  padding: 7px 10px; border-radius: 6px;
+  border: 2px solid rgba(255,255,255,0.45); background: transparent;
+  transition: all 0.15s;
+}
+.custom-time-bubble:focus-within { border-color: rgba(255,255,255,0.85); }
+.custom-time-bubble.active { border-color: var(--pink); background: rgba(255,45,120,0.1); }
+.custom-time-input {
+  width: 42px; background: transparent; border: none; outline: none;
+  color: #fff; font-size: 13px; font-weight: 700;
+  font-family: var(--font-display); text-align: center;
+  -moz-appearance: textfield;
+}
+.custom-time-input::-webkit-outer-spin-button,
+.custom-time-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.custom-time-input::placeholder { color: rgba(255,255,255,0.3); font-weight: 400; }
+.custom-time-bubble.active .custom-time-input { color: var(--pink); }
+.custom-time-unit { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5); line-height: 1; }
+.custom-time-bubble.active .custom-time-unit { color: var(--pink); }
 
 /* Theme */
 .bg-tabs { display: flex; gap: 8px; }
