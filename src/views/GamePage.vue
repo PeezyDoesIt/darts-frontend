@@ -31,12 +31,6 @@
             <button v-ripple class="btn btn-sm btn-surface marks-layout-btn" @click="toggleMarksLayout" :title="marksLayout === 'top' ? 'Move marks to right column' : 'Move marks to top strip'">
               {{ marksLayout === 'top' ? '▶' : '▼' }}
             </button>
-            <button
-              v-ripple
-              class="btn btn-sm btn-gold submit-header-btn"
-              :disabled="cricketEntryRef?.submitted"
-              @click="cricketEntryRef?.submit()"
-            >SUBMIT TURN</button>
           </template>
         </div>
 
@@ -121,6 +115,15 @@
             @submit="handleNumpadSubmit"
           />
         </div>
+
+        <!-- Floating submit button: cricket only, bottom-right -->
+        <button
+          v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'"
+          v-ripple
+          class="btn btn-gold submit-float-btn"
+          :disabled="cricketEntryRef?.submitted"
+          @click="cricketEntryRef?.submit()"
+        >SUBMIT TURN</button>
       </div>
 
       <!-- Cricket marks grid: right column (optional layout) -->
@@ -615,8 +618,19 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .throw-timer-text.urgent { color: #fff; }
 .throw-timer-lock { position: relative; z-index: 1; font-size: 14px; margin-left: -8px; opacity: 0.6; }
 
-.submit-header-btn { flex-shrink: 0; align-self: center; margin-left: 16px; font-size: 14px; letter-spacing: 0.1em; padding: 12px 44px; }
-.submit-header-btn:disabled { opacity: 0.4; }
+.submit-float-btn {
+  position: absolute;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  right: 24px;
+  z-index: 10;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  padding: 16px 36px;
+  border-radius: 10px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+.submit-float-btn:disabled { opacity: 0.4; }
 .scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; font-size: 14px; letter-spacing: 0.1em; padding: 12px 40px; }
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
@@ -869,8 +883,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-avatar { width: 36px; height: 36px; font-size: 18px; }
   .turn-name { font-size: 34px; }
   .throw-timer-text { font-size: 16px; }
-  .submit-header-btn { padding: 8px 18px; font-size: 12px; margin-left: 10px; }
   .scores-btn { padding: 8px 28px; font-size: 12px; margin: 0 10px; }
+  .submit-float-btn { bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px; padding: 12px 24px; font-size: 13px; }
 }
 
 @media (max-width: 768px) {
@@ -884,8 +898,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-avatar { width: 38px; height: 38px; font-size: 18px; }
   .turn-name { font-size: 40px; }
   .throw-timer-text { font-size: 15px; padding: 0 10px; }
-  .submit-header-btn { padding: 8px 14px; font-size: 12px; margin-left: 8px; }
   .scores-btn { padding: 8px 24px; font-size: 12px; margin: 0 10px; }
+  .submit-float-btn { bottom: calc(14px + env(safe-area-inset-bottom)); right: 14px; padding: 12px 22px; font-size: 13px; }
   .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
   .submit-btn { height: 46px; font-size: 16px; }
   .lb-player-row { padding: 8px 16px; }
