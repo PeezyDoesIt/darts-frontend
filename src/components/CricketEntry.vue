@@ -200,7 +200,6 @@ defineExpose({ submit, submitted })
   position: relative; overflow: hidden;
 }
 .board-tile:not(:disabled):active { transform: scale(0.98); }
-.board-tile.active { border-color: var(--pink); background: rgba(180,0,60,0.92); box-shadow: 0 0 32px rgba(255,45,120,0.35); }
 .board-tile.closed { cursor: default; }
 .board-tile.closed .pip.existing { background: #cc0000; border-color: #cc0000; box-shadow: none; color: #000; }
 .board-tile.closed-fade { opacity: 0.35; cursor: default; }
@@ -211,8 +210,8 @@ defineExpose({ submit, submitted })
 }
 
 .target-label { font-size: clamp(100px, 17dvh, 190px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; display: flex; align-items: center; overflow: hidden; }
-.pips-wrap { display: flex; align-items: stretch; gap: 20px; flex: 1; padding: 14px 0; }
-.pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: clamp(28px, 5dvh, 60px); font-weight: 900; font-family: var(--font-display); color: rgba(0,0,0,0.6); line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.pips-wrap { display: flex; align-items: center; justify-content: center; gap: 16px; flex: 1; padding: 14px 0; }
+.pip { flex-shrink: 0; width: clamp(36px, 6dvh, 56px); height: clamp(36px, 6dvh, 56px); border-radius: 50%; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: clamp(20px, 3.5dvh, 36px); font-weight: 900; font-family: var(--font-display); color: rgba(0,0,0,0.6); line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
 .pip.round { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 16px rgba(255,45,120,0.6); }
 
@@ -259,7 +258,7 @@ defineExpose({ submit, submitted })
   .board-tile { min-height: 0; padding: 2px 14px; }
   .target-label { font-size: clamp(28px, 6dvh, 60px); width: clamp(70px, 10dvh, 120px); }
   .pips-wrap { gap: 8px; padding: 6px 0; }
-  .pip { border-radius: 6px; border-width: 2px; }
+  .pip { width: clamp(24px, 4dvh, 38px); height: clamp(24px, 4dvh, 38px); border-width: 2px; }
   .hit-badge { font-size: 16px; width: 52px; }
   .closed-badge { width: 52px; font-size: 9px; }
   .submit-row { padding: 4px 16px; padding-bottom: calc(4px + env(safe-area-inset-bottom)); }
@@ -282,6 +281,7 @@ defineExpose({ submit, submitted })
   .cricket-board { flex: 1; height: 100%; min-height: 0; padding: 4px 8px; gap: 4px; }
   .board-tile { min-height: 0; padding: 4px 12px; }
   .target-label { font-size: clamp(44px, 8.5dvh, 90px); width: clamp(76px, 11dvh, 125px); }
-  .pips-wrap { gap: 12px; padding: 6px 0; }
+  .pips-wrap { gap: 10px; padding: 6px 0; }
+  .pip { width: clamp(28px, 5dvh, 48px); height: clamp(28px, 5dvh, 48px); }
 }
 </style>

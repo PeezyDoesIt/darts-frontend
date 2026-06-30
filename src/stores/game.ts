@@ -35,40 +35,11 @@ function initScore(gameType: GameType, players: Player[]): Record<string, Player
   return scores
 }
 
-const STORAGE_KEY = 'darts_active_game'
-
-function loadGame(): ActiveGame | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    const g = JSON.parse(raw) as ActiveGame
-    // Backfill fields added after initial release
-    if (g.throwTimerDuration === undefined) g.throwTimerDuration = 0
-    if ((g as any).hideClosedTargets !== undefined && (g as any).closedTargetDisplay === undefined)
-      g.closedTargetDisplay = (g as any).hideClosedTargets ? 'hide' : 'show'
-    if (g.closedTargetDisplay === undefined) g.closedTargetDisplay = 'show'
-    if (g.bustEliminates === undefined) g.bustEliminates = false
-    if (g.cricketPlayToCompletion === undefined) g.cricketPlayToCompletion = false
-    if (g.cricketFinishOrder === undefined) g.cricketFinishOrder = []
-    if (g.gameTheme === undefined) g.gameTheme = null
-    if (g.players) g.players = g.players.map((p: any) => ({ cricketTargetDisplay: null, ...p }))
-    return g
-  } catch {
-    return null
-  }
-}
-
-function saveGame(g: ActiveGame | null) {
-  try {
-    if (g) localStorage.setItem(STORAGE_KEY, JSON.stringify(g))
-    else localStorage.removeItem(STORAGE_KEY)
-  } catch {
-    // localStorage quota exceeded (e.g. large photo avatars) — game runs in memory only
-  }
-}
+// Clear any previously saved game data
+localStorage.removeItem('darts_active_game')
 
 export const useGameStore = defineStore('game', () => {
-  const game = ref<ActiveGame | null>(loadGame())
+  const game = ref<ActiveGame | null>(null)
   const lastTurnWasZero = ref(false)
   const lastTurnWasTimeout = ref(false)
   const lastTurnHadBull = ref(false)
@@ -106,7 +77,6 @@ export const useGameStore = defineStore('game', () => {
       winnerId: null,
       startedAt: new Date().toISOString(),
     }
-    saveGame(game.value)
   }
 
   function submitScore(playerId: string, value: number | Record<CricketTarget, number>) {
@@ -128,7 +98,6 @@ export const useGameStore = defineStore('game', () => {
           if (game.value.players.length === 1) {
             game.value.winnerId = game.value.players[0]!.id
             game.value.status = 'finished'
-            saveGame(game.value)
             return
           }
         } else {
@@ -188,7 +157,6 @@ export const useGameStore = defineStore('game', () => {
           if (game.value.cricketFinishOrder.length === game.value.players.length) {
             game.value.winnerId = game.value.cricketFinishOrder[0]!
             game.value.status = 'finished'
-            saveGame(game.value)
             return
           }
         }
@@ -197,7 +165,6 @@ export const useGameStore = defineStore('game', () => {
         if (winner) {
           game.value.winnerId = winner
           game.value.status = 'finished'
-          saveGame(game.value)
           return
         }
       }
@@ -225,14 +192,12 @@ export const useGameStore = defineStore('game', () => {
         if (game.value.players.length === 1) {
           game.value.winnerId = game.value.players[0]!.id
           game.value.status = 'finished'
-          saveGame(game.value)
           return
         }
         // Manual end-of-round advance
         game.value.round++
         game.value.currentPlayerIndex = 0
         game.value.status = 'between_turns'
-        saveGame(game.value)
         return
       }
 
@@ -253,13 +218,11 @@ export const useGameStore = defineStore('game', () => {
         if (game.value.players.length === 1) {
           game.value.winnerId = game.value.players[0]!.id
           game.value.status = 'finished'
-          saveGame(game.value)
           return
         }
         game.value.round++
         game.value.currentPlayerIndex = 0
         game.value.status = 'between_turns'
-        saveGame(game.value)
         return
       }
     } else if (score.kind === 'bobs27' && typeof value === 'number') {
@@ -288,7 +251,6 @@ export const useGameStore = defineStore('game', () => {
         }
         game.value.winnerId = winnerId
         game.value.status = 'finished'
-        saveGame(game.value)
         return
       }
     }
@@ -324,7 +286,6 @@ export const useGameStore = defineStore('game', () => {
       if (nextIndex <= currentPlayerIndex) game.value.round++
       game.value.currentPlayerIndex = nextIndex
       game.value.status = 'between_turns'
-      saveGame(game.value)
       return
     }
 
@@ -332,13 +293,11 @@ export const useGameStore = defineStore('game', () => {
     if (nextIndex === 0) game.value.round++
     game.value.currentPlayerIndex = nextIndex
     game.value.status = 'between_turns'
-    saveGame(game.value)
   }
 
   function startNextTurn() {
     if (!game.value) return
     game.value.status = 'playing'
-    saveGame(game.value)
   }
 
   function addPlayerToGame(player: Player) {
@@ -363,7 +322,6 @@ export const useGameStore = defineStore('game', () => {
     } else {
       game.value.scores[player.id] = { kind: 'simple', data: { total: 0, history: [] } }
     }
-    saveGame(game.value)
   }
 
   function removePlayerFromGame(playerId: string) {
@@ -389,30 +347,25 @@ export const useGameStore = defineStore('game', () => {
       game.value.status = 'between_turns'
     }
 
-    saveGame(game.value)
   }
 
   function setClosedTargetDisplay(val: 'show' | 'hide' | 'fade' | 'strike') {
     if (!game.value) return
     game.value.closedTargetDisplay = val
-    saveGame(game.value)
   }
 
   function setTimerDuration(val: number) {
     if (!game.value) return
     game.value.timerDuration = val
-    saveGame(game.value)
   }
 
   function setThrowTimerDuration(val: number) {
     if (!game.value) return
     game.value.throwTimerDuration = val
-    saveGame(game.value)
   }
 
   function endGame() {
     game.value = null
-    saveGame(null)
   }
 
   return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, setTimerDuration, setThrowTimerDuration, endGame }

@@ -591,7 +591,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .turn-avatar { width: 54px; height: 54px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 28px; border: 2px solid rgba(255,255,255,0.15); overflow: hidden; flex-shrink: 0; }
 .turn-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .turn-player-info { display: flex; flex-direction: column; gap: 4px; }
-.turn-name { font-size: 48px; line-height: 1; letter-spacing: 0.05em; font-weight: 900; }
+.turn-name { font-size: 64px; line-height: 1; letter-spacing: 0.05em; font-weight: 900; }
 
 /* Timer — expands to fill remaining header space */
 .throw-timer-bar { flex: 1; position: relative; background: rgba(255,255,255,0.05); overflow: hidden; display: flex; align-items: center; cursor: pointer; user-select: none; border-right: 1px solid rgba(255,255,255,0.08); }
@@ -750,10 +750,10 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .finished-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); border-radius: 3px; padding: 2px 5px; font-family: var(--font-body); }
 .lb-player-row.ptc-finished { opacity: 0.45; }
 .cricket-mini { display: flex; flex-wrap: nowrap; gap: 4px; }
-.mini-target { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; min-width: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; padding: 10px 2px; }
-.mini-label { font-size: 40px; font-weight: 800; color: rgba(255,255,255,0.9); letter-spacing: 0.02em; font-family: var(--font-display); }
-.mini-marks { display: flex; gap: 4px; }
-.mini-pip { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); transition: background 0.1s; flex-shrink: 0; }
+.mini-target { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; min-width: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; padding: 6px 2px; }
+.mini-label { font-size: 34px; font-weight: 800; color: rgba(255,255,255,0.9); letter-spacing: 0.02em; font-family: var(--font-display); }
+.mini-marks { display: flex; gap: 2px; }
+.mini-pip { width: 30px; height: 30px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.12); transition: background 0.1s; flex-shrink: 0; }
 .mini-pip.filled { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 6px rgba(255,45,120,0.8); }
 .lb-score { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
 .lb-score-val { font-size: clamp(48px, 8dvh, 120px); font-weight: 900; font-family: var(--font-display); line-height: 1; color: #fff; }
@@ -855,7 +855,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-header { min-height: 52px; }
   .turn-player-box { padding: 6px 14px 6px 18px; gap: 10px; }
   .turn-avatar { width: 36px; height: 36px; font-size: 18px; }
-  .turn-name { font-size: 26px; }
+  .turn-name { font-size: 34px; }
   .throw-timer-text { font-size: 16px; }
   .submit-header-btn { padding: 8px 18px; font-size: 12px; margin-left: 10px; }
   .scores-btn { padding: 8px 28px; font-size: 12px; margin: 0 10px; }
@@ -870,7 +870,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-header { min-height: 58px; }
   .turn-player-box { padding: 8px 12px 8px 16px; gap: 8px; }
   .turn-avatar { width: 38px; height: 38px; font-size: 18px; }
-  .turn-name { font-size: 30px; }
+  .turn-name { font-size: 40px; }
   .throw-timer-text { font-size: 15px; padding: 0 10px; }
   .submit-header-btn { padding: 8px 14px; font-size: 12px; margin-left: 8px; }
   .scores-btn { padding: 8px 24px; font-size: 12px; margin: 0 10px; }
@@ -880,7 +880,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .lb-avatar { width: 40px; height: 40px; font-size: 20px; }
   .lb-player-name { font-size: 18px; }
   .lb-score-val { font-size: clamp(48px, 8dvh, 120px); }
-  .mini-label { font-size: 32px; }
-  .mini-pip { width: 18px; height: 18px; }
+  .mini-label { font-size: 26px; }
+  .mini-pip { width: 22px; height: 22px; }
 }
 </style>

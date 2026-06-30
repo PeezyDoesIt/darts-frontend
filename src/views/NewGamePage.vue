@@ -437,6 +437,21 @@ function startGame() {
 .swatch-none-icon { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 1; }
 .selected-theme-name { font-size: 12px; font-weight: 700; color: var(--blue); letter-spacing: 0.08em; text-transform: uppercase; }
 
+@media (min-width: 769px) and (max-width: 1199px) {
+  .ng-right { width: 460px; overflow-y: auto; padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
+  .player-scroll { flex: none; height: auto; overflow: visible; }
+  .player-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .player-tile { padding: 16px 18px; }
+  .tile-avatar { width: 56px; height: 56px; font-size: 28px; }
+  .tile-name { font-size: 18px; }
+  .order-section { padding-top: 20px; }
+  .order-list { gap: 10px; }
+  .order-row { padding: 14px 18px; }
+  .order-num { font-size: 32px; width: 32px; }
+  .order-name { font-size: 18px; }
+  .btn.btn-sm { padding: 10px 14px; font-size: 14px; }
+}
+
 @media (max-width: 768px) {
   .ng-header { padding: 14px 20px; padding-top: calc(14px + env(safe-area-inset-top)); }
   .ng-body { flex-direction: column; overflow-y: auto; }
