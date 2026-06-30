@@ -412,10 +412,10 @@ function startGame() {
 
 .game-theme-photo-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .game-theme-preview { width: 88px; height: 64px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-.theme-swatch-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.theme-swatch-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
 .theme-swatch {
-  width: 36px; height: 36px; border-radius: 6px; border: 2px solid rgba(255,255,255,0.12);
-  cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; flex-shrink: 0;
+  aspect-ratio: 1; border-radius: 6px; border: 2px solid rgba(255,255,255,0.12);
+  cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
 }
 .theme-swatch.none { background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; }
 .theme-swatch:hover { border-color: rgba(255,255,255,0.4); transform: scale(1.08); }
