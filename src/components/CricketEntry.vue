@@ -205,7 +205,6 @@ defineExpose({ submit, submitted })
   position: relative; overflow: hidden;
 }
 .board-tile:not(:disabled):active { transform: scale(0.98); }
-.board-tile.active { border-color: var(--pink); background: rgba(180,0,60,0.92); box-shadow: 0 0 32px rgba(255,45,120,0.35); }
 .board-tile.closed { cursor: default; }
 .board-tile.closed .pip.existing { background: #cc0000; border-color: #cc0000; box-shadow: none; color: #000; }
 .board-tile.closed-fade { opacity: 0.35; cursor: default; }
