@@ -11,7 +11,7 @@ export const usePlayersStore = defineStore('players', () => {
     if (raw) {
       const loaded = JSON.parse(raw) as Player[]
       const PEEZY_BG = 'linear-gradient(160deg, #0c0c0e 0%, #242428 40%, #484850 70%, #a0a0b0 100%)'
-      players.value = loaded.map(p => {
+      players.value = loaded.filter(p => p.id === 'brannon-default').map(p => {
         if (p.id !== 'brannon-default') return { ...p, playerBackground: p.playerBackground ?? null, pinned: p.pinned ?? false, targetLabelColor: p.targetLabelColor ?? null, cricketTargetDisplay: p.cricketTargetDisplay ?? null }
         return {
           ...p,
