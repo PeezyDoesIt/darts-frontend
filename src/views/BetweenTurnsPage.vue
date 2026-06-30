@@ -230,15 +230,15 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 }
 
 .default-name {
-  font-size: clamp(44px, 8vmin, 100px);
+  font-size: clamp(64px, 12vmin, 140px);
   letter-spacing: 0.04em; line-height: 1;
   text-align: center; transition: color 0.3s;
 }
 
 .name-bar {
   width: clamp(120px, 60%, 400px);
-  height: 6px;
-  border-radius: 3px;
+  height: 12px;
+  border-radius: 6px;
   transition: background 0.3s, box-shadow 0.3s;
 }
 
@@ -269,7 +269,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   padding-bottom: calc(100px + env(safe-area-inset-bottom));
 }
 .cricket-player-name {
-  font-size: clamp(100px, 20dvh, 220px);
+  font-size: clamp(120px, 24dvh, 280px);
   letter-spacing: 0.04em;
   line-height: 1;
   text-align: center;
@@ -352,14 +352,14 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 @media (orientation: landscape) and (max-height: 900px) and (max-width: 767px) {
   .timer-bg { width: clamp(120px, 44vmin, 220px); height: clamp(120px, 44vmin, 220px); }
   .timer-bg-count { font-size: clamp(44px, 11vmin, 88px); }
-  .default-name { font-size: clamp(24px, 6vmin, 52px); }
+  .default-name { font-size: clamp(32px, 8vmin, 72px); }
   .default-content { gap: clamp(8px, 2vmin, 18px); padding: 0 16px; }
   .btn-ready { font-size: clamp(18px, 4vmin, 28px); padding: 8px 0; max-width: 300px; }
   .cricket-layout { flex-direction: column; gap: 16px; padding: 16px 32px; align-items: center; justify-content: center; padding-top: calc(20px + env(safe-area-inset-top)); }
   .cricket-layout .timer-center { width: 140px; height: 140px; }
   .cricket-layout .timer-center .timer-ring { width: 140px; height: 140px; }
   .cricket-layout .timer-center .timer-count { font-size: 56px; }
-  .cricket-player-name { font-size: 56px; }
+  .cricket-player-name { font-size: 72px; }
 }
 
 /* Phone portrait and small screens */
@@ -367,13 +367,13 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .between-inner { padding: 24px 20px; }
   .timer-bg { width: clamp(180px, 58vmin, 320px); height: clamp(180px, 58vmin, 320px); }
   .timer-bg-count { font-size: clamp(60px, 14vmin, 120px); }
-  .default-name { font-size: clamp(40px, 9vmin, 80px); }
+  .default-name { font-size: clamp(56px, 12vmin, 110px); }
   .btn-ready { font-size: clamp(22px, 5vmin, 32px); padding: 10px 0; max-width: 380px; }
   .cricket-layout { gap: clamp(4px, 1.5dvh, 16px); }
   .cricket-layout .timer-center { width: clamp(180px, 26dvh, 260px); height: clamp(180px, 26dvh, 260px); }
   .cricket-layout .timer-center .timer-ring { width: clamp(180px, 26dvh, 260px); height: clamp(180px, 26dvh, 260px); }
   .cricket-layout .timer-center .timer-count { font-size: clamp(72px, 10dvh, 110px); }
-  .cricket-player-name { font-size: clamp(80px, 14dvh, 140px); }
+  .cricket-player-name { font-size: clamp(100px, 17dvh, 180px); }
 }
 
 /* iPad and tablets (both portrait and landscape) — centered, symmetrical spacing */
@@ -383,7 +383,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
     gap: clamp(8px, 2dvh, 24px);
     padding: calc(48px + env(safe-area-inset-top)) 64px calc(120px + env(safe-area-inset-bottom));
   }
-  .cricket-player-name { font-size: clamp(80px, 11dvh, 160px); }
+  .cricket-player-name { font-size: clamp(100px, 14dvh, 200px); }
   .timer-center { width: clamp(180px, 22dvh, 270px); height: clamp(180px, 22dvh, 270px); }
   .timer-center .timer-ring { width: clamp(180px, 22dvh, 270px); height: clamp(180px, 22dvh, 270px); }
   .timer-center .timer-count { font-size: clamp(72px, 9dvh, 112px); }
