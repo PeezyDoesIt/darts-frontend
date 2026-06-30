@@ -18,7 +18,7 @@
 
       <div v-if="game?.bonusTurnActive" class="bonus-badge display">BONUS THROW</div>
 
-      <div v-if="!timerOff" class="walkup-timer-bar" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
+      <div v-if="!timerOff" class="walkup-timer-bar" :class="{ 'timer-alert': showAlert }" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
         <div class="walkup-timer-fill"
           :class="{ urgent: showAlert, paused: paused }"
           :style="{ width: `${progress * 100}%`, transition: paused ? 'none' : 'width 1s linear' }" />
@@ -178,7 +178,7 @@ onMounted(() => {
     if (paused.value) return
     if (timeLeft.value <= 0) { clearInterval(interval!); playThemedBuzzer(settingsStore.soundTheme); startTurn(); return }
     timeLeft.value--
-    if (timeLeft.value > 0 && timeLeft.value <= 5) playThemedTick(settingsStore.soundTheme)
+    if (timeLeft.value > 0 && timeLeft.value <= 3) playThemedTick(settingsStore.soundTheme)
     if (timeLeft.value <= 30 && !showAlert.value) {
       showAlert.value = true
       if (!settingsStore.cleanMode) {
@@ -258,14 +258,27 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   position: relative; border-radius: 10px; overflow: hidden;
   background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
   cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+  transition: box-shadow 0.3s, border-color 0.3s;
 }
 .walkup-timer-bar:active { opacity: 0.9; }
+.walkup-timer-bar.timer-alert {
+  border-color: rgba(255,34,34,0.5);
+  animation: walkup-glow 0.75s ease-in-out infinite alternate;
+}
+@keyframes walkup-glow {
+  from { box-shadow: 0 0 10px rgba(220,38,38,0.4); }
+  to   { box-shadow: 0 0 28px rgba(255,34,34,0.95), 0 0 54px rgba(255,34,34,0.35); }
+}
 .walkup-timer-fill {
   position: absolute; left: 0; top: 0; bottom: 0;
-  background: #dc2626; transition: width 1s linear, background 0.3s;
+  background: #eab308; transition: width 1s linear, background 0.3s;
 }
-.walkup-timer-fill.urgent { background: #ff2222; }
-.walkup-timer-fill.paused { background: rgba(255,255,255,0.3); }
+.walkup-timer-fill.urgent { background: #dc2626; animation: fill-flash 0.75s ease-in-out infinite alternate; }
+@keyframes fill-flash {
+  from { background: #dc2626; }
+  to   { background: #ff2222; }
+}
+.walkup-timer-fill.paused { background: rgba(255,255,255,0.3); animation: none; }
 .walkup-timer-text {
   position: relative; z-index: 1; width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;

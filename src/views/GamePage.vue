@@ -16,7 +16,7 @@
           <div v-if="throwTimerDuration > 0" class="throw-timer-bar" @click="toggleThrowPause">
             <div
               class="throw-timer-fill"
-              :class="{ urgent: throwTimeLeft <= 10, paused: throwPaused }"
+              :class="{ warning: throwTimeLeft <= 30, urgent: throwTimeLeft <= 10, paused: throwPaused }"
               :style="{ width: `${(throwTimeLeft / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }"
             />
             <span class="throw-timer-text" :class="{ urgent: throwTimeLeft <= 10 }">
@@ -630,7 +630,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
 /* Timer — expands to fill remaining header space */
 .throw-timer-bar { flex: 1; position: relative; background: rgba(255,255,255,0.05); overflow: hidden; display: flex; align-items: center; cursor: pointer; user-select: none; border-right: 1px solid rgba(255,255,255,0.08); }
 .throw-timer-spacer { flex: 1; }
-.throw-timer-fill { position: absolute; left: 0; top: 0; bottom: 0; background: #dc2626; transition: width 1s linear, background 0.3s; }
+.throw-timer-fill { position: absolute; left: 0; top: 0; bottom: 0; background: #eab308; transition: width 1s linear, background 0.3s; }
+.throw-timer-fill.warning { background: #dc2626; }
 .throw-timer-fill.urgent { background: #ff1a1a; }
 .throw-timer-fill.paused { background: var(--text-muted); }
 .throw-timer-text { position: relative; z-index: 1; font-size: 22px; font-weight: 800; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); padding: 0 16px; font-family: var(--font-display); }
