@@ -358,7 +358,7 @@ function toggleMarksLayout() {
 }
 const cricketEntryRef = ref<InstanceType<typeof CricketEntry> | null>(null)
 
-const TIMER_OPTIONS = [60, 90, 120, 180]
+const TIMER_OPTIONS = [60, 90, 120]
 
 const ctDisplayOptions = [
   { value: 'show'   as const, label: 'Normal' },
