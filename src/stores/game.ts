@@ -55,7 +55,7 @@ export const useGameStore = defineStore('game', () => {
     _pendingTimeout.value = true
   }
 
-  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide' | 'fade' | 'strike', bustEliminates: boolean, cricketPlayToCompletion: boolean, gameTheme: string | null, players: Player[]) {
+  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide' | 'fade' | 'strike', bustEliminates: boolean, cricketPlayToCompletion: boolean, cricketHatTrickBonus: boolean, gameTheme: string | null, players: Player[]) {
     playerTimeoutCounts.value = {}
     playerHurryUpCounts.value = {}
     lastTurnWasTimeout.value = false
@@ -67,6 +67,8 @@ export const useGameStore = defineStore('game', () => {
       closedTargetDisplay,
       bustEliminates,
       cricketPlayToCompletion,
+      cricketHatTrickBonus,
+      bonusTurnActive: false,
       cricketFinishOrder: [],
       gameTheme,
       players,
@@ -118,6 +120,7 @@ export const useGameStore = defineStore('game', () => {
     } else if (score.kind === 'cricket' && typeof value === 'object') {
       const allScores = game.value.scores
       const isCutThroat = game.value.gameType === 'cutThroat'
+      const totalHitsThisTurn = Object.values(value).reduce((a, b) => a + b, 0)
 
       for (const [targetStr, hits] of Object.entries(value)) {
         const target = targetStr as CricketTarget
@@ -167,6 +170,12 @@ export const useGameStore = defineStore('game', () => {
           game.value.status = 'finished'
           return
         }
+      }
+      // Hat trick bonus: 3+ marks in one turn → same player goes again
+      if (game.value.cricketHatTrickBonus && totalHitsThisTurn >= 3) {
+        game.value.bonusTurnActive = true
+        game.value.status = 'between_turns'
+        return
       }
     } else if (score.kind === 'simple' && typeof value === 'number') {
       score.data.total += value
@@ -297,6 +306,7 @@ export const useGameStore = defineStore('game', () => {
 
   function startNextTurn() {
     if (!game.value) return
+    game.value.bonusTurnActive = false
     game.value.status = 'playing'
   }
 

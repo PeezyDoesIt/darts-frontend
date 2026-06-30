@@ -139,6 +139,8 @@ export type ActiveGame = {
   closedTargetDisplay: 'show' | 'hide' | 'fade' | 'strike'
   bustEliminates: boolean
   cricketPlayToCompletion: boolean
+  cricketHatTrickBonus: boolean
+  bonusTurnActive: boolean
   cricketFinishOrder: string[]
   gameTheme: string | null
   players: Player[]

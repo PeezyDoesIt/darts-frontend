@@ -46,6 +46,15 @@
                 <span class="toggle-sub">Game continues until all players have closed every target</span>
               </div>
             </div>
+            <div class="toggle-row" @click="cricketHatTrickBonus = !cricketHatTrickBonus">
+              <div class="toggle-track" :class="{ active: cricketHatTrickBonus }">
+                <div class="toggle-thumb" />
+              </div>
+              <div class="toggle-info">
+                <span class="toggle-label">Hat Trick Bonus</span>
+                <span class="toggle-sub">Score 3+ marks in one turn to throw again</span>
+              </div>
+            </div>
           </section>
 
           <section v-if="['301','501','701','1001'].includes(selectedGameType ?? '')" class="ng-section">
@@ -217,6 +226,7 @@ function onThrowInput(val: string | number | null) {
 const closedTargetDisplay = ref<'show' | 'hide' | 'fade' | 'strike'>('show')
 const bustEliminates = ref(false)
 const cricketPlayToCompletion = ref(false)
+const cricketHatTrickBonus = ref(false)
 const closedTargetOptions = [
   { value: 'show'   as const, label: 'Normal',        sub: 'Closed targets stay visible' },
   { value: 'fade'   as const, label: 'Fade Out',       sub: 'Closed targets go transparent' },
@@ -269,7 +279,7 @@ function startGame() {
   if (selectedPlayers.value.length < 2 || !selectedGameType.value) return
   const t = timerDuration.value
   const tt = throwTimerDuration.value
-  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, gameTheme.value, selectedPlayers.value)
+  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, gameTheme.value, selectedPlayers.value)
   router.push('/between')
 }
 </script>

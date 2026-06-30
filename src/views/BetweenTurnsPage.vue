@@ -16,6 +16,8 @@
       </div>
       <div class="name-bar" :style="{ background: showAlert ? '#ef4444' : nextPlayer.color, boxShadow: `0 0 18px ${showAlert ? '#ef4444' : nextPlayer.color}` }" />
 
+      <div v-if="game?.bonusTurnActive" class="bonus-badge display">BONUS THROW</div>
+
       <div v-if="!timerOff" class="timer-wrap timer-center" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
         <svg class="timer-ring" viewBox="0 0 120 120">
           <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="6" />
@@ -135,6 +137,10 @@ function playWhistle(): Promise<void> {
 }
 
 async function handleTurnAnnouncement() {
+  if (game.value?.bonusTurnActive) {
+    speak(`${nextPlayer.value.name} — bonus throw!`)
+    return
+  }
   if (settingsStore.cleanMode) {
     speak(nextPlayer.value.name)
     return
@@ -240,6 +246,19 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   height: 12px;
   border-radius: 6px;
   transition: background 0.3s, box-shadow 0.3s;
+}
+
+.bonus-badge {
+  font-size: clamp(28px, 5dvh, 52px);
+  letter-spacing: 0.12em;
+  color: #fbbf24;
+  filter: drop-shadow(0 0 16px #fbbf24);
+  text-align: center;
+  animation: bonus-pulse 0.7s ease-in-out infinite alternate;
+}
+@keyframes bonus-pulse {
+  from { opacity: 0.8; transform: scale(0.97); }
+  to   { opacity: 1;   transform: scale(1.03); }
 }
 
 .timer-bg {
