@@ -258,6 +258,8 @@ defineExpose({ submit, submitted })
   font-size: 14px; font-weight: 900; font-family: var(--font-display);
   letter-spacing: 0.1em; border-radius: 8px; cursor: pointer;
   position: relative; overflow: hidden;
+  background: #dc2626 !important; color: #fff !important; border: none !important;
+  box-shadow: 0 2px 12px rgba(220,38,38,0.4);
 }
 .submit-inline-btn:disabled { opacity: 0.4; }
 
