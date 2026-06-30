@@ -116,14 +116,6 @@
           />
         </div>
 
-        <!-- Floating submit button: cricket only, bottom-right -->
-        <button
-          v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'"
-          v-ripple
-          class="btn btn-gold submit-float-btn"
-          :disabled="cricketEntryRef?.submitted"
-          @click="cricketEntryRef?.submit()"
-        >SUBMIT TURN</button>
       </div>
 
       <!-- Cricket marks grid: right column (optional layout) -->

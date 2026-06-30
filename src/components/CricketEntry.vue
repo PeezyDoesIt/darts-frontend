@@ -41,6 +41,9 @@
         {{ totalHitsThisRound }} hit{{ totalHitsThisRound !== 1 ? 's' : '' }} this round
       </span>
       <span v-else class="muted" :style="{ color: targetColor }">Round {{ round }}</span>
+      <button v-ripple class="btn btn-gold submit-inline-btn" :disabled="submitted" @click="submit">
+        SUBMIT TURN
+      </button>
     </div>
   </div>
 </template>
@@ -240,22 +243,23 @@ defineExpose({ submit, submitted })
 
 .submit-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 20px; padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  min-height: 72px;
+  padding: 12px 20px; padding-bottom: calc(12px + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); flex-shrink: 0; gap: 16px;
   position: relative; z-index: 1;
 }
-.round-summary { font-size: 14px; flex-shrink: 0; }
-.hits-text { color: var(--pink); font-weight: 700; }
-.muted { color: var(--text-muted); font-weight: 700; }
-.submit-btn {
-  flex: 1; height: 64px; font-size: 22px; font-weight: 900; font-family: var(--font-display);
-  letter-spacing: 0.12em; border: none; border-radius: 8px; cursor: pointer;
-  background: linear-gradient(135deg, var(--pink), var(--purple), var(--blue));
-  color: #fff; box-shadow: 0 0 24px rgba(255,45,120,0.4); transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent; position: relative; overflow: hidden;
+.hits-text { color: var(--pink); font-weight: 700; font-size: 15px; }
+.muted { color: var(--text-muted); font-weight: 700; font-size: 15px; }
+.submit-inline-btn {
+  flex-shrink: 0;
+  height: 48px;
+  padding: 0 28px;
+  font-size: 14px; font-weight: 900; font-family: var(--font-display);
+  letter-spacing: 0.1em; border-radius: 8px; cursor: pointer;
+  position: relative; overflow: hidden;
 }
-.submit-btn:active { transform: scale(0.97); opacity: 0.9; }
+.submit-inline-btn:disabled { opacity: 0.4; }
 
 @media (orientation: landscape) and (max-height: 900px) {
   .cricket-board-scroll { overflow: hidden; display: flex; flex-direction: column; }
@@ -266,8 +270,8 @@ defineExpose({ submit, submitted })
   .pip { border-radius: 6px; border-width: 2px; }
   .hit-badge { font-size: 16px; width: 52px; }
   .closed-badge { width: 52px; font-size: 9px; }
-  .submit-row { padding: 4px 16px; padding-bottom: calc(4px + env(safe-area-inset-bottom)); }
-  .submit-btn { height: 36px; font-size: 14px; }
+  .submit-row { min-height: 52px; padding: 6px 16px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
+  .submit-inline-btn { height: 36px; padding: 0 16px; font-size: 11px; }
 }
 
 @media (max-width: 768px) {
@@ -277,8 +281,8 @@ defineExpose({ submit, submitted })
   .pips-wrap { gap: 16px; }
   .hit-badge { font-size: 16px; width: 52px; }
   .closed-badge { width: 52px; font-size: 9px; }
-  .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
-  .submit-btn { height: 46px; font-size: 16px; }
+  .submit-row { min-height: 64px; padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+  .submit-inline-btn { height: 44px; padding: 0 20px; font-size: 13px; }
 }
 
 @media (orientation: portrait) {
