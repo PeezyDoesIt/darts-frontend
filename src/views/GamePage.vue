@@ -120,25 +120,52 @@
 
       <!-- Cricket marks grid: right column (optional layout) -->
       <div v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat') && marksLayout === 'right'" class="cricket-col">
-        <!-- Player name headers -->
-        <div class="cc-header">
-          <div class="cc-target-label" style="min-width:0"></div>
-          <div v-for="p in game.players" :key="p.id" class="cc-player-head"
-            :style="{ color: p.color }">
-            {{ p.name }}
+
+        <!-- 3 players: first two on top, third stacked below -->
+        <template v-if="game.players.length === 3">
+          <div class="cc-header">
+            <div class="cc-target-label" style="min-width:0"></div>
+            <div v-for="p in game.players.slice(0, 2)" :key="p.id" class="cc-player-head" :style="{ color: p.color }">{{ p.name }}</div>
           </div>
-        </div>
-        <!-- One row per target -->
-        <div v-for="t in CRICKET_TARGETS" :key="t" class="cc-target-row">
-          <div class="cc-target-label" :style="{ color: currentPlayerNameColor }">{{ t === 'bull' ? 'B' : t }}</div>
-          <div v-for="p in game.players" :key="p.id" class="cc-cell"
-            :class="{ 'cc-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }">
-            <span v-for="n in 3" :key="n" class="cs-pip"
-              :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
-              :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 4px ${p.color}` } : {}"
-            />
+          <div v-for="t in CRICKET_TARGETS" :key="'a'+t" class="cc-target-row">
+            <div class="cc-target-label" :style="{ color: currentPlayerNameColor }">{{ t === 'bull' ? 'B' : t }}</div>
+            <div v-for="p in game.players.slice(0, 2)" :key="p.id" class="cc-cell" :class="{ 'cc-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }">
+              <span v-for="n in 3" :key="n" class="cc-pip"
+                :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
+                :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 6px ${p.color}` } : {}" />
+            </div>
           </div>
-        </div>
+          <div class="cc-group-divider"></div>
+          <div class="cc-header">
+            <div class="cc-target-label" style="min-width:0"></div>
+            <div class="cc-player-head" :style="{ color: game.players[2]!.color }">{{ game.players[2]!.name }}</div>
+          </div>
+          <div v-for="t in CRICKET_TARGETS" :key="'b'+t" class="cc-target-row">
+            <div class="cc-target-label" :style="{ color: currentPlayerNameColor }">{{ t === 'bull' ? 'B' : t }}</div>
+            <div class="cc-cell" :class="{ 'cc-closed': (getCricketMarks(game.players[2]!.id)?.[t] ?? 0) >= 3 }">
+              <span v-for="n in 3" :key="n" class="cc-pip"
+                :class="{ filled: (getCricketMarks(game.players[2]!.id)?.[t] ?? 0) >= n }"
+                :style="(getCricketMarks(game.players[2]!.id)?.[t] ?? 0) >= n ? { background: game.players[2]!.color, boxShadow: `0 0 6px ${game.players[2]!.color}` } : {}" />
+            </div>
+          </div>
+        </template>
+
+        <!-- 2 or 4+ players: all as columns -->
+        <template v-else>
+          <div class="cc-header">
+            <div class="cc-target-label" style="min-width:0"></div>
+            <div v-for="p in game.players" :key="p.id" class="cc-player-head" :style="{ color: p.color }">{{ p.name }}</div>
+          </div>
+          <div v-for="t in CRICKET_TARGETS" :key="t" class="cc-target-row">
+            <div class="cc-target-label" :style="{ color: currentPlayerNameColor }">{{ t === 'bull' ? 'B' : t }}</div>
+            <div v-for="p in game.players" :key="p.id" class="cc-cell" :class="{ 'cc-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }">
+              <span v-for="n in 3" :key="n" class="cc-pip"
+                :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
+                :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 6px ${p.color}` } : {}" />
+            </div>
+          </div>
+        </template>
+
       </div>
 
       <!-- Score reveal overlay — oh-one games -->
@@ -730,9 +757,18 @@ watch(() => game.value?.currentPlayerIndex, () => {
   color: #ffffff; font-family: var(--font-display);
 }
 .cc-cell {
-  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  flex: 1; display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 3px;
 }
 .cc-closed { opacity: 0.3; }
+.cc-pip {
+  width: 11px; height: 11px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.1); flex-shrink: 0; transition: background 0.1s;
+}
+.cc-pip.filled { border-color: transparent; }
+.cc-group-divider {
+  height: 1px; background: rgba(255,255,255,0.18); margin: 2px 0; flex-shrink: 0;
+}
 
 /* Fullscreen scores overlay */
 .scores-overlay {
@@ -771,8 +807,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .mini-target { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; min-width: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; padding: 6px 2px; }
 .mini-label { font-size: 34px; font-weight: 800; color: rgba(255,255,255,0.9); letter-spacing: 0.02em; font-family: var(--font-display); }
 .mini-marks { display: flex; gap: 2px; }
-.mini-pip { width: 30px; height: 30px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.12); transition: background 0.1s; flex-shrink: 0; }
-.mini-pip.filled { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 6px rgba(255,45,120,0.8); }
+.mini-pip { width: 30px; height: 30px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,0.65); background: rgba(255,255,255,0.18); transition: background 0.1s; flex-shrink: 0; }
+.mini-pip.filled { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 10px rgba(255,45,120,1), 0 0 22px rgba(255,45,120,0.5); }
 .lb-score { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
 .lb-score-val { font-size: clamp(48px, 8dvh, 120px); font-weight: 900; font-family: var(--font-display); line-height: 1; color: #fff; }
 .lb-score-label { font-size: 13px; color: rgba(255,255,255,0.45); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-align: right; }
