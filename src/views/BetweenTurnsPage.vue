@@ -8,7 +8,7 @@
       <span v-else-if="nextPlayer.avatarUrl">{{ nextPlayer.avatarUrl }}</span>
     </div>
 
-    <!-- Cricket layout: name + timer only (button is the circle below) -->
+    <!-- Cricket layout: name + timer bar + start button -->
     <div v-if="isCricket" class="between-inner cricket-layout">
       <div class="cricket-player-name display"
         :style="{ color: showAlert ? '#ef4444' : '#ffffff', filter: showAlert ? `drop-shadow(0 0 24px #ef4444)` : 'drop-shadow(0 0 24px rgba(255,255,255,0.4))' }">
@@ -18,25 +18,19 @@
 
       <div v-if="game?.bonusTurnActive" class="bonus-badge display">BONUS THROW</div>
 
-      <div v-if="!timerOff" class="timer-wrap timer-center" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
-        <svg class="timer-ring" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="6" />
-          <circle cx="60" cy="60" r="52" fill="none"
-            :stroke="showAlert ? '#ef4444' : '#ffffff'" stroke-width="6" stroke-linecap="round"
-            stroke-dasharray="326.7" :stroke-dashoffset="326.7 - (326.7 * progress)"
-            transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 10px currentColor)' }" />
-        </svg>
-        <span class="timer-count display" :style="showAlert ? { color: '#ef4444' } : { color: '#ffffff' }">
-          {{ !settingsStore.disableTimerPause && paused ? 'II' : timeLeft }}
+      <div v-if="!timerOff" class="walkup-timer-bar" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
+        <div class="walkup-timer-fill"
+          :class="{ urgent: showAlert, paused: paused }"
+          :style="{ width: `${progress * 100}%`, transition: paused ? 'none' : 'width 1s linear' }" />
+        <span class="walkup-timer-text display" :class="{ urgent: showAlert }">
+          {{ !settingsStore.disableTimerPause && paused ? 'PAUSED' : timeLeft }}
         </span>
       </div>
     </div>
 
-    <!-- Cricket circle START TURN button — bottom-right -->
-    <button v-if="isCricket" v-ripple class="btn-cricket-start"
-      :style="{ borderColor: nextPlayer.color, boxShadow: `0 0 28px ${nextPlayer.color}60` }"
-      @click="startTurn">
-      START<br>TURN
+    <!-- Cricket START button — bottom-right -->
+    <button v-if="isCricket" v-ripple class="btn-cricket-start" @click="startTurn">
+      START
     </button>
 
     <!-- Default layout (non-cricket): name → circle with count inside → button -->
@@ -49,22 +43,18 @@
         </div>
         <div class="name-bar" :style="{ background: showAlert ? '#ef4444' : nextPlayer.color, boxShadow: `0 0 18px ${showAlert ? '#ef4444' : nextPlayer.color}` }" />
 
-        <!-- Timer circle with countdown centered inside -->
-        <div v-if="!timerOff" class="timer-bg" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
-          <svg class="timer-bg-svg" viewBox="0 0 120 120">
-            <circle cx="60" cy="60" r="54" fill="rgba(0,0,0,0.52)" stroke="rgba(255,255,255,0.07)" stroke-width="1.5" />
-            <circle cx="60" cy="60" r="54" fill="none"
-              :stroke="showAlert ? '#ef4444' : nextPlayer.color" stroke-width="4.5" stroke-linecap="round"
-              stroke-dasharray="339.3" :stroke-dashoffset="339.3 - (339.3 * progress)"
-              transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 10px currentColor)' }" />
-          </svg>
-          <span class="timer-bg-count display" :style="showAlert ? { color: '#ef4444', filter: 'drop-shadow(0 0 16px #ef4444)' } : { color: '#ffffff', filter: `drop-shadow(0 0 16px ${nextPlayer.color})` }">
-            {{ !settingsStore.disableTimerPause && paused ? 'II' : timeLeft }}
+        <!-- Horizontal countdown bar -->
+        <div v-if="!timerOff" class="walkup-timer-bar" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
+          <div class="walkup-timer-fill"
+            :class="{ urgent: showAlert, paused: paused }"
+            :style="{ width: `${progress * 100}%`, transition: paused ? 'none' : 'width 1s linear' }" />
+          <span class="walkup-timer-text display" :class="{ urgent: showAlert }">
+            {{ !settingsStore.disableTimerPause && paused ? 'PAUSED' : timeLeft }}
           </span>
         </div>
 
-        <button v-ripple class="btn-ready" :style="{ borderColor: nextPlayer.color, color: '#fff', boxShadow: `0 0 24px ${nextPlayer.color}40` }" @click="startTurn">
-          START TURN
+        <button v-ripple class="btn-ready" @click="startTurn">
+          START
         </button>
 
       </div>
@@ -236,7 +226,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 }
 
 .default-name {
-  font-size: clamp(64px, 12vmin, 140px);
+  font-size: clamp(80px, 16vmin, 180px);
   letter-spacing: 0.04em; line-height: 1;
   text-align: center; transition: color 0.3s;
 }
@@ -261,24 +251,28 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   to   { opacity: 1;   transform: scale(1.03); }
 }
 
-.timer-bg {
-  position: relative;
-  width: clamp(200px, 52vmin, 440px); height: clamp(200px, 52vmin, 440px);
-  flex-shrink: 0;
-  cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+/* Horizontal walkup timer bar */
+.walkup-timer-bar {
+  width: 100%; max-width: 560px;
+  height: clamp(56px, 9dvh, 88px);
+  position: relative; border-radius: 10px; overflow: hidden;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
+  cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
 }
-.timer-bg:active { transform: scale(0.995); }
-
-.timer-bg-svg {
-  position: absolute; inset: 0; width: 100%; height: 100%;
+.walkup-timer-bar:active { opacity: 0.9; }
+.walkup-timer-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: #dc2626; transition: width 1s linear, background 0.3s;
 }
-
-.timer-bg-count {
-  position: absolute; inset: 0;
+.walkup-timer-fill.urgent { background: #ff2222; }
+.walkup-timer-fill.paused { background: rgba(255,255,255,0.3); }
+.walkup-timer-text {
+  position: relative; z-index: 1; width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
-  font-size: clamp(72px, 15vmin, 180px);
-  line-height: 1; transition: color 0.3s;
+  font-size: clamp(30px, 5dvh, 52px); font-weight: 800; letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.9);
 }
+.walkup-timer-text.urgent { color: #fff; }
 
 /* Cricket layout */
 .cricket-layout {
@@ -286,34 +280,25 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   gap: clamp(8px, 2dvh, 24px);
   padding-top: calc(24px + env(safe-area-inset-top));
   padding-bottom: calc(100px + env(safe-area-inset-bottom));
+  width: 100%; max-width: 760px; align-self: center;
 }
 .cricket-player-name {
-  font-size: clamp(120px, 24dvh, 280px);
+  font-size: clamp(140px, 28dvh, 340px);
   letter-spacing: 0.04em;
   line-height: 1;
   text-align: center;
   transition: color 0.3s;
 }
-.timer-center {
-  position: relative;
-  width: clamp(220px, 30dvh, 340px); height: clamp(220px, 30dvh, 340px);
-}
-.timer-center .timer-ring { position: absolute; inset: 0; width: 100%; height: 100%; }
-.timer-count {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; transition: color 0.3s;
-}
-.timer-center .timer-count { font-size: clamp(88px, 12dvh, 140px); }
 
 
 .btn-ready {
-  padding: clamp(12px, 1.8dvh, 22px) 0; font-size: clamp(26px, 3.8dvh, 42px); font-weight: 900; border-radius: 8px; width: 100%; max-width: 480px;
-  background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border: 2px solid; cursor: pointer; transition: all 0.15s; letter-spacing: 0.14em;
+  padding: clamp(12px, 1.8dvh, 22px) 0; font-size: clamp(26px, 3.8dvh, 42px); font-weight: 900; border-radius: 999px; width: 100%; max-width: 480px;
+  background: #dc2626; border: none; color: #fff;
+  cursor: pointer; transition: all 0.15s; letter-spacing: 0.14em;
   font-family: var(--font-display); position: relative; overflow: hidden;
+  box-shadow: 0 4px 24px rgba(220,38,38,0.45);
 }
-.btn-ready:hover { background: rgba(255,255,255,0.1); }
+.btn-ready:hover { background: #ef4444; }
 .btn-ready:active { transform: scale(0.97); }
 
 .swap-enter-active, .swap-leave-active { transition: opacity 0.35s, transform 0.35s; }
@@ -340,59 +325,51 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   filter: drop-shadow(0 0 32px rgba(0,0,0,0.5));
 }
 
-/* Cricket circle START TURN button — fixed bottom-right */
+/* Cricket START button — fixed bottom-right, solid red bubble */
 .btn-cricket-start {
   position: absolute;
   bottom: calc(24px + env(safe-area-inset-bottom));
   right: 24px;
-  width: 27vmin;
-  height: 27vmin;
+  width: clamp(100px, 20vmin, 180px);
+  height: clamp(100px, 20vmin, 180px);
   border-radius: 50%;
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border: 2px solid;
+  background: #dc2626;
+  border: none;
   color: #fff;
   font-family: var(--font-display);
-  font-size: clamp(26px, 4.5dvh, 48px);
+  font-size: clamp(24px, 4dvh, 44px);
   font-weight: 900;
-  letter-spacing: 0.08em;
-  line-height: 1.3;
+  letter-spacing: 0.1em;
+  line-height: 1;
   cursor: pointer;
   transition: all 0.15s;
   z-index: 4;
-  position: absolute;
   -webkit-tap-highlight-color: transparent;
   overflow: hidden;
+  box-shadow: 0 4px 32px rgba(220,38,38,0.55);
 }
-.btn-cricket-start:hover { background: rgba(255,255,255,0.12); }
-.btn-cricket-start:active { transform: scale(0.95); }
+.btn-cricket-start:hover { background: #ef4444; }
+.btn-cricket-start:active { transform: scale(0.93); }
 
 /* Phone landscape only (max-width: 767px excludes tablets) */
 @media (orientation: landscape) and (max-height: 900px) and (max-width: 767px) {
-  .timer-bg { width: clamp(120px, 44vmin, 220px); height: clamp(120px, 44vmin, 220px); }
-  .timer-bg-count { font-size: clamp(44px, 11vmin, 88px); }
-  .default-name { font-size: clamp(32px, 8vmin, 72px); }
+  .default-name { font-size: clamp(36px, 9vmin, 80px); }
   .default-content { gap: clamp(8px, 2vmin, 18px); padding: 0 16px; }
   .btn-ready { font-size: clamp(18px, 4vmin, 28px); padding: 8px 0; max-width: 300px; }
-  .cricket-layout { flex-direction: column; gap: 16px; padding: 16px 32px; align-items: center; justify-content: center; padding-top: calc(20px + env(safe-area-inset-top)); }
-  .cricket-layout .timer-center { width: 140px; height: 140px; }
-  .cricket-layout .timer-center .timer-ring { width: 140px; height: 140px; }
-  .cricket-layout .timer-center .timer-count { font-size: 56px; }
-  .cricket-player-name { font-size: 72px; }
+  .walkup-timer-bar { height: clamp(40px, 7dvh, 60px); }
+  .walkup-timer-text { font-size: clamp(20px, 4dvh, 36px); }
+  .cricket-layout { flex-direction: column; gap: 12px; padding: 12px 32px; align-items: center; justify-content: center; padding-top: calc(16px + env(safe-area-inset-top)); padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+  .cricket-player-name { font-size: clamp(64px, 14dvh, 120px); }
+  .btn-cricket-start { width: clamp(76px, 15vmin, 120px); height: clamp(76px, 15vmin, 120px); font-size: clamp(18px, 3dvh, 28px); bottom: calc(12px + env(safe-area-inset-bottom)); right: 16px; }
 }
 
 /* Phone portrait and small screens */
 @media (max-width: 767px) {
   .between-inner { padding: 24px 20px; }
-  .timer-bg { width: clamp(180px, 58vmin, 320px); height: clamp(180px, 58vmin, 320px); }
-  .timer-bg-count { font-size: clamp(60px, 14vmin, 120px); }
-  .default-name { font-size: clamp(56px, 12vmin, 110px); }
+  .default-name { font-size: clamp(60px, 13vmin, 120px); }
   .btn-ready { font-size: clamp(22px, 5vmin, 32px); padding: 10px 0; max-width: 380px; }
   .cricket-layout { gap: clamp(4px, 1.5dvh, 16px); }
-  .cricket-layout .timer-center { width: clamp(180px, 26dvh, 260px); height: clamp(180px, 26dvh, 260px); }
-  .cricket-layout .timer-center .timer-ring { width: clamp(180px, 26dvh, 260px); height: clamp(180px, 26dvh, 260px); }
-  .cricket-layout .timer-center .timer-count { font-size: clamp(72px, 10dvh, 110px); }
-  .cricket-player-name { font-size: clamp(100px, 17dvh, 180px); }
+  .cricket-player-name { font-size: clamp(110px, 20dvh, 220px); }
 }
 
 /* iPad and tablets (both portrait and landscape) — centered, symmetrical spacing */
@@ -402,10 +379,8 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
     gap: clamp(8px, 2dvh, 24px);
     padding: calc(48px + env(safe-area-inset-top)) 64px calc(120px + env(safe-area-inset-bottom));
   }
-  .cricket-player-name { font-size: clamp(100px, 14dvh, 200px); }
-  .timer-center { width: clamp(180px, 22dvh, 270px); height: clamp(180px, 22dvh, 270px); }
-  .timer-center .timer-ring { width: clamp(180px, 22dvh, 270px); height: clamp(180px, 22dvh, 270px); }
-  .timer-center .timer-count { font-size: clamp(72px, 9dvh, 112px); }
-  .btn-cricket-start { font-size: clamp(26px, 4.5dvh, 48px); }
+  .cricket-player-name { font-size: clamp(120px, 17dvh, 240px); }
+  .btn-cricket-start { width: clamp(110px, 18vmin, 160px); height: clamp(110px, 18vmin, 160px); font-size: clamp(24px, 3.8dvh, 40px); }
+  .walkup-timer-bar { height: clamp(60px, 9dvh, 90px); }
 }
 </style>
