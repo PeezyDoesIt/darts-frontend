@@ -10,68 +10,9 @@
     </div>
 
     <div class="ng-body">
-      <!-- LEFT: Players + Order -->
+      <!-- LEFT: Game settings -->
       <div class="ng-left">
         <div class="ng-left-inner">
-          <div class="players-header">
-            <span class="label" style="margin:0">
-              Players
-              <span v-if="selectedPlayers.length > 0" class="selected-count">({{ selectedPlayers.length }} selected)</span>
-            </span>
-            <button v-ripple class="btn btn-outline btn-sm" @click="router.push('/player-setup')">+ New Player</button>
-          </div>
-
-          <div v-if="playersStore.players.length === 0" class="empty-players">
-            No players yet.
-            <button v-ripple class="link-btn" @click="router.push('/player-setup')">Add one →</button>
-          </div>
-
-          <div v-else class="player-grid">
-            <div
-              v-for="p in playersStore.players" :key="p.id"
-              v-ripple
-              class="player-tile"
-              :class="{ selected: isSelected(p.id) }"
-              :style="{ '--tile-color': p.color }"
-              @click="togglePlayer(p)"
-            >
-              <div class="tile-avatar" :style="{ background: p.color, boxShadow: isSelected(p.id) ? `0 0 18px ${p.color}` : `0 0 0px transparent` }">
-                <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-                <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
-              </div>
-              <div class="tile-info">
-                <span class="tile-name">{{ p.name }}</span>
-                <span class="tile-stats">{{ p.wins }}W · {{ p.gamesPlayed }}G</span>
-              </div>
-              <div class="tile-check" :style="isSelected(p.id) ? { background: p.color, borderColor: p.color, boxShadow: `0 0 10px ${p.color}80` } : {}">
-                <span v-if="isSelected(p.id)" style="color:#000">✓</span>
-              </div>
-            </div>
-          </div>
-
-          <section v-if="selectedPlayers.length > 1" class="ng-section order-section">
-            <span class="label">Play Order</span>
-            <div class="order-list">
-              <div v-for="(p, i) in selectedPlayers" :key="p.id" class="order-row" :style="{ borderLeftColor: p.color }">
-                <span class="order-num display" :style="{ color: p.color }">{{ i + 1 }}</span>
-                <div class="tile-avatar sm" :style="{ background: p.color }">
-                  <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-                  <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
-                </div>
-                <span class="order-name">{{ p.name }}</span>
-                <div class="order-btns">
-                  <button v-ripple :disabled="i === 0" @click="moveUp(i)" class="btn btn-sm btn-surface">↑</button>
-                  <button v-ripple :disabled="i === selectedPlayers.length - 1" @click="moveDown(i)" class="btn btn-sm btn-surface">↓</button>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
-
-      <!-- RIGHT: Game settings -->
-      <div class="ng-right">
-        <div class="ng-right-inner">
           <section class="ng-section">
             <span class="label">Game Type</span>
             <div class="game-type-grid">
@@ -170,6 +111,65 @@
             </div>
             <span v-if="gameTheme && gameThemeMode === 'theme'" class="selected-theme-name">{{ PLAYER_THEMES.find(t => t.value === gameTheme)?.label }}</span>
             <span v-if="gameThemeImage && gameThemeMode === 'image'" class="selected-theme-name">Photo selected</span>
+          </section>
+        </div>
+      </div>
+
+      <!-- RIGHT: Players + Order -->
+      <div class="ng-right">
+        <div class="ng-right-inner">
+          <div class="players-header">
+            <span class="label" style="margin:0">
+              Players
+              <span v-if="selectedPlayers.length > 0" class="selected-count">({{ selectedPlayers.length }} selected)</span>
+            </span>
+            <button v-ripple class="btn btn-outline btn-sm" @click="router.push('/player-setup')">+ New Player</button>
+          </div>
+
+          <div v-if="playersStore.players.length === 0" class="empty-players">
+            No players yet.
+            <button v-ripple class="link-btn" @click="router.push('/player-setup')">Add one →</button>
+          </div>
+
+          <div v-else class="player-grid">
+            <div
+              v-for="p in playersStore.players" :key="p.id"
+              v-ripple
+              class="player-tile"
+              :class="{ selected: isSelected(p.id) }"
+              :style="{ '--tile-color': p.color }"
+              @click="togglePlayer(p)"
+            >
+              <div class="tile-avatar" :style="{ background: p.color, boxShadow: isSelected(p.id) ? `0 0 18px ${p.color}` : `0 0 0px transparent` }">
+                <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
+                <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+              </div>
+              <div class="tile-info">
+                <span class="tile-name">{{ p.name }}</span>
+                <span class="tile-stats">{{ p.wins }}W · {{ p.gamesPlayed }}G</span>
+              </div>
+              <div class="tile-check" :style="isSelected(p.id) ? { background: p.color, borderColor: p.color, boxShadow: `0 0 10px ${p.color}80` } : {}">
+                <span v-if="isSelected(p.id)" style="color:#000">✓</span>
+              </div>
+            </div>
+          </div>
+
+          <section v-if="selectedPlayers.length > 1" class="ng-section order-section">
+            <span class="label">Play Order</span>
+            <div class="order-list">
+              <div v-for="(p, i) in selectedPlayers" :key="p.id" class="order-row" :style="{ borderLeftColor: p.color }">
+                <span class="order-num display" :style="{ color: p.color }">{{ i + 1 }}</span>
+                <div class="tile-avatar sm" :style="{ background: p.color }">
+                  <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
+                  <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+                </div>
+                <span class="order-name">{{ p.name }}</span>
+                <div class="order-btns">
+                  <button v-ripple :disabled="i === 0" @click="moveUp(i)" class="btn btn-sm btn-surface">↑</button>
+                  <button v-ripple :disabled="i === selectedPlayers.length - 1" @click="moveDown(i)" class="btn btn-sm btn-surface">↓</button>
+                </div>
+              </div>
+            </div>
           </section>
         </div>
       </div>
@@ -293,13 +293,13 @@ function startGame() {
 
 .ng-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
 
-/* LEFT: Players (wider) */
-.ng-left { flex: 1; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.06); }
+/* LEFT: Game settings (wider) */
+.ng-left { flex: 1; overflow-y: auto; }
 .ng-left-inner { padding: 28px; display: flex; flex-direction: column; gap: 20px; }
 
-/* RIGHT: Game settings (narrower, scrollable) */
-.ng-right { width: 380px; flex-shrink: 0; overflow-y: auto; background: rgba(255,255,255,0.02); }
-.ng-right-inner { padding: 28px; display: flex; flex-direction: column; gap: 28px; padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
+/* RIGHT: Players + Order (25% width, scrollable) */
+.ng-right { width: 25%; flex-shrink: 0; overflow-y: auto; border-left: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+.ng-right-inner { padding: 28px; display: flex; flex-direction: column; gap: 20px; padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
 
 .ng-section { display: flex; flex-direction: column; gap: 10px; }
 
@@ -423,21 +423,22 @@ function startGame() {
 .swatch-none-icon { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 1; }
 .selected-theme-name { font-size: 12px; font-weight: 700; color: var(--blue); letter-spacing: 0.08em; text-transform: uppercase; }
 
+/* Player grid is always single-column in the narrow right panel */
+.player-grid { grid-template-columns: 1fr; }
+
 /* iPad */
 @media (min-width: 769px) and (max-width: 1199px) {
-  .ng-right { width: 340px; }
   .ng-left-inner { padding: 20px; }
   .ng-right-inner { padding: 20px; }
-  .player-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
 }
 
-/* Mobile */
+/* Mobile: stack vertically, game settings first then players */
 @media (max-width: 768px) {
   .ng-header { padding: 14px 20px; padding-top: calc(14px + env(safe-area-inset-top)); }
   .ng-body { flex-direction: column; overflow-y: auto; }
-  .ng-left { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); overflow: visible; }
+  .ng-left { overflow: visible; border-bottom: 1px solid rgba(255,255,255,0.06); }
   .ng-left-inner { padding: 20px; }
-  .ng-right { width: 100%; overflow: visible; }
+  .ng-right { width: 100%; overflow: visible; border-left: none; }
   .ng-right-inner { padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
   .player-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
 }
