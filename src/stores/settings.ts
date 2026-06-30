@@ -71,7 +71,7 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   const cleanMode = ref<boolean>(
-    localStorage.getItem('cleanMode') === 'true'
+    localStorage.getItem('cleanMode') !== 'false'
   )
   function setCleanMode(val: boolean) {
     cleanMode.value = val

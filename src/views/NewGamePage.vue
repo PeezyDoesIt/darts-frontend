@@ -124,11 +124,11 @@
             </div>
             <div v-else class="game-theme-photo-row">
               <div class="game-theme-preview" :style="gameThemePreviewStyle">
-                <span v-if="!gameThemeImage" style="font-size:28px;opacity:0.4">🖼️</span>
+                <span v-if="!gameThemeImage" style="font-size:13px;opacity:0.4;letter-spacing:0.08em">PHOTO</span>
               </div>
               <div style="display:flex;flex-direction:column;gap:8px">
                 <label v-ripple class="btn btn-spray btn-lg" style="cursor:pointer;position:relative;overflow:hidden">
-                  📁 Choose Photo
+                  Choose Photo
                   <input type="file" accept="image/*" style="display:none" @change="onGameThemeFileChange" />
                 </label>
                 <button v-if="gameThemeImage" v-ripple class="btn btn-outline btn-sm" @click="gameThemeImage = null; gameTheme = null">Clear</button>

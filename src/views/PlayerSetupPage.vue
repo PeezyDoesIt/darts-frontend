@@ -26,26 +26,17 @@
 
           <div class="field">
             <label class="label">Avatar</label>
-            <div class="avatar-tabs">
-              <button v-ripple class="tab" :class="{ active: avatarMode === 'emoji' }" @click="avatarMode = 'emoji'">Emoji</button>
-              <button v-ripple class="tab" :class="{ active: avatarMode === 'photo' }" @click="avatarMode = 'photo'">Photo</button>
-            </div>
-            <div v-if="avatarMode === 'emoji'" class="emoji-grid">
-              <button v-ripple class="emoji-btn emoji-none-btn" :class="{ active: avatarUrl === null }" @click="avatarUrl = null" title="No emoji">✕</button>
-              <button v-for="e in PRESET_AVATARS" :key="e" v-ripple class="emoji-btn" :class="{ active: avatarUrl === e }" @click="avatarUrl = e">{{ e }}</button>
-            </div>
-            <div v-else class="photo-area">
+            <div class="photo-area">
               <div class="photo-preview" :style="{ background: color, boxShadow: `0 0 20px ${color}60` }">
                 <img v-if="photoPreview" :src="photoPreview" alt="avatar" />
-                <span v-else style="font-size:40px">📷</span>
               </div>
               <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-                <button v-ripple class="btn btn-spray btn-lg" @click="cameraOpen = true">📷 Camera</button>
+                <button v-ripple class="btn btn-spray btn-lg" @click="cameraOpen = true">Camera</button>
                 <label v-ripple class="btn btn-outline btn-lg" style="cursor:pointer;position:relative;overflow:hidden">
-                  📁 Upload
+                  Upload
                   <input type="file" accept="image/*" style="display:none" @change="onAvatarFileChange" />
                 </label>
-                <button v-if="photoPreview" v-ripple class="btn btn-outline btn-sm" @click="photoPreview = null; avatarUrl = PRESET_AVATARS[0]!">Clear</button>
+                <button v-if="photoPreview" v-ripple class="btn btn-outline btn-sm" @click="photoPreview = null; avatarUrl = null">Clear</button>
               </div>
             </div>
           </div>
@@ -68,11 +59,11 @@
             </div>
             <div v-else class="photo-area">
               <div class="bg-preview" :style="bgPreviewStyle">
-                <span v-if="!bgImagePreview" style="font-size:32px;opacity:0.5">🖼️</span>
+                <span v-if="!bgImagePreview" style="font-size:13px;opacity:0.4;letter-spacing:0.08em">PHOTO</span>
               </div>
               <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
                 <label v-ripple class="btn btn-spray btn-lg" style="cursor:pointer;position:relative;overflow:hidden">
-                  📁 Choose File
+                  Choose File
                   <input type="file" accept="image/*" style="display:none" @change="onBgFileChange" />
                 </label>
                 <button v-if="bgImagePreview" v-ripple class="btn btn-outline btn-sm" @click="bgImagePreview = null; playerBackground = null">Clear</button>
@@ -202,8 +193,8 @@ const sortedPlayers = computed(() =>
 const editingId = ref<string | null>(null)
 const name = ref('')
 const color = ref<string>('#ff2d78')
-const avatarUrl = ref<string | null>(PRESET_AVATARS[0]!)
-const avatarMode = ref<'emoji' | 'photo'>('emoji')
+const avatarUrl = ref<string | null>(null)
+const avatarMode = ref<'emoji' | 'photo'>('photo')
 const photoPreview = ref<string | null>(null)
 const cameraOpen = ref(false)
 const videoEl = ref<HTMLVideoElement | null>(null)
@@ -290,13 +281,13 @@ function closeCamera() {
   stream = null
 }
 function resetForm() {
-  editingId.value = null; name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
-  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; targetLabelColor.value = null; cricketTargetDisplay.value = null
+  editingId.value = null; name.value = ''; color.value = '#ff2d78'; avatarUrl.value = null
+  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; targetLabelColor.value = null; cricketTargetDisplay.value = null
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
-  if (p.avatarUrl?.startsWith('data:')) { avatarMode.value = 'photo'; photoPreview.value = p.avatarUrl }
-  else { avatarMode.value = 'emoji'; avatarUrl.value = p.avatarUrl ?? PRESET_AVATARS[0]! }
+  photoPreview.value = p.avatarUrl?.startsWith('data:') || p.avatarUrl?.startsWith('http') ? p.avatarUrl : null
+  avatarUrl.value = photoPreview.value
   playerBackground.value = p.playerBackground ?? null
   if (p.playerBackground?.startsWith('data:')) { bgMode.value = 'image'; bgImagePreview.value = p.playerBackground }
   else { bgMode.value = 'theme'; bgImagePreview.value = null }
@@ -305,7 +296,7 @@ function loadPlayer(p: Player) {
 }
 function save() {
   if (!name.value.trim()) return
-  const finalAvatar = avatarMode.value === 'photo' ? (photoPreview.value ?? PRESET_AVATARS[0]!) : avatarUrl.value
+  const finalAvatar = photoPreview.value ?? null
   const bg = playerBackground.value
   const tlc = targetLabelColor.value
   const ctd = cricketTargetDisplay.value
@@ -316,14 +307,12 @@ function save() {
     const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, targetLabelColor: tlc, cricketTargetDisplay: ctd, pinned: false })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
-      name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
-      photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null
+      resetForm()
       router.push('/game')
       return
     }
   }
-  name.value = ''; color.value = '#ff2d78'; avatarUrl.value = PRESET_AVATARS[0]!
-  photoPreview.value = null; avatarMode.value = 'emoji'; playerBackground.value = null; bgImagePreview.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null
+  resetForm()
   router.back()
 }
 </script>

@@ -20,9 +20,9 @@
               :style="{ width: `${(throwTimeLeft / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }"
             />
             <span class="throw-timer-text" :class="{ urgent: throwTimeLeft <= 10 }">
-              {{ settingsStore.disableTimerPause ? throwTimeLeft + 's' : throwPaused ? '⏸ PAUSED' : throwTimeLeft + 's' }}
+              {{ settingsStore.disableTimerPause ? throwTimeLeft + 's' : throwPaused ? 'PAUSED' : throwTimeLeft + 's' }}
             </span>
-            <span v-if="settingsStore.disableTimerPause" class="throw-timer-lock">🔒</span>
+            <span v-if="settingsStore.disableTimerPause" class="throw-timer-lock">LOCK</span>
           </div>
           <div v-else class="throw-timer-spacer" />
 
@@ -153,11 +153,11 @@
             <div class="reveal-label" style="background:#7f1d1d">BUST</div>
             <template v-if="game.bustEliminates">
               <div class="reveal-eliminated" :style="{ color: revealData.playerColor, filter: `drop-shadow(0 0 40px ${revealData.playerColor}80)` }">ELIMINATED</div>
-              <div class="reveal-bust-msg">Better luck next time 👋</div>
+              <div class="reveal-bust-msg">Better luck next time</div>
             </template>
             <template v-else>
               <div class="reveal-number" :style="{ color: revealData.playerColor, filter: `drop-shadow(0 0 40px ${revealData.playerColor}80)` }">{{ revealData.remaining }}</div>
-              <div class="reveal-bust-msg">No change — next player 👋</div>
+              <div class="reveal-bust-msg">No change — next player</div>
             </template>
           </template>
           <template v-else>

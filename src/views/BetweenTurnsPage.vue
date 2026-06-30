@@ -14,6 +14,7 @@
         :style="{ color: showAlert ? '#ef4444' : '#ffffff', filter: showAlert ? `drop-shadow(0 0 24px #ef4444)` : 'drop-shadow(0 0 24px rgba(255,255,255,0.4))' }">
         {{ nextPlayer.name }}
       </div>
+      <div class="name-bar" :style="{ background: showAlert ? '#ef4444' : nextPlayer.color, boxShadow: `0 0 18px ${showAlert ? '#ef4444' : nextPlayer.color}` }" />
 
       <div v-if="!timerOff" class="timer-wrap timer-center" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
         <svg class="timer-ring" viewBox="0 0 120 120">
@@ -24,7 +25,7 @@
             transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 10px currentColor)' }" />
         </svg>
         <span class="timer-count display" :style="showAlert ? { color: '#ef4444' } : { color: '#ffffff' }">
-          {{ !settingsStore.disableTimerPause && paused ? '⏸' : timeLeft }}
+          {{ !settingsStore.disableTimerPause && paused ? 'II' : timeLeft }}
         </span>
       </div>
     </div>
@@ -41,9 +42,10 @@
       <div class="default-content">
 
         <div class="default-name display"
-          :style="{ color: nextPlayer.color, filter: `drop-shadow(0 0 ${showAlert ? 28 : 20}px ${nextPlayer.color})` }">
+          :style="{ color: showAlert ? '#ef4444' : nextPlayer.color, filter: `drop-shadow(0 0 ${showAlert ? 28 : 20}px ${showAlert ? '#ef4444' : nextPlayer.color})` }">
           {{ nextPlayer.name }}
         </div>
+        <div class="name-bar" :style="{ background: showAlert ? '#ef4444' : nextPlayer.color, boxShadow: `0 0 18px ${showAlert ? '#ef4444' : nextPlayer.color}` }" />
 
         <!-- Timer circle with countdown centered inside -->
         <div v-if="!timerOff" class="timer-bg" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
@@ -55,7 +57,7 @@
               transform="rotate(-90 60 60)" :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear, stroke 0.3s', filter: 'drop-shadow(0 0 10px currentColor)' }" />
           </svg>
           <span class="timer-bg-count display" :style="showAlert ? { color: '#ef4444', filter: 'drop-shadow(0 0 16px #ef4444)' } : { color: '#ffffff', filter: `drop-shadow(0 0 16px ${nextPlayer.color})` }">
-            {{ !settingsStore.disableTimerPause && paused ? '⏸' : timeLeft }}
+            {{ !settingsStore.disableTimerPause && paused ? 'II' : timeLeft }}
           </span>
         </div>
 
@@ -231,6 +233,13 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   font-size: clamp(44px, 8vmin, 100px);
   letter-spacing: 0.04em; line-height: 1;
   text-align: center; transition: color 0.3s;
+}
+
+.name-bar {
+  width: clamp(120px, 60%, 400px);
+  height: 6px;
+  border-radius: 3px;
+  transition: background 0.3s, box-shadow 0.3s;
 }
 
 .timer-bg {
