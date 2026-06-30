@@ -190,13 +190,13 @@ const router = useRouter()
 const playersStore = usePlayersStore()
 const gameStore = useGameStore()
 
-const selectedGameType = ref<GameType | null>(null)
+const selectedGameType = ref<GameType | null>('cricket')
 const timerDuration = ref(60)
 const timerOptions = [60, 90, 120]
 const walkUpInput = ref('60')
-const throwTimerDuration = ref(0)
+const throwTimerDuration = ref(90)
 const throwTimerOptions = [0, 60, 90, 120]
-const throwInput = ref('0')
+const throwInput = ref('90')
 
 function setWalkUp(t: number) {
   timerDuration.value = t
