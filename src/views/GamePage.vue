@@ -31,11 +31,14 @@
             <button v-ripple class="btn btn-sm btn-surface marks-layout-btn" @click="toggleMarksLayout" :title="marksLayout === 'top' ? 'Move marks to right column' : 'Move marks to top strip'">
               {{ marksLayout === 'top' ? '▶' : '▼' }}
             </button>
+            <button v-ripple class="btn btn-sm btn-surface marks-visibility-btn" :class="{ 'marks-hidden': !marksVisible }" @click="toggleMarksVisible" :title="marksVisible ? 'Hide scores' : 'Show scores'">
+              {{ marksVisible ? '👁' : '👁‍🗨' }}
+            </button>
           </template>
         </div>
 
         <!-- Cricket marks grid: top strip (default) -->
-        <template v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat') && marksLayout === 'top'">
+        <template v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat') && marksLayout === 'top' && marksVisible">
 
           <!-- 1-3 players: players as rows, targets as columns -->
           <div v-if="game.players.length < 4" class="cricket-strip">
@@ -119,7 +122,7 @@
       </div>
 
       <!-- Cricket marks grid: right column (optional layout) -->
-      <div v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat') && marksLayout === 'right'" class="cricket-col">
+      <div v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat') && marksLayout === 'right' && marksVisible" class="cricket-col">
 
         <!-- 3 players: first two on top, third stacked below -->
         <template v-if="game.players.length === 3">
@@ -377,6 +380,11 @@ const marksLayout = ref<'top' | 'right'>(
 function toggleMarksLayout() {
   marksLayout.value = marksLayout.value === 'top' ? 'right' : 'top'
   localStorage.setItem('cricketMarksLayout', marksLayout.value)
+}
+const marksVisible = ref(localStorage.getItem('cricketMarksVisible') !== 'false')
+function toggleMarksVisible() {
+  marksVisible.value = !marksVisible.value
+  localStorage.setItem('cricketMarksVisible', String(marksVisible.value))
 }
 const cricketEntryRef = ref<InstanceType<typeof CricketEntry> | null>(null)
 
@@ -727,6 +735,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
 
 /* Layout toggle button */
 .marks-layout-btn { flex-shrink: 0; align-self: center; margin: 0 4px; padding: 12px 14px; font-size: 12px; }
+.marks-visibility-btn { flex-shrink: 0; align-self: center; margin: 0 4px 0 0; padding: 12px 14px; font-size: 14px; }
+.marks-visibility-btn.marks-hidden { opacity: 0.35; }
 
 /* Cricket marks right column */
 .cricket-col {
