@@ -549,7 +549,7 @@ function startThrowTimer() {
 }
 
 const entryPanelStyle = computed(() => {
-  const bg = game.value?.gameTheme ?? currentPlayer.value.playerBackground
+  const bg = currentPlayer.value.playerBackground ?? game.value?.gameTheme
   if (!bg) return {}
   if (bg.startsWith('data:') || bg.startsWith('http'))
     return { backgroundImage: `url(${bg})`, backgroundSize: 'cover', backgroundPosition: 'center' }
