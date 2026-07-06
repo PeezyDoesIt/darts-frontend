@@ -47,6 +47,7 @@ const PRONUNCIATIONS: [RegExp, string][] = [
   [/mothafuckin/gi, 'mothuhfuckin'],
   [/mothafucking/gi, 'mothuhfucking'],
   [/Beremiah/gi, 'Beremyah'],
+  [/\bTony\b/gi, 'Tohnee'],
 ]
 
 function applyPronunciations(text: string): string {
