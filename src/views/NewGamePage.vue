@@ -129,6 +129,15 @@
             <span v-if="gameTheme && gameThemeMode === 'theme'" class="selected-theme-name">{{ PLAYER_THEMES.find(t => t.value === gameTheme)?.label }}</span>
             <span v-if="gameThemeImage && gameThemeMode === 'image'" class="selected-theme-name">Photo selected</span>
           </section>
+
+          <section class="ng-section">
+            <span class="label">Sound Mode</span>
+            <div class="timer-options">
+              <button v-for="t in SOUND_THEMES" :key="t.value" v-ripple
+                class="timer-btn" :class="{ active: settingsStore.soundTheme === t.value }"
+                @click="settingsStore.setSoundTheme(t.value)">{{ t.label }}</button>
+            </div>
+          </section>
         </div>
       </div>
 
@@ -199,7 +208,18 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
+import { useSettingsStore } from '../stores/settings'
 import { GAME_TYPE_LABELS, GAME_TYPE_ORDER, PLAYER_THEMES, type GameType, type Player } from '../types/index'
+
+const settingsStore = useSettingsStore()
+
+const SOUND_THEMES = [
+  { value: 'default', label: 'Default' },
+  { value: 'space',   label: 'Space' },
+  { value: 'arcade',  label: 'Arcade' },
+  { value: 'western', label: 'Western' },
+  { value: 'boxing',  label: 'Boxing' },
+]
 
 const router = useRouter()
 const playersStore = usePlayersStore()
