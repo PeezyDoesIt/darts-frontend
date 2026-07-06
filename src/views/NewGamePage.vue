@@ -72,6 +72,15 @@
 
           <section class="ng-section">
             <span class="label">Timers</span>
+            <div class="toggle-row" @click="skipWalkup = !skipWalkup">
+              <div class="toggle-track" :class="{ active: skipWalkup }">
+                <div class="toggle-thumb" />
+              </div>
+              <div class="toggle-info">
+                <span class="toggle-label">Skip Walk-up Screen</span>
+                <span class="toggle-sub">Go straight to throwing — no between-turns screen</span>
+              </div>
+            </div>
             <div class="timer-pair">
               <div class="timer-group">
                 <span class="timer-group-label">Walk-up</span>
@@ -255,6 +264,7 @@ const closedTargetDisplay = ref<'show' | 'hide' | 'fade' | 'strike'>('show')
 const bustEliminates = ref(false)
 const cricketPlayToCompletion = ref(false)
 const cricketHatTrickBonus = ref(false)
+const skipWalkup = ref(false)
 const closedTargetOptions = [
   { value: 'show'   as const, label: 'Normal',        sub: 'Closed targets stay visible' },
   { value: 'fade'   as const, label: 'Fade Out',       sub: 'Closed targets go transparent' },
@@ -307,8 +317,8 @@ function startGame() {
   if (selectedPlayers.value.length < 2 || !selectedGameType.value) return
   const t = timerDuration.value
   const tt = throwTimerDuration.value
-  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, gameTheme.value, selectedPlayers.value)
-  router.push('/between')
+  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, gameTheme.value, selectedPlayers.value, skipWalkup.value)
+  router.push(skipWalkup.value ? '/game' : '/between')
 }
 </script>
 

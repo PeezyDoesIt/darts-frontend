@@ -505,7 +505,11 @@ function handleNumpadSubmit(score: number) {
 function quitGame() { gameStore.endGame(); router.push('/') }
 
 function navigateToBetween() {
-  router.push('/between')
+  if (game.value?.skipWalkup) {
+    gameStore.startNextTurn()
+  } else {
+    router.push('/between')
+  }
 }
 
 // Throw timer

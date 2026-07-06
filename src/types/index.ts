@@ -141,6 +141,7 @@ export type ActiveGame = {
   cricketPlayToCompletion: boolean
   cricketHatTrickBonus: boolean
   bonusTurnActive: boolean
+  skipWalkup: boolean
   cricketFinishOrder: string[]
   gameTheme: string | null
   players: Player[]

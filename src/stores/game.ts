@@ -55,7 +55,7 @@ export const useGameStore = defineStore('game', () => {
     _pendingTimeout.value = true
   }
 
-  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide' | 'fade' | 'strike', bustEliminates: boolean, cricketPlayToCompletion: boolean, cricketHatTrickBonus: boolean, gameTheme: string | null, players: Player[]) {
+  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide' | 'fade' | 'strike', bustEliminates: boolean, cricketPlayToCompletion: boolean, cricketHatTrickBonus: boolean, gameTheme: string | null, players: Player[], skipWalkup: boolean = false) {
     playerTimeoutCounts.value = {}
     playerHurryUpCounts.value = {}
     lastTurnWasTimeout.value = false
@@ -69,6 +69,7 @@ export const useGameStore = defineStore('game', () => {
       cricketPlayToCompletion,
       cricketHatTrickBonus,
       bonusTurnActive: false,
+      skipWalkup,
       cricketFinishOrder: [],
       gameTheme,
       players,
