@@ -13,6 +13,13 @@
 
           <div class="settings-section">
             <div class="settings-label">Voice</div>
+            <div class="gender-toggle-row">
+              <span class="gender-toggle-label">Gender</span>
+              <div class="gender-toggle-btns">
+                <button :class="['gender-btn', { active: settingsStore.narratorGender === 'female' }]" @click="settingsStore.setNarratorGender('female')">♀ Female</button>
+                <button :class="['gender-btn', { active: settingsStore.narratorGender === 'male' }]" @click="settingsStore.setNarratorGender('male')">♂ Male</button>
+              </div>
+            </div>
             <div v-if="availableVoices.length === 0" class="settings-muted">No voices loaded yet. Try again in a moment.</div>
             <div v-else class="voice-list">
               <button
@@ -310,6 +317,17 @@ function previewBullseyeSound(value: string) {
 .settings-label { font-size: 14px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #fff; }
 .settings-muted { font-size: 15px; color: rgba(255,255,255,0.7); }
 
+.gender-toggle-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.gender-toggle-label { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.45); min-width: 48px; }
+.gender-toggle-btns { display: flex; gap: 6px; }
+.gender-btn {
+  padding: 7px 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6);
+  font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.gender-btn.active { background: rgba(255,45,120,0.2); border-color: var(--pink); color: #fff; }
+.gender-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
 .voice-list { display: flex; flex-direction: column; gap: 6px; }
 .voice-btn {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;

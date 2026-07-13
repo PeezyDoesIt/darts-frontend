@@ -86,5 +86,13 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('soundTheme', val)
   }
 
-  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme }
+  const narratorGender = ref<'female' | 'male'>(
+    (localStorage.getItem('narratorGender') as 'female' | 'male') ?? 'female'
+  )
+  function setNarratorGender(val: 'female' | 'male') {
+    narratorGender.value = val
+    localStorage.setItem('narratorGender', val)
+  }
+
+  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme, narratorGender, setNarratorGender }
 })
