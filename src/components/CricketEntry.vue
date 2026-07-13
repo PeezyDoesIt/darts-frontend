@@ -36,12 +36,18 @@
       </TransitionGroup>
     </div>
 
-<div class="submit-row">
-      <span v-if="totalHitsThisRound > 0" class="hits-text">
+<div class="submit-row" @click="throwTimerDuration ? emit('toggleThrowPause') : null">
+      <div v-if="throwTimerDuration" class="submit-timer-fill"
+        :class="{ warning: (throwTimeLeft ?? 0) <= 30, urgent: (throwTimeLeft ?? 0) <= 10, paused: throwPaused }"
+        :style="{ width: `${((throwTimeLeft ?? 0) / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
+      <span v-if="throwTimerDuration" class="submit-timer-text" :class="{ urgent: (throwTimeLeft ?? 0) <= 10 }">
+        {{ throwPaused ? 'PAUSED' : (throwTimeLeft ?? 0) + 's' }}
+      </span>
+      <span v-else-if="totalHitsThisRound > 0" class="hits-text">
         {{ totalHitsThisRound }} hit{{ totalHitsThisRound !== 1 ? 's' : '' }} this round
       </span>
       <span v-else class="muted" :style="{ color: targetColor }">Round {{ round }}</span>
-      <button v-ripple class="btn btn-gold submit-inline-btn" :disabled="submitted" @click="submit">
+      <button v-ripple class="btn btn-gold submit-inline-btn" :disabled="submitted" @click.stop="submit">
         SUBMIT TURN
       </button>
     </div>
@@ -67,6 +73,9 @@ const props = defineProps<{
   playerColor?: string
   playerBackground?: string | null
   targetLabelColor?: string | null
+  throwTimeLeft?: number
+  throwTimerDuration?: number
+  throwPaused?: boolean
 }>()
 
 const WHITE_LABEL_THEMES = new Set<string | null>(
@@ -102,6 +111,7 @@ const targetColor = computed(() => {
 
 const emit = defineEmits<{
   submit: [hits: Record<CricketTarget, number>]
+  toggleThrowPause: []
 }>()
 
 const roundHits = ref<Partial<Record<CricketTarget, number>>>({})
@@ -262,6 +272,18 @@ defineExpose({ submit, submitted })
   box-shadow: 0 2px 12px rgba(220,38,38,0.4);
 }
 .submit-inline-btn:disabled { opacity: 0.4; }
+.submit-timer-fill {
+  position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none;
+  background: rgba(234,179,8,0.28); transition: width 1s linear, background 0.3s; z-index: 0;
+}
+.submit-timer-fill.warning { background: rgba(220,38,38,0.28); }
+.submit-timer-fill.urgent { background: rgba(255,26,26,0.36); }
+.submit-timer-fill.paused { background: rgba(120,120,120,0.2); }
+.submit-timer-text {
+  position: relative; z-index: 1; font-size: 22px; font-weight: 800;
+  letter-spacing: 0.1em; color: rgba(255,255,255,0.85); font-family: var(--font-display);
+}
+.submit-timer-text.urgent { color: #fff; }
 
 @media (orientation: landscape) and (max-height: 900px) {
   .cricket-board-scroll { overflow: hidden; display: flex; flex-direction: column; }

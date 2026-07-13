@@ -94,13 +94,21 @@
             :playerColor="currentPlayer.color"
             :playerBackground="currentPlayer.playerBackground"
             :targetLabelColor="currentPlayer.targetLabelColor"
+            :throwTimeLeft="throwTimeLeft"
+            :throwTimerDuration="throwTimerDuration"
+            :throwPaused="throwPaused"
             @submit="handleCricketSubmit"
+            @toggleThrowPause="toggleThrowPause"
           />
           <NumpadEntry
             v-else-if="['301','501','701','1001'].includes(game.gameType)"
             :key="currentPlayer.id"
             :remaining="(game.scores[currentPlayer.id] as OhOneScore).data.remaining"
+            :throwTimeLeft="throwTimeLeft"
+            :throwTimerDuration="throwTimerDuration"
+            :throwPaused="throwPaused"
             @submit="handleNumpadSubmit"
+            @toggleThrowPause="toggleThrowPause"
           />
           <SimpleEntry
             v-else
@@ -108,19 +116,14 @@
             :gameType="game.gameType"
             :round="game.round"
             :hint="horseHint"
+            :throwTimeLeft="throwTimeLeft"
+            :throwTimerDuration="throwTimerDuration"
+            :throwPaused="throwPaused"
             @submit="handleNumpadSubmit"
+            @toggleThrowPause="toggleThrowPause"
           />
         </div>
 
-        <!-- Throw timer — bottom of entry panel -->
-        <div v-if="throwTimerDuration > 0" class="throw-timer-bottom" @click="toggleThrowPause">
-          <div class="throw-timer-fill"
-            :class="{ warning: throwTimeLeft <= 30, urgent: throwTimeLeft <= 10, paused: throwPaused }"
-            :style="{ width: `${(throwTimeLeft / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
-          <span class="throw-timer-text" :class="{ urgent: throwTimeLeft <= 10 }">
-            {{ settingsStore.disableTimerPause ? throwTimeLeft + 's' : throwPaused ? 'PAUSED' : throwTimeLeft + 's' }}
-          </span>
-        </div>
 
       </div>
 
@@ -642,14 +645,6 @@ watch(() => game.value?.currentPlayerIndex, () => {
 
 .turn-right { flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding-right: 8px; margin-left: auto; z-index: 1; position: relative; }
 
-/* Throw timer — bottom bar */
-.throw-timer-bottom { flex-shrink: 0; position: relative; height: 52px; background: rgba(255,255,255,0.05); overflow: hidden; display: flex; align-items: center; cursor: pointer; user-select: none; border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: env(safe-area-inset-bottom); }
-.throw-timer-fill { position: absolute; left: 0; top: 0; bottom: 0; background: #eab308; transition: width 1s linear, background 0.3s; }
-.throw-timer-fill.warning { background: #dc2626; }
-.throw-timer-fill.urgent { background: #ff1a1a; }
-.throw-timer-fill.paused { background: var(--text-muted); }
-.throw-timer-text { position: relative; z-index: 1; font-size: 22px; font-weight: 800; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); padding: 0 16px; font-family: var(--font-display); }
-.throw-timer-text.urgent { color: #fff; }
 
 .submit-float-btn {
   position: absolute;
@@ -926,8 +921,6 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-left { padding: 6px 12px 6px 16px; min-width: 52px; }
   .turn-round-num { font-size: 24px; }
   .turn-name { font-size: clamp(28px, 5dvh, 52px); }
-  .throw-timer-bottom { height: 40px; }
-  .throw-timer-text { font-size: 16px; }
   .scores-btn { padding: 8px 28px; font-size: 12px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px; padding: 12px 24px; font-size: 13px; }
 }
@@ -942,8 +935,6 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-left { padding: 6px 10px 6px 14px; min-width: 52px; }
   .turn-round-num { font-size: 26px; }
   .turn-name { font-size: clamp(32px, 6dvh, 72px); max-width: 55vw; }
-  .throw-timer-bottom { height: 46px; }
-  .throw-timer-text { font-size: 15px; padding: 0 10px; }
   .scores-btn { padding: 8px 24px; font-size: 12px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(14px + env(safe-area-inset-bottom)); right: 14px; padding: 12px 22px; font-size: 13px; }
   .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }

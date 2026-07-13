@@ -17,8 +17,11 @@
       <button v-ripple class="key double" @click="backspace">⌫</button>
     </div>
 
-    <div class="numpad-footer">
-      <button v-ripple class="btn btn-gold btn-xl submit-btn" :disabled="entered === ''" @click="submit">
+    <div class="numpad-footer" @click="throwTimerDuration ? emit('toggleThrowPause') : null">
+      <div v-if="throwTimerDuration" class="submit-timer-fill"
+        :class="{ warning: (throwTimeLeft ?? 0) <= 30, urgent: (throwTimeLeft ?? 0) <= 10, paused: throwPaused }"
+        :style="{ width: `${((throwTimeLeft ?? 0) / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
+      <button v-ripple class="btn btn-gold btn-xl submit-btn" :disabled="entered === ''" @click.stop="submit">
         Submit Turn
       </button>
     </div>
@@ -29,8 +32,15 @@
 import { ref, computed } from 'vue'
 import { GAME_TYPE_LABELS, type GameType } from '../types/index'
 
-const props = defineProps<{ gameType: GameType; round: number; hint?: string | null }>()
-const emit = defineEmits<{ submit: [score: number] }>()
+const props = defineProps<{
+  gameType: GameType
+  round: number
+  hint?: string | null
+  throwTimeLeft?: number
+  throwTimerDuration?: number
+  throwPaused?: boolean
+}>()
+const emit = defineEmits<{ submit: [score: number]; toggleThrowPause: [] }>()
 
 const entered = ref('')
 const gameLabel = computed(() => GAME_TYPE_LABELS[props.gameType])
@@ -67,8 +77,15 @@ function submit() {
 .key:active { transform: scale(0.93); }
 .key.double { grid-column: span 2; }
 
-.numpad-footer { width: 100%; max-width: 320px; }
-.submit-btn { width: 100%; position: relative; overflow: hidden; }
+.numpad-footer { width: 100%; max-width: 320px; position: relative; overflow: hidden; border-radius: 12px; }
+.submit-btn { width: 100%; position: relative; overflow: hidden; z-index: 1; }
+.submit-timer-fill {
+  position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none;
+  background: rgba(234,179,8,0.28); transition: width 1s linear, background 0.3s; z-index: 0;
+}
+.submit-timer-fill.warning { background: rgba(220,38,38,0.28); }
+.submit-timer-fill.urgent { background: rgba(255,26,26,0.36); }
+.submit-timer-fill.paused { background: rgba(120,120,120,0.2); }
 
 @media (max-width: 768px) {
   .simple-wrap { padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); gap: 14px; }
