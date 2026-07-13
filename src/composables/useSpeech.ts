@@ -80,10 +80,11 @@ function doSpeak(text: string, resolve: () => void, opts?: { rate?: number; pitc
     _pendingSpeakTimer = null
     window.speechSynthesis.resume()
     const u = new SpeechSynthesisUtterance(applyPronunciations(text))
-    const voice = selectVoice(settings.voiceName)
+    const { voiceName, pitch: genderPitch } = parseVoiceValue(settings.voiceName)
+    const voice = selectVoice(voiceName)
     if (voice) u.voice = voice
     u.rate = Math.max(0.1, opts?.rate ?? settings.voiceRate)
-    u.pitch = opts?.pitch ?? settings.voicePitch
+    u.pitch = genderPitch ?? (opts?.pitch ?? settings.voicePitch)
     u.onend = () => resolve()
     u.onerror = () => resolve()
     window.speechSynthesis.speak(u)
@@ -142,12 +143,15 @@ export function speakOhBaby(): Promise<void> {
 
 export type VoiceOption = { label: string; value: string; sublabel?: string }
 
-const CHARACTER_VOICES: { name: string; label: string; sublabel: string }[] = [
-  { name: 'Zarvox',    label: 'Zarvox',    sublabel: 'Robotic alien' },
-  { name: 'Deranged',  label: 'Deranged',  sublabel: 'Unhinged & erratic' },
-  { name: 'Hysterical',label: 'Hysterical',sublabel: 'Manic over-the-top' },
-  { name: 'Bad News',  label: 'Bad News',  sublabel: 'Slow & ominous' },
-  { name: 'Pipe Organ',label: 'Pipe Organ',sublabel: 'Musical tones' },
+const CHARACTER_VOICES: { name: string; label: string; sublabel: string; value: string }[] = [
+  { name: 'Zarvox',     label: 'Zarvox',          sublabel: 'Robotic alien',      value: 'Zarvox' },
+  { name: 'Deranged',   label: 'Deranged ♀',      sublabel: 'Female · unhinged',  value: 'Deranged:female' },
+  { name: 'Deranged',   label: 'Deranged ♂',      sublabel: 'Male · unhinged',    value: 'Deranged:male' },
+  { name: 'Hysterical', label: 'Hysterical ♀',    sublabel: 'Female · manic',     value: 'Hysterical:female' },
+  { name: 'Hysterical', label: 'Hysterical ♂',    sublabel: 'Male · manic',       value: 'Hysterical:male' },
+  { name: 'Bad News',   label: 'Bad News ♀',       sublabel: 'Female · ominous',   value: 'Bad News:female' },
+  { name: 'Bad News',   label: 'Bad News ♂',       sublabel: 'Male · ominous',     value: 'Bad News:male' },
+  { name: 'Pipe Organ', label: 'Pipe Organ',       sublabel: 'Musical tones',      value: 'Pipe Organ' },
 ]
 
 export function getAvailableVoices(): VoiceOption[] {
@@ -157,8 +161,15 @@ export function getAvailableVoices(): VoiceOption[] {
   ]
   for (const c of CHARACTER_VOICES) {
     if (voices.some(v => v.name === c.name)) {
-      result.push({ label: c.label, value: c.name, sublabel: c.sublabel })
+      result.push({ label: c.label, value: c.value, sublabel: c.sublabel })
     }
   }
   return result
+}
+
+// Parse a stored voice value like "Deranged:female" → { voiceName, pitch }
+export function parseVoiceValue(value: string): { voiceName: string; pitch?: number } {
+  const [voiceName, gender] = value.split(':')
+  const pitch = gender === 'female' ? 1.45 : gender === 'male' ? 0.55 : undefined
+  return { voiceName: voiceName ?? '', pitch }
 }
