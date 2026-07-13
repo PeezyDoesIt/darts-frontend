@@ -12,19 +12,6 @@
             </div>
           </div>
 
-          <!-- Timer inline, expands to fill -->
-          <div v-if="throwTimerDuration > 0" class="throw-timer-bar" @click="toggleThrowPause">
-            <div
-              class="throw-timer-fill"
-              :class="{ warning: throwTimeLeft <= 30, urgent: throwTimeLeft <= 10, paused: throwPaused }"
-              :style="{ width: `${(throwTimeLeft / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }"
-            />
-            <span class="throw-timer-text" :class="{ urgent: throwTimeLeft <= 10 }">
-              {{ settingsStore.disableTimerPause ? throwTimeLeft + 's' : throwPaused ? 'PAUSED' : throwTimeLeft + 's' }}
-            </span>
-            <span v-if="settingsStore.disableTimerPause" class="throw-timer-lock">LOCK</span>
-          </div>
-          <div v-else class="throw-timer-spacer" />
 
           <button v-ripple class="btn btn-sm btn-surface scores-btn" @click="showAllScores = !showAllScores">SCORES</button>
           <template v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'">
@@ -117,6 +104,16 @@
             :hint="horseHint"
             @submit="handleNumpadSubmit"
           />
+        </div>
+
+        <!-- Throw timer — bottom of entry panel -->
+        <div v-if="throwTimerDuration > 0" class="throw-timer-bottom" @click="toggleThrowPause">
+          <div class="throw-timer-fill"
+            :class="{ warning: throwTimeLeft <= 30, urgent: throwTimeLeft <= 10, paused: throwPaused }"
+            :style="{ width: `${(throwTimeLeft / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
+          <span class="throw-timer-text" :class="{ urgent: throwTimeLeft <= 10 }">
+            {{ settingsStore.disableTimerPause ? throwTimeLeft + 's' : throwPaused ? 'PAUSED' : throwTimeLeft + 's' }}
+          </span>
         </div>
 
       </div>
@@ -629,26 +626,23 @@ watch(() => game.value?.currentPlayerIndex, () => {
 
 /* Player identity box */
 .turn-player-box {
-  display: flex; align-items: center; gap: 14px;
+  flex: 1; display: flex; align-items: center; gap: 14px;
   padding: 12px 20px 12px 24px;
-  border-right: 1px solid rgba(255,255,255,0.08);
-  flex-shrink: 0;
+  min-width: 0;
 }
 .turn-avatar { width: 54px; height: 54px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 28px; border: 2px solid rgba(255,255,255,0.15); overflow: hidden; flex-shrink: 0; }
 .turn-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.turn-player-info { display: flex; flex-direction: column; gap: 4px; }
-.turn-name { font-size: 64px; line-height: 1; letter-spacing: 0.05em; font-weight: 900; background: rgba(0,0,0,0.72); border-radius: 6px; padding: 2px 12px; }
+.turn-player-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; overflow: hidden; }
+.turn-name { font-size: clamp(52px, 9dvh, 110px); line-height: 1; letter-spacing: 0.05em; font-weight: 900; background: rgba(0,0,0,0.72); border-radius: 6px; padding: 2px 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Timer — expands to fill remaining header space */
-.throw-timer-bar { flex: 1; position: relative; background: rgba(255,255,255,0.05); overflow: hidden; display: flex; align-items: center; cursor: pointer; user-select: none; border-right: 1px solid rgba(255,255,255,0.08); }
-.throw-timer-spacer { flex: 1; }
+/* Throw timer — bottom bar */
+.throw-timer-bottom { flex-shrink: 0; position: relative; height: 52px; background: rgba(255,255,255,0.05); overflow: hidden; display: flex; align-items: center; cursor: pointer; user-select: none; border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: env(safe-area-inset-bottom); }
 .throw-timer-fill { position: absolute; left: 0; top: 0; bottom: 0; background: #eab308; transition: width 1s linear, background 0.3s; }
 .throw-timer-fill.warning { background: #dc2626; }
 .throw-timer-fill.urgent { background: #ff1a1a; }
 .throw-timer-fill.paused { background: var(--text-muted); }
 .throw-timer-text { position: relative; z-index: 1; font-size: 22px; font-weight: 800; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); padding: 0 16px; font-family: var(--font-display); }
 .throw-timer-text.urgent { color: #fff; }
-.throw-timer-lock { position: relative; z-index: 1; font-size: 14px; margin-left: -8px; opacity: 0.6; }
 
 .submit-float-btn {
   position: absolute;
@@ -924,7 +918,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-header { min-height: 52px; }
   .turn-player-box { padding: 6px 14px 6px 18px; gap: 10px; }
   .turn-avatar { width: 36px; height: 36px; font-size: 18px; }
-  .turn-name { font-size: 34px; }
+  .turn-name { font-size: clamp(32px, 5dvh, 56px); }
+  .throw-timer-bottom { height: 40px; }
   .throw-timer-text { font-size: 16px; }
   .scores-btn { padding: 8px 28px; font-size: 12px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px; padding: 12px 24px; font-size: 13px; }
@@ -939,7 +934,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-header { min-height: 58px; }
   .turn-player-box { padding: 8px 12px 8px 16px; gap: 8px; }
   .turn-avatar { width: 38px; height: 38px; font-size: 18px; }
-  .turn-name { font-size: 40px; }
+  .turn-name { font-size: clamp(40px, 7dvh, 90px); }
+  .throw-timer-bottom { height: 46px; }
   .throw-timer-text { font-size: 15px; padding: 0 10px; }
   .scores-btn { padding: 8px 24px; font-size: 12px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(14px + env(safe-area-inset-bottom)); right: 14px; padding: 12px 22px; font-size: 13px; }
