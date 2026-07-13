@@ -203,7 +203,6 @@
       <div class="lb-header">
         <div>
           <div class="game-type-badge">{{ GAME_TYPE_LABELS[game.gameType] }}</div>
-          <div class="round-label">Round {{ game.round }}</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
           <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'" class="ct-display-row">
