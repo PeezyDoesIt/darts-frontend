@@ -5,23 +5,29 @@
       <!-- Entry panel -->
       <div class="entry-panel" :style="entryPanelStyle">
         <div class="turn-header" :style="{ '--player-color': currentPlayer.color }">
-          <!-- Player box -->
-          <div class="turn-player-box">
-            <div class="turn-player-info">
-              <span class="turn-name display" :style="{ color: currentPlayerNameColor, filter: `drop-shadow(0 0 12px ${currentPlayer.color}80)` }">{{ currentPlayer.name }}</span>
-            </div>
+          <!-- Left: round counter -->
+          <div class="turn-left">
+            <span class="turn-round-label">RND</span>
+            <span class="turn-round-num display">{{ game.round }}</span>
           </div>
 
+          <!-- Center: player name (absolutely centered) -->
+          <div class="turn-name-wrap">
+            <span class="turn-name display" :style="{ color: currentPlayerNameColor, filter: `drop-shadow(0 0 12px ${currentPlayer.color}80)` }">{{ currentPlayer.name }}</span>
+          </div>
 
-          <button v-ripple class="btn btn-sm btn-surface scores-btn" @click="showAllScores = !showAllScores">SCORES</button>
-          <template v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'">
-            <button v-ripple class="btn btn-sm btn-surface marks-layout-btn" @click="toggleMarksLayout" :title="marksLayout === 'top' ? 'Move marks to right column' : 'Move marks to top strip'">
-              {{ marksLayout === 'top' ? '▶' : '▼' }}
-            </button>
-            <button v-ripple class="btn btn-sm btn-surface marks-visibility-btn" :class="{ 'marks-hidden': !marksVisible }" @click="toggleMarksVisible" :title="marksVisible ? 'Hide scores' : 'Show scores'">
-              {{ marksVisible ? '👁' : '👁‍🗨' }}
-            </button>
-          </template>
+          <!-- Right: action buttons -->
+          <div class="turn-right">
+            <button v-ripple class="btn btn-sm btn-surface scores-btn" @click="showAllScores = !showAllScores">SCORES</button>
+            <template v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'">
+              <button v-ripple class="btn btn-sm btn-surface marks-layout-btn" @click="toggleMarksLayout" :title="marksLayout === 'top' ? 'Move marks to right column' : 'Move marks to top strip'">
+                {{ marksLayout === 'top' ? '▶' : '▼' }}
+              </button>
+              <button v-ripple class="btn btn-sm btn-surface marks-visibility-btn" :class="{ 'marks-hidden': !marksVisible }" @click="toggleMarksVisible" :title="marksVisible ? 'Hide scores' : 'Show scores'">
+                {{ marksVisible ? '👁' : '👁‍🗨' }}
+              </button>
+            </template>
+          </div>
         </div>
 
         <!-- Cricket marks grid: top strip (default) -->
@@ -624,16 +630,18 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .turn-header::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--player-color, var(--pink)); box-shadow: 0 0 12px var(--player-color, var(--pink)); z-index: 1; }
 
-/* Player identity box */
-.turn-player-box {
-  flex: 1; display: flex; align-items: center; gap: 14px;
-  padding: 12px 20px 12px 24px;
-  min-width: 0;
+/* Header left / center / right layout */
+.turn-left {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 8px 16px 8px 22px; gap: 1px; min-width: 64px; z-index: 1;
 }
-.turn-avatar { width: 54px; height: 54px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 28px; border: 2px solid rgba(255,255,255,0.15); overflow: hidden; flex-shrink: 0; }
-.turn-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.turn-player-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; overflow: hidden; }
-.turn-name { font-size: clamp(52px, 9dvh, 110px); line-height: 1; letter-spacing: 0.05em; font-weight: 900; background: rgba(0,0,0,0.72); border-radius: 6px; padding: 2px 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.turn-round-label { font-size: 9px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.4); font-family: var(--font-display); line-height: 1; }
+.turn-round-num { font-size: 34px; font-weight: 900; color: rgba(255,255,255,0.9); line-height: 1; }
+
+.turn-name-wrap { position: absolute; left: 0; right: 0; display: flex; justify-content: center; align-items: center; pointer-events: none; z-index: 0; padding: 8px 0; }
+.turn-name { font-size: clamp(44px, 7dvh, 90px); line-height: 1; letter-spacing: 0.05em; font-weight: 900; background: rgba(0,0,0,0.72); border-radius: 6px; padding: 2px 14px; white-space: nowrap; max-width: 60vw; overflow: hidden; text-overflow: ellipsis; }
+
+.turn-right { flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding-right: 8px; margin-left: auto; z-index: 1; position: relative; }
 
 /* Throw timer — bottom bar */
 .throw-timer-bottom { flex-shrink: 0; position: relative; height: 52px; background: rgba(255,255,255,0.05); overflow: hidden; display: flex; align-items: center; cursor: pointer; user-select: none; border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: env(safe-area-inset-bottom); }
@@ -916,9 +924,9 @@ watch(() => game.value?.currentPlayerIndex, () => {
 
 @media (orientation: landscape) and (max-height: 900px) {
   .turn-header { min-height: 52px; }
-  .turn-player-box { padding: 6px 14px 6px 18px; gap: 10px; }
-  .turn-avatar { width: 36px; height: 36px; font-size: 18px; }
-  .turn-name { font-size: clamp(32px, 5dvh, 56px); }
+  .turn-left { padding: 6px 12px 6px 16px; min-width: 52px; }
+  .turn-round-num { font-size: 24px; }
+  .turn-name { font-size: clamp(28px, 5dvh, 52px); }
   .throw-timer-bottom { height: 40px; }
   .throw-timer-text { font-size: 16px; }
   .scores-btn { padding: 8px 28px; font-size: 12px; margin: 0 10px; }
@@ -932,9 +940,9 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .cc-player-head { font-size: 9px; }
   .cc-target-label { font-size: 10px; width: 18px; }
   .turn-header { min-height: 58px; }
-  .turn-player-box { padding: 8px 12px 8px 16px; gap: 8px; }
-  .turn-avatar { width: 38px; height: 38px; font-size: 18px; }
-  .turn-name { font-size: clamp(40px, 7dvh, 90px); }
+  .turn-left { padding: 6px 10px 6px 14px; min-width: 52px; }
+  .turn-round-num { font-size: 26px; }
+  .turn-name { font-size: clamp(32px, 6dvh, 72px); max-width: 55vw; }
   .throw-timer-bottom { height: 46px; }
   .throw-timer-text { font-size: 15px; padding: 0 10px; }
   .scores-btn { padding: 8px 24px; font-size: 12px; margin: 0 10px; }
