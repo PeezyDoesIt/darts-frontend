@@ -46,7 +46,7 @@ const PRONUNCIATIONS: [RegExp, string][] = [
   [/babyyy/gi, 'baby'],
   [/mothafuckin/gi, 'mothuhfuckin'],
   [/mothafucking/gi, 'mothuhfucking'],
-  [/Beremiah/gi, 'Beremyah'],
+  [/Beremiah/gi, 'bear uh maya'],
   [/\bTony\b/gi, 'Tohnee'],
 ]
 
