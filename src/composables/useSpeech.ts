@@ -140,25 +140,25 @@ export function speakOhBaby(): Promise<void> {
   })
 }
 
-const BLOCKED_VOICES = ['Good News', 'Bad News', 'Bubbles', 'Sandy', 'Junior', 'Whisper', 'Wobble']
-
 export type VoiceOption = { label: string; value: string; sublabel?: string }
 
-// Strip " - Language (Region)" suffix to get a base name for deduplication
-function baseName(name: string): string {
-  return name.replace(/\s*-\s*[A-Z][\w\s]+\([\w\s]+\)\s*$/, '').trim()
-}
+const CHARACTER_VOICES: { name: string; label: string; sublabel: string }[] = [
+  { name: 'Zarvox',    label: 'Zarvox',    sublabel: 'Robotic alien' },
+  { name: 'Deranged',  label: 'Deranged',  sublabel: 'Unhinged & erratic' },
+  { name: 'Hysterical',label: 'Hysterical',sublabel: 'Manic over-the-top' },
+  { name: 'Bad News',  label: 'Bad News',  sublabel: 'Slow & ominous' },
+  { name: 'Pipe Organ',label: 'Pipe Organ',sublabel: 'Musical tones' },
+]
 
 export function getAvailableVoices(): VoiceOption[] {
   const voices = window.speechSynthesis.getVoices()
-  const seen = new Set<string>()
-  return voices
-    .filter(v => v.lang.startsWith('en') && !BLOCKED_VOICES.some(b => v.name.includes(b)))
-    .filter(v => {
-      const base = baseName(v.name)
-      if (seen.has(base)) return false
-      seen.add(base)
-      return true
-    })
-    .map(v => ({ label: baseName(v.name), value: v.name, sublabel: v.lang }))
+  const result: VoiceOption[] = [
+    { label: 'Default', value: '', sublabel: 'Auto-selected narrator' },
+  ]
+  for (const c of CHARACTER_VOICES) {
+    if (voices.some(v => v.name === c.name)) {
+      result.push({ label: c.label, value: c.name, sublabel: c.sublabel })
+    }
+  }
+  return result
 }
