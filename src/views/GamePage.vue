@@ -13,7 +13,7 @@
 
           <!-- Center: player name (absolutely centered) -->
           <div class="turn-name-wrap">
-            <span class="turn-name display" :style="{ color: currentPlayerNameColor, filter: `drop-shadow(0 0 12px ${currentPlayer.color}80)` }">{{ currentPlayer.name }}</span>
+            <span class="turn-name display" :style="{ color: currentPlayerNameColor, filter: `drop-shadow(0 0 28px ${currentPlayer.color}) drop-shadow(0 0 8px ${currentPlayer.color})` }">{{ currentPlayer.name }}</span>
           </div>
 
           <!-- Right: action buttons -->
@@ -641,7 +641,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .turn-round-num { font-size: 34px; font-weight: 900; color: rgba(255,255,255,0.9); line-height: 1; }
 
 .turn-name-wrap { position: absolute; left: 0; right: 0; display: flex; justify-content: center; align-items: center; pointer-events: none; z-index: 0; padding: 8px 0; }
-.turn-name { font-size: clamp(44px, 7dvh, 90px); line-height: 1; letter-spacing: 0.05em; font-weight: 900; background: rgba(0,0,0,0.72); border-radius: 6px; padding: 2px 14px; white-space: nowrap; max-width: 60vw; overflow: hidden; text-overflow: ellipsis; }
+.turn-name { font-size: clamp(52px, 9dvh, 112px); line-height: 1; letter-spacing: 0.05em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 8px; padding: 4px 16px; white-space: nowrap; max-width: 60vw; overflow: hidden; text-overflow: ellipsis; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 
 .turn-right { flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding-right: 8px; margin-left: auto; z-index: 1; position: relative; }
 
@@ -920,7 +920,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-header { min-height: 52px; }
   .turn-left { padding: 6px 12px 6px 16px; min-width: 52px; }
   .turn-round-num { font-size: 24px; }
-  .turn-name { font-size: clamp(28px, 5dvh, 52px); }
+  .turn-name { font-size: clamp(32px, 6dvh, 64px); }
   .scores-btn { padding: 8px 28px; font-size: 12px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px; padding: 12px 24px; font-size: 13px; }
 }
@@ -934,7 +934,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-header { min-height: 58px; }
   .turn-left { padding: 6px 10px 6px 14px; min-width: 52px; }
   .turn-round-num { font-size: 26px; }
-  .turn-name { font-size: clamp(32px, 6dvh, 72px); max-width: 55vw; }
+  .turn-name { font-size: clamp(40px, 7dvh, 88px); max-width: 55vw; }
   .scores-btn { padding: 8px 24px; font-size: 12px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(14px + env(safe-area-inset-bottom)); right: 14px; padding: 12px 22px; font-size: 13px; }
   .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
