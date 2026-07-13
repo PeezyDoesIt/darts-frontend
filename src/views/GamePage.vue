@@ -5,9 +5,13 @@
       <!-- Entry panel -->
       <div class="entry-panel" :style="entryPanelStyle">
         <div class="turn-header" :style="{ '--player-color': currentPlayer.color }">
-          <!-- Center: round pill + player name (absolutely centered as a group) -->
-          <div class="turn-name-wrap">
+          <!-- Left: round pill centered in left space -->
+          <div class="turn-left">
             <span class="turn-round-pill display">RND {{ game.round }}</span>
+          </div>
+
+          <!-- Center: player name (absolutely centered) -->
+          <div class="turn-name-wrap">
             <span class="turn-name display" :style="{ color: currentPlayerNameColor, filter: `drop-shadow(0 0 28px ${currentPlayer.color}) drop-shadow(0 0 8px ${currentPlayer.color})` }">{{ currentPlayer.name }}</span>
           </div>
 
@@ -627,12 +631,13 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .turn-header::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--player-color, var(--pink)); box-shadow: 0 0 12px var(--player-color, var(--pink)); z-index: 1; }
 
-/* Header center / right layout */
-.turn-name-wrap { position: absolute; left: 0; right: 0; display: flex; justify-content: center; align-items: center; gap: 10px; pointer-events: none; z-index: 0; padding: 8px 0; }
-.turn-round-pill { font-size: clamp(18px, 3dvh, 30px); font-weight: 900; line-height: 1; letter-spacing: 0.08em; background: rgba(0,0,0,0.90); border-radius: 8px; padding: 4px 12px; color: rgba(255,255,255,0.8); white-space: nowrap; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); flex-shrink: 0; }
+/* Header left / center / right layout */
+.turn-left { flex: 1; display: flex; align-items: center; justify-content: center; padding-left: 8px; z-index: 1; }
+.turn-name-wrap { position: absolute; left: 0; right: 0; display: flex; justify-content: center; align-items: center; pointer-events: none; z-index: 0; padding: 8px 0; }
+.turn-round-pill { font-size: clamp(18px, 3dvh, 30px); font-weight: 900; line-height: 1; letter-spacing: 0.08em; background: rgba(0,0,0,0.90); border-radius: 8px; padding: 4px 12px; color: rgba(255,255,255,0.8); white-space: nowrap; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 .turn-name { font-size: clamp(52px, 9dvh, 112px); line-height: 1; letter-spacing: 0.05em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 8px; padding: 4px 16px; white-space: nowrap; max-width: 60vw; overflow: hidden; text-overflow: ellipsis; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 
-.turn-right { flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding-right: 8px; margin-left: auto; z-index: 1; position: relative; }
+.turn-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding-right: 8px; z-index: 1; position: relative; }
 
 
 .submit-float-btn {
@@ -907,7 +912,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 
 @media (orientation: landscape) and (max-height: 900px) {
   .turn-header { min-height: 52px; }
-  .turn-round-pill { font-size: clamp(14px, 2.5dvh, 22px); padding: 3px 9px; }
+  .turn-round-pill { font-size: clamp(13px, 2.2dvh, 20px); padding: 3px 8px; }
   .turn-name { font-size: clamp(32px, 6dvh, 64px); }
   .scores-btn { padding: 8px 28px; font-size: 12px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px; padding: 12px 24px; font-size: 13px; }
@@ -920,7 +925,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .cc-player-head { font-size: 9px; }
   .cc-target-label { font-size: 10px; width: 18px; }
   .turn-header { min-height: 58px; }
-  .turn-round-pill { font-size: clamp(16px, 2.8dvh, 24px); }
+  .turn-round-pill { font-size: clamp(15px, 2.5dvh, 22px); }
   .turn-name { font-size: clamp(40px, 7dvh, 88px); max-width: 55vw; }
   .scores-btn { padding: 8px 24px; font-size: 12px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(14px + env(safe-area-inset-bottom)); right: 14px; padding: 12px 22px; font-size: 13px; }
