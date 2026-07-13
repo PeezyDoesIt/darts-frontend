@@ -42,7 +42,7 @@ function selectVoice(name: string): SpeechSynthesisVoice | null {
 
 const PRONUNCIATIONS: [RegExp, string][] = [
   [/Neshaun/gi, 'nuh shawn'],
-  [/Meho/gi, 'Meh-oh'],
+  [/Meho/gi, 'meh hoe'],
   [/babyyy/gi, 'baby'],
   [/mothafuckin/gi, 'mothuhfuckin'],
   [/mothafucking/gi, 'mothuhfucking'],
