@@ -17,11 +17,16 @@
       <button v-ripple class="key double" @click="backspace">⌫</button>
     </div>
 
-    <div class="numpad-footer" @click="throwTimerDuration ? emit('toggleThrowPause') : null">
-      <div v-if="throwTimerDuration" class="submit-timer-fill"
-        :class="{ warning: (throwTimeLeft ?? 0) <= 30, urgent: (throwTimeLeft ?? 0) <= 10, paused: throwPaused }"
-        :style="{ width: `${((throwTimeLeft ?? 0) / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
-      <button v-ripple class="btn btn-gold btn-xl submit-btn" :disabled="entered === ''" @click.stop="submit">
+    <div class="numpad-footer">
+      <div v-if="throwTimerDuration" class="submit-left" @click="emit('toggleThrowPause')">
+        <div class="submit-timer-fill"
+          :class="{ warning: (throwTimeLeft ?? 0) <= 30, urgent: (throwTimeLeft ?? 0) <= 10, paused: throwPaused }"
+          :style="{ width: `${((throwTimeLeft ?? 0) / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
+        <span class="submit-timer-text" :class="{ urgent: (throwTimeLeft ?? 0) <= 10 }">
+          {{ throwPaused ? 'PAUSED' : (throwTimeLeft ?? 0) + 's' }}
+        </span>
+      </div>
+      <button v-ripple class="btn btn-gold btn-xl submit-btn" :disabled="entered === ''" @click="submit">
         Submit Turn
       </button>
     </div>
@@ -77,8 +82,9 @@ function submit() {
 .key:active { transform: scale(0.93); }
 .key.double { grid-column: span 2; }
 
-.numpad-footer { width: 100%; max-width: 320px; position: relative; overflow: hidden; border-radius: 12px; }
-.submit-btn { width: 100%; position: relative; overflow: hidden; z-index: 1; }
+.numpad-footer { width: 100%; max-width: 320px; display: flex; align-items: stretch; gap: 10px; }
+.submit-left { flex: 0 0 80px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); cursor: pointer; }
+.submit-btn { flex: 1; width: 100%; position: relative; overflow: hidden; }
 .submit-timer-fill {
   position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none;
   background: rgba(234,179,8,0.28); transition: width 1s linear, background 0.3s; z-index: 0;
@@ -86,6 +92,8 @@ function submit() {
 .submit-timer-fill.warning { background: rgba(220,38,38,0.28); }
 .submit-timer-fill.urgent { background: rgba(255,26,26,0.36); }
 .submit-timer-fill.paused { background: rgba(120,120,120,0.2); }
+.submit-timer-text { position: relative; z-index: 1; font-size: 16px; font-weight: 800; letter-spacing: 0.08em; color: rgba(255,255,255,0.9); font-family: var(--font-display); }
+.submit-timer-text.urgent { color: #fff; }
 
 @media (max-width: 768px) {
   .simple-wrap { padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); gap: 14px; }

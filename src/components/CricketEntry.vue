@@ -36,18 +36,21 @@
       </TransitionGroup>
     </div>
 
-<div class="submit-row" @click="throwTimerDuration ? emit('toggleThrowPause') : null">
-      <div v-if="throwTimerDuration" class="submit-timer-fill"
-        :class="{ warning: (throwTimeLeft ?? 0) <= 30, urgent: (throwTimeLeft ?? 0) <= 10, paused: throwPaused }"
-        :style="{ width: `${((throwTimeLeft ?? 0) / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
-      <span v-if="throwTimerDuration" class="submit-timer-text" :class="{ urgent: (throwTimeLeft ?? 0) <= 10 }">
-        {{ throwPaused ? 'PAUSED' : (throwTimeLeft ?? 0) + 's' }}
-      </span>
-      <span v-else-if="totalHitsThisRound > 0" class="hits-text">
-        {{ totalHitsThisRound }} hit{{ totalHitsThisRound !== 1 ? 's' : '' }} this round
-      </span>
-      <span v-else class="muted" :style="{ color: targetColor }">Round {{ round }}</span>
-      <button v-ripple class="btn btn-gold submit-inline-btn" :disabled="submitted" @click.stop="submit">
+<div class="submit-row">
+      <!-- Left area: timer fill is constrained here, never reaches the button -->
+      <div class="submit-left" @click="throwTimerDuration ? emit('toggleThrowPause') : null">
+        <div v-if="throwTimerDuration" class="submit-timer-fill"
+          :class="{ warning: (throwTimeLeft ?? 0) <= 30, urgent: (throwTimeLeft ?? 0) <= 10, paused: throwPaused }"
+          :style="{ width: `${((throwTimeLeft ?? 0) / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
+        <span v-if="throwTimerDuration" class="submit-timer-text" :class="{ urgent: (throwTimeLeft ?? 0) <= 10 }">
+          {{ throwPaused ? 'PAUSED' : (throwTimeLeft ?? 0) + 's' }}
+        </span>
+        <span v-else-if="totalHitsThisRound > 0" class="hits-text">
+          {{ totalHitsThisRound }} hit{{ totalHitsThisRound !== 1 ? 's' : '' }} this round
+        </span>
+        <span v-else class="muted" :style="{ color: targetColor }">Round {{ round }}</span>
+      </div>
+      <button v-ripple class="btn btn-gold submit-inline-btn" :disabled="submitted" @click="submit">
         SUBMIT TURN
       </button>
     </div>
@@ -272,6 +275,7 @@ defineExpose({ submit, submitted })
   box-shadow: 0 2px 12px rgba(220,38,38,0.4);
 }
 .submit-inline-btn:disabled { opacity: 0.4; }
+.submit-left { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; padding: 0 4px; min-height: 100%; cursor: pointer; }
 .submit-timer-fill {
   position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none;
   background: rgba(234,179,8,0.28); transition: width 1s linear, background 0.3s; z-index: 0;
