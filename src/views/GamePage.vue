@@ -140,7 +140,7 @@
             <div v-for="p in game.players.slice(0, 2)" :key="p.id" class="cc-cell" :class="{ 'cc-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }">
               <span v-for="n in 3" :key="n" class="cc-pip"
                 :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
-                :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 6px ${p.color}` } : {}" />
+                :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 14px ${p.color}, 0 0 5px ${p.color}` } : {}" />
             </div>
           </div>
           <div class="cc-group-divider"></div>
@@ -153,7 +153,7 @@
             <div class="cc-cell" :class="{ 'cc-closed': (getCricketMarks(game.players[2]!.id)?.[t] ?? 0) >= 3 }">
               <span v-for="n in 3" :key="n" class="cc-pip"
                 :class="{ filled: (getCricketMarks(game.players[2]!.id)?.[t] ?? 0) >= n }"
-                :style="(getCricketMarks(game.players[2]!.id)?.[t] ?? 0) >= n ? { background: game.players[2]!.color, boxShadow: `0 0 6px ${game.players[2]!.color}` } : {}" />
+                :style="(getCricketMarks(game.players[2]!.id)?.[t] ?? 0) >= n ? { background: game.players[2]!.color, boxShadow: `0 0 14px ${game.players[2]!.color}, 0 0 5px ${game.players[2]!.color}` } : {}" />
             </div>
           </div>
         </template>
@@ -169,7 +169,7 @@
             <div v-for="p in game.players" :key="p.id" class="cc-cell" :class="{ 'cc-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }">
               <span v-for="n in 3" :key="n" class="cc-pip"
                 :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
-                :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 6px ${p.color}` } : {}" />
+                :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 14px ${p.color}, 0 0 5px ${p.color}` } : {}" />
             </div>
           </div>
         </template>
@@ -766,8 +766,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .cc-closed { opacity: 0.3; }
 .cc-pip {
-  width: 11px; height: 11px; border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.7);
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,1.0);
   background: rgba(255,255,255,0.1); flex-shrink: 0; transition: background 0.1s;
 }
 .cc-pip.filled { border-color: transparent; }
