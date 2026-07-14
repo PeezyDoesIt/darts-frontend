@@ -762,11 +762,11 @@ watch(() => game.value?.currentPlayerIndex, () => {
   color: #ffffff; font-family: var(--font-display);
 }
 .cc-cell {
-  flex: 1; display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 3px;
+  flex: 1; display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 2px; flex-wrap: nowrap; min-width: 0;
 }
 .cc-closed { opacity: 0.3; }
 .cc-pip {
-  width: 14px; height: 14px; border-radius: 50%;
+  width: 12px; height: 12px; border-radius: 50%;
   border: 2px solid rgba(255,255,255,1.0);
   background: rgba(255,255,255,0.1); flex-shrink: 0; transition: background 0.1s;
 }
@@ -924,6 +924,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .cricket-col { width: 100px; }
   .cc-player-head { font-size: 9px; }
   .cc-target-label { font-size: 10px; width: 18px; }
+  .cc-pip { width: 10px; height: 10px; }
+  .cc-cell { gap: 1px; }
   .turn-header { min-height: 58px; }
   .turn-round-pill { font-size: clamp(28px, 4dvh, 42px); }
   .turn-name { font-size: clamp(32px, 5dvh, 52px); max-width: 55vw; }
