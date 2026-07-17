@@ -60,7 +60,7 @@
           {{ throwPaused ? 'PAUSED' : (throwTimeLeft ?? 0) + 's' }}
         </span>
       </div>
-      <button v-ripple class="btn btn-gold btn-xl submit-btn" :disabled="false" @click="submit">Submit Turn</button>
+      <button v-ripple class="btn btn-gold btn-xl submit-btn" :disabled="false" @click="submit">Submit</button>
     </div>
   </div>
 </template>

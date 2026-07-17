@@ -27,7 +27,7 @@
         </span>
       </div>
       <button v-ripple class="btn btn-gold btn-xl submit-btn" :disabled="entered === ''" @click="submit">
-        Submit Turn
+        Submit
       </button>
     </div>
   </div>

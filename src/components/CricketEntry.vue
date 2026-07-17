@@ -51,7 +51,7 @@
         <span v-else class="muted" :style="{ color: targetColor }">Round {{ round }}</span>
       </div>
       <button v-ripple class="btn btn-gold submit-inline-btn" :disabled="submitted" @click="submit">
-        SUBMIT TURN
+        SUBMIT
       </button>
     </div>
   </div>
