@@ -84,7 +84,7 @@ function submit() {
 
 .numpad-footer { width: 100%; max-width: 320px; display: flex; align-items: stretch; gap: 10px; }
 .submit-left { flex: 0 0 80px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); cursor: pointer; }
-.submit-btn { flex: 1; width: 100%; position: relative; overflow: hidden; font-size: clamp(20px, 3.2dvh, 30px); font-weight: 900; letter-spacing: 0.15em; text-transform: uppercase; }
+.submit-btn { flex: 1; width: 100%; position: relative; overflow: hidden; font-size: clamp(26px, 4dvh, 38px); font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; font-family: var(--font-display); text-shadow: 0 1px 0 rgba(255,255,255,0.35); }
 .submit-timer-fill {
   position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none;
   background: rgba(234,179,8,0.28); transition: width 1s linear, background 0.3s; z-index: 0;
