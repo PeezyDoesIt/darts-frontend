@@ -7,7 +7,7 @@
         <div class="turn-header" :style="{ '--player-color': currentPlayer.color }">
           <!-- Left: round pill centered in left space -->
           <div class="turn-left">
-            <span class="turn-round-pill display">ROUND {{ game.round }}</span>
+            <span class="turn-round-pill display">ROUND {{ game.round }}<template v-if="game.cricketRoundLimit !== null"> / {{ game.cricketRoundLimit }}</template></span>
           </div>
 
           <!-- Center: player name (absolutely centered) -->

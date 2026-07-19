@@ -55,7 +55,7 @@ export const useGameStore = defineStore('game', () => {
     _pendingTimeout.value = true
   }
 
-  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide' | 'fade' | 'strike', bustEliminates: boolean, cricketPlayToCompletion: boolean, cricketHatTrickBonus: boolean, gameTheme: string | null, players: Player[], skipWalkup: boolean = false) {
+  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide' | 'fade' | 'strike', bustEliminates: boolean, cricketPlayToCompletion: boolean, cricketHatTrickBonus: boolean, cricketRoundLimit: number | null, gameTheme: string | null, players: Player[], skipWalkup: boolean = false) {
     playerTimeoutCounts.value = {}
     playerHurryUpCounts.value = {}
     lastTurnWasTimeout.value = false
@@ -68,6 +68,7 @@ export const useGameStore = defineStore('game', () => {
       bustEliminates,
       cricketPlayToCompletion,
       cricketHatTrickBonus,
+      cricketRoundLimit,
       bonusTurnActive: false,
       skipWalkup,
       cricketFinishOrder: [],
@@ -275,7 +276,25 @@ export const useGameStore = defineStore('game', () => {
     }
 
     const nextIndex = (currentPlayerIndex + 1) % players.length
-    if (nextIndex === 0) game.value.round++
+    const completingRound = nextIndex === 0
+    if (completingRound) {
+      const limit = game.value.cricketRoundLimit
+      if (limit !== null && game.value.round >= limit) {
+        // Round limit reached — most targets closed wins
+        const marksToClose = game.value.gameType === 'speedCricket' ? 1 : 3
+        let winnerId: string | null = null
+        let best = -1
+        for (const [pid, ps] of Object.entries(game.value.scores)) {
+          if (ps.kind !== 'cricket') continue
+          const closed = CRICKET_TARGETS.filter(t => ps.data.marks[t] >= marksToClose).length
+          if (closed > best) { best = closed; winnerId = pid }
+        }
+        game.value.winnerId = winnerId
+        game.value.status = 'finished'
+        return
+      }
+      game.value.round++
+    }
     game.value.currentPlayerIndex = nextIndex
     game.value.status = 'between_turns'
   }

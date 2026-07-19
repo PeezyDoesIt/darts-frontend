@@ -142,6 +142,7 @@ export type ActiveGame = {
   bustEliminates: boolean
   cricketPlayToCompletion: boolean
   cricketHatTrickBonus: boolean
+  cricketRoundLimit: number | null
   bonusTurnActive: boolean
   skipWalkup: boolean
   cricketFinishOrder: string[]

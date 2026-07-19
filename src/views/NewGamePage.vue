@@ -55,6 +55,17 @@
                 <span class="toggle-sub">Score 3+ marks in one turn to throw again</span>
               </div>
             </div>
+            <div class="round-limit-row">
+              <div class="toggle-info">
+                <span class="toggle-label">Round Limit</span>
+                <span class="toggle-sub">Game ends after this many rounds — most targets closed wins</span>
+              </div>
+              <div class="round-limit-control">
+                <button v-ripple class="round-limit-btn" :disabled="cricketRoundLimit === null || cricketRoundLimit <= 1" @click="cricketRoundLimit = Math.max(1, (cricketRoundLimit ?? 5) - 1)">−</button>
+                <span class="round-limit-val" @click="cricketRoundLimit = cricketRoundLimit === null ? 7 : null">{{ cricketRoundLimit ?? 'OFF' }}</span>
+                <button v-ripple class="round-limit-btn" @click="cricketRoundLimit = (cricketRoundLimit ?? 0) + 1">+</button>
+              </div>
+            </div>
           </section>
 
           <section v-if="['301','501','701','1001'].includes(selectedGameType ?? '')" class="ng-section">
@@ -264,6 +275,7 @@ const closedTargetDisplay = ref<'show' | 'hide' | 'fade' | 'strike'>('show')
 const bustEliminates = ref(false)
 const cricketPlayToCompletion = ref(false)
 const cricketHatTrickBonus = ref(false)
+const cricketRoundLimit = ref<number | null>(null)
 const skipWalkup = ref(false)
 const closedTargetOptions = [
   { value: 'show'   as const, label: 'Normal',        sub: 'Closed targets stay visible' },
@@ -317,7 +329,7 @@ function startGame() {
   if (selectedPlayers.value.length < 2 || !selectedGameType.value) return
   const t = timerDuration.value
   const tt = throwTimerDuration.value
-  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, gameTheme.value, selectedPlayers.value, skipWalkup.value)
+  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, cricketRoundLimit.value, gameTheme.value, selectedPlayers.value, skipWalkup.value)
   router.push(skipWalkup.value ? '/game' : '/between')
 }
 </script>
@@ -437,6 +449,13 @@ function startGame() {
 .toggle-title { font-size: 14px; font-weight: 700; color: var(--text); }
 .toggle-sub { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
 .toggle-label { font-size: 14px; font-weight: 700; color: var(--text); }
+
+.round-limit-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 4px; }
+.round-limit-control { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.round-limit-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: var(--text); font-size: 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; position: relative; overflow: hidden; }
+.round-limit-btn:hover:not(:disabled) { background: rgba(255,255,255,0.12); }
+.round-limit-btn:disabled { opacity: 0.3; cursor: default; }
+.round-limit-val { min-width: 52px; text-align: center; font-size: 20px; font-weight: 900; font-family: var(--font-display); color: var(--gold); cursor: pointer; letter-spacing: 0.05em; }
 
 /* Timers — compact paired layout */
 .timer-pair { display: flex; flex-direction: column; gap: 12px; }
