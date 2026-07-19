@@ -51,7 +51,7 @@
         <span v-else class="muted" :style="{ color: targetColor }">Round {{ round }}</span>
       </div>
       <button v-ripple class="btn btn-gold submit-inline-btn" :disabled="submitted" @click="submit">
-        SUBMIT
+        NEXT
       </button>
     </div>
   </div>
@@ -280,11 +280,11 @@ defineExpose({ submit, submitted })
 .submit-left { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; padding: 0 4px; min-height: 100%; cursor: pointer; }
 .submit-timer-fill {
   position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none;
-  background: rgba(234,179,8,0.28); transition: width 1s linear, background 0.3s; z-index: 0;
+  background: #ff0000; transition: width 1s linear, background 0.3s; z-index: 0;
 }
-.submit-timer-fill.warning { background: rgba(204,0,0,0.82); }
-.submit-timer-fill.urgent { background: rgb(204,0,0); }
-.submit-timer-fill.paused { background: rgba(120,120,120,0.2); }
+.submit-timer-fill.warning { background: #ff0000; }
+.submit-timer-fill.urgent { background: #ff3333; }
+.submit-timer-fill.paused { background: rgba(120,120,120,0.6); }
 .submit-timer-text {
   position: relative; z-index: 1; font-size: clamp(18px, 2.8dvh, 26px); font-weight: 900;
   letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.9); font-family: var(--font-display);

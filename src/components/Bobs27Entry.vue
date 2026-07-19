@@ -45,7 +45,7 @@
         class="submit-btn"
         :disabled="hits === null"
         @click="doSubmit"
-      >SUBMIT</button>
+      >NEXT</button>
     </div>
 
   </div>

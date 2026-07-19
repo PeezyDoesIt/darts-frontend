@@ -60,7 +60,7 @@
           {{ throwPaused ? 'PAUSED' : (throwTimeLeft ?? 0) + 's' }}
         </span>
       </div>
-      <button v-ripple class="btn btn-gold btn-xl submit-btn" :disabled="false" @click="submit">SUBMIT</button>
+      <button v-ripple class="btn btn-gold btn-xl submit-btn" :disabled="false" @click="submit">NEXT</button>
     </div>
   </div>
 </template>
@@ -211,11 +211,11 @@ function submit() {
 .submit-btn { flex: 1; position: relative; overflow: hidden; height: clamp(52px, 7dvh, 80px); font-size: clamp(26px, 4dvh, 38px); font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; font-family: var(--font-display); text-shadow: 0 1px 0 rgba(255,255,255,0.35); }
 .submit-timer-fill {
   position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none;
-  background: rgba(234,179,8,0.28); transition: width 1s linear, background 0.3s; z-index: 0;
+  background: #ff0000; transition: width 1s linear, background 0.3s; z-index: 0;
 }
-.submit-timer-fill.warning { background: rgba(204,0,0,0.82); }
-.submit-timer-fill.urgent { background: rgb(204,0,0); }
-.submit-timer-fill.paused { background: rgba(120,120,120,0.2); }
+.submit-timer-fill.warning { background: #ff0000; }
+.submit-timer-fill.urgent { background: #ff3333; }
+.submit-timer-fill.paused { background: rgba(120,120,120,0.6); }
 .submit-timer-text { position: relative; z-index: 1; font-size: clamp(20px, 3dvh, 28px); font-weight: 900; letter-spacing: 0.15em; color: rgba(255,255,255,0.9); font-family: var(--font-display); text-transform: uppercase; }
 .submit-timer-text.urgent { color: #fff; }
 
