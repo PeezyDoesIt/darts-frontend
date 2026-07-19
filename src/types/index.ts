@@ -4,6 +4,8 @@ export type Player = {
   avatarUrl: string | null
   color: string
   playerBackground: string | null
+  playerBackgroundSize: 'cover' | 'contain' | null
+  playerBackgroundPosition: 'top' | 'center' | 'bottom' | null
   targetLabelColor: string | null
   cricketTargetDisplay: 'show' | 'hide' | 'fade' | 'strike' | null  // null = use game setting
   pinned: boolean
@@ -143,6 +145,8 @@ export type ActiveGame = {
   cricketPlayToCompletion: boolean
   cricketHatTrickBonus: boolean
   cricketRoundLimit: number | null
+  gameThemeSize: 'cover' | 'contain' | null
+  gameThemePosition: 'top' | 'center' | 'bottom' | null
   bonusTurnActive: boolean
   skipWalkup: boolean
   cricketFinishOrder: string[]

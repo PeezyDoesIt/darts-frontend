@@ -147,7 +147,23 @@
               </div>
             </div>
             <span v-if="gameTheme && gameThemeMode === 'theme'" class="selected-theme-name">{{ PLAYER_THEMES.find(t => t.value === gameTheme)?.label }}</span>
-            <span v-if="gameThemeImage && gameThemeMode === 'image'" class="selected-theme-name">Photo selected</span>
+            <div v-if="gameThemeImage" class="bg-fit-controls">
+              <div class="bg-fit-row">
+                <span class="bg-fit-label">Size</span>
+                <div class="bg-fit-btns">
+                  <button v-ripple class="bg-fit-btn" :class="{ active: gameThemeSize === 'cover' || gameThemeSize === null }" @click="gameThemeSize = 'cover'">Cover</button>
+                  <button v-ripple class="bg-fit-btn" :class="{ active: gameThemeSize === 'contain' }" @click="gameThemeSize = 'contain'">Contain</button>
+                </div>
+              </div>
+              <div class="bg-fit-row">
+                <span class="bg-fit-label">Position</span>
+                <div class="bg-fit-btns">
+                  <button v-ripple class="bg-fit-btn" :class="{ active: gameThemePosition === 'top' }" @click="gameThemePosition = 'top'">Top</button>
+                  <button v-ripple class="bg-fit-btn" :class="{ active: gameThemePosition === 'center' || gameThemePosition === null }" @click="gameThemePosition = 'center'">Center</button>
+                  <button v-ripple class="bg-fit-btn" :class="{ active: gameThemePosition === 'bottom' }" @click="gameThemePosition = 'bottom'">Bottom</button>
+                </div>
+              </div>
+            </div>
           </section>
 
           <section class="ng-section">
@@ -287,6 +303,8 @@ const OBSIDIAN = 'linear-gradient(160deg, #050505 0%, #111111 40%, #222222 75%, 
 const gameTheme = ref<string | null>(OBSIDIAN)
 const gameThemeMode = ref<'theme' | 'image'>('theme')
 const gameThemeImage = ref<string | null>(null)
+const gameThemeSize = ref<'cover' | 'contain' | null>(null)
+const gameThemePosition = ref<'top' | 'center' | 'bottom' | null>(null)
 const selectedPlayers = ref<Player[]>([])
 
 function selectGameTheme(val: string) { gameTheme.value = val; gameThemeImage.value = null }
@@ -305,7 +323,7 @@ function onGameThemeFileChange(e: Event) {
 
 const gameThemePreviewStyle = computed(() =>
   gameThemeImage.value
-    ? { backgroundImage: `url(${gameThemeImage.value})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    ? { backgroundImage: `url(${gameThemeImage.value})`, backgroundSize: gameThemeSize.value ?? 'cover', backgroundPosition: gameThemePosition.value ?? 'center', backgroundColor: '#000' }
     : { background: 'rgba(255,255,255,0.05)' }
 )
 
@@ -329,7 +347,7 @@ function startGame() {
   if (selectedPlayers.value.length < 2 || !selectedGameType.value) return
   const t = timerDuration.value
   const tt = throwTimerDuration.value
-  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, cricketRoundLimit.value, gameTheme.value, selectedPlayers.value, skipWalkup.value)
+  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, cricketRoundLimit.value, gameTheme.value, gameThemeSize.value, gameThemePosition.value, selectedPlayers.value, skipWalkup.value)
   router.push(skipWalkup.value ? '/game' : '/between')
 }
 </script>
@@ -510,6 +528,13 @@ function startGame() {
 .theme-swatch.active { border-color: var(--blue); box-shadow: 0 0 10px rgba(0,212,255,0.5); transform: scale(1.12); }
 .swatch-none-icon { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 1; }
 .selected-theme-name { font-size: 12px; font-weight: 700; color: var(--blue); letter-spacing: 0.08em; text-transform: uppercase; }
+.bg-fit-controls { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 4px; }
+.bg-fit-row { display: flex; align-items: center; gap: 10px; }
+.bg-fit-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; min-width: 56px; }
+.bg-fit-btns { display: flex; gap: 6px; }
+.bg-fit-btn { padding: 5px 14px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+.bg-fit-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+.bg-fit-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.15); color: var(--pink); }
 
 /* Player grid is always single-column in the narrow right panel */
 .player-grid { grid-template-columns: 1fr; }

@@ -561,10 +561,14 @@ function startThrowTimer() {
 }
 
 const entryPanelStyle = computed(() => {
+  const isPlayerBg = !!currentPlayer.value.playerBackground
   const bg = currentPlayer.value.playerBackground ?? game.value?.gameTheme
   if (!bg) return {}
-  if (bg.startsWith('data:') || bg.startsWith('http'))
-    return { backgroundImage: `url(${bg})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+  if (bg.startsWith('data:') || bg.startsWith('http')) {
+    const size = (isPlayerBg ? currentPlayer.value.playerBackgroundSize : game.value?.gameThemeSize) ?? 'cover'
+    const position = (isPlayerBg ? currentPlayer.value.playerBackgroundPosition : game.value?.gameThemePosition) ?? 'center'
+    return { backgroundImage: `url(${bg})`, backgroundSize: size, backgroundPosition: position, backgroundColor: '#000' }
+  }
   return { background: bg }
 })
 

@@ -68,6 +68,23 @@
                 </label>
                 <button v-if="bgImagePreview" v-ripple class="btn btn-outline btn-sm" @click="bgImagePreview = null; playerBackground = null">Clear</button>
               </div>
+              <div v-if="bgImagePreview" class="bg-fit-controls">
+                <div class="bg-fit-row">
+                  <span class="bg-fit-label">Size</span>
+                  <div class="bg-fit-btns">
+                    <button v-ripple class="bg-fit-btn" :class="{ active: bgSize === 'cover' || bgSize === null }" @click="bgSize = 'cover'">Cover</button>
+                    <button v-ripple class="bg-fit-btn" :class="{ active: bgSize === 'contain' }" @click="bgSize = 'contain'">Contain</button>
+                  </div>
+                </div>
+                <div class="bg-fit-row">
+                  <span class="bg-fit-label">Position</span>
+                  <div class="bg-fit-btns">
+                    <button v-ripple class="bg-fit-btn" :class="{ active: bgPosition === 'top' }" @click="bgPosition = 'top'">Top</button>
+                    <button v-ripple class="bg-fit-btn" :class="{ active: bgPosition === 'center' || bgPosition === null }" @click="bgPosition = 'center'">Center</button>
+                    <button v-ripple class="bg-fit-btn" :class="{ active: bgPosition === 'bottom' }" @click="bgPosition = 'bottom'">Bottom</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -214,6 +231,8 @@ function doDelete() {
 const bgMode = ref<'theme' | 'image'>('theme')
 const playerBackground = ref<string | null>(null)
 const bgImagePreview = ref<string | null>(null)
+const bgSize = ref<'cover' | 'contain' | null>(null)
+const bgPosition = ref<'top' | 'center' | 'bottom' | null>(null)
 const targetLabelColor = ref<string | null>(null)
 const cricketTargetDisplay = ref<'show' | 'hide' | 'fade' | 'strike' | null>(null)
 
@@ -226,11 +245,11 @@ const cricketTargetDisplayOpts: { value: 'show' | 'hide' | 'fade' | 'strike' | n
 ]
 
 const bgPreviewStyle = computed(() => {
-  if (bgImagePreview.value) return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+  if (bgImagePreview.value) return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: bgSize.value ?? 'cover', backgroundPosition: bgPosition.value ?? 'center', backgroundColor: '#000' }
   return { background: 'rgba(255,255,255,0.05)' }
 })
 const previewCardStyle = computed(() => {
-  if (bgImagePreview.value) return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: 'cover', backgroundPosition: 'center', boxShadow: `0 0 40px ${color.value}40` }
+  if (bgImagePreview.value) return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: bgSize.value ?? 'cover', backgroundPosition: bgPosition.value ?? 'center', backgroundColor: '#000', boxShadow: `0 0 40px ${color.value}40` }
   if (playerBackground.value) return { background: playerBackground.value, boxShadow: `0 0 40px ${color.value}40` }
   return { background: `linear-gradient(135deg, ${color.value}cc, ${color.value}66)`, boxShadow: `0 0 40px ${color.value}40` }
 })
@@ -282,7 +301,7 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = '#ff2d78'; avatarUrl.value = null
-  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; targetLabelColor.value = null; cricketTargetDisplay.value = null
+  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; bgSize.value = null; bgPosition.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
@@ -291,6 +310,8 @@ function loadPlayer(p: Player) {
   playerBackground.value = p.playerBackground ?? null
   if (p.playerBackground?.startsWith('data:')) { bgMode.value = 'image'; bgImagePreview.value = p.playerBackground }
   else { bgMode.value = 'theme'; bgImagePreview.value = null }
+  bgSize.value = p.playerBackgroundSize ?? null
+  bgPosition.value = p.playerBackgroundPosition ?? null
   targetLabelColor.value = p.targetLabelColor ?? null
   cricketTargetDisplay.value = p.cricketTargetDisplay ?? null
 }
@@ -301,10 +322,10 @@ function save() {
   const tlc = targetLabelColor.value
   const ctd = cricketTargetDisplay.value
   if (editingId.value) {
-    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, targetLabelColor: tlc, cricketTargetDisplay: ctd })
+    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: bgSize.value, playerBackgroundPosition: bgPosition.value, targetLabelColor: tlc, cricketTargetDisplay: ctd })
     editingId.value = null
   } else {
-    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, targetLabelColor: tlc, cricketTargetDisplay: ctd, pinned: false })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: bgSize.value, playerBackgroundPosition: bgPosition.value, targetLabelColor: tlc, cricketTargetDisplay: ctd, pinned: false })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
       resetForm()
@@ -368,6 +389,13 @@ function save() {
 .emoji-none-btn { color: rgba(255,255,255,0.4); font-size: 18px; font-weight: 700; }
 
 .photo-area { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.bg-fit-controls { width: 100%; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); }
+.bg-fit-row { display: flex; align-items: center; gap: 10px; }
+.bg-fit-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; min-width: 56px; }
+.bg-fit-btns { display: flex; gap: 6px; }
+.bg-fit-btn { padding: 5px 14px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+.bg-fit-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+.bg-fit-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.15); color: var(--pink); }
 .photo-preview { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
 .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
 
