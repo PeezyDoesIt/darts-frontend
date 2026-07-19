@@ -18,7 +18,7 @@
           <!-- Right: action buttons -->
           <div class="turn-right">
             <button v-ripple class="btn btn-sm btn-surface scores-btn" @click="showAllScores = !showAllScores">SCORES</button>
-            <template v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'">
+            <template v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'">
               <button v-ripple class="btn btn-sm btn-surface marks-layout-btn" @click="toggleMarksLayout" :title="marksLayout === 'top' ? 'Move marks to right column' : 'Move marks to top strip'">
                 {{ marksLayout === 'top' ? '▶' : '▼' }}
               </button>
@@ -30,7 +30,7 @@
         </div>
 
         <!-- Cricket marks grid: top strip (default) -->
-        <template v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat') && marksLayout === 'top' && marksVisible">
+        <template v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket') && marksLayout === 'top' && marksVisible">
 
           <!-- 1-3 players: players as rows, targets as columns -->
           <div v-if="game.players.length < 4" class="cricket-strip">
@@ -46,8 +46,8 @@
             >
               <div class="cs-name" :style="p.id === currentPlayer.id ? { color: p.color } : {}">{{ p.name }}</div>
               <div v-for="t in CRICKET_TARGETS" :key="t" class="cs-cell"
-                :class="{ 'cs-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }">
-                <span v-for="n in 3" :key="n" class="cs-pip"
+                :class="{ 'cs-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= (game.gameType === 'speedCricket' ? 1 : 3) }">
+                <span v-for="n in (game.gameType === 'speedCricket' ? 1 : 3)" :key="n" class="cs-pip"
                   :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
                   :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 4px ${p.color}` } : {}"
                 />
@@ -67,9 +67,9 @@
             <div v-for="t in CRICKET_TARGETS" :key="t" class="cst-row">
               <div class="cst-target-label" :style="{ color: currentPlayerNameColor }">{{ t === 'bull' ? 'B' : t }}</div>
               <div v-for="p in game.players" :key="p.id" class="cst-cell"
-                :class="{ 'cs-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }"
+                :class="{ 'cs-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= (game.gameType === 'speedCricket' ? 1 : 3) }"
                 :style="p.id === currentPlayer.id ? { background: p.color + '10' } : {}">
-                <span v-for="n in 3" :key="n" class="cs-pip"
+                <span v-for="n in (game.gameType === 'speedCricket' ? 1 : 3)" :key="n" class="cs-pip"
                   :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
                   :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 4px ${p.color}` } : {}"
                 />
@@ -81,12 +81,13 @@
 
         <div class="entry-body">
           <CricketEntry
-            v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'"
+            v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'"
             ref="cricketEntryRef"
             :key="currentPlayer.id"
             :playerId="currentPlayer.id"
             :scores="game.scores"
             :isCutThroat="game.gameType === 'cutThroat'"
+            :marksToClose="game.gameType === 'speedCricket' ? 1 : 3"
             :round="game.round"
             :closedTargetDisplay="currentPlayer.cricketTargetDisplay ?? game.closedTargetDisplay"
             :avatarUrl="currentPlayer.avatarUrl"
@@ -127,7 +128,7 @@
       </div>
 
       <!-- Cricket marks grid: right column (optional layout) -->
-      <div v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat') && marksLayout === 'right' && marksVisible" class="cricket-col">
+      <div v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket') && marksLayout === 'right' && marksVisible" class="cricket-col">
 
         <!-- 3 players: first two on top, third stacked below -->
         <template v-if="game.players.length === 3">
@@ -137,8 +138,8 @@
           </div>
           <div v-for="t in CRICKET_TARGETS" :key="'a'+t" class="cc-target-row">
             <div class="cc-target-label" :style="{ color: currentPlayerNameColor }">{{ t === 'bull' ? 'B' : t }}</div>
-            <div v-for="p in game.players.slice(0, 2)" :key="p.id" class="cc-cell" :class="{ 'cc-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }">
-              <span v-for="n in 3" :key="n" class="cc-pip"
+            <div v-for="p in game.players.slice(0, 2)" :key="p.id" class="cc-cell" :class="{ 'cc-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= (game.gameType === 'speedCricket' ? 1 : 3) }">
+              <span v-for="n in (game.gameType === 'speedCricket' ? 1 : 3)" :key="n" class="cc-pip"
                 :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
                 :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 14px ${p.color}, 0 0 5px ${p.color}` } : {}" />
             </div>
@@ -150,8 +151,8 @@
           </div>
           <div v-for="t in CRICKET_TARGETS" :key="'b'+t" class="cc-target-row">
             <div class="cc-target-label" :style="{ color: currentPlayerNameColor }">{{ t === 'bull' ? 'B' : t }}</div>
-            <div class="cc-cell" :class="{ 'cc-closed': (getCricketMarks(game.players[2]!.id)?.[t] ?? 0) >= 3 }">
-              <span v-for="n in 3" :key="n" class="cc-pip"
+            <div class="cc-cell" :class="{ 'cc-closed': (getCricketMarks(game.players[2]!.id)?.[t] ?? 0) >= (game.gameType === 'speedCricket' ? 1 : 3) }">
+              <span v-for="n in (game.gameType === 'speedCricket' ? 1 : 3)" :key="n" class="cc-pip"
                 :class="{ filled: (getCricketMarks(game.players[2]!.id)?.[t] ?? 0) >= n }"
                 :style="(getCricketMarks(game.players[2]!.id)?.[t] ?? 0) >= n ? { background: game.players[2]!.color, boxShadow: `0 0 14px ${game.players[2]!.color}, 0 0 5px ${game.players[2]!.color}` } : {}" />
             </div>
@@ -166,8 +167,8 @@
           </div>
           <div v-for="t in CRICKET_TARGETS" :key="t" class="cc-target-row">
             <div class="cc-target-label" :style="{ color: currentPlayerNameColor }">{{ t === 'bull' ? 'B' : t }}</div>
-            <div v-for="p in game.players" :key="p.id" class="cc-cell" :class="{ 'cc-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= 3 }">
-              <span v-for="n in 3" :key="n" class="cc-pip"
+            <div v-for="p in game.players" :key="p.id" class="cc-cell" :class="{ 'cc-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= (game.gameType === 'speedCricket' ? 1 : 3) }">
+              <span v-for="n in (game.gameType === 'speedCricket' ? 1 : 3)" :key="n" class="cc-pip"
                 :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
                 :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color, boxShadow: `0 0 14px ${p.color}, 0 0 5px ${p.color}` } : {}" />
             </div>
@@ -207,7 +208,7 @@
           <div class="game-type-badge">{{ GAME_TYPE_LABELS[game.gameType] }}</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
-          <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'" class="ct-display-row">
+          <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'" class="ct-display-row">
             <button v-for="opt in ctDisplayOptions" :key="opt.value" v-ripple
               class="ct-display-btn" :class="{ active: game.closedTargetDisplay === opt.value }"
               @click="gameStore.setClosedTargetDisplay(opt.value)">{{ opt.label }}</button>
@@ -301,11 +302,11 @@
                 <span v-if="p.id === currentPlayer.id" class="throwing-tag">throwing</span>
                 <span v-else-if="game.cricketPlayToCompletion && game.cricketFinishOrder.includes(p.id)" class="finished-tag">finished</span>
               </span>
-              <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat'" class="cricket-mini">
+              <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'" class="cricket-mini">
                 <div v-for="t in CRICKET_TARGETS" :key="t" class="mini-target">
                   <span class="mini-label">{{ t === 'bull' ? 'B' : t }}</span>
                   <div class="mini-marks">
-                    <span v-for="n in 3" :key="n" class="mini-pip" :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }" />
+                    <span v-for="n in (game.gameType === 'speedCricket' ? 1 : 3)" :key="n" class="mini-pip" :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }" />
                   </div>
                 </div>
               </div>
@@ -420,8 +421,8 @@ const upNext = computed(() => {
 const scoreLabel = computed(() => {
   const gt = game.value?.gameType
   if (!gt) return ''
-  if ((gt === 'cricket' || gt === 'cutThroat') && game.value?.cricketPlayToCompletion) return 'place'
-  if (gt === 'cricket' || gt === 'cutThroat') return 'pts'
+  if ((gt === 'cricket' || gt === 'cutThroat' || gt === 'speedCricket') && game.value?.cricketPlayToCompletion) return 'place'
+  if (gt === 'cricket' || gt === 'cutThroat' || gt === 'speedCricket') return 'pts'
   if (['301','501','701','1001'].includes(gt)) return 'left'
   if (gt === 'horse') return 'letters'
   return 'total'
@@ -550,7 +551,7 @@ function startThrowTimer() {
       clearThrowTimer()
       gameStore.recordTimeout(currentPlayer.value.id)
       const gt = game.value?.gameType
-      if (gt === 'cricket' || gt === 'cutThroat') handleCricketSubmit({} as Record<CricketTarget, number>)
+      if (gt === 'cricket' || gt === 'cutThroat' || gt === 'speedCricket') handleCricketSubmit({} as Record<CricketTarget, number>)
       else handleNumpadSubmit(0)
     }
   }, 1000)

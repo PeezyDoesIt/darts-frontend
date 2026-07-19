@@ -22,7 +22,7 @@
 
           <div class="pips-wrap">
             <span
-              v-for="n in 3" :key="n"
+              v-for="n in mtc" :key="n"
               class="pip"
               :class="{ existing: pipIsExisting(target, n), round: pipIsRound(target, n) }"
               @click.stop="handlePipClick(target, n)"
@@ -76,6 +76,7 @@ const props = defineProps<{
   playerColor?: string
   playerBackground?: string | null
   targetLabelColor?: string | null
+  marksToClose?: number
   throwTimeLeft?: number
   throwTimerDuration?: number
   throwPaused?: boolean
@@ -131,7 +132,8 @@ const totalHitsThisRound = computed(() =>
   Object.values(roundHits.value).reduce((a, b) => a + (b ?? 0), 0)
 )
 
-function myClosed(target: CricketTarget) { return (existingMarks.value[target] ?? 0) >= 3 }
+const mtc = computed(() => props.marksToClose ?? 3)
+function myClosed(target: CricketTarget) { return (existingMarks.value[target] ?? 0) >= mtc.value }
 function pipIsExisting(target: CricketTarget, n: number) { return (existingMarks.value[target] ?? 0) >= n }
 function pipIsRound(target: CricketTarget, n: number) {
   const existing = existingMarks.value[target] ?? 0
@@ -154,7 +156,7 @@ function playBullSound() {
 function handleTileClick(target: CricketTarget) {
   if (myClosed(target)) return
   const existing = existingMarks.value[target] ?? 0
-  const max = 3 - existing
+  const max = mtc.value - existing
   const current = roundHits.value[target] ?? 0
   const next = current >= max ? 0 : current + 1
   roundHits.value = { ...roundHits.value, [target]: next }

@@ -10,7 +10,7 @@ function initScore(gameType: GameType, players: Player[]): Record<string, Player
   const scores: Record<string, PlayerScore> = {}
 
   for (const p of players) {
-    if (gameType === 'cricket' || gameType === 'cutThroat') {
+    if (gameType === 'cricket' || gameType === 'cutThroat' || gameType === 'speedCricket') {
       scores[p.id] = {
         kind: 'cricket',
         data: {
@@ -121,6 +121,7 @@ export const useGameStore = defineStore('game', () => {
     } else if (score.kind === 'cricket' && typeof value === 'object') {
       const allScores = game.value.scores
       const isCutThroat = game.value.gameType === 'cutThroat'
+      const marksToClose = game.value.gameType === 'speedCricket' ? 1 : 3
       const totalHitsThisTurn = Object.values(value).reduce((a, b) => a + b, 0)
 
       for (const [targetStr, hits] of Object.entries(value)) {
@@ -128,8 +129,8 @@ export const useGameStore = defineStore('game', () => {
         if (hits === 0) continue
 
         const currentMarks = score.data.marks[target]
-        const newMarks = Math.min(3, currentMarks + hits)
-        const overflow = currentMarks + hits - 3
+        const newMarks = Math.min(marksToClose, currentMarks + hits)
+        const overflow = currentMarks + hits - marksToClose
 
         score.data.marks[target] = newMarks
 
@@ -142,11 +143,11 @@ export const useGameStore = defineStore('game', () => {
             for (const [pid, ps] of Object.entries(allScores)) {
               if (pid === playerId) continue
               if (ps.kind !== 'cricket') continue
-              if (ps.data.marks[target] < 3) ps.data.points += overflowPoints
+              if (ps.data.marks[target] < marksToClose) ps.data.points += overflowPoints
             }
           } else {
             const anyOpen = Object.entries(allScores).some(
-              ([pid, ps]) => pid !== playerId && ps.kind === 'cricket' && ps.data.marks[target] < 3
+              ([pid, ps]) => pid !== playerId && ps.kind === 'cricket' && ps.data.marks[target] < marksToClose
             )
             if (anyOpen) score.data.points += overflowPoints
           }
@@ -155,7 +156,7 @@ export const useGameStore = defineStore('game', () => {
 
       if (game.value.cricketPlayToCompletion) {
         // Track finish order: player closes all targets → placed in order
-        const allClosed = CRICKET_TARGETS.every(t => score.data.marks[t] >= 3)
+        const allClosed = CRICKET_TARGETS.every(t => score.data.marks[t] >= marksToClose)
         if (allClosed && !game.value.cricketFinishOrder.includes(playerId)) {
           game.value.cricketFinishOrder.push(playerId)
           if (game.value.cricketFinishOrder.length === game.value.players.length) {
@@ -316,7 +317,7 @@ export const useGameStore = defineStore('game', () => {
     if (game.value.players.some(p => p.id === player.id)) return
     game.value.players.push(player)
     const gameType = game.value.gameType
-    if (gameType === 'cricket' || gameType === 'cutThroat') {
+    if (gameType === 'cricket' || gameType === 'cutThroat' || gameType === 'speedCricket') {
       game.value.scores[player.id] = {
         kind: 'cricket',
         data: {
@@ -384,11 +385,12 @@ export const useGameStore = defineStore('game', () => {
 
 function checkCricketWin(game: ActiveGame): string | null {
   const isCutThroat = game.gameType === 'cutThroat'
+  const marksToClose = game.gameType === 'speedCricket' ? 1 : 3
 
   if (game.cricketPlayToCompletion) {
     // All players must close all targets before a winner is declared
     const everyoneClosed = Object.values(game.scores).every(ps =>
-      ps.kind !== 'cricket' || CRICKET_TARGETS.every(t => ps.data.marks[t] >= 3)
+      ps.kind !== 'cricket' || CRICKET_TARGETS.every(t => ps.data.marks[t] >= marksToClose)
     )
     if (!everyoneClosed) return null
 
@@ -408,13 +410,13 @@ function checkCricketWin(game: ActiveGame): string | null {
   // Standard: first player to close all targets with a lead wins
   for (const [pid, ps] of Object.entries(game.scores)) {
     if (ps.kind !== 'cricket') continue
-    const allClosed = CRICKET_TARGETS.every(t => ps.data.marks[t] >= 3)
+    const allClosed = CRICKET_TARGETS.every(t => ps.data.marks[t] >= marksToClose)
     if (!allClosed) continue
 
     const won = Object.entries(game.scores).every(([opid, ops]) => {
       if (opid === pid) return true
       if (ops.kind !== 'cricket') return true
-      const opAllClosed = CRICKET_TARGETS.every(t => ops.data.marks[t] >= 3)
+      const opAllClosed = CRICKET_TARGETS.every(t => ops.data.marks[t] >= marksToClose)
       return opAllClosed || ps.data.points >= ops.data.points
     })
 

@@ -56,6 +56,7 @@ export const PLAYER_THEMES = [
 export type GameType =
   | 'cricket'
   | 'cutThroat'
+  | 'speedCricket'
   | '301'
   | '501'
   | '701'
@@ -70,6 +71,7 @@ export type GameType =
 export const GAME_TYPE_LABELS: Record<GameType, string> = {
   cricket: 'Cricket',
   cutThroat: 'Cut Throat Cricket',
+  speedCricket: 'Speed Cricket',
   aroundTheClock: 'Around the Clock',
   killer: 'Killer',
   halveit: 'Halve-It',
@@ -83,7 +85,7 @@ export const GAME_TYPE_LABELS: Record<GameType, string> = {
 }
 
 export const GAME_TYPE_ORDER: GameType[] = [
-  'cricket', 'aroundTheClock', 'killer', 'horse', '301', '501', '701', '1001',
+  'cricket', 'speedCricket', 'aroundTheClock', 'killer', 'horse', '301', '501', '701', '1001',
 ]
 
 export const CRICKET_TARGETS = [20, 19, 18, 17, 16, 15, 'bull'] as const

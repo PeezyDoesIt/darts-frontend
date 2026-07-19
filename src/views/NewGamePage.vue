@@ -26,7 +26,7 @@
             </div>
           </section>
 
-          <section v-if="selectedGameType === 'cricket' || selectedGameType === 'cutThroat'" class="ng-section">
+          <section v-if="selectedGameType === 'cricket' || selectedGameType === 'cutThroat' || selectedGameType === 'speedCricket'" class="ng-section">
             <span class="label">Cricket Options</span>
             <span class="hint">Closed target display</span>
             <div class="closed-target-opts">
