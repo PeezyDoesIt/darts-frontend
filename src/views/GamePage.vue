@@ -422,7 +422,7 @@ const scoreLabel = computed(() => {
   const gt = game.value?.gameType
   if (!gt) return ''
   if ((gt === 'cricket' || gt === 'cutThroat' || gt === 'speedCricket') && game.value?.cricketPlayToCompletion) return 'place'
-  if (gt === 'cricket' || gt === 'cutThroat' || gt === 'speedCricket') return 'pts'
+  if (gt === 'cricket' || gt === 'cutThroat' || gt === 'speedCricket') return 'closed'
   if (['301','501','701','1001'].includes(gt)) return 'left'
   if (gt === 'horse') return 'letters'
   return 'total'
@@ -457,7 +457,10 @@ function displayScore(playerId: string): string {
     return pos >= 0 ? ordinal(pos + 1) : '—'
   }
   if (s.kind === 'ohOne') return String(s.data.remaining)
-  if (s.kind === 'cricket') return String(s.data.points)
+  if (s.kind === 'cricket') {
+    const marksToClose = game.value?.gameType === 'speedCricket' ? 1 : 3
+    return String(CRICKET_TARGETS.filter(t => (s.data.marks[t] ?? 0) >= marksToClose).length) + '/7'
+  }
   if (s.kind === 'simple') return String(s.data.total)
   if (s.kind === 'horse') return s.data.letters === 0 ? '—' : 'HORSE'.slice(0, s.data.letters)
   if (s.kind === 'suddenDeath') return String(s.data.total)
