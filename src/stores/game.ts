@@ -371,11 +371,16 @@ export const useGameStore = defineStore('game', () => {
     game.value.throwTimerDuration = val
   }
 
+  function setRoundLimit(val: number | null) {
+    if (!game.value) return
+    game.value.cricketRoundLimit = val
+  }
+
   function endGame() {
     game.value = null
   }
 
-  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, setTimerDuration, setThrowTimerDuration, endGame }
+  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, setTimerDuration, setThrowTimerDuration, setRoundLimit, endGame }
 })
 
 function checkCricketWin(game: ActiveGame): string | null {

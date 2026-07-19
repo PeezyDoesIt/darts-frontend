@@ -55,10 +55,13 @@
                 <span class="toggle-sub">Score 3+ marks in one turn to throw again</span>
               </div>
             </div>
+          </section>
+
+          <section v-if="selectedGameType === 'cricket' || selectedGameType === 'cutThroat' || selectedGameType === 'speedCricket'" class="ng-section">
+            <span class="label">Round Limit</span>
             <div class="round-limit-row">
               <div class="toggle-info">
-                <span class="toggle-label">Round Limit</span>
-                <span class="toggle-sub">Game ends after this many rounds — most targets closed wins</span>
+                <span class="toggle-sub">Game ends after this many rounds — most targets closed wins. Tap the number to toggle on/off.</span>
               </div>
               <div class="round-limit-control">
                 <button v-ripple class="round-limit-btn" :disabled="cricketRoundLimit === null || cricketRoundLimit <= 1" @click="cricketRoundLimit = Math.max(1, (cricketRoundLimit ?? 5) - 1)">−</button>

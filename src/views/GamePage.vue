@@ -257,6 +257,14 @@
               @click="settingsStore.setSoundTheme(t.value)">{{ t.label }}</button>
           </div>
         </div>
+        <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'" class="timer-control-group">
+          <span class="timer-control-label">Round Limit</span>
+          <div class="round-limit-control">
+            <button v-ripple class="round-limit-btn" :disabled="game.cricketRoundLimit === null || game.cricketRoundLimit <= 1" @click="gameStore.setRoundLimit(Math.max(1, (game.cricketRoundLimit ?? 7) - 1))">−</button>
+            <span class="round-limit-val" @click="gameStore.setRoundLimit(game.cricketRoundLimit === null ? 7 : null)">{{ game.cricketRoundLimit ?? 'OFF' }}</span>
+            <button v-ripple class="round-limit-btn" @click="gameStore.setRoundLimit((game.cricketRoundLimit ?? 0) + 1)">+</button>
+          </div>
+        </div>
       </div>
 
       <!-- Add player picker -->
@@ -880,6 +888,12 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .timer-ctrl-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
 .timer-ctrl-btn.active { border-color: var(--blue); color: var(--blue); background: rgba(0,212,255,0.1); }
+
+.round-limit-control { display: flex; align-items: center; gap: 6px; }
+.round-limit-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: var(--text); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; position: relative; overflow: hidden; }
+.round-limit-btn:hover:not(:disabled) { background: rgba(255,255,255,0.12); }
+.round-limit-btn:disabled { opacity: 0.3; cursor: default; }
+.round-limit-val { min-width: 44px; text-align: center; font-size: 16px; font-weight: 900; font-family: var(--font-display); color: var(--gold); cursor: pointer; letter-spacing: 0.05em; }
 
 /* Score reveal overlay */
 .score-reveal-overlay {
