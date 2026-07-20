@@ -299,8 +299,8 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   animation: walkup-glow 0.75s ease-in-out infinite alternate;
 }
 @keyframes walkup-glow {
-  from { box-shadow: 0 0 10px rgba(220,38,38,0.4); }
-  to   { box-shadow: 0 0 28px rgba(255,34,34,0.95), 0 0 54px rgba(255,34,34,0.35); }
+  from { box-shadow: 0 0 6px rgba(220,38,38,0.25); }
+  to   { box-shadow: 0 0 14px rgba(255,34,34,0.5); }
 }
 .walkup-timer-fill {
   position: absolute; left: 0; top: 0; bottom: 0;
@@ -316,9 +316,9 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   position: relative; z-index: 1; width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
   font-size: clamp(52px, 9dvh, 96px); font-weight: 900; letter-spacing: 0.04em;
-  color: #fff; text-shadow: 0 0 16px rgba(255,255,255,0.6);
+  color: #fff;
 }
-.walkup-timer-text.urgent { color: #fff; text-shadow: 0 0 22px rgba(255,255,255,0.9); }
+.walkup-timer-text.urgent { color: #fff; }
 
 /* Cricket layout */
 .cricket-layout {
