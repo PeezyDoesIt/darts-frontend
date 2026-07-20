@@ -683,7 +683,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   box-shadow: 0 4px 24px rgba(0,0,0,0.5);
 }
 .submit-float-btn:disabled { opacity: 0.4; }
-.scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; height: 64px; padding: 0 36px; font-size: clamp(42px, 6.5dvh, 62px); font-weight: 900; font-family: var(--font-display); letter-spacing: 0.06em; border-radius: 8px; }
+.scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; height: 64px; padding: 0 40px; font-size: clamp(52px, 7.8dvh, 76px); font-weight: 900; font-family: var(--font-display); letter-spacing: 0.04em; border-radius: 8px; }
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
 /* Cricket marks grid strip */

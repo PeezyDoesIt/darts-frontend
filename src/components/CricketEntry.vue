@@ -288,8 +288,9 @@ defineExpose({ submit, submitted })
 .submit-timer-fill.urgent { background: #ff3333; }
 .submit-timer-fill.paused { background: rgba(120,120,120,0.6); }
 .submit-timer-text {
-  position: relative; z-index: 1; font-size: clamp(18px, 2.8dvh, 26px); font-weight: 900;
-  letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.9); font-family: var(--font-display);
+  position: relative; z-index: 1; font-size: clamp(38px, 6dvh, 64px); font-weight: 900;
+  letter-spacing: 0.08em; text-transform: uppercase; color: #fff; font-family: var(--font-display);
+  text-shadow: 0 0 12px rgba(255,255,255,0.5);
 }
 .submit-timer-text.urgent { color: #fff; }
 

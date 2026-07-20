@@ -216,7 +216,7 @@ function submit() {
 .submit-timer-fill.warning { background: #ff0000; }
 .submit-timer-fill.urgent { background: #ff3333; }
 .submit-timer-fill.paused { background: rgba(120,120,120,0.6); }
-.submit-timer-text { position: relative; z-index: 1; font-size: clamp(20px, 3dvh, 28px); font-weight: 900; letter-spacing: 0.15em; color: rgba(255,255,255,0.9); font-family: var(--font-display); text-transform: uppercase; }
+.submit-timer-text { position: relative; z-index: 1; font-size: clamp(38px, 6dvh, 64px); font-weight: 900; letter-spacing: 0.08em; color: #fff; font-family: var(--font-display); text-transform: uppercase; text-shadow: 0 0 12px rgba(255,255,255,0.5); }
 .submit-timer-text.urgent { color: #fff; }
 
 /* Tablet / iPad */
