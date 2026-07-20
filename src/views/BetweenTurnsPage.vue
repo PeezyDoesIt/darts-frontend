@@ -315,10 +315,10 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .walkup-timer-text {
   position: relative; z-index: 1; width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
-  font-size: clamp(42px, 7dvh, 72px); font-weight: 900; letter-spacing: 0.06em;
-  color: #fff; text-shadow: 0 0 14px rgba(255,255,255,0.5);
+  font-size: clamp(52px, 9dvh, 96px); font-weight: 900; letter-spacing: 0.04em;
+  color: #fff; text-shadow: 0 0 16px rgba(255,255,255,0.6);
 }
-.walkup-timer-text.urgent { color: #fff; text-shadow: 0 0 18px rgba(255,255,255,0.8); }
+.walkup-timer-text.urgent { color: #fff; text-shadow: 0 0 22px rgba(255,255,255,0.9); }
 
 /* Cricket layout */
 .cricket-layout {
@@ -404,7 +404,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   .default-content { gap: clamp(8px, 2vmin, 18px); padding: 0 16px; }
   .btn-ready { font-size: clamp(22px, 5vmin, 35px); padding: 10px 0; max-width: 375px; }
   .walkup-timer-bar { height: clamp(40px, 7dvh, 60px); }
-  .walkup-timer-text { font-size: clamp(28px, 5dvh, 48px); }
+  .walkup-timer-text { font-size: clamp(36px, 6dvh, 60px); }
   .cricket-layout { flex-direction: column; gap: 12px; padding: 12px 32px; align-items: center; justify-content: center; padding-top: calc(16px + env(safe-area-inset-top)); padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
   .cricket-player-name { font-size: clamp(80px, 17dvh, 150px); }
   .btn-cricket-start { width: clamp(95px, 19vmin, 150px); height: clamp(95px, 19vmin, 150px); font-size: clamp(22px, 4dvh, 35px); bottom: calc(12px + env(safe-area-inset-bottom)); right: 16px; }

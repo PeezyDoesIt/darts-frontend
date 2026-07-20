@@ -665,7 +665,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .turn-left { flex: 1; display: flex; align-items: stretch; justify-content: flex-start; z-index: 1; }
 .turn-name-wrap { position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); bottom: 0; display: flex; justify-content: center; align-items: stretch; pointer-events: none; z-index: 0; padding: 0 8px; }
 .turn-round-pill { font-size: clamp(50px, 6.8dvh, 74px); font-weight: 900; line-height: 1; letter-spacing: 0.08em; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 24px; color: rgba(255,255,255,0.8); white-space: nowrap; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; margin-left: 12px; }
-.turn-name { font-size: clamp(52px, 7.5dvh, 82px); line-height: 1; letter-spacing: 0.05em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 20px; white-space: nowrap; max-width: 60vw; overflow: hidden; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; }
+.turn-name { font-size: clamp(52px, 7.5dvh, 82px); line-height: 1; letter-spacing: 0.05em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 20px; white-space: nowrap; max-width: 60vw; overflow: hidden; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 32px var(--player-color, var(--pink)), 0 0 10px var(--player-color, var(--pink)); }
 
 .turn-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding-right: 8px; z-index: 1; position: relative; }
 
