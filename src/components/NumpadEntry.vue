@@ -208,7 +208,7 @@ function submit() {
 
 .numpad-footer { width: 100%; flex-shrink: 0; display: flex; align-items: stretch; gap: 10px; }
 .submit-left { flex: 0 0 90px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); cursor: pointer; }
-.submit-btn { flex: 1; position: relative; overflow: hidden; height: clamp(52px, 7dvh, 80px); font-size: clamp(34px, 5.5dvh, 52px); font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase; font-family: var(--font-display); text-shadow: 0 0 18px rgba(255,255,255,0.7), 0 1px 0 rgba(0,0,0,0.4); }
+.submit-btn { flex: 1; position: relative; overflow: hidden; height: clamp(52px, 7dvh, 80px); font-size: clamp(42px, 6.5dvh, 64px); font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; font-family: var(--font-display); text-shadow: 0 0 18px rgba(255,255,255,0.7), 0 1px 0 rgba(0,0,0,0.4); }
 .submit-timer-fill {
   position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none;
   background: #ff0000; transition: width 1s linear, background 0.3s; z-index: 0;

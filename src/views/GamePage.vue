@@ -648,9 +648,9 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .turn-header::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--player-color, var(--pink)); box-shadow: 0 0 12px var(--player-color, var(--pink)); z-index: 1; }
 
 /* Header left / center / right layout */
-.turn-left { flex: 1; display: flex; align-items: center; justify-content: flex-start; padding-left: 16px; z-index: 1; }
+.turn-left { flex: 1; display: flex; align-items: stretch; justify-content: flex-start; z-index: 1; }
 .turn-name-wrap { position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); bottom: 0; display: flex; justify-content: center; align-items: stretch; pointer-events: none; z-index: 0; padding: 0 8px; }
-.turn-round-pill { font-size: clamp(44px, 6dvh, 66px); font-weight: 900; line-height: 1; letter-spacing: 0.08em; background: rgba(0,0,0,0.90); border-radius: 8px; padding: 8px 20px; color: rgba(255,255,255,0.8); white-space: nowrap; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); margin-left: 0; }
+.turn-round-pill { font-size: clamp(44px, 6dvh, 66px); font-weight: 900; line-height: 1; letter-spacing: 0.08em; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 20px; color: rgba(255,255,255,0.8); white-space: nowrap; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; }
 .turn-name { font-size: clamp(52px, 7.5dvh, 82px); line-height: 1; letter-spacing: 0.05em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 20px; white-space: nowrap; max-width: 60vw; overflow: hidden; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; }
 
 .turn-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding-right: 8px; z-index: 1; position: relative; }

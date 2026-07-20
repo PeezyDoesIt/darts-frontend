@@ -272,8 +272,8 @@ defineExpose({ submit, submitted })
   flex-shrink: 0;
   height: 48px;
   padding: 0 28px;
-  font-size: clamp(26px, 4dvh, 38px); font-weight: 900; font-family: var(--font-display); text-shadow: 0 0 18px rgba(255,255,255,0.7), 0 1px 0 rgba(0,0,0,0.4);
-  letter-spacing: 0.22em; text-transform: uppercase; border-radius: 8px; cursor: pointer;
+  font-size: clamp(32px, 5dvh, 48px); font-weight: 900; font-family: var(--font-display); text-shadow: 0 0 18px rgba(255,255,255,0.7), 0 1px 0 rgba(0,0,0,0.4);
+  letter-spacing: 0.06em; text-transform: uppercase; border-radius: 8px; cursor: pointer;
   position: relative; overflow: hidden;
   background: #dc2626 !important; color: #fff !important; border: none !important;
   box-shadow: 0 2px 12px rgba(220,38,38,0.4);
