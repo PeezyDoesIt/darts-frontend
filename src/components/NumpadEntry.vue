@@ -141,7 +141,7 @@ function submit() {
 
 <style scoped>
 .numpad-wrap {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
+  flex: 1; display: flex; flex-direction: column; align-items: stretch;
   padding: 16px 20px; padding-bottom: calc(16px + env(safe-area-inset-bottom));
   gap: 14px; overflow: hidden; justify-content: space-between;
 }
@@ -153,7 +153,7 @@ function submit() {
 .remaining-val.bust { color: #ef4444; }
 
 /* Dart slots */
-.dart-slots { display: flex; gap: 12px; width: 100%; max-width: 480px; flex-shrink: 0; }
+.dart-slots { display: flex; gap: 12px; width: 100%; flex-shrink: 0; }
 .dart-slot {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 10px 8px; border-radius: 10px; cursor: pointer;
@@ -178,11 +178,11 @@ function submit() {
 .bust-tag { font-size: 11px; font-weight: 900; letter-spacing: 0.12em; color: #ef4444; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); border-radius: 4px; padding: 2px 6px; }
 
 /* Numpad */
-.numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; max-width: 480px; flex: 1; min-height: 0; }
+.numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; flex: 1; min-height: 0; }
 .key {
-  height: auto; min-height: 0; border-radius: 10px;
+  height: auto; min-height: clamp(70px, 10dvh, 120px); border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.15); background: #000;
-  color: #fff; font-size: clamp(22px, 4dvh, 36px); font-weight: 700; cursor: pointer;
+  color: #fff; font-size: clamp(44px, 6.5dvh, 72px); font-weight: 700; cursor: pointer;
   transition: all 0.1s; display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); -webkit-tap-highlight-color: transparent;
   position: relative; overflow: hidden;
@@ -192,7 +192,7 @@ function submit() {
 .key.double { grid-column: span 2; }
 
 /* Multiplier row */
-.mult-row { display: flex; gap: 10px; width: 100%; max-width: 480px; flex-shrink: 0; }
+.mult-row { display: flex; gap: 10px; width: 100%; flex-shrink: 0; }
 .mult-btn {
   flex: 1; padding: 10px 0; border-radius: 10px;
   border: 2px solid rgba(255,255,255,0.15); background: #000;
@@ -206,9 +206,9 @@ function submit() {
 .mult-btn.disabled { opacity: 0.3; cursor: default; }
 .mult-btn:active:not(.disabled) { transform: scale(0.95); }
 
-.numpad-footer { width: 100%; max-width: 480px; flex-shrink: 0; display: flex; align-items: stretch; gap: 10px; }
+.numpad-footer { width: 100%; flex-shrink: 0; display: flex; align-items: stretch; gap: 10px; }
 .submit-left { flex: 0 0 90px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); cursor: pointer; }
-.submit-btn { flex: 1; position: relative; overflow: hidden; height: clamp(52px, 7dvh, 80px); font-size: clamp(26px, 4dvh, 38px); font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; font-family: var(--font-display); text-shadow: 0 1px 0 rgba(255,255,255,0.35); }
+.submit-btn { flex: 1; position: relative; overflow: hidden; height: clamp(52px, 7dvh, 80px); font-size: clamp(34px, 5.5dvh, 52px); font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase; font-family: var(--font-display); text-shadow: 0 0 18px rgba(255,255,255,0.7), 0 1px 0 rgba(0,0,0,0.4); }
 .submit-timer-fill {
   position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none;
   background: #ff0000; transition: width 1s linear, background 0.3s; z-index: 0;
@@ -223,21 +223,21 @@ function submit() {
 @media (min-width: 768px) {
   .numpad-wrap { padding: 24px 40px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); gap: 18px; }
   .remaining-val { font-size: clamp(80px, 12dvh, 140px); }
-  .dart-slots { max-width: 640px; gap: 16px; }
+  .dart-slots { gap: 16px; }
   .dart-slot { padding: 14px 12px; border-radius: 14px; }
   .dart-slot-label { font-size: 11px; }
   .dart-slot-val { font-size: clamp(40px, 6dvh, 64px); }
   .total-val { font-size: clamp(36px, 5dvh, 52px); }
-  .numpad { max-width: 640px; gap: clamp(10px, 1.5dvh, 18px); }
-  .mult-row { max-width: 640px; }
-  .numpad-footer { max-width: 640px; }
+  .numpad { gap: clamp(10px, 1.5dvh, 18px); }
+  .mult-row { }
+  .numpad-footer { }
 }
 
 @media (max-width: 480px) {
   .remaining-val { font-size: 56px; }
   .dart-slot-val { font-size: 28px; }
   .numpad { gap: 6px; }
-  .key { font-size: 22px; }
+  .key { font-size: 36px; min-height: 60px; }
   .mult-btn { font-size: 22px; padding: 8px 0; }
 }
 </style>

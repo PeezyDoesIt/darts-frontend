@@ -7,7 +7,7 @@
         <div class="turn-header" :style="{ '--player-color': currentPlayer.color }">
           <!-- Left: round pill centered in left space -->
           <div class="turn-left">
-            <span class="turn-round-pill display">ROUND {{ game.round }}<template v-if="game.cricketRoundLimit !== null"> / {{ game.cricketRoundLimit }}</template></span>
+            <span class="turn-round-pill display">RD {{ game.round }}<template v-if="game.cricketRoundLimit !== null"> / {{ game.cricketRoundLimit }}</template></span>
           </div>
 
           <!-- Center: player name (absolutely centered) -->
@@ -642,16 +642,16 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .turn-header {
   display: flex; align-items: stretch; gap: 0;
   padding-top: env(safe-area-inset-top);
-  flex-shrink: 0; background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255,255,255,0.06); position: relative; min-height: 72px;
+  flex-shrink: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.10); position: relative; min-height: 90px;
 }
 .turn-header::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--player-color, var(--pink)); box-shadow: 0 0 12px var(--player-color, var(--pink)); z-index: 1; }
 
 /* Header left / center / right layout */
 .turn-left { flex: 1; display: flex; align-items: center; justify-content: flex-start; padding-left: 16px; z-index: 1; }
 .turn-name-wrap { position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); bottom: 0; display: flex; justify-content: center; align-items: stretch; pointer-events: none; z-index: 0; padding: 0 8px; }
-.turn-round-pill { font-size: clamp(36px, 5dvh, 54px); font-weight: 900; line-height: 1; letter-spacing: 0.08em; background: rgba(0,0,0,0.90); border-radius: 8px; padding: 4px 12px; color: rgba(255,255,255,0.8); white-space: nowrap; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); margin-left: 64px; }
-.turn-name { font-size: clamp(44px, 6.5dvh, 68px); line-height: 1; letter-spacing: 0.05em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 20px; white-space: nowrap; max-width: 60vw; overflow: hidden; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; }
+.turn-round-pill { font-size: clamp(40px, 5.5dvh, 60px); font-weight: 900; line-height: 1; letter-spacing: 0.08em; background: rgba(0,0,0,0.90); border-radius: 8px; padding: 4px 12px; color: rgba(255,255,255,0.8); white-space: nowrap; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); margin-left: 64px; }
+.turn-name { font-size: clamp(52px, 7.5dvh, 82px); line-height: 1; letter-spacing: 0.05em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 20px; white-space: nowrap; max-width: 60vw; overflow: hidden; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; }
 
 .turn-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding-right: 8px; z-index: 1; position: relative; }
 
@@ -669,7 +669,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   box-shadow: 0 4px 24px rgba(0,0,0,0.5);
 }
 .submit-float-btn:disabled { opacity: 0.4; }
-.scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; font-size: 14px; letter-spacing: 0.1em; padding: 12px 40px; }
+.scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; font-size: 16px; letter-spacing: 0.1em; padding: 14px 44px; }
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
 /* Cricket marks grid strip */
@@ -744,8 +744,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 
 /* Layout toggle button */
-.marks-layout-btn { flex-shrink: 0; align-self: center; margin: 0 4px; padding: 12px 14px; font-size: 12px; }
-.marks-visibility-btn { flex-shrink: 0; align-self: center; margin: 0 4px 0 0; padding: 12px 14px; font-size: 14px; }
+.marks-layout-btn { flex-shrink: 0; align-self: center; margin: 0 4px; padding: 14px 16px; font-size: 14px; }
+.marks-visibility-btn { flex-shrink: 0; align-self: center; margin: 0 4px 0 0; padding: 14px 16px; font-size: 16px; }
 .marks-visibility-btn.marks-hidden { opacity: 0.35; }
 
 /* Cricket marks right column */
@@ -933,10 +933,10 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .confirm-card .q-card-actions { padding: 12px 16px 16px; gap: 10px; }
 
 @media (orientation: landscape) and (max-height: 900px) {
-  .turn-header { min-height: 52px; }
-  .turn-round-pill { font-size: clamp(24px, 3.5dvh, 34px); padding: 3px 10px; }
-  .turn-name { font-size: clamp(28px, 4.5dvh, 42px); }
-  .scores-btn { padding: 8px 28px; font-size: 12px; margin: 0 10px; }
+  .turn-header { min-height: 64px; }
+  .turn-round-pill { font-size: clamp(26px, 3.5dvh, 36px); padding: 3px 10px; }
+  .turn-name { font-size: clamp(32px, 4.5dvh, 48px); }
+  .scores-btn { padding: 8px 28px; font-size: 13px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px; padding: 12px 24px; font-size: 13px; }
 }
 
@@ -948,10 +948,10 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .cc-target-label { font-size: 10px; width: 18px; }
   .cc-pip { width: 10px; height: 10px; }
   .cc-cell { gap: 1px; }
-  .turn-header { min-height: 58px; }
-  .turn-round-pill { font-size: clamp(28px, 4dvh, 42px); }
-  .turn-name { font-size: clamp(36px, 5.5dvh, 58px); max-width: 55vw; }
-  .scores-btn { padding: 8px 24px; font-size: 12px; margin: 0 10px; }
+  .turn-header { min-height: 74px; }
+  .turn-round-pill { font-size: clamp(32px, 4dvh, 48px); }
+  .turn-name { font-size: clamp(42px, 6dvh, 66px); max-width: 55vw; }
+  .scores-btn { padding: 8px 24px; font-size: 13px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(14px + env(safe-area-inset-bottom)); right: 14px; padding: 12px 22px; font-size: 13px; }
   .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
   .submit-btn { height: 46px; font-size: 16px; }

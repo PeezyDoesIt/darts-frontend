@@ -18,7 +18,7 @@
           :disabled="myClosed(target)"
           @click="handleTileClick(target)"
         >
-          <span class="target-label" :style="{ color: targetColor, filter: `drop-shadow(0 0 12px ${targetColor})` }">{{ target === 'bull' ? '🎯' : target }}</span>
+          <span class="target-label" :class="{ 'target-label-bull': target === 'bull' }" :style="{ color: targetColor, filter: `drop-shadow(0 0 12px ${targetColor})` }">{{ target === 'bull' ? '🎯' : target }}</span>
 
           <div class="pips-wrap">
             <span
@@ -48,7 +48,7 @@
         <span v-else-if="totalHitsThisRound > 0" class="hits-text">
           {{ totalHitsThisRound }} hit{{ totalHitsThisRound !== 1 ? 's' : '' }} this round
         </span>
-        <span v-else class="muted" :style="{ color: targetColor }">Round {{ round }}</span>
+        <span v-else class="round-label-text" :style="{ color: targetColor }">Round {{ round }}</span>
       </div>
       <button v-ripple class="btn btn-gold submit-inline-btn" :disabled="submitted" @click="submit">
         NEXT
@@ -233,6 +233,7 @@ defineExpose({ submit, submitted })
 }
 
 .target-label { font-size: clamp(100px, 17dvh, 190px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; display: flex; align-items: center; overflow: hidden; }
+.target-label-bull { font-size: clamp(130px, 22dvh, 240px); }
 .pips-wrap { display: flex; align-items: stretch; gap: 20px; flex: 1; padding: 14px 0; }
 .pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: clamp(28px, 5dvh, 60px); font-weight: 900; font-family: var(--font-display); color: rgba(0,0,0,0.6); line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
@@ -266,12 +267,13 @@ defineExpose({ submit, submitted })
 }
 .hits-text { color: var(--pink); font-weight: 700; font-size: 15px; }
 .muted { color: var(--text-muted); font-weight: 700; font-size: 15px; }
+.round-label-text { font-weight: 900; font-size: 20px; letter-spacing: 0.06em; text-shadow: 0 0 12px currentColor; }
 .submit-inline-btn {
   flex-shrink: 0;
   height: 48px;
   padding: 0 28px;
-  font-size: clamp(20px, 3dvh, 28px); font-weight: 900; font-family: var(--font-display); text-shadow: 0 1px 0 rgba(255,255,255,0.35);
-  letter-spacing: 0.18em; text-transform: uppercase; border-radius: 8px; cursor: pointer;
+  font-size: clamp(26px, 4dvh, 38px); font-weight: 900; font-family: var(--font-display); text-shadow: 0 0 18px rgba(255,255,255,0.7), 0 1px 0 rgba(0,0,0,0.4);
+  letter-spacing: 0.22em; text-transform: uppercase; border-radius: 8px; cursor: pointer;
   position: relative; overflow: hidden;
   background: #dc2626 !important; color: #fff !important; border: none !important;
   box-shadow: 0 2px 12px rgba(220,38,38,0.4);
@@ -296,23 +298,25 @@ defineExpose({ submit, submitted })
   .cricket-board { flex: 1; height: 100%; min-height: 0; padding: 3px 12px; gap: 3px; }
   .board-tile { min-height: 0; padding: 2px 14px; }
   .target-label { font-size: clamp(28px, 6dvh, 60px); width: clamp(70px, 10dvh, 120px); }
+  .target-label-bull { font-size: clamp(36px, 8dvh, 78px); }
   .pips-wrap { gap: 8px; padding: 6px 0; }
   .pip { border-radius: 6px; border-width: 2px; }
   .hit-badge { font-size: 16px; width: 52px; }
   .closed-badge { width: 52px; font-size: 9px; }
   .submit-row { min-height: 52px; padding: 6px 16px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
-  .submit-inline-btn { height: 36px; padding: 0 16px; font-size: 11px; }
+  .submit-inline-btn { height: 36px; padding: 0 16px; font-size: 18px; }
 }
 
 @media (max-width: 768px) {
   .cricket-board { padding: 5px 8px; gap: 5px; }
   .board-tile { padding: 6px 12px; min-height: 56px; }
   .target-label { font-size: clamp(60px, 11dvh, 100px); width: clamp(90px, 12dvh, 130px); }
+  .target-label-bull { font-size: clamp(78px, 14dvh, 130px); }
   .pips-wrap { gap: 16px; }
   .hit-badge { font-size: 16px; width: 52px; }
   .closed-badge { width: 52px; font-size: 9px; }
   .submit-row { min-height: 64px; padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
-  .submit-inline-btn { height: 44px; padding: 0 20px; font-size: 13px; }
+  .submit-inline-btn { height: 44px; padding: 0 20px; font-size: 22px; }
 }
 
 @media (orientation: portrait) {
@@ -320,6 +324,7 @@ defineExpose({ submit, submitted })
   .cricket-board { flex: 1; height: 100%; min-height: 0; padding: 4px 8px; gap: 4px; }
   .board-tile { min-height: 0; padding: 4px 12px; }
   .target-label { font-size: clamp(44px, 8.5dvh, 90px); width: clamp(76px, 11dvh, 125px); }
+  .target-label-bull { font-size: clamp(57px, 11dvh, 117px); }
   .pips-wrap { gap: 12px; padding: 6px 0; }
 }
 </style>

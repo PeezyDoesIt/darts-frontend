@@ -61,7 +61,7 @@ function submit() {
 </script>
 
 <style scoped>
-.simple-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); gap: 20px; overflow: hidden; justify-content: center; }
+.simple-wrap { flex: 1; display: flex; flex-direction: column; align-items: stretch; padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); gap: 20px; overflow: hidden; justify-content: center; }
 
 .round-info { text-align: center; }
 .round-label { font-size: 20px; font-weight: 800; color: var(--gold); display: block; }
@@ -71,10 +71,10 @@ function submit() {
 .score-display { display: flex; align-items: center; }
 .score-entered { font-size: 52px; font-weight: 900; min-width: 100px; text-align: center; font-family: var(--font-display); }
 
-.numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 320px; }
+.numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
 .key {
-  height: 80px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-card);
-  color: var(--text); font-size: 30px; font-weight: 700; cursor: pointer;
+  height: clamp(90px, 12dvh, 130px); border-radius: 12px; border: 1px solid var(--border); background: var(--bg-card);
+  color: var(--text); font-size: clamp(44px, 6.5dvh, 72px); font-weight: 700; cursor: pointer;
   transition: background 0.1s, transform 0.1s; display: flex; align-items: center; justify-content: center;
   -webkit-tap-highlight-color: transparent; position: relative; overflow: hidden;
 }
@@ -82,9 +82,9 @@ function submit() {
 .key:active { transform: scale(0.93); }
 .key.double { grid-column: span 2; }
 
-.numpad-footer { width: 100%; max-width: 320px; display: flex; align-items: stretch; gap: 10px; }
+.numpad-footer { width: 100%; display: flex; align-items: stretch; gap: 10px; }
 .submit-left { flex: 0 0 80px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); cursor: pointer; }
-.submit-btn { flex: 1; width: 100%; position: relative; overflow: hidden; font-size: clamp(26px, 4dvh, 38px); font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; font-family: var(--font-display); text-shadow: 0 1px 0 rgba(255,255,255,0.35); }
+.submit-btn { flex: 1; width: 100%; position: relative; overflow: hidden; font-size: clamp(34px, 5.5dvh, 52px); font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase; font-family: var(--font-display); text-shadow: 0 0 18px rgba(255,255,255,0.7), 0 1px 0 rgba(0,0,0,0.4); }
 .submit-timer-fill {
   position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none;
   background: #ff0000; transition: width 1s linear, background 0.3s; z-index: 0;
@@ -97,7 +97,7 @@ function submit() {
 
 @media (max-width: 768px) {
   .simple-wrap { padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); gap: 14px; }
-  .key { height: 72px; font-size: 26px; }
+  .key { height: 72px; font-size: 36px; }
   .score-entered { font-size: 40px; }
 }
 </style>
