@@ -259,8 +259,7 @@ defineExpose({ submit, submitted })
 
 .submit-row {
   display: flex; align-items: center; justify-content: space-between;
-  min-height: 90px;
-  padding: 12px 20px; padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  padding: 8px 20px; padding-bottom: calc(8px + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); flex-shrink: 0; gap: 16px;
   position: relative; z-index: 1;
@@ -272,7 +271,7 @@ defineExpose({ submit, submitted })
   flex-shrink: 0;
   height: 64px;
   padding: 0 36px;
-  font-size: clamp(42px, 6.5dvh, 62px); font-weight: 900; font-family: var(--font-display); text-shadow: 0 0 18px rgba(255,255,255,0.7), 0 1px 0 rgba(0,0,0,0.4);
+  font-size: clamp(42px, 6.5dvh, 62px); font-weight: 900; font-family: var(--font-display);
   letter-spacing: 0.06em; text-transform: uppercase; border-radius: 8px; cursor: pointer;
   position: relative; overflow: hidden;
   background: #dc2626 !important; color: #fff !important; border: none !important;
@@ -290,7 +289,6 @@ defineExpose({ submit, submitted })
 .submit-timer-text {
   position: relative; z-index: 1; font-size: clamp(52px, 8dvh, 90px); font-weight: 900;
   letter-spacing: 0.04em; text-transform: uppercase; color: #fff; font-family: var(--font-display);
-  text-shadow: 0 0 16px rgba(255,255,255,0.6);
 }
 .submit-timer-text.urgent { color: #fff; }
 
