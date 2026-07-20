@@ -214,7 +214,7 @@
               @click="gameStore.setClosedTargetDisplay(opt.value)">{{ opt.label }}</button>
           </div>
           <button v-ripple class="btn btn-sm btn-surface" @click="showAddPlayer = !showAddPlayer">+ Add</button>
-          <button v-ripple class="btn btn-sm btn-surface" @click="showAllScores = false">✕</button>
+          <button v-ripple class="btn btn-sm btn-surface close-scores-btn" @click="showAllScores = false">✕</button>
           <button v-ripple class="btn btn-sm btn-danger" @click="confirmQuit = true">Quit</button>
         </div>
       </div>
@@ -245,8 +245,10 @@
         <div class="timer-control-group">
           <span class="timer-control-label">Narrator</span>
           <div class="timer-control-btns">
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.cleanMode }" @click="settingsStore.setCleanMode(false)">Normal</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.cleanMode && settingsStore.narratorPersonality === 'default' }" @click="settingsStore.setCleanMode(false); settingsStore.setNarratorPersonality('default')">Normal</button>
             <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.cleanMode }" @click="settingsStore.setCleanMode(true)">Clean</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.cleanMode && settingsStore.narratorPersonality === 'slj' }" @click="settingsStore.setCleanMode(false); settingsStore.setNarratorPersonality('slj')">SLJ</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.cleanMode && settingsStore.narratorPersonality === 'macho' }" @click="settingsStore.setCleanMode(false); settingsStore.setNarratorPersonality('macho')">Macho</button>
           </div>
         </div>
         <div class="timer-control-group sound-theme-group">
@@ -319,7 +321,7 @@
                 </div>
               </div>
             </div>
-            <div class="lb-score">
+            <div v-if="game.gameType !== 'cricket' && game.gameType !== 'cutThroat' && game.gameType !== 'speedCricket'" class="lb-score">
               <span class="lb-score-val" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">{{ displayScore(p.id) }}</span>
               <span class="lb-score-label">{{ scoreLabel }}</span>
             </div>
@@ -383,6 +385,14 @@ const router = useRouter()
 const gameStore = useGameStore()
 const playersStore = usePlayersStore()
 const settingsStore = useSettingsStore()
+
+function personalityOpts() {
+  const p = settingsStore.narratorPersonality
+  if (p === 'slj')   return { pitch: 0.6,  rate: 0.82 }
+  if (p === 'macho') return { pitch: 1.15, rate: 1.08 }
+  return undefined
+}
+
 const game = computed(() => gameStore.game)
 const confirmQuit = ref(false)
 const showAllScores = ref(false)
@@ -548,15 +558,19 @@ function startThrowTimer() {
     throwTimeLeft.value--
     if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 5) playThemedTick(settingsStore.soundTheme)
     const half = Math.floor(throwTimerDuration.value / 2)
-    if (throwTimeLeft.value === half && half > 30 && !settingsStore.cleanMode) speak(`${currentPlayer.value.name}, it's your turn`)
+    if (throwTimeLeft.value === half && half > 30 && !settingsStore.cleanMode) speak(`${currentPlayer.value.name}, it's your turn`, personalityOpts())
     if (throwTimeLeft.value <= 30 && !throwHurryUpSaid && !settingsStore.cleanMode) {
       throwHurryUpSaid = true
       const hurryCount = gameStore.playerHurryUpCounts[currentPlayer.value.id] ?? 0
       gameStore.recordHurryUp(currentPlayer.value.id)
-      const line = hurryCount > 0
-        ? `${currentPlayer.value.name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`
-        : `${currentPlayer.value.name}. Hurry the fuck up. It's your turn.`
-      speak(line)
+      const name = currentPlayer.value.name
+      const p = settingsStore.narratorPersonality
+      const line = p === 'slj'
+        ? (hurryCount > 0 ? `${name}. I will say this one more time. Hurry. The fuck. Up. This is exactly why nobody wants to play darts with your ass.` : `${name}. Hurry the fuck up. It's your goddamn turn, motherf***er.`)
+        : p === 'macho'
+        ? (hurryCount > 0 ? `${name}! The cream of the crop is WAITING! Dig it! Hurry up and throw, oh yeah!` : `${name}! Hurry up and throw! The madness is running WILD, oh yeah!`)
+        : (hurryCount > 0 ? `${name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.` : `${name}. Hurry the fuck up. It's your turn.`)
+      speak(line, personalityOpts())
     }
     if (throwTimeLeft.value <= 0) {
       clearThrowTimer()
@@ -669,7 +683,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   box-shadow: 0 4px 24px rgba(0,0,0,0.5);
 }
 .submit-float-btn:disabled { opacity: 0.4; }
-.scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; font-size: 20px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.1em; padding: 14px 44px; }
+.scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; height: 64px; padding: 0 36px; font-size: clamp(42px, 6.5dvh, 62px); font-weight: 900; font-family: var(--font-display); letter-spacing: 0.06em; border-radius: 8px; }
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
 /* Cricket marks grid strip */
@@ -810,14 +824,14 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .lb-players { flex: 1; display: flex; flex-direction: column; gap: 0; padding: 0; }
 .lb-player-row {
   flex: 1; min-height: 0; overflow: hidden;
-  display: flex; align-items: center; gap: 14px; padding: 10px 20px;
+  display: flex; align-items: stretch; gap: 14px; padding: 10px 20px;
   background: transparent; border: none; border-left: 6px solid transparent;
   border-bottom: 1px solid rgba(255,255,255,0.06);
   transition: border-color 0.2s, background 0.2s; position: relative;
 }
 .lb-player-row.active { border-left-color: var(--active-color, var(--pink)); }
 .active-dot { display: none; }
-.lb-avatar { width: 48px; height: 48px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; overflow: hidden; border: 2px solid rgba(255,255,255,0.1); }
+.lb-avatar { width: 56px; height: auto; align-self: stretch; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); }
 .lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .lb-player-info { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .lb-player-name { font-size: 22px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; display: flex; align-items: center; gap: 10px; color: #fff; }
@@ -861,14 +875,15 @@ watch(() => game.value?.currentPlayerIndex, () => {
 /* Closed-target display selector in scores overlay */
 .ct-display-row { display: flex; gap: 4px; }
 .ct-display-btn {
-  padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
+  padding: 7px 14px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);
   background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6);
-  font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.03em; cursor: pointer; transition: all 0.15s;
   position: relative; overflow: hidden; white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
 }
 .ct-display-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
 .ct-display-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.12); }
+.close-scores-btn { font-size: 22px; font-weight: 900; line-height: 1; }
 
 /* In-game timer controls */
 .timer-controls-row {
@@ -877,7 +892,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   background: rgba(255,255,255,0.02); flex-shrink: 0;
 }
 .timer-control-group { display: flex; align-items: center; gap: 8px; }
-.timer-control-label { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.45); white-space: nowrap; min-width: 52px; }
+.timer-control-label { font-size: 14px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.55); white-space: nowrap; min-width: 52px; }
 .timer-control-btns { display: flex; gap: 4px; }
 .timer-ctrl-btn {
   padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
@@ -936,7 +951,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-header { min-height: 64px; }
   .turn-round-pill { font-size: clamp(28px, 3.5dvh, 38px); padding: 5px 14px; }
   .turn-name { font-size: clamp(32px, 4.5dvh, 48px); }
-  .scores-btn { padding: 8px 28px; font-size: 15px; margin: 0 10px; }
+  .scores-btn { height: 48px; padding: 0 20px; font-size: 26px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px; padding: 12px 24px; font-size: 13px; }
 }
 
@@ -951,12 +966,12 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-header { min-height: 74px; }
   .turn-round-pill { font-size: clamp(36px, 4dvh, 52px); padding: 6px 16px; }
   .turn-name { font-size: clamp(42px, 6dvh, 66px); max-width: 55vw; }
-  .scores-btn { padding: 8px 24px; font-size: 17px; margin: 0 10px; }
+  .scores-btn { height: 58px; padding: 0 28px; font-size: 32px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(14px + env(safe-area-inset-bottom)); right: 14px; padding: 12px 22px; font-size: 13px; }
   .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
   .submit-btn { height: 46px; font-size: 16px; }
   .lb-player-row { padding: 8px 16px; }
-  .lb-avatar { width: 40px; height: 40px; font-size: 20px; }
+  .lb-avatar { width: 44px; font-size: 22px; }
   .lb-player-name { font-size: 18px; }
   .lb-score-val { font-size: clamp(48px, 8dvh, 120px); }
   .mini-label { font-size: 26px; }

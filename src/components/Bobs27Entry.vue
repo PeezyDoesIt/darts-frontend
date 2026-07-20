@@ -170,7 +170,7 @@ defineExpose({ doSubmit })
 .submit-row {
   padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03);
-  flex-shrink: 0;
+  flex-shrink: 0; min-height: 90px; display: flex; align-items: center;
 }
 .submit-btn {
   width: 100%; height: 64px; font-size: 22px; font-weight: 900;

@@ -259,7 +259,7 @@ defineExpose({ submit, submitted })
 
 .submit-row {
   display: flex; align-items: center; justify-content: space-between;
-  min-height: 72px;
+  min-height: 90px;
   padding: 12px 20px; padding-bottom: calc(12px + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); flex-shrink: 0; gap: 16px;
@@ -303,7 +303,7 @@ defineExpose({ submit, submitted })
   .pip { border-radius: 6px; border-width: 2px; }
   .hit-badge { font-size: 16px; }
   .closed-badge { font-size: 9px; }
-  .submit-row { min-height: 64px; padding: 6px 16px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
+  .submit-row { min-height: 64px; padding: 4px 16px; padding-bottom: calc(4px + env(safe-area-inset-bottom)); }
   .submit-inline-btn { height: 48px; padding: 0 20px; font-size: 26px; }
 }
 
@@ -315,7 +315,7 @@ defineExpose({ submit, submitted })
   .pips-wrap { gap: 16px; margin-left: 16px; }
   .hit-badge { font-size: 16px; }
   .closed-badge { font-size: 9px; }
-  .submit-row { min-height: 80px; padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+  .submit-row { min-height: 74px; padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
   .submit-inline-btn { height: 58px; padding: 0 28px; font-size: 32px; }
 }
 

@@ -33,6 +33,7 @@ html, body, #app {
   color: var(--text);
   font-family: var(--font-body);
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 /* Quasar dark mode override */

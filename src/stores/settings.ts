@@ -94,5 +94,13 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('narratorGender', val)
   }
 
-  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme, narratorGender, setNarratorGender }
+  const narratorPersonality = ref<'default' | 'slj' | 'macho'>(
+    (localStorage.getItem('narratorPersonality') as 'default' | 'slj' | 'macho') ?? 'default'
+  )
+  function setNarratorPersonality(val: 'default' | 'slj' | 'macho') {
+    narratorPersonality.value = val
+    localStorage.setItem('narratorPersonality', val)
+  }
+
+  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme, narratorGender, setNarratorGender, narratorPersonality, setNarratorPersonality }
 })

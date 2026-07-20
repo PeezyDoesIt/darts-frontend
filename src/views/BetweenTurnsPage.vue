@@ -126,18 +126,37 @@ function playWhistle(): Promise<void> {
   })
 }
 
+function personalityOpts() {
+  const p = settingsStore.narratorPersonality
+  if (p === 'slj')   return { pitch: 0.6,  rate: 0.82 }
+  if (p === 'macho') return { pitch: 1.15, rate: 1.08 }
+  return undefined
+}
+
 async function handleTurnAnnouncement() {
+  const name = nextPlayer.value.name
+  const prev = prevPlayer.value.name
+  const p = settingsStore.narratorPersonality
+  const opts = personalityOpts()
+
   if (game.value?.bonusTurnActive) {
-    speak(`${nextPlayer.value.name} — bonus throw!`)
+    const line = p === 'slj'   ? `${name} — bonus throw, motherf***er!`
+               : p === 'macho' ? `${name} gets a BONUS THROW! OH YEAH!`
+               : `${name} — bonus throw!`
+    speak(line, opts)
     return
   }
   if (settingsStore.cleanMode) {
-    speak(nextPlayer.value.name)
+    speak(name, opts)
     return
   }
-  const nextLine = `${nextPlayer.value.name} — it's your turn.`
+
+  const nextLine = p === 'slj'   ? `${name} — get up here. It's your turn, motherf***er.`
+                : p === 'macho' ? `OOOH YEAH! ${name}, it's your time to shine! Dig it!`
+                : `${name} — it's your turn.`
+
   if (settingsStore.quietNarrator) {
-    speak(nextLine)
+    speak(nextLine, opts)
     return
   }
   if (gameStore.lastTurnHadBull) {
@@ -148,24 +167,38 @@ async function handleTurnAnnouncement() {
     const count = gameStore.playerTimeoutCounts[prevPlayer.value.id] ?? 0
     await playThemedBuzzer(settingsStore.soundTheme)
     await new Promise(r => setTimeout(r, 200))
-    await speak(`Missed their turn.`)
-    await speak(`Be better.`)
-    if (count >= 3) {
-      await speak(`This is why nobody wants to play darts with you.`)
+    if (p === 'slj') {
+      await speak(`${prev} missed their goddamn turn.`, opts)
+      await speak(`What the fuck is wrong with you?`, opts)
+      if (count >= 3) await speak(`This is exactly why nobody wants to play darts with your ass.`, opts)
+    } else if (p === 'macho') {
+      await speak(`${prev} missed their turn! The Macho Man is NOT impressed!`, opts)
+      await speak(`Be better than that! OH YEAH!`, opts)
+      if (count >= 3) await speak(`This is why the Macho Man doesn't wanna play darts with you! DIG IT!`, opts)
     } else {
-      await new Promise(r => setTimeout(r, 150))
-      await playWhistle()
-      await new Promise(r => setTimeout(r, 150))
-      await playWhistle()
+      await speak(`Missed their turn.`, opts)
+      await speak(`Be better.`, opts)
+      if (count >= 3) {
+        await speak(`This is why nobody wants to play darts with you.`, opts)
+      } else {
+        await new Promise(r => setTimeout(r, 150))
+        await playWhistle()
+        await new Promise(r => setTimeout(r, 150))
+        await playWhistle()
+      }
     }
     await new Promise(r => setTimeout(r, 300))
-    speak(nextLine)
+    speak(nextLine, opts)
   } else if (gameStore.lastTurnWasZero) {
-    const zeroPhrases = [`Be better.`, `You suck.`, `This is gonna be a long one.`]
-    await speak(zeroPhrases[Math.floor(Math.random() * zeroPhrases.length)]!)
-    speak(nextLine)
+    const zeroPhrases = p === 'slj'
+      ? [`That was some weak-ass shit.`, `You shoot like a little bitch.`, `I have had it with these motherf***ing darts.`]
+      : p === 'macho'
+      ? [`OH YEAHHH, that was PATHETIC!`, `The cream of the crop does NOT throw like that!`, `Snap into it! Dig it!`]
+      : [`Be better.`, `You suck.`, `This is gonna be a long one.`]
+    await speak(zeroPhrases[Math.floor(Math.random() * zeroPhrases.length)]!, opts)
+    speak(nextLine, opts)
   } else {
-    speak(nextLine)
+    speak(nextLine, opts)
   }
 }
 
