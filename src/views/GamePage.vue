@@ -650,7 +650,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 /* Header left / center / right layout */
 .turn-left { flex: 1; display: flex; align-items: center; justify-content: flex-start; padding-left: 16px; z-index: 1; }
 .turn-name-wrap { position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); bottom: 0; display: flex; justify-content: center; align-items: stretch; pointer-events: none; z-index: 0; padding: 0 8px; }
-.turn-round-pill { font-size: clamp(40px, 5.5dvh, 60px); font-weight: 900; line-height: 1; letter-spacing: 0.08em; background: rgba(0,0,0,0.90); border-radius: 8px; padding: 4px 12px; color: rgba(255,255,255,0.8); white-space: nowrap; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); margin-left: 64px; }
+.turn-round-pill { font-size: clamp(44px, 6dvh, 66px); font-weight: 900; line-height: 1; letter-spacing: 0.08em; background: rgba(0,0,0,0.90); border-radius: 8px; padding: 8px 20px; color: rgba(255,255,255,0.8); white-space: nowrap; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); margin-left: 0; }
 .turn-name { font-size: clamp(52px, 7.5dvh, 82px); line-height: 1; letter-spacing: 0.05em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 20px; white-space: nowrap; max-width: 60vw; overflow: hidden; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; }
 
 .turn-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding-right: 8px; z-index: 1; position: relative; }
@@ -934,7 +934,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 
 @media (orientation: landscape) and (max-height: 900px) {
   .turn-header { min-height: 64px; }
-  .turn-round-pill { font-size: clamp(26px, 3.5dvh, 36px); padding: 3px 10px; }
+  .turn-round-pill { font-size: clamp(28px, 3.5dvh, 38px); padding: 5px 14px; }
   .turn-name { font-size: clamp(32px, 4.5dvh, 48px); }
   .scores-btn { padding: 8px 28px; font-size: 13px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px; padding: 12px 24px; font-size: 13px; }
@@ -949,7 +949,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .cc-pip { width: 10px; height: 10px; }
   .cc-cell { gap: 1px; }
   .turn-header { min-height: 74px; }
-  .turn-round-pill { font-size: clamp(32px, 4dvh, 48px); }
+  .turn-round-pill { font-size: clamp(36px, 4dvh, 52px); padding: 6px 16px; }
   .turn-name { font-size: clamp(42px, 6dvh, 66px); max-width: 55vw; }
   .scores-btn { padding: 8px 24px; font-size: 13px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(14px + env(safe-area-inset-bottom)); right: 14px; padding: 12px 22px; font-size: 13px; }

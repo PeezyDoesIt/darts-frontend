@@ -234,7 +234,7 @@ defineExpose({ submit, submitted })
 
 .target-label { font-size: clamp(100px, 17dvh, 190px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; display: flex; align-items: center; overflow: hidden; }
 .target-label-bull { font-size: clamp(130px, 22dvh, 240px); }
-.pips-wrap { display: flex; align-items: stretch; gap: 20px; flex: 1; padding: 14px 0; }
+.pips-wrap { display: flex; align-items: stretch; gap: 20px; flex: 1; padding: 14px 0; margin-left: 24px; }
 .pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: clamp(28px, 5dvh, 60px); font-weight: 900; font-family: var(--font-display); color: rgba(0,0,0,0.6); line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
 .pip.round { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 16px rgba(255,45,120,0.6); }
@@ -299,7 +299,7 @@ defineExpose({ submit, submitted })
   .board-tile { min-height: 0; padding: 2px 14px; }
   .target-label { font-size: clamp(28px, 6dvh, 60px); width: clamp(70px, 10dvh, 120px); }
   .target-label-bull { font-size: clamp(36px, 8dvh, 78px); }
-  .pips-wrap { gap: 8px; padding: 6px 0; }
+  .pips-wrap { gap: 8px; padding: 6px 0; margin-left: 10px; }
   .pip { border-radius: 6px; border-width: 2px; }
   .hit-badge { font-size: 16px; width: 52px; }
   .closed-badge { width: 52px; font-size: 9px; }
@@ -312,7 +312,7 @@ defineExpose({ submit, submitted })
   .board-tile { padding: 6px 12px; min-height: 56px; }
   .target-label { font-size: clamp(60px, 11dvh, 100px); width: clamp(90px, 12dvh, 130px); }
   .target-label-bull { font-size: clamp(78px, 14dvh, 130px); }
-  .pips-wrap { gap: 16px; }
+  .pips-wrap { gap: 16px; margin-left: 16px; }
   .hit-badge { font-size: 16px; width: 52px; }
   .closed-badge { width: 52px; font-size: 9px; }
   .submit-row { min-height: 64px; padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
@@ -325,6 +325,6 @@ defineExpose({ submit, submitted })
   .board-tile { min-height: 0; padding: 4px 12px; }
   .target-label { font-size: clamp(44px, 8.5dvh, 90px); width: clamp(76px, 11dvh, 125px); }
   .target-label-bull { font-size: clamp(57px, 11dvh, 117px); }
-  .pips-wrap { gap: 12px; padding: 6px 0; }
+  .pips-wrap { gap: 12px; padding: 6px 0; margin-left: 16px; }
 }
 </style>
