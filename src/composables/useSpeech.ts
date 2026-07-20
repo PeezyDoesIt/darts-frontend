@@ -52,6 +52,8 @@ const PRONUNCIATIONS: [RegExp, string][] = [
 ]
 
 function applyPronunciations(text: string): string {
+  // Single uppercase letters are announced as "capital X" by TTS — lowercase them so they're just read as the letter
+  text = text.replace(/\b([A-Z])\b/g, (_, l) => l.toLowerCase())
   for (const [pattern, replacement] of PRONUNCIATIONS) {
     text = text.replace(pattern, replacement)
   }

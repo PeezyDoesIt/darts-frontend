@@ -217,7 +217,7 @@ defineExpose({ submit, submitted })
 
 .board-tile {
   display: flex; align-items: stretch; width: 100%; padding: 8px 24px; gap: 0;
-  flex: 1; min-height: 48px;
+  flex: 1; min-height: 48px; position: relative;
   background: rgba(0,0,0,0.72); border: 2px solid rgba(255,255,255,0.35); border-radius: 8px;
   cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent; text-align: left;
   position: relative; overflow: hidden;
@@ -232,16 +232,16 @@ defineExpose({ submit, submitted })
   background: linear-gradient(transparent 46%, rgba(255,255,255,0.45) 46%, rgba(255,255,255,0.45) 54%, transparent 54%);
 }
 
-.target-label { font-size: clamp(100px, 17dvh, 190px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(130px, 18dvh, 210px); flex-shrink: 0; display: flex; align-items: center; overflow: hidden; }
-.target-label-bull { font-size: clamp(130px, 22dvh, 240px); }
+.target-label { font-size: clamp(120px, 20dvh, 220px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(150px, 20dvh, 240px); flex-shrink: 0; display: flex; align-items: center; overflow: hidden; }
+.target-label-bull { font-size: clamp(150px, 26dvh, 280px); }
 .pips-wrap { display: flex; align-items: stretch; gap: 20px; flex: 1; padding: 14px 0; margin-left: 24px; }
 .pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: clamp(28px, 5dvh, 60px); font-weight: 900; font-family: var(--font-display); color: rgba(0,0,0,0.6); line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
 .pip.round { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 16px rgba(255,45,120,0.6); }
 
-.closed-badge { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--pink); text-transform: uppercase; font-family: var(--font-display); opacity: 0.7; width: 80px; text-align: right; flex-shrink: 0; align-self: center; }
-.hit-badge { font-size: 22px; font-weight: 900; font-family: var(--font-display); color: var(--pink); width: 80px; text-align: right; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(255,45,120,0.6)); align-self: center; }
-.hit-badge.invisible { opacity: 0; }
+.closed-badge { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--pink); text-transform: uppercase; font-family: var(--font-display); opacity: 0.7; z-index: 2; }
+.hit-badge { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 22px; font-weight: 900; font-family: var(--font-display); color: var(--pink); filter: drop-shadow(0 0 8px rgba(255,45,120,0.6)); z-index: 2; }
+.hit-badge.invisible { opacity: 0; pointer-events: none; }
 
 .board-avatar-bg {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -270,9 +270,9 @@ defineExpose({ submit, submitted })
 .round-label-text { font-weight: 900; font-size: 20px; letter-spacing: 0.06em; text-shadow: 0 0 12px currentColor; }
 .submit-inline-btn {
   flex-shrink: 0;
-  height: 48px;
-  padding: 0 28px;
-  font-size: clamp(32px, 5dvh, 48px); font-weight: 900; font-family: var(--font-display); text-shadow: 0 0 18px rgba(255,255,255,0.7), 0 1px 0 rgba(0,0,0,0.4);
+  height: 64px;
+  padding: 0 36px;
+  font-size: clamp(42px, 6.5dvh, 62px); font-weight: 900; font-family: var(--font-display); text-shadow: 0 0 18px rgba(255,255,255,0.7), 0 1px 0 rgba(0,0,0,0.4);
   letter-spacing: 0.06em; text-transform: uppercase; border-radius: 8px; cursor: pointer;
   position: relative; overflow: hidden;
   background: #dc2626 !important; color: #fff !important; border: none !important;
@@ -301,30 +301,30 @@ defineExpose({ submit, submitted })
   .target-label-bull { font-size: clamp(36px, 8dvh, 78px); }
   .pips-wrap { gap: 8px; padding: 6px 0; margin-left: 10px; }
   .pip { border-radius: 6px; border-width: 2px; }
-  .hit-badge { font-size: 16px; width: 52px; }
-  .closed-badge { width: 52px; font-size: 9px; }
-  .submit-row { min-height: 52px; padding: 6px 16px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
-  .submit-inline-btn { height: 36px; padding: 0 16px; font-size: 18px; }
+  .hit-badge { font-size: 16px; }
+  .closed-badge { font-size: 9px; }
+  .submit-row { min-height: 64px; padding: 6px 16px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
+  .submit-inline-btn { height: 48px; padding: 0 20px; font-size: 26px; }
 }
 
 @media (max-width: 768px) {
   .cricket-board { padding: 5px 8px; gap: 5px; }
   .board-tile { padding: 6px 12px; min-height: 56px; }
-  .target-label { font-size: clamp(60px, 11dvh, 100px); width: clamp(90px, 12dvh, 130px); }
-  .target-label-bull { font-size: clamp(78px, 14dvh, 130px); }
+  .target-label { font-size: clamp(70px, 13dvh, 120px); width: clamp(100px, 14dvh, 150px); }
+  .target-label-bull { font-size: clamp(90px, 17dvh, 155px); }
   .pips-wrap { gap: 16px; margin-left: 16px; }
-  .hit-badge { font-size: 16px; width: 52px; }
-  .closed-badge { width: 52px; font-size: 9px; }
-  .submit-row { min-height: 64px; padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
-  .submit-inline-btn { height: 44px; padding: 0 20px; font-size: 22px; }
+  .hit-badge { font-size: 16px; }
+  .closed-badge { font-size: 9px; }
+  .submit-row { min-height: 80px; padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+  .submit-inline-btn { height: 58px; padding: 0 28px; font-size: 32px; }
 }
 
 @media (orientation: portrait) {
   .cricket-board-scroll { overflow: hidden; display: flex; flex-direction: column; }
   .cricket-board { flex: 1; height: 100%; min-height: 0; padding: 4px 8px; gap: 4px; }
   .board-tile { min-height: 0; padding: 4px 12px; }
-  .target-label { font-size: clamp(44px, 8.5dvh, 90px); width: clamp(76px, 11dvh, 125px); }
-  .target-label-bull { font-size: clamp(57px, 11dvh, 117px); }
+  .target-label { font-size: clamp(52px, 10dvh, 108px); width: clamp(86px, 12dvh, 140px); }
+  .target-label-bull { font-size: clamp(68px, 13dvh, 140px); }
   .pips-wrap { gap: 12px; padding: 6px 0; margin-left: 16px; }
 }
 </style>
