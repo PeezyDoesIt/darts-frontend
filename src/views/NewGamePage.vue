@@ -158,6 +158,13 @@
                   <button v-ripple class="bg-fit-btn" :class="{ active: gameThemeSize === 'contain' }" @click="gameThemeSize = 'contain'">Contain</button>
                 </div>
               </div>
+              <div v-if="gameThemeSize === 'contain'" class="bg-fit-row">
+                <span class="bg-fit-label">Fill</span>
+                <div class="bg-fit-btns">
+                  <button v-ripple class="bg-fit-btn" :class="{ active: gameThemeFill === 'black' || gameThemeFill === null }" @click="gameThemeFill = 'black'">Black</button>
+                  <button v-ripple class="bg-fit-btn" :class="{ active: gameThemeFill === 'blur' }" @click="gameThemeFill = 'blur'">Blur</button>
+                </div>
+              </div>
               <div class="bg-fit-row">
                 <span class="bg-fit-label">Position</span>
                 <div class="bg-fit-btns">
@@ -306,6 +313,7 @@ const gameThemeMode = ref<'theme' | 'image'>('theme')
 const gameThemeImage = ref<string | null>(null)
 const gameThemeSize = ref<'cover' | 'contain' | null>(null)
 const gameThemePosition = ref<'top' | 'center' | 'bottom' | null>(null)
+const gameThemeFill = ref<'black' | 'blur' | null>(null)
 const selectedPlayers = ref<Player[]>([])
 
 function selectGameTheme(val: string) { gameTheme.value = val; gameThemeImage.value = null }
@@ -322,11 +330,13 @@ function onGameThemeFileChange(e: Event) {
   reader.readAsDataURL(file)
 }
 
-const gameThemePreviewStyle = computed(() =>
-  gameThemeImage.value
-    ? { backgroundImage: `url(${gameThemeImage.value})`, backgroundSize: gameThemeSize.value ?? 'cover', backgroundPosition: gameThemePosition.value ?? 'center', backgroundRepeat: 'no-repeat', backgroundColor: '#000' }
-    : { background: 'rgba(255,255,255,0.05)' }
-)
+const gameThemePreviewStyle = computed(() => {
+  if (gameThemeImage.value) {
+    const isBlur = gameThemeFill.value === 'blur' && gameThemeSize.value === 'contain'
+    return { backgroundImage: `url(${gameThemeImage.value})`, backgroundSize: gameThemeSize.value ?? 'cover', backgroundPosition: gameThemePosition.value ?? 'center', backgroundRepeat: 'no-repeat', backgroundColor: isBlur ? 'transparent' : '#000' }
+  }
+  return { background: 'rgba(255,255,255,0.05)' }
+})
 
 function isSelected(id: string) { return selectedPlayers.value.some(p => p.id === id) }
 function isPhoto(url: string | null) { return url?.startsWith('data:') || url?.startsWith('http') }
@@ -348,7 +358,7 @@ function startGame() {
   if (selectedPlayers.value.length < 2 || !selectedGameType.value) return
   const t = timerDuration.value
   const tt = throwTimerDuration.value
-  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, cricketRoundLimit.value, gameTheme.value, gameThemeSize.value, gameThemePosition.value, selectedPlayers.value, skipWalkup.value)
+  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, cricketRoundLimit.value, gameTheme.value, gameThemeSize.value, gameThemePosition.value, gameThemeFill.value, selectedPlayers.value, skipWalkup.value)
   router.push(skipWalkup.value ? '/game' : '/between')
 }
 </script>

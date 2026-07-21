@@ -12,7 +12,7 @@ export const usePlayersStore = defineStore('players', () => {
       const loaded = JSON.parse(raw) as Player[]
       const PEEZY_BG = 'linear-gradient(160deg, #0c0c0e 0%, #242428 40%, #484850 70%, #a0a0b0 100%)'
       players.value = loaded.filter(p => p.id === 'brannon-default').map(p => {
-        if (p.id !== 'brannon-default') return { ...p, playerBackground: p.playerBackground ?? null, playerBackgroundSize: p.playerBackgroundSize ?? null, playerBackgroundPosition: p.playerBackgroundPosition ?? null, pinned: p.pinned ?? false, targetLabelColor: p.targetLabelColor ?? null, cricketTargetDisplay: p.cricketTargetDisplay ?? null }
+        if (p.id !== 'brannon-default') return { ...p, playerBackground: p.playerBackground ?? null, playerBackgroundSize: p.playerBackgroundSize ?? null, playerBackgroundPosition: p.playerBackgroundPosition ?? null, playerBackgroundFill: p.playerBackgroundFill ?? null, pinned: p.pinned ?? false, targetLabelColor: p.targetLabelColor ?? null, cricketTargetDisplay: p.cricketTargetDisplay ?? null }
         return {
           ...p,
           name: p.name === 'Brannon' ? 'Peezy' : p.name,
@@ -20,6 +20,7 @@ export const usePlayersStore = defineStore('players', () => {
           playerBackground: p.playerBackground == null ? PEEZY_BG : p.playerBackground,
           playerBackgroundSize: p.playerBackgroundSize ?? null,
           playerBackgroundPosition: p.playerBackgroundPosition ?? null,
+          playerBackgroundFill: p.playerBackgroundFill ?? null,
           cricketTargetDisplay: p.cricketTargetDisplay == null ? 'hide' : p.cricketTargetDisplay,
           pinned: p.pinned ?? true,
           targetLabelColor: p.targetLabelColor ?? null,
@@ -37,6 +38,7 @@ export const usePlayersStore = defineStore('players', () => {
           playerBackground: 'linear-gradient(160deg, #0c0c0e 0%, #242428 40%, #484850 70%, #a0a0b0 100%)',
           playerBackgroundSize: null,
           playerBackgroundPosition: null,
+          playerBackgroundFill: null,
           targetLabelColor: null,
           cricketTargetDisplay: 'hide',
           pinned: true,
@@ -59,6 +61,7 @@ export const usePlayersStore = defineStore('players', () => {
       playerBackground: data.playerBackground ?? null,
       playerBackgroundSize: data.playerBackgroundSize ?? null,
       playerBackgroundPosition: data.playerBackgroundPosition ?? null,
+      playerBackgroundFill: data.playerBackgroundFill ?? null,
       targetLabelColor: data.targetLabelColor ?? null,
       cricketTargetDisplay: data.cricketTargetDisplay ?? null,
       pinned: data.pinned ?? false,

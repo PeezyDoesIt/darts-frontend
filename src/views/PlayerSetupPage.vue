@@ -76,6 +76,13 @@
                     <button v-ripple class="bg-fit-btn" :class="{ active: bgSize === 'contain' }" @click="bgSize = 'contain'">Contain</button>
                   </div>
                 </div>
+                <div v-if="bgSize === 'contain'" class="bg-fit-row">
+                  <span class="bg-fit-label">Fill</span>
+                  <div class="bg-fit-btns">
+                    <button v-ripple class="bg-fit-btn" :class="{ active: bgFill === 'black' || bgFill === null }" @click="bgFill = 'black'">Black</button>
+                    <button v-ripple class="bg-fit-btn" :class="{ active: bgFill === 'blur' }" @click="bgFill = 'blur'">Blur</button>
+                  </div>
+                </div>
                 <div class="bg-fit-row">
                   <span class="bg-fit-label">Position</span>
                   <div class="bg-fit-btns">
@@ -231,6 +238,7 @@ const playerBackground = ref<string | null>(null)
 const bgImagePreview = ref<string | null>(null)
 const bgSize = ref<'cover' | 'contain' | null>(null)
 const bgPosition = ref<'top' | 'center' | 'bottom' | null>(null)
+const bgFill = ref<'black' | 'blur' | null>(null)
 const targetLabelColor = ref<string | null>(null)
 const cricketTargetDisplay = ref<'show' | 'hide' | 'fade' | 'strike' | null>(null)
 
@@ -243,11 +251,17 @@ const cricketTargetDisplayOpts: { value: 'show' | 'hide' | 'fade' | 'strike' | n
 ]
 
 const bgPreviewStyle = computed(() => {
-  if (bgImagePreview.value) return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: bgSize.value ?? 'cover', backgroundPosition: bgPosition.value ?? 'center', backgroundRepeat: 'no-repeat', backgroundColor: '#000' }
+  if (bgImagePreview.value) {
+    const isBlur = bgFill.value === 'blur' && bgSize.value === 'contain'
+    return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: bgSize.value ?? 'cover', backgroundPosition: bgPosition.value ?? 'center', backgroundRepeat: 'no-repeat', backgroundColor: isBlur ? 'transparent' : '#000' }
+  }
   return { background: 'rgba(255,255,255,0.05)' }
 })
 const previewCardStyle = computed(() => {
-  if (bgImagePreview.value) return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: bgSize.value ?? 'cover', backgroundPosition: bgPosition.value ?? 'center', backgroundRepeat: 'no-repeat', backgroundColor: '#000', boxShadow: `0 0 40px ${color.value}40` }
+  if (bgImagePreview.value) {
+    const isBlur = bgFill.value === 'blur' && bgSize.value === 'contain'
+    return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: bgSize.value ?? 'cover', backgroundPosition: bgPosition.value ?? 'center', backgroundRepeat: 'no-repeat', backgroundColor: isBlur ? 'transparent' : '#000', boxShadow: `0 0 40px ${color.value}40` }
+  }
   if (playerBackground.value) return { background: playerBackground.value, boxShadow: `0 0 40px ${color.value}40` }
   return { background: `linear-gradient(135deg, ${color.value}cc, ${color.value}66)`, boxShadow: `0 0 40px ${color.value}40` }
 })
@@ -299,7 +313,7 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = '#ff2d78'; avatarUrl.value = null
-  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; bgSize.value = null; bgPosition.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null
+  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; bgSize.value = null; bgPosition.value = null; bgFill.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
@@ -310,6 +324,7 @@ function loadPlayer(p: Player) {
   else { bgMode.value = 'theme'; bgImagePreview.value = null }
   bgSize.value = p.playerBackgroundSize ?? null
   bgPosition.value = p.playerBackgroundPosition ?? null
+  bgFill.value = p.playerBackgroundFill ?? null
   targetLabelColor.value = p.targetLabelColor ?? null
   cricketTargetDisplay.value = p.cricketTargetDisplay ?? null
 }
@@ -320,10 +335,10 @@ function save() {
   const tlc = targetLabelColor.value
   const ctd = cricketTargetDisplay.value
   if (editingId.value) {
-    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: bgSize.value, playerBackgroundPosition: bgPosition.value, targetLabelColor: tlc, cricketTargetDisplay: ctd })
+    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: bgSize.value, playerBackgroundPosition: bgPosition.value, playerBackgroundFill: bgFill.value, targetLabelColor: tlc, cricketTargetDisplay: ctd })
     editingId.value = null
   } else {
-    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: bgSize.value, playerBackgroundPosition: bgPosition.value, targetLabelColor: tlc, cricketTargetDisplay: ctd, pinned: false })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: bgSize.value, playerBackgroundPosition: bgPosition.value, playerBackgroundFill: bgFill.value, targetLabelColor: tlc, cricketTargetDisplay: ctd, pinned: false })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
       resetForm()

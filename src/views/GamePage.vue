@@ -4,6 +4,7 @@
 
       <!-- Entry panel -->
       <div class="entry-panel" :style="entryPanelStyle">
+        <div v-if="showBlurBg" class="entry-bg-blur" :style="entryBlurBgStyle" />
         <div class="turn-header" :style="{ '--player-color': currentPlayer.color }">
           <!-- Left: round pill centered in left space -->
           <div class="turn-left">
@@ -589,9 +590,25 @@ const entryPanelStyle = computed(() => {
   if (bg.startsWith('data:') || bg.startsWith('http')) {
     const size = (isPlayerBg ? currentPlayer.value.playerBackgroundSize : game.value?.gameThemeSize) ?? 'cover'
     const position = (isPlayerBg ? currentPlayer.value.playerBackgroundPosition : game.value?.gameThemePosition) ?? 'center'
-    return { backgroundImage: `url(${bg})`, backgroundSize: size, backgroundPosition: position, backgroundRepeat: 'no-repeat', backgroundColor: '#000' }
+    const fill = isPlayerBg ? currentPlayer.value.playerBackgroundFill : game.value?.gameThemeFill
+    const bgColor = (fill === 'blur' && size === 'contain') ? 'transparent' : '#000'
+    return { backgroundImage: `url(${bg})`, backgroundSize: size, backgroundPosition: position, backgroundRepeat: 'no-repeat', backgroundColor: bgColor }
   }
   return { background: bg }
+})
+
+const showBlurBg = computed(() => {
+  const isPlayerBg = !!currentPlayer.value.playerBackground
+  const fill = isPlayerBg ? currentPlayer.value.playerBackgroundFill : game.value?.gameThemeFill
+  const size = isPlayerBg ? currentPlayer.value.playerBackgroundSize : game.value?.gameThemeSize
+  return fill === 'blur' && size === 'contain'
+})
+
+const entryBlurBgStyle = computed(() => {
+  const isPlayerBg = !!currentPlayer.value.playerBackground
+  const bg = currentPlayer.value.playerBackground ?? game.value?.gameTheme
+  if (!bg) return {}
+  return { backgroundImage: `url(${bg})` }
 })
 
 function complementaryColor(hex: string): string {
@@ -657,7 +674,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   display: flex; align-items: stretch; gap: 0;
   padding-top: env(safe-area-inset-top);
   flex-shrink: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255,255,255,0.10); position: relative; min-height: 90px;
+  border-bottom: 1px solid rgba(255,255,255,0.10); position: relative; z-index: 1; min-height: 90px;
 }
 .turn-header::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--player-color, var(--pink)); box-shadow: 0 0 12px var(--player-color, var(--pink)); z-index: 1; }
 
@@ -684,7 +701,14 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .submit-float-btn:disabled { opacity: 0.4; }
 .scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; height: 64px; padding: 0 40px; font-size: clamp(52px, 7.8dvh, 76px); font-weight: 900; font-family: var(--font-display); letter-spacing: 0.04em; border-radius: 8px; }
-.entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; position: relative; z-index: 1; }
+
+.entry-bg-blur {
+  position: absolute; inset: 0; z-index: 0;
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+  filter: blur(24px);
+  transform: scale(1.12);
+}
 
 /* Cricket marks grid strip */
 .cricket-strip {
