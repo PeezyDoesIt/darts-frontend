@@ -589,7 +589,7 @@ const entryPanelStyle = computed(() => {
   if (bg.startsWith('data:') || bg.startsWith('http')) {
     const size = (isPlayerBg ? currentPlayer.value.playerBackgroundSize : game.value?.gameThemeSize) ?? 'cover'
     const position = (isPlayerBg ? currentPlayer.value.playerBackgroundPosition : game.value?.gameThemePosition) ?? 'center'
-    return { backgroundImage: `url(${bg})`, backgroundSize: size, backgroundPosition: position, backgroundColor: '#000' }
+    return { backgroundImage: `url(${bg})`, backgroundSize: size, backgroundPosition: position, backgroundRepeat: 'no-repeat', backgroundColor: '#000' }
   }
   return { background: bg }
 })

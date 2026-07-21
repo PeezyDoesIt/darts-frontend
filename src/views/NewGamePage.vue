@@ -161,9 +161,7 @@
               <div class="bg-fit-row">
                 <span class="bg-fit-label">Position</span>
                 <div class="bg-fit-btns">
-                  <button v-ripple class="bg-fit-btn" :class="{ active: gameThemePosition === 'top' }" @click="gameThemePosition = 'top'">Top</button>
                   <button v-ripple class="bg-fit-btn" :class="{ active: gameThemePosition === 'center' || gameThemePosition === null }" @click="gameThemePosition = 'center'">Center</button>
-                  <button v-ripple class="bg-fit-btn" :class="{ active: gameThemePosition === 'bottom' }" @click="gameThemePosition = 'bottom'">Bottom</button>
                 </div>
               </div>
             </div>
@@ -326,7 +324,7 @@ function onGameThemeFileChange(e: Event) {
 
 const gameThemePreviewStyle = computed(() =>
   gameThemeImage.value
-    ? { backgroundImage: `url(${gameThemeImage.value})`, backgroundSize: gameThemeSize.value ?? 'cover', backgroundPosition: gameThemePosition.value ?? 'center', backgroundColor: '#000' }
+    ? { backgroundImage: `url(${gameThemeImage.value})`, backgroundSize: gameThemeSize.value ?? 'cover', backgroundPosition: gameThemePosition.value ?? 'center', backgroundRepeat: 'no-repeat', backgroundColor: '#000' }
     : { background: 'rgba(255,255,255,0.05)' }
 )
 

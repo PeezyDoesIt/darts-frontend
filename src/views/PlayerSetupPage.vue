@@ -79,9 +79,7 @@
                 <div class="bg-fit-row">
                   <span class="bg-fit-label">Position</span>
                   <div class="bg-fit-btns">
-                    <button v-ripple class="bg-fit-btn" :class="{ active: bgPosition === 'top' }" @click="bgPosition = 'top'">Top</button>
                     <button v-ripple class="bg-fit-btn" :class="{ active: bgPosition === 'center' || bgPosition === null }" @click="bgPosition = 'center'">Center</button>
-                    <button v-ripple class="bg-fit-btn" :class="{ active: bgPosition === 'bottom' }" @click="bgPosition = 'bottom'">Bottom</button>
                   </div>
                 </div>
               </div>
@@ -245,11 +243,11 @@ const cricketTargetDisplayOpts: { value: 'show' | 'hide' | 'fade' | 'strike' | n
 ]
 
 const bgPreviewStyle = computed(() => {
-  if (bgImagePreview.value) return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: bgSize.value ?? 'cover', backgroundPosition: bgPosition.value ?? 'center', backgroundColor: '#000' }
+  if (bgImagePreview.value) return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: bgSize.value ?? 'cover', backgroundPosition: bgPosition.value ?? 'center', backgroundRepeat: 'no-repeat', backgroundColor: '#000' }
   return { background: 'rgba(255,255,255,0.05)' }
 })
 const previewCardStyle = computed(() => {
-  if (bgImagePreview.value) return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: bgSize.value ?? 'cover', backgroundPosition: bgPosition.value ?? 'center', backgroundColor: '#000', boxShadow: `0 0 40px ${color.value}40` }
+  if (bgImagePreview.value) return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: bgSize.value ?? 'cover', backgroundPosition: bgPosition.value ?? 'center', backgroundRepeat: 'no-repeat', backgroundColor: '#000', boxShadow: `0 0 40px ${color.value}40` }
   if (playerBackground.value) return { background: playerBackground.value, boxShadow: `0 0 40px ${color.value}40` }
   return { background: `linear-gradient(135deg, ${color.value}cc, ${color.value}66)`, boxShadow: `0 0 40px ${color.value}40` }
 })

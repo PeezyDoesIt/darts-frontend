@@ -363,6 +363,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 .between-avatar-bg img {
   height: clamp(140px, 28vmin, 300px);
   width: auto;
+  max-width: clamp(140px, 28vmin, 300px);
   object-fit: contain;
   opacity: 0.55; border-radius: 12px 0 0 12px;
 }

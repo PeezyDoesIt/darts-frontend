@@ -269,9 +269,9 @@ defineExpose({ submit, submitted })
 .round-label-text { font-weight: 900; font-size: 20px; letter-spacing: 0.06em; text-shadow: 0 0 12px currentColor; }
 .submit-inline-btn {
   flex-shrink: 0;
-  height: 64px;
+  height: 54px;
   padding: 0 36px;
-  font-size: clamp(42px, 6.5dvh, 62px); font-weight: 900; font-family: var(--font-display);
+  font-size: clamp(36px, 5.5dvh, 54px); font-weight: 900; font-family: var(--font-display);
   letter-spacing: 0.06em; text-transform: uppercase; border-radius: 8px; cursor: pointer;
   position: relative; overflow: hidden;
   background: #dc2626 !important; color: #fff !important; border: none !important;
