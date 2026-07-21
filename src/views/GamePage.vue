@@ -252,6 +252,15 @@
             <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.cleanMode && settingsStore.narratorPersonality === 'macho' }" @click="settingsStore.setCleanMode(false); settingsStore.setNarratorPersonality('macho')">Macho</button>
           </div>
         </div>
+        <div class="timer-control-group">
+          <span class="timer-control-label">20s Call</span>
+          <div class="timer-control-btns">
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.announceThrowAt20 }" @click="settingsStore.setAnnounceThrowAt20(true)">Throw On</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.announceThrowAt20 }" @click="settingsStore.setAnnounceThrowAt20(false)">Throw Off</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.announceWalkupAt20 }" @click="settingsStore.setAnnounceWalkupAt20(true)">Walk-up On</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.announceWalkupAt20 }" @click="settingsStore.setAnnounceWalkupAt20(false)">Walk-up Off</button>
+          </div>
+        </div>
         <div class="timer-control-group sound-theme-group">
           <span class="timer-control-label">Sound</span>
           <div class="timer-control-btns">
@@ -560,6 +569,16 @@ function startThrowTimer() {
     if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 5) playThemedTick(settingsStore.soundTheme)
     const half = Math.floor(throwTimerDuration.value / 2)
     if (throwTimeLeft.value === half && half > 30 && !settingsStore.cleanMode) speak(`${currentPlayer.value.name}, it's your turn`, personalityOpts())
+    if (throwTimeLeft.value === 20 && settingsStore.announceThrowAt20 && !settingsStore.cleanMode) {
+      const p = settingsStore.narratorPersonality
+      const name = currentPlayer.value.name
+      const line = p === 'slj'
+        ? `${name}. Shoot the goddamn dart, motherf***er.`
+        : p === 'macho'
+        ? `${name}! Twenty seconds! Throw it! OH YEAH!`
+        : `${name}, you need to shoot.`
+      speak(line, personalityOpts())
+    }
     if (throwTimeLeft.value <= 30 && !throwHurryUpSaid && !settingsStore.cleanMode) {
       throwHurryUpSaid = true
       const hurryCount = gameStore.playerHurryUpCounts[currentPlayer.value.id] ?? 0

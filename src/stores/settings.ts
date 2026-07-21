@@ -102,5 +102,21 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('narratorPersonality', val)
   }
 
-  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme, narratorGender, setNarratorGender, narratorPersonality, setNarratorPersonality }
+  const announceThrowAt20 = ref<boolean>(
+    localStorage.getItem('announceThrowAt20') !== 'false'
+  )
+  function setAnnounceThrowAt20(val: boolean) {
+    announceThrowAt20.value = val
+    localStorage.setItem('announceThrowAt20', String(val))
+  }
+
+  const announceWalkupAt20 = ref<boolean>(
+    localStorage.getItem('announceWalkupAt20') === 'true'
+  )
+  function setAnnounceWalkupAt20(val: boolean) {
+    announceWalkupAt20.value = val
+    localStorage.setItem('announceWalkupAt20', String(val))
+  }
+
+  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme, narratorGender, setNarratorGender, narratorPersonality, setNarratorPersonality, announceThrowAt20, setAnnounceThrowAt20, announceWalkupAt20, setAnnounceWalkupAt20 }
 })

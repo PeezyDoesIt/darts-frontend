@@ -212,6 +212,9 @@ onMounted(() => {
     if (timeLeft.value <= 0) { clearInterval(interval!); playThemedBuzzer(settingsStore.soundTheme); startTurn(); return }
     timeLeft.value--
     if (timeLeft.value > 0 && timeLeft.value <= 3) playThemedTick(settingsStore.soundTheme)
+    if (timeLeft.value === 20 && settingsStore.announceWalkupAt20 && !settingsStore.cleanMode) {
+      speak(`${nextPlayer.value.name}, walk up now.`)
+    }
     if (timeLeft.value <= 30 && !showAlert.value) {
       showAlert.value = true
       if (!settingsStore.cleanMode) {
