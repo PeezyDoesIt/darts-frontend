@@ -5,7 +5,7 @@
       <button v-ripple class="btn btn-outline btn-sm" @click="router.back()">← Back</button>
       <h2 class="page-title display">{{ editingId ? 'EDIT PLAYER' : 'NEW PLAYER' }}</h2>
       <button v-if="editingId" v-ripple class="btn btn-outline btn-sm" @click="resetForm">+ New Player</button>
-      <button v-ripple class="btn btn-spray btn-lg" :disabled="!name.trim()" @click="save">{{ editingId ? 'Save Changes' : 'Save Player' }}</button>
+      <button v-ripple class="btn btn-spray btn-lg" :disabled="!name.trim() || saving" @click="save">{{ editingId ? 'Save Changes' : 'Save Player' }}</button>
     </div>
 
     <div class="setup-body">
@@ -313,7 +313,7 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = '#ff2d78'; avatarUrl.value = null
-  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; bgSize.value = null; bgPosition.value = null; bgFill.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null
+  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; bgSize.value = null; bgPosition.value = null; bgFill.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null; saving.value = false
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
@@ -328,8 +328,10 @@ function loadPlayer(p: Player) {
   targetLabelColor.value = p.targetLabelColor ?? null
   cricketTargetDisplay.value = p.cricketTargetDisplay ?? null
 }
+const saving = ref(false)
 function save() {
-  if (!name.value.trim()) return
+  if (!name.value.trim() || saving.value) return
+  saving.value = true
   const finalAvatar = photoPreview.value ?? null
   const bg = playerBackground.value
   const tlc = targetLabelColor.value
