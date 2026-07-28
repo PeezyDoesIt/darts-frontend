@@ -26,15 +26,19 @@
 
           <div class="field">
             <label class="label">Player Color</label>
-            <div class="color-picker-row">
-              <label class="color-wheel-swatch" :style="{ background: color, boxShadow: `0 0 18px ${color}90` }">
-                <input type="color" v-model="color" class="color-wheel-input" />
-              </label>
-              <div class="color-picker-info">
-                <span class="color-hex">{{ color.toUpperCase() }}</span>
-                <span v-if="colorConflict" class="color-conflict">Already used by {{ colorConflict }}</span>
-              </div>
+            <div class="color-palette-grid">
+              <button
+                v-for="c in COLOR_PALETTE" :key="c.value"
+                class="palette-swatch"
+                :class="{ active: color.toLowerCase() === c.value.toLowerCase() }"
+                :style="{ background: c.value }"
+                @click="color = c.value"
+              >
+                <span class="palette-name">{{ c.name }}</span>
+                <span v-if="color.toLowerCase() === c.value.toLowerCase()" class="palette-check">✓</span>
+              </button>
             </div>
+            <span v-if="colorConflict" class="color-conflict">⚠ Already used by {{ colorConflict }}</span>
           </div>
 
           <div class="field">
@@ -203,6 +207,114 @@ import { PRESET_AVATARS, PLAYER_THEMES, TARGET_LABEL_COLORS, type Player } from 
 const PLAYER_COLOR_PALETTE = [
   '#ff2d78', '#00d4ff', '#aaff00', '#ff6b1a',
   '#bf5fff', '#ffd700', '#ff4444', '#00ffaa',
+]
+
+const COLOR_PALETTE = [
+  // Blacks & dark neutrals
+  { name: 'Black',       value: '#0a0a0a' },
+  { name: 'Onyx',        value: '#353839' },
+  { name: 'Charcoal',    value: '#36454f' },
+  { name: 'Graphite',    value: '#555555' },
+  { name: 'Slate',       value: '#708090' },
+  { name: 'Silver',      value: '#c0c0c0' },
+  // Deep blues
+  { name: 'Midnight',    value: '#191970' },
+  { name: 'Navy',        value: '#001f5b' },
+  { name: 'Marine',      value: '#00308f' },
+  { name: 'Prussian',    value: '#003153' },
+  { name: 'Indigo',      value: '#4b0082' },
+  { name: 'Ultramarine', value: '#3f00ff' },
+  // Blues
+  { name: 'Royal Blue',  value: '#4169e1' },
+  { name: 'Cobalt',      value: '#0047ab' },
+  { name: 'Sapphire',    value: '#0f52ba' },
+  { name: 'Steel Blue',  value: '#4682b4' },
+  { name: 'Cornflower',  value: '#6495ed' },
+  { name: 'Cerulean',    value: '#007ba7' },
+  // Light blues
+  { name: 'Sky',         value: '#87ceeb' },
+  { name: 'Powder Blue', value: '#b0e0e6' },
+  { name: 'Baby Blue',   value: '#89cff0' },
+  { name: "Robin's Egg", value: '#1fcecb' },
+  { name: 'Ice',         value: '#d0e8f5' },
+  { name: 'Cyan',        value: '#00bcd4' },
+  // Teals & aquas
+  { name: 'Teal',        value: '#008080' },
+  { name: 'Sea Blue',    value: '#006994' },
+  { name: 'Aquamarine',  value: '#00b5cc' },
+  { name: 'Seafoam',     value: '#93e9be' },
+  { name: 'Jade',        value: '#00a86b' },
+  { name: 'Mint',        value: '#98ff98' },
+  // Greens
+  { name: 'Evergreen',   value: '#05472a' },
+  { name: 'Racing',      value: '#0e3b1a' },
+  { name: 'Forest',      value: '#228b22' },
+  { name: 'Hunter',      value: '#355e3b' },
+  { name: 'Green',       value: '#008000' },
+  { name: 'Emerald',     value: '#50c878' },
+  // Light greens
+  { name: 'Kelly',       value: '#4cbb17' },
+  { name: 'Lime',        value: '#32cd32' },
+  { name: 'Spring',      value: '#00ff7f' },
+  { name: 'Chartreuse',  value: '#7fff00' },
+  { name: 'Pear',        value: '#d1e231' },
+  { name: 'Cream',       value: '#fffdd0' },
+  // Yellows & golds
+  { name: 'Canary',      value: '#fff44f' },
+  { name: 'Yellow',      value: '#ffff00' },
+  { name: 'Gold',        value: '#ffd700' },
+  { name: 'Amber',       value: '#ffbf00' },
+  { name: 'Ochre',       value: '#cc7722' },
+  { name: 'Tan',         value: '#d2b48c' },
+  // Oranges
+  { name: 'Peach',       value: '#ffcba4' },
+  { name: 'Coral',       value: '#ff7f50' },
+  { name: 'Orange',      value: '#ff6600' },
+  { name: 'Burnt Org',   value: '#cc5500' },
+  { name: 'Copper',      value: '#b87333' },
+  { name: 'Rust',        value: '#b7410e' },
+  // Reds
+  { name: 'Salmon',      value: '#fa8072' },
+  { name: 'Scarlet',     value: '#ff2400' },
+  { name: 'Red',         value: '#cc0000' },
+  { name: 'Crimson',     value: '#dc143c' },
+  { name: 'Brick',       value: '#cb4154' },
+  { name: 'Carmine',     value: '#960018' },
+  // Dark reds & browns
+  { name: 'Ruby',        value: '#9b111e' },
+  { name: 'Maroon',      value: '#800000' },
+  { name: 'Burgundy',    value: '#800020' },
+  { name: 'Wine',        value: '#722f37' },
+  { name: 'Chestnut',    value: '#954535' },
+  { name: 'Mahogany',    value: '#c04000' },
+  // Browns
+  { name: 'Sienna',      value: '#a0522d' },
+  { name: 'Chocolate',   value: '#7b3f00' },
+  { name: 'Hickory',     value: '#6b3a2a' },
+  { name: 'Sepia',       value: '#704214' },
+  { name: 'Roast',       value: '#4b2612' },
+  { name: 'Espresso',    value: '#2c1503' },
+  // Purples
+  { name: 'Eggplant',    value: '#380028' },
+  { name: 'Grape',       value: '#6f2da8' },
+  { name: 'Purple',      value: '#800080' },
+  { name: 'Royal Purp',  value: '#7851a9' },
+  { name: 'Violet',      value: '#8f00ff' },
+  { name: 'Mulberry',    value: '#c54b8c' },
+  // Lavenders & pinks
+  { name: 'Orchid',      value: '#da70d6' },
+  { name: 'Lavender',    value: '#9370db' },
+  { name: 'Thistle',     value: '#d8bfd8' },
+  { name: 'Plum',        value: '#dda0dd' },
+  { name: 'Magenta',     value: '#ff00ff' },
+  { name: 'Blush',       value: '#de5d83' },
+  // Pinks
+  { name: 'Raspberry',   value: '#e30b5c' },
+  { name: 'Rose',        value: '#ff007f' },
+  { name: 'Hot Pink',    value: '#ff69b4' },
+  { name: 'Candy Pink',  value: '#ff63b8' },
+  { name: 'Baby Pink',   value: '#f4c2c2' },
+  { name: 'White',       value: '#f0f0f0' },
 ]
 
 const router = useRouter()
@@ -407,12 +519,52 @@ function save() {
 .bg-preview { width: 80px; height: 80px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 
 .field-hint { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.4; }
-.color-picker-row { display: flex; align-items: center; gap: 16px; }
-.color-wheel-swatch { width: 56px; height: 56px; border-radius: 50%; cursor: pointer; display: block; flex-shrink: 0; transition: box-shadow 0.2s; border: 3px solid rgba(255,255,255,0.25); position: relative; overflow: hidden; }
-.color-wheel-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-.color-picker-info { display: flex; flex-direction: column; gap: 4px; }
-.color-hex { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.6); font-family: monospace; letter-spacing: 0.08em; }
-.color-conflict { font-size: 12px; color: #ff4444; font-weight: 700; letter-spacing: 0.03em; }
+.color-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
+}
+.palette-swatch {
+  aspect-ratio: 1.5;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 2px;
+  transition: transform 0.1s, border-color 0.1s, box-shadow 0.1s;
+  overflow: hidden;
+}
+.palette-swatch:hover { transform: scale(1.08); border-color: rgba(255,255,255,0.5); z-index: 1; }
+.palette-swatch.active {
+  border-color: #ffffff;
+  transform: scale(1.08);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.6), 0 0 10px rgba(255,255,255,0.3);
+  z-index: 2;
+}
+.palette-name {
+  font-size: 7px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,1), 0 0 6px rgba(0,0,0,0.8);
+  letter-spacing: 0.02em;
+  text-align: center;
+  line-height: 1.1;
+  word-break: break-word;
+  pointer-events: none;
+}
+.palette-check {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 9px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,1);
+}
+.color-conflict { font-size: 12px; color: #ff4444; font-weight: 700; letter-spacing: 0.03em; margin-top: 2px; }
 
 .emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
 .emoji-btn { width: 50px; height: 50px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-size: 24px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; touch-action: pan-y; }
