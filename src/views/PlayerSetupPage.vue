@@ -25,6 +25,19 @@
           </div>
 
           <div class="field">
+            <label class="label">Player Color</label>
+            <div class="color-picker-row">
+              <label class="color-wheel-swatch" :style="{ background: color, boxShadow: `0 0 18px ${color}90` }">
+                <input type="color" v-model="color" class="color-wheel-input" />
+              </label>
+              <div class="color-picker-info">
+                <span class="color-hex">{{ color.toUpperCase() }}</span>
+                <span v-if="colorConflict" class="color-conflict">Already used by {{ colorConflict }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
             <label class="label">Avatar</label>
             <div class="photo-area">
               <div class="photo-preview" :style="{ background: color, boxShadow: `0 0 20px ${color}60` }">
@@ -109,22 +122,6 @@
             </div>
           </div>
 
-          <div class="field">
-            <label class="label">Cricket Number Color</label>
-            <div class="color-swatch-row">
-              <button
-                v-for="c in TARGET_LABEL_COLORS" :key="String(c.value)"
-                v-ripple class="color-swatch-btn"
-                :class="{ active: targetLabelColor === c.value }"
-                :style="c.value ? { background: c.value, border: '2px solid ' + c.value } : {}"
-                @click="targetLabelColor = c.value ?? null"
-              >
-                <span v-if="!c.value" class="swatch-auto">Auto</span>
-                <span v-if="targetLabelColor === c.value && c.value" class="swatch-check" :style="{ color: c.value === '#000000' ? '#fff' : '#000' }">✓</span>
-              </button>
-            </div>
-          </div>
-
         </div>
       </div>
 
@@ -203,6 +200,11 @@ import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { PRESET_AVATARS, PLAYER_THEMES, TARGET_LABEL_COLORS, type Player } from '../types/index'
 
+const PLAYER_COLOR_PALETTE = [
+  '#ff2d78', '#00d4ff', '#aaff00', '#ff6b1a',
+  '#bf5fff', '#ffd700', '#ff4444', '#00ffaa',
+]
+
 const router = useRouter()
 const route = useRoute()
 const playersStore = usePlayersStore()
@@ -212,9 +214,24 @@ const sortedPlayers = computed(() =>
   [...playersStore.players].sort((a, b) => Number(b.pinned) - Number(a.pinned))
 )
 
+function nextAvailableColor(excludeId: string | null = null): string {
+  const used = new Set(
+    playersStore.players
+      .filter(p => p.id !== excludeId)
+      .map(p => p.color.toLowerCase())
+  )
+  return PLAYER_COLOR_PALETTE.find(c => !used.has(c.toLowerCase())) ?? PLAYER_COLOR_PALETTE[0]!
+}
+
 const editingId = ref<string | null>(null)
 const name = ref('')
-const color = ref<string>('#ff2d78')
+const color = ref<string>(nextAvailableColor())
+const colorConflict = computed(() => {
+  const match = playersStore.players.find(
+    p => p.id !== editingId.value && p.color.toLowerCase() === color.value.toLowerCase()
+  )
+  return match?.name ?? null
+})
 const avatarUrl = ref<string | null>(null)
 const avatarMode = ref<'emoji' | 'photo'>('photo')
 const photoPreview = ref<string | null>(null)
@@ -312,7 +329,7 @@ function closeCamera() {
   stream = null
 }
 function resetForm() {
-  editingId.value = null; name.value = ''; color.value = '#ff2d78'; avatarUrl.value = null
+  editingId.value = null; name.value = ''; color.value = nextAvailableColor(); avatarUrl.value = null
   photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; bgSize.value = null; bgPosition.value = null; bgFill.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null; saving.value = false
 }
 function loadPlayer(p: Player) {
@@ -390,12 +407,12 @@ function save() {
 .bg-preview { width: 80px; height: 80px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 
 .field-hint { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.4; }
-.color-swatch-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.color-swatch-btn { width: 44px; height: 44px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; transition: all 0.15s; overflow: hidden; }
-.color-swatch-btn:hover { transform: scale(1.08); border-color: rgba(255,255,255,0.4); }
-.color-swatch-btn.active { border-color: #fff; transform: scale(1.12); box-shadow: 0 0 10px rgba(255,255,255,0.3); }
-.swatch-auto { font-size: 9px; font-weight: 800; letter-spacing: 0.05em; color: rgba(255,255,255,0.6); text-transform: uppercase; }
-.swatch-check { font-size: 14px; font-weight: 900; position: absolute; }
+.color-picker-row { display: flex; align-items: center; gap: 16px; }
+.color-wheel-swatch { width: 56px; height: 56px; border-radius: 50%; cursor: pointer; display: block; flex-shrink: 0; transition: box-shadow 0.2s; border: 3px solid rgba(255,255,255,0.25); position: relative; overflow: hidden; }
+.color-wheel-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.color-picker-info { display: flex; flex-direction: column; gap: 4px; }
+.color-hex { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.6); font-family: monospace; letter-spacing: 0.08em; }
+.color-conflict { font-size: 12px; color: #ff4444; font-weight: 700; letter-spacing: 0.03em; }
 
 .emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
 .emoji-btn { width: 50px; height: 50px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-size: 24px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; touch-action: pan-y; }
