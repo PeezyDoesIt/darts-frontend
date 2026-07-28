@@ -26,19 +26,23 @@
 
           <div class="field">
             <label class="label">Player Color</label>
-            <div class="color-palette-grid">
-              <button
-                v-for="c in COLOR_PALETTE" :key="c.value"
-                class="palette-swatch"
-                :class="{ active: color.toLowerCase() === c.value.toLowerCase() }"
-                :style="{ background: c.value }"
-                @click="color = c.value"
-              >
-                <span class="palette-name">{{ c.name }}</span>
-                <span v-if="color.toLowerCase() === c.value.toLowerCase()" class="palette-check">✓</span>
-              </button>
+            <div class="palette-diamond-wrap">
+              <div class="palette-diamond-grid">
+                <button
+                  v-for="c in COLOR_PALETTE" :key="c.value"
+                  class="palette-swatch"
+                  :class="{ active: color.toLowerCase() === c.value.toLowerCase() }"
+                  :style="{ background: c.value }"
+                  :title="c.name"
+                  @click="color = c.value"
+                />
+              </div>
             </div>
-            <span v-if="colorConflict" class="color-conflict">⚠ Already used by {{ colorConflict }}</span>
+            <div class="palette-selected-row">
+              <span class="palette-selected-dot" :style="{ background: color, boxShadow: `0 0 10px ${color}` }" />
+              <span class="palette-selected-label">{{ COLOR_PALETTE.find(c => c.value.toLowerCase() === color.toLowerCase())?.name ?? color }}</span>
+              <span v-if="colorConflict" class="color-conflict">⚠ Already used by {{ colorConflict }}</span>
+            </div>
           </div>
 
           <div class="field">
@@ -476,6 +480,11 @@ function save() {
       router.push('/game')
       return
     }
+    if (route.query.from === 'new-game') {
+      resetForm()
+      router.push({ path: '/new-game', query: { step: '2' } })
+      return
+    }
   }
   resetForm()
   router.back()
@@ -519,52 +528,57 @@ function save() {
 .bg-preview { width: 80px; height: 80px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 
 .field-hint { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.4; }
-.color-palette-grid {
+.palette-diamond-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 340px;
+}
+.palette-diamond-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 3px;
+  grid-template-columns: repeat(10, 24px);
+  grid-auto-rows: 24px;
+  gap: 2px;
+  transform: rotate(45deg);
+  flex-shrink: 0;
 }
 .palette-swatch {
-  aspect-ratio: 1.5;
-  border-radius: 5px;
-  border: 2px solid transparent;
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid rgba(0,0,0,0.25);
   cursor: pointer;
+  border-radius: 0;
   position: relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 2px;
-  transition: transform 0.1s, border-color 0.1s, box-shadow 0.1s;
-  overflow: hidden;
+  transition: border-color 0.1s, box-shadow 0.1s;
 }
-.palette-swatch:hover { transform: scale(1.08); border-color: rgba(255,255,255,0.5); z-index: 1; }
+.palette-swatch:hover { border-color: rgba(255,255,255,0.85); z-index: 1; }
 .palette-swatch.active {
   border-color: #ffffff;
-  transform: scale(1.08);
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.6), 0 0 10px rgba(255,255,255,0.3);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.9), 0 0 14px rgba(255,255,255,0.5);
   z-index: 2;
 }
-.palette-name {
-  font-size: 7px;
-  font-weight: 800;
-  color: #fff;
-  text-shadow: 0 1px 4px rgba(0,0,0,1), 0 0 6px rgba(0,0,0,0.8);
-  letter-spacing: 0.02em;
-  text-align: center;
-  line-height: 1.1;
-  word-break: break-word;
-  pointer-events: none;
+.palette-selected-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
 }
-.palette-check {
-  position: absolute;
-  top: 2px;
-  right: 3px;
-  font-size: 9px;
-  font-weight: 900;
-  color: #fff;
-  text-shadow: 0 1px 4px rgba(0,0,0,1);
+.palette-selected-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  flex-shrink: 0;
+  display: block;
 }
-.color-conflict { font-size: 12px; color: #ff4444; font-weight: 700; letter-spacing: 0.03em; margin-top: 2px; }
+.palette-selected-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.color-conflict { font-size: 12px; color: #ff4444; font-weight: 700; }
 
 .emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
 .emoji-btn { width: 50px; height: 50px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-size: 24px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; touch-action: pan-y; }

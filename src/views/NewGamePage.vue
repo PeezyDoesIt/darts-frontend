@@ -86,7 +86,7 @@
     <div v-if="currentStep === 2" class="step-pane">
       <div class="step2-header">
         <h1 class="step-title display" style="margin:0">ADD PLAYERS</h1>
-        <button v-ripple class="btn btn-outline btn-sm" @click="router.push('/player-setup')">+ Add New</button>
+        <button v-ripple class="btn btn-outline btn-sm" @click="router.push('/player-setup?from=new-game')">+ Add New</button>
       </div>
 
       <div class="player-count-indicator">
@@ -329,7 +329,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
@@ -361,11 +361,12 @@ const GAME_TYPE_DESCRIPTIONS: Record<string, string> = {
 }
 
 const router = useRouter()
+const route = useRoute()
 const playersStore = usePlayersStore()
 const gameStore = useGameStore()
 
-// Wizard step
-const currentStep = ref(1)
+// Wizard step — read from ?step= query param so returning from player setup lands on step 2
+const currentStep = ref(route.query.step ? Number(route.query.step) : 1)
 const showAdvanced = ref(false)
 
 const selectedGameType = ref<GameType | null>('cricket')
