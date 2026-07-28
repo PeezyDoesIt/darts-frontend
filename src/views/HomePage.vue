@@ -129,6 +129,13 @@
       </div>
 
       <div class="home-actions">
+        <div v-if="hasActiveGame" class="resume-banner">
+          <div class="resume-info">
+            <span class="resume-label">GAME IN PROGRESS</span>
+            <span class="resume-sub">{{ GAME_TYPE_LABELS[gameStore.game!.gameType] }} · {{ gameStore.game!.players.length }} players</span>
+          </div>
+          <button v-ripple class="btn btn-spray btn-lg" @click="router.push('/game')">Resume →</button>
+        </div>
         <button v-ripple class="btn btn-spray btn-xl w-full" @click="unlockAudio(); playStartChime(); router.push('/new-game')">
           START NEW GAME
         </button>
@@ -151,11 +158,18 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSettingsStore } from '../stores/settings'
+import { useGameStore } from '../stores/game'
+import { GAME_TYPE_LABELS } from '../types/index'
 import { speak, speakOhBaby, getAvailableVoices, type VoiceOption } from '../composables/useSpeech'
 import { playShotgun, playBuzzer, playStartChime, unlockAudio } from '../composables/useSounds'
 
 const router = useRouter()
 const settingsStore = useSettingsStore()
+const gameStore = useGameStore()
+const hasActiveGame = computed(() => {
+  const g = gameStore.game
+  return g !== null && (g.status === 'playing' || g.status === 'between_turns')
+})
 
 
 const showSettings = ref(false)
@@ -396,4 +410,19 @@ function previewBullseyeSound(value: string) {
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+.resume-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(255,45,120,0.1);
+  border: 1px solid rgba(255,45,120,0.45);
+  border-radius: 12px;
+  padding: 14px 18px;
+  width: 100%;
+}
+.resume-info { display: flex; flex-direction: column; gap: 2px; }
+.resume-label { font-size: 14px; font-weight: 800; letter-spacing: 0.08em; color: var(--pink); font-family: var(--font-display); }
+.resume-sub { font-size: 12px; color: rgba(255,255,255,0.5); }
 </style>

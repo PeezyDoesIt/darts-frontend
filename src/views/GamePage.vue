@@ -364,7 +364,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
@@ -405,6 +405,26 @@ function personalityOpts() {
 
 const game = computed(() => gameStore.game)
 const confirmQuit = ref(false)
+const intentionalQuit = ref(false)
+
+function handleBeforeUnload(e: BeforeUnloadEvent) {
+  if (game.value?.status === 'playing' || game.value?.status === 'between_turns') {
+    e.preventDefault()
+    e.returnValue = ''
+  }
+}
+
+onBeforeRouteLeave((to, _from, next) => {
+  // Allow navigation that is part of the normal game flow
+  const gameFlowRoutes = ['/between', '/win', '/game']
+  if (intentionalQuit.value || !game.value || game.value.status === 'finished' || gameFlowRoutes.includes(to.path)) {
+    next()
+    return
+  }
+  // Block and show the existing confirm dialog
+  confirmQuit.value = true
+  next(false)
+})
 const showAllScores = ref(false)
 const showAddPlayer = ref(false)
 const marksLayout = ref<'top' | 'right'>(
@@ -538,7 +558,11 @@ function handleNumpadSubmit(score: number) {
   }, isBust ? 3000 : 4000)
 }
 
-function quitGame() { gameStore.endGame(); router.push('/') }
+function quitGame() {
+  intentionalQuit.value = true
+  gameStore.endGame()
+  router.push('/')
+}
 
 function navigateToBetween() {
   if (game.value?.skipWalkup) {
@@ -666,10 +690,12 @@ function scrollActivePlayerIntoView() {
 onMounted(() => {
   if (game.value?.status === 'playing') startThrowTimer()
   scrollActivePlayerIntoView()
+  window.addEventListener('beforeunload', handleBeforeUnload)
 })
 onUnmounted(() => {
   clearThrowTimer()
   if (revealTimeout) clearTimeout(revealTimeout)
+  window.removeEventListener('beforeunload', handleBeforeUnload)
 })
 
 watch(() => game.value?.status, (status) => {

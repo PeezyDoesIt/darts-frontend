@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { v4 as uuid } from 'uuid'
 import type { ActiveGame, GameType, Player, PlayerScore, CricketTarget } from '../types/index'
 import { CRICKET_TARGETS } from '../types/index'
@@ -35,11 +35,26 @@ function initScore(gameType: GameType, players: Player[]): Record<string, Player
   return scores
 }
 
-// Clear any previously saved game data
-localStorage.removeItem('darts_active_game')
-
 export const useGameStore = defineStore('game', () => {
-  const game = ref<ActiveGame | null>(null)
+  const SAVE_KEY = 'darts_active_game'
+  function loadSavedGame(): ActiveGame | null {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY)
+      if (!raw) return null
+      const parsed = JSON.parse(raw) as ActiveGame
+      // Only restore in-progress games
+      if (parsed.status !== 'playing' && parsed.status !== 'between_turns') return null
+      return parsed
+    } catch { return null }
+  }
+  const game = ref<ActiveGame | null>(loadSavedGame())
+  watch(game, (val) => {
+    if (val && (val.status === 'playing' || val.status === 'between_turns')) {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(val))
+    } else {
+      localStorage.removeItem(SAVE_KEY)
+    }
+  }, { deep: true })
   const lastTurnWasZero = ref(false)
   const lastTurnWasTimeout = ref(false)
   const lastTurnHadBull = ref(false)
@@ -379,6 +394,7 @@ export const useGameStore = defineStore('game', () => {
 
   function endGame() {
     game.value = null
+    localStorage.removeItem(SAVE_KEY)
   }
 
   return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, setTimerDuration, setThrowTimerDuration, setRoundLimit, endGame }
