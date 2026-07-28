@@ -73,13 +73,6 @@
         </div>
       </section>
 
-      <button
-        v-ripple
-        class="btn btn-spray btn-lg next-btn"
-        :class="{ 'btn-blocked': !selectedGameType }"
-        :disabled="!selectedGameType"
-        @click="selectedGameType ? currentStep = 2 : null"
-      >NEXT →</button>
     </div>
 
     <!-- STEP 2: PLAYERS -->
@@ -141,13 +134,6 @@
         </div>
       </section>
 
-      <button
-        v-ripple
-        class="btn btn-spray btn-lg next-btn"
-        :class="{ 'btn-blocked': selectedPlayers.length < 2 }"
-        :disabled="selectedPlayers.length < 2"
-        @click="selectedPlayers.length >= 2 ? currentStep = 3 : null"
-      >NEXT →</button>
     </div>
 
     <!-- STEP 3: SETTINGS -->
@@ -316,6 +302,25 @@
       </div>
 
       <button
+        v-if="currentStep === 1"
+        v-ripple
+        class="btn btn-spray start-btn"
+        :class="{ 'btn-blocked': !selectedGameType }"
+        :disabled="!selectedGameType"
+        @click="selectedGameType ? currentStep = 2 : null"
+      >NEXT →</button>
+
+      <button
+        v-else-if="currentStep === 2"
+        v-ripple
+        class="btn btn-spray start-btn"
+        :class="{ 'btn-blocked': selectedPlayers.length < 2 }"
+        :disabled="selectedPlayers.length < 2"
+        @click="selectedPlayers.length >= 2 ? currentStep = 3 : null"
+      >NEXT →</button>
+
+      <button
+        v-else
         v-ripple
         class="btn btn-spray start-btn"
         :class="{ 'btn-blocked': selectedPlayers.length < 2 || !selectedGameType }"
@@ -836,11 +841,6 @@ function startGame() {
 .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); }
 .hint { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
 
-/* Next button */
-.next-btn {
-  margin-top: auto;
-  width: 100%;
-}
 .btn-blocked { opacity: 0.5; }
 .btn-outline { color: #ffffff !important; font-weight: 700 !important; border: 2px solid #ffffff !important; }
 .btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
