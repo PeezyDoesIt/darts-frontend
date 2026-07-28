@@ -11,7 +11,7 @@
           class="step-dot"
           :class="{ active: currentStep === n, done: currentStep > n }"
           :disabled="currentStep <= n"
-          @click="if (currentStep > n) currentStep = n"
+          @click="currentStep > n ? currentStep = n : null"
         >
           <span v-if="currentStep > n" class="dot-check">✓</span>
         </button>
@@ -78,7 +78,7 @@
         class="btn btn-spray btn-lg next-btn"
         :class="{ 'btn-blocked': !selectedGameType }"
         :disabled="!selectedGameType"
-        @click="if (selectedGameType) currentStep = 2"
+        @click="selectedGameType ? currentStep = 2 : null"
       >NEXT →</button>
     </div>
 
@@ -146,7 +146,7 @@
         class="btn btn-spray btn-lg next-btn"
         :class="{ 'btn-blocked': selectedPlayers.length < 2 }"
         :disabled="selectedPlayers.length < 2"
-        @click="if (selectedPlayers.length >= 2) currentStep = 3"
+        @click="selectedPlayers.length >= 2 ? currentStep = 3 : null"
       >NEXT →</button>
     </div>
 
