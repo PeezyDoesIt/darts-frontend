@@ -92,27 +92,28 @@
         <button v-ripple class="link-btn" @click="router.push('/player-setup')">Add one →</button>
       </div>
 
-      <div v-else class="player-grid">
+      <div v-else class="player-bubble-grid">
         <div
           v-for="p in sortedPlayers" :key="p.id"
           v-ripple
-          class="player-tile"
+          class="player-bubble"
           :class="{ selected: isSelected(p.id) }"
-          :style="{ '--tile-color': p.color }"
           @click="togglePlayer(p)"
         >
-          <div class="tile-avatar" :style="{ background: p.color, boxShadow: isSelected(p.id) ? `0 0 18px ${p.color}` : '0 0 0px transparent' }">
+          <div
+            class="bubble-avatar"
+            :style="{
+              background: p.color,
+              boxShadow: isSelected(p.id)
+                ? `0 0 0 3px ${p.color}, 0 0 20px ${p.color}80`
+                : `0 0 0 2px rgba(255,255,255,0.08)`
+            }"
+          >
             <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
             <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
           </div>
-          <div class="tile-info">
-            <span class="tile-name">{{ p.name }}</span>
-            <span class="tile-stats">{{ p.wins }}W · {{ p.gamesPlayed }}G</span>
-          </div>
-          <div class="tile-check" :style="isSelected(p.id) ? { background: p.color, borderColor: p.color, boxShadow: `0 0 10px ${p.color}80` } : {}">
-            <span v-if="isSelected(p.id)" style="color:#000">✓</span>
-          </div>
-          <span v-if="p.pinned" class="pin-badge">📌</span>
+          <span class="bubble-name" :style="isSelected(p.id) ? { color: p.color } : {}">{{ p.name }}</span>
+          <span v-if="p.pinned" class="bubble-pin">📌</span>
         </div>
       </div>
 
@@ -121,7 +122,7 @@
         <div class="order-list">
           <div v-for="(p, i) in selectedPlayers" :key="p.id" class="order-row" :style="{ borderLeftColor: p.color }">
             <span class="order-num display" :style="{ color: p.color }">{{ i + 1 }}</span>
-            <div class="tile-avatar sm" :style="{ background: p.color }">
+            <div class="order-avatar" :style="{ background: p.color }">
               <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
               <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
             </div>
@@ -639,49 +640,59 @@ function startGame() {
 .empty-players { color: var(--text-muted); font-size: 14px; display: flex; gap: 8px; align-items: center; }
 .link-btn { background: none; border: none; color: var(--pink); cursor: pointer; font-size: 14px; font-weight: 700; }
 
-.player-grid {
+/* ===== PLAYER BUBBLES ===== */
+.player-bubble-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px 12px;
 }
-.player-tile {
+.player-bubble {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s;
+}
+.player-bubble:hover { transform: scale(1.05); }
+.player-bubble.selected { transform: scale(1.08); }
+.bubble-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  background: rgba(255,255,255,0.03);
-  border: 2px solid rgba(255,255,255,0.06);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
+  justify-content: center;
+  font-size: 36px;
   overflow: hidden;
+  flex-shrink: 0;
+  transition: box-shadow 0.2s;
 }
-.player-tile::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: rgba(255,255,255,0.1);
-  transition: background 0.2s;
+.bubble-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.bubble-name {
+  font-size: 12px;
+  font-weight: 800;
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: rgba(255,255,255,0.55);
+  transition: color 0.2s;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.player-tile:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
-.player-tile.selected::before { background: var(--tile-color, var(--pink)); }
-.player-tile.selected { border-color: var(--tile-color, var(--pink)); background: rgba(255,255,255,0.05); }
-
-.tile-avatar { width: 52px; height: 52px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; overflow: hidden; transition: box-shadow 0.2s; border: 2px solid rgba(255,255,255,0.15); }
-.tile-avatar.sm { width: 30px; height: 30px; font-size: 15px; border-radius: 4px; border: none; flex-shrink: 0; }
-.tile-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.tile-info { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.tile-name { font-size: 16px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; }
-.tile-stats { font-size: 11px; color: var(--text-muted); font-weight: 600; }
-.tile-check { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: #000; border: 2px solid rgba(255,255,255,0.1); transition: all 0.15s; font-family: var(--font-display); flex-shrink: 0; }
-.pin-badge { position: absolute; top: 6px; right: 6px; font-size: 10px; opacity: 0.6; }
+.player-bubble.selected .bubble-name { color: inherit; }
+.bubble-pin { position: absolute; top: -2px; right: 4px; font-size: 10px; }
 
 /* Play order */
 .order-section { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; }
 .order-list { display: flex; flex-direction: column; gap: 8px; }
 .order-row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid rgba(255,255,255,0.1); border-radius: 8px; }
+.order-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; overflow: hidden; }
+.order-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .order-num { font-size: 28px; font-family: var(--font-display); width: 28px; text-align: center; }
 .order-name { flex: 1; font-size: 16px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; }
 .order-btns { display: flex; gap: 6px; }
@@ -894,5 +905,10 @@ function startGame() {
   font-family: var(--font-display);
   flex-shrink: 0;
   white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .player-bubble-grid { grid-template-columns: repeat(3, 1fr); gap: 16px 8px; }
+  .bubble-avatar { width: 60px; height: 60px; font-size: 28px; }
 }
 </style>
