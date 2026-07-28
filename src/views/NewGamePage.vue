@@ -23,19 +23,55 @@
     <div v-if="currentStep === 1" class="step-pane">
       <h1 class="step-title display">PICK A GAME</h1>
 
-      <div class="game-type-grid">
-        <button
-          v-for="type in GAME_TYPE_ORDER" :key="type"
-          v-ripple
-          class="game-type-card"
-          :class="{ active: selectedGameType === type }"
-          @click="selectedGameType = type"
-        >{{ GAME_TYPE_LABELS[type] }}</button>
+      <div class="game-type-pills">
+        <div class="game-type-row">
+          <button
+            v-for="type in GAME_TYPE_ROW1" :key="type"
+            v-ripple
+            class="game-type-pill"
+            :class="{ active: selectedGameType === type }"
+            @click="selectedGameType = type"
+          >{{ GAME_TYPE_LABELS[type] }}</button>
+        </div>
+        <div class="game-type-row">
+          <button
+            v-for="type in GAME_TYPE_ROW2" :key="type"
+            v-ripple
+            class="game-type-pill"
+            :class="{ active: selectedGameType === type }"
+            @click="selectedGameType = type"
+          >{{ GAME_TYPE_LABELS[type] }}</button>
+        </div>
       </div>
 
       <p v-if="selectedGameType" class="game-type-caption">
         {{ GAME_TYPE_DESCRIPTIONS[selectedGameType] }}
       </p>
+
+      <!-- Walk-up Timer -->
+      <section class="ng-section">
+        <span class="label">Walk-up Timer</span>
+        <div class="large-timer-options">
+          <button v-ripple class="large-timer-btn" :class="{ active: timerDuration === 0 }" @click="setWalkUp(0)">Off</button>
+          <button v-for="t in timerOptions" :key="t" v-ripple class="large-timer-btn" :class="{ active: timerDuration === t }" @click="setWalkUp(t)">{{ t }}s</button>
+          <div class="custom-time-bubble" :class="{ active: timerDuration !== 0 && !timerOptions.includes(timerDuration) }">
+            <input type="number" class="custom-time-input" v-model="walkUpInput" min="1" max="600" placeholder="—" @change="onWalkUpInput(walkUpInput)" @focus="($event.target as HTMLInputElement).select()" />
+            <span class="custom-time-unit">s</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Throw Timer -->
+      <section class="ng-section">
+        <span class="label">Throw Timer</span>
+        <div class="large-timer-options">
+          <button v-for="t in throwTimerOptions" :key="t" v-ripple class="large-timer-btn" :class="{ active: throwTimerDuration === t }" @click="setThrow(t)">{{ t === 0 ? 'Off' : t + 's' }}</button>
+          <div class="custom-time-bubble" :class="{ active: throwTimerDuration !== 0 && !throwTimerOptions.includes(throwTimerDuration) }">
+            <input type="number" class="custom-time-input" v-model="throwInput" min="1" max="600" placeholder="—" @change="onThrowInput(throwInput)" @focus="($event.target as HTMLInputElement).select()" />
+            <span class="custom-time-unit">s</span>
+          </div>
+        </div>
+      </section>
 
       <button
         v-ripple
@@ -117,31 +153,6 @@
     <!-- STEP 3: SETTINGS -->
     <div v-if="currentStep === 3" class="step-pane">
       <h1 class="step-title display">SETTINGS</h1>
-
-      <!-- Walk-up Timer -->
-      <section class="ng-section">
-        <span class="label">Walk-up Timer</span>
-        <div class="large-timer-options">
-          <button v-ripple class="large-timer-btn" :class="{ active: timerDuration === 0 }" @click="setWalkUp(0)">Off</button>
-          <button v-for="t in timerOptions" :key="t" v-ripple class="large-timer-btn" :class="{ active: timerDuration === t }" @click="setWalkUp(t)">{{ t }}s</button>
-          <div class="custom-time-bubble" :class="{ active: timerDuration !== 0 && !timerOptions.includes(timerDuration) }">
-            <input type="number" class="custom-time-input" v-model="walkUpInput" min="1" max="600" placeholder="—" @change="onWalkUpInput(walkUpInput)" @focus="($event.target as HTMLInputElement).select()" />
-            <span class="custom-time-unit">s</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Throw Timer -->
-      <section class="ng-section">
-        <span class="label">Throw Timer</span>
-        <div class="large-timer-options">
-          <button v-for="t in throwTimerOptions" :key="t" v-ripple class="large-timer-btn" :class="{ active: throwTimerDuration === t }" @click="setThrow(t)">{{ t === 0 ? 'Off' : t + 's' }}</button>
-          <div class="custom-time-bubble" :class="{ active: throwTimerDuration !== 0 && !throwTimerOptions.includes(throwTimerDuration) }">
-            <input type="number" class="custom-time-input" v-model="throwInput" min="1" max="600" placeholder="—" @change="onThrowInput(throwInput)" @focus="($event.target as HTMLInputElement).select()" />
-            <span class="custom-time-unit">s</span>
-          </div>
-        </div>
-      </section>
 
       <!-- Skip Walk-up Toggle -->
       <section class="ng-section">
@@ -323,6 +334,9 @@ import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
 import { GAME_TYPE_LABELS, GAME_TYPE_ORDER, PLAYER_THEMES, type GameType, type Player } from '../types/index'
+
+const GAME_TYPE_ROW1: GameType[] = ['cricket', 'speedCricket', 'aroundTheClock', 'killer', 'horse']
+const GAME_TYPE_ROW2: GameType[] = ['301', '501', '701', '1001']
 
 const settingsStore = useSettingsStore()
 
@@ -529,8 +543,8 @@ function startGame() {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 75vw;
-  margin: 0 auto 0 32px;
+  max-width: 88vw;
+  margin: 0 auto 0 16px;
   width: 100%;
 }
 
@@ -546,35 +560,35 @@ function startGame() {
 }
 
 /* ===== STEP 1: GAME TYPE ===== */
-.game-type-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 10px;
-}
-.game-type-card {
-  padding: 16px;
-  border-radius: 10px;
+.game-type-pills { display: flex; flex-direction: column; gap: 8px; }
+.game-type-row { display: flex; gap: 8px; }
+.game-type-pill {
+  flex: 1;
+  padding: 10px 6px;
+  border-radius: 24px;
   border: 2px solid rgba(255,255,255,0.15);
   background: rgba(255,255,255,0.04);
-  color: #ffffff;
-  font-size: 16px;
+  color: #fff;
+  font-size: 13px;
   font-weight: 800;
   font-family: var(--font-display);
   cursor: pointer;
   transition: all 0.15s;
-  position: relative;
-  overflow: hidden;
   text-align: center;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.game-type-card:hover {
+.game-type-pill:hover {
   border-color: rgba(255,255,255,0.35);
   background: rgba(255,255,255,0.08);
 }
-.game-type-card.active {
+.game-type-pill.active {
   border-color: var(--pink);
   color: var(--pink);
   background: rgba(255,45,120,0.12);
+  box-shadow: 0 0 12px rgba(255,45,120,0.2);
 }
 
 .game-type-caption {
