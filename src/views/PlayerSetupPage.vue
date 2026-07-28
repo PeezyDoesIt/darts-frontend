@@ -26,21 +26,33 @@
 
           <div class="field">
             <label class="label">Player Color</label>
-            <div class="palette-diamond-wrap">
-              <div class="palette-diamond-grid">
-                <button
-                  v-for="c in COLOR_PALETTE" :key="c.value"
-                  class="palette-swatch"
-                  :class="{ active: color.toLowerCase() === c.value.toLowerCase() }"
-                  :style="{ background: c.value }"
-                  :title="c.name"
-                  @click="color = c.value"
-                />
-              </div>
+            <div class="color-wheel-wrap">
+              <svg class="color-wheel-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  v-for="(cell, idx) in wheelCells" :key="idx"
+                  :d="cell.path"
+                  :fill="cell.value"
+                  class="wheel-cell"
+                  :class="{ 'wheel-active': color.toLowerCase() === cell.value.toLowerCase() }"
+                  @click="color = cell.value"
+                >
+                  <title>{{ cell.name }}</title>
+                </path>
+                <text
+                  v-for="(cell, idx) in wheelCells.filter(c => c.ring >= 3)"
+                  :key="`t${idx}`"
+                  :x="cell.lx" :y="cell.ly"
+                  :transform="`rotate(${cell.lrot},${cell.lx},${cell.ly})`"
+                  class="wheel-label"
+                  :font-size="cell.ring === 3 ? '5.5' : cell.ring === 4 ? '6.5' : '7'"
+                  text-anchor="middle" dominant-baseline="middle"
+                >{{ cell.name }}</text>
+                <circle cx="200" cy="200" r="32" fill="#0a0a0a" />
+              </svg>
             </div>
             <div class="palette-selected-row">
               <span class="palette-selected-dot" :style="{ background: color, boxShadow: `0 0 10px ${color}` }" />
-              <span class="palette-selected-label">{{ COLOR_PALETTE.find(c => c.value.toLowerCase() === color.toLowerCase())?.name ?? color }}</span>
+              <span class="palette-selected-label">{{ selectedColorName }}</span>
               <span v-if="colorConflict" class="color-conflict">⚠ Already used by {{ colorConflict }}</span>
             </div>
           </div>
@@ -213,113 +225,139 @@ const PLAYER_COLOR_PALETTE = [
   '#bf5fff', '#ffd700', '#ff4444', '#00ffaa',
 ]
 
-const COLOR_PALETTE = [
-  // Blacks & dark neutrals
-  { name: 'Black',       value: '#0a0a0a' },
-  { name: 'Onyx',        value: '#353839' },
-  { name: 'Charcoal',    value: '#36454f' },
-  { name: 'Graphite',    value: '#555555' },
-  { name: 'Slate',       value: '#708090' },
-  { name: 'Silver',      value: '#c0c0c0' },
-  // Deep blues
-  { name: 'Midnight',    value: '#191970' },
-  { name: 'Navy',        value: '#001f5b' },
-  { name: 'Marine',      value: '#00308f' },
-  { name: 'Prussian',    value: '#003153' },
-  { name: 'Indigo',      value: '#4b0082' },
-  { name: 'Ultramarine', value: '#3f00ff' },
-  // Blues
-  { name: 'Royal Blue',  value: '#4169e1' },
-  { name: 'Cobalt',      value: '#0047ab' },
-  { name: 'Sapphire',    value: '#0f52ba' },
-  { name: 'Steel Blue',  value: '#4682b4' },
-  { name: 'Cornflower',  value: '#6495ed' },
-  { name: 'Cerulean',    value: '#007ba7' },
-  // Light blues
-  { name: 'Sky',         value: '#87ceeb' },
-  { name: 'Powder Blue', value: '#b0e0e6' },
-  { name: 'Baby Blue',   value: '#89cff0' },
-  { name: "Robin's Egg", value: '#1fcecb' },
-  { name: 'Ice',         value: '#d0e8f5' },
-  { name: 'Cyan',        value: '#00bcd4' },
-  // Teals & aquas
-  { name: 'Teal',        value: '#008080' },
-  { name: 'Sea Blue',    value: '#006994' },
-  { name: 'Aquamarine',  value: '#00b5cc' },
-  { name: 'Seafoam',     value: '#93e9be' },
-  { name: 'Jade',        value: '#00a86b' },
-  { name: 'Mint',        value: '#98ff98' },
-  // Greens
-  { name: 'Evergreen',   value: '#05472a' },
-  { name: 'Racing',      value: '#0e3b1a' },
-  { name: 'Forest',      value: '#228b22' },
-  { name: 'Hunter',      value: '#355e3b' },
-  { name: 'Green',       value: '#008000' },
-  { name: 'Emerald',     value: '#50c878' },
-  // Light greens
-  { name: 'Kelly',       value: '#4cbb17' },
-  { name: 'Lime',        value: '#32cd32' },
-  { name: 'Spring',      value: '#00ff7f' },
-  { name: 'Chartreuse',  value: '#7fff00' },
-  { name: 'Pear',        value: '#d1e231' },
-  { name: 'Cream',       value: '#fffdd0' },
-  // Yellows & golds
-  { name: 'Canary',      value: '#fff44f' },
-  { name: 'Yellow',      value: '#ffff00' },
-  { name: 'Gold',        value: '#ffd700' },
-  { name: 'Amber',       value: '#ffbf00' },
-  { name: 'Ochre',       value: '#cc7722' },
-  { name: 'Tan',         value: '#d2b48c' },
-  // Oranges
-  { name: 'Peach',       value: '#ffcba4' },
-  { name: 'Coral',       value: '#ff7f50' },
-  { name: 'Orange',      value: '#ff6600' },
-  { name: 'Burnt Org',   value: '#cc5500' },
-  { name: 'Copper',      value: '#b87333' },
-  { name: 'Rust',        value: '#b7410e' },
-  // Reds
-  { name: 'Salmon',      value: '#fa8072' },
-  { name: 'Scarlet',     value: '#ff2400' },
-  { name: 'Red',         value: '#cc0000' },
-  { name: 'Crimson',     value: '#dc143c' },
-  { name: 'Brick',       value: '#cb4154' },
-  { name: 'Carmine',     value: '#960018' },
-  // Dark reds & browns
-  { name: 'Ruby',        value: '#9b111e' },
-  { name: 'Maroon',      value: '#800000' },
-  { name: 'Burgundy',    value: '#800020' },
-  { name: 'Wine',        value: '#722f37' },
-  { name: 'Chestnut',    value: '#954535' },
-  { name: 'Mahogany',    value: '#c04000' },
-  // Browns
-  { name: 'Sienna',      value: '#a0522d' },
-  { name: 'Chocolate',   value: '#7b3f00' },
-  { name: 'Hickory',     value: '#6b3a2a' },
-  { name: 'Sepia',       value: '#704214' },
-  { name: 'Roast',       value: '#4b2612' },
-  { name: 'Espresso',    value: '#2c1503' },
-  // Purples
-  { name: 'Eggplant',    value: '#380028' },
-  { name: 'Grape',       value: '#6f2da8' },
-  { name: 'Purple',      value: '#800080' },
-  { name: 'Royal Purp',  value: '#7851a9' },
-  { name: 'Violet',      value: '#8f00ff' },
-  { name: 'Mulberry',    value: '#c54b8c' },
-  // Lavenders & pinks
-  { name: 'Orchid',      value: '#da70d6' },
-  { name: 'Lavender',    value: '#9370db' },
-  { name: 'Thistle',     value: '#d8bfd8' },
-  { name: 'Plum',        value: '#dda0dd' },
-  { name: 'Magenta',     value: '#ff00ff' },
-  { name: 'Blush',       value: '#de5d83' },
-  // Pinks
-  { name: 'Raspberry',   value: '#e30b5c' },
-  { name: 'Rose',        value: '#ff007f' },
-  { name: 'Hot Pink',    value: '#ff69b4' },
-  { name: 'Candy Pink',  value: '#ff63b8' },
-  { name: 'Baby Pink',   value: '#f4c2c2' },
-  { name: 'White',       value: '#f0f0f0' },
+// 2D color wheel: WHEEL_DATA[ring][segment]
+// ring 0 = innermost/darkest, ring 5 = outermost/lightest
+// 12 segments clockwise from top: Magenta, Pink, Red, RedOrange, Orange, Amber, Yellow, Lime, Green, Teal, Blue, Purple
+const WHEEL_DATA: { name: string; value: string }[][] = [
+  // Ring 0 — darkest
+  [
+    { name: 'Eggplant',   value: '#380028' },
+    { name: 'Dark Rose',  value: '#5a0023' },
+    { name: 'Maroon',     value: '#800000' },
+    { name: 'Dark Brick', value: '#6d2002' },
+    { name: 'Espresso',   value: '#5c2000' },
+    { name: 'Dark Amber', value: '#3d2800' },
+    { name: 'Dark Olive', value: '#3d3c00' },
+    { name: 'Army Dark',  value: '#2d4200' },
+    { name: 'Racing',     value: '#0e3b1a' },
+    { name: 'Dark Teal',  value: '#003330' },
+    { name: 'Navy',       value: '#001f5b' },
+    { name: 'Dark Violet',value: '#1a0038' },
+  ],
+  // Ring 1
+  [
+    { name: 'Dark Magenta',value: '#6b0057' },
+    { name: 'Deep Rose',  value: '#8b0050' },
+    { name: 'Burgundy',   value: '#800020' },
+    { name: 'Ruby',       value: '#9b111e' },
+    { name: 'Rust',       value: '#b7410e' },
+    { name: 'Sepia',      value: '#8b6914' },
+    { name: 'Olive',      value: '#808000' },
+    { name: 'Army',       value: '#4b5320' },
+    { name: 'Forest',     value: '#228b22' },
+    { name: 'Sea Blue',   value: '#006994' },
+    { name: 'Prussian',   value: '#003153' },
+    { name: 'Indigo',     value: '#4b0082' },
+  ],
+  // Ring 2
+  [
+    { name: 'Mulberry',   value: '#c0009e' },
+    { name: 'Raspberry',  value: '#e30b5c' },
+    { name: 'Carmine',    value: '#960018' },
+    { name: 'Brick',      value: '#cb4154' },
+    { name: 'Burnt Org',  value: '#cc5500' },
+    { name: 'Ochre',      value: '#cc7722' },
+    { name: 'Dark Yellow',value: '#cccc00' },
+    { name: 'Olive Drab', value: '#6b8e23' },
+    { name: 'Green',      value: '#008000' },
+    { name: 'Teal',       value: '#008080' },
+    { name: 'Cobalt',     value: '#0047ab' },
+    { name: 'Grape',      value: '#6f2da8' },
+  ],
+  // Ring 3
+  [
+    { name: 'Magenta',    value: '#ff00e4' },
+    { name: 'Hot Pink',   value: '#ff2d78' },
+    { name: 'Scarlet',    value: '#ff2400' },
+    { name: 'Orange Red', value: '#ff4500' },
+    { name: 'Orange',     value: '#ff6600' },
+    { name: 'Amber',      value: '#ffbf00' },
+    { name: 'Yellow',     value: '#ffff00' },
+    { name: 'Chartreuse', value: '#7fff00' },
+    { name: 'Lime',       value: '#32cd32' },
+    { name: 'Cyan',       value: '#00bcd4' },
+    { name: 'Royal Blue', value: '#4169e1' },
+    { name: 'Violet',     value: '#7c3aed' },
+  ],
+  // Ring 4
+  [
+    { name: 'Pink',       value: '#ff69b4' },
+    { name: 'Rose Pink',  value: '#ff80ab' },
+    { name: 'Coral',      value: '#ff6961' },
+    { name: 'Salmon',     value: '#ff8a65' },
+    { name: 'Peach Org',  value: '#ffab40' },
+    { name: 'Gold',       value: '#ffd700' },
+    { name: 'Light Yellow',value: '#fff176' },
+    { name: 'Lime Green', value: '#b5e853' },
+    { name: 'Spring',     value: '#90ee90' },
+    { name: 'Seafoam',    value: '#64ffda' },
+    { name: 'Sky Blue',   value: '#87cefa' },
+    { name: 'Lavender',   value: '#c084fc' },
+  ],
+  // Ring 5 — lightest
+  [
+    { name: 'Baby Pink',  value: '#ffb6c1' },
+    { name: 'Blush',      value: '#ffc2d4' },
+    { name: 'Light Red',  value: '#ffcdd2' },
+    { name: 'Peach',      value: '#ffd0b5' },
+    { name: 'Light Org',  value: '#ffe0b2' },
+    { name: 'Pale Gold',  value: '#fff3cd' },
+    { name: 'Cream',      value: '#fffde7' },
+    { name: 'Pale Lime',  value: '#f0f4c3' },
+    { name: 'Pale Green', value: '#dcf5dc' },
+    { name: 'Pale Teal',  value: '#b2dfdb' },
+    { name: 'Pale Blue',  value: '#e3f2fd' },
+    { name: 'Pale Violet',value: '#ede9fe' },
+  ],
 ]
+
+const COLOR_PALETTE = WHEEL_DATA.flat()
+
+function polarToCart(r: number, deg: number) {
+  const rad = (deg - 90) * Math.PI / 180
+  return { x: +(200 + r * Math.cos(rad)).toFixed(2), y: +(200 + r * Math.sin(rad)).toFixed(2) }
+}
+
+function sectorPath(r1: number, r2: number, a1: number, a2: number): string {
+  const g = 0.7
+  const s = a1 + g, e = a2 - g
+  const p1 = polarToCart(r1, s), p2 = polarToCart(r1, e)
+  const p3 = polarToCart(r2, e), p4 = polarToCart(r2, s)
+  return `M${p1.x} ${p1.y} A${r1} ${r1} 0 0 1 ${p2.x} ${p2.y} L${p3.x} ${p3.y} A${r2} ${r2} 0 0 0 ${p4.x} ${p4.y}Z`
+}
+
+const RING_RADII = [34, 62, 92, 122, 152, 178, 200]
+
+const wheelCells = computed(() => {
+  const cells: { name: string; value: string; path: string; lx: number; ly: number; lrot: number; ring: number }[] = []
+  for (let ring = 0; ring < 6; ring++) {
+    const r1 = RING_RADII[ring], r2 = RING_RADII[ring + 1]
+    for (let seg = 0; seg < 12; seg++) {
+      const a1 = seg * 30, a2 = a1 + 30
+      const { name, value } = WHEEL_DATA[ring][seg]
+      const mid = a1 + 15
+      const midR = (r1 + r2) / 2
+      const lp = polarToCart(midR, mid)
+      const lrot = mid <= 180 ? mid : mid + 180
+      cells.push({ name, value, path: sectorPath(r1, r2, a1, a2), lx: lp.x, ly: lp.y, lrot, ring })
+    }
+  }
+  return cells
+})
+
+const selectedColorName = computed(() =>
+  COLOR_PALETTE.find(c => c.value.toLowerCase() === color.value.toLowerCase())?.name ?? color.value
+)
 
 const router = useRouter()
 const route = useRoute()
@@ -528,56 +566,15 @@ function save() {
 .bg-preview { width: 80px; height: 80px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 
 .field-hint { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.4; }
-.palette-diamond-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 340px;
-}
-.palette-diamond-grid {
-  display: grid;
-  grid-template-columns: repeat(10, 24px);
-  grid-auto-rows: 24px;
-  gap: 2px;
-  transform: rotate(45deg);
-  flex-shrink: 0;
-}
-.palette-swatch {
-  width: 24px;
-  height: 24px;
-  border: 1.5px solid rgba(0,0,0,0.25);
-  cursor: pointer;
-  border-radius: 0;
-  position: relative;
-  transition: border-color 0.1s, box-shadow 0.1s;
-}
-.palette-swatch:hover { border-color: rgba(255,255,255,0.85); z-index: 1; }
-.palette-swatch.active {
-  border-color: #ffffff;
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.9), 0 0 14px rgba(255,255,255,0.5);
-  z-index: 2;
-}
-.palette-selected-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
-}
-.palette-selected-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.3);
-  flex-shrink: 0;
-  display: block;
-}
-.palette-selected-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.85);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
+.color-wheel-wrap { display: flex; justify-content: center; padding: 8px 0; }
+.color-wheel-svg { width: 100%; max-width: 320px; height: auto; cursor: pointer; }
+.wheel-cell { stroke: rgba(0,0,0,0.15); stroke-width: 0.5; transition: opacity 0.1s; }
+.wheel-cell:hover { opacity: 0.8; }
+.wheel-active { stroke: #ffffff !important; stroke-width: 2.5 !important; filter: drop-shadow(0 0 4px rgba(255,255,255,0.9)); }
+.wheel-label { fill: #ffffff; font-weight: 700; letter-spacing: 0.02em; paint-order: stroke fill; stroke: rgba(0,0,0,0.65); stroke-width: 2px; stroke-linejoin: round; pointer-events: none; }
+.palette-selected-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.palette-selected-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); flex-shrink: 0; display: block; }
+.palette-selected-label { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85); letter-spacing: 0.05em; text-transform: uppercase; }
 .color-conflict { font-size: 12px; color: #ff4444; font-weight: 700; }
 
 .emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
