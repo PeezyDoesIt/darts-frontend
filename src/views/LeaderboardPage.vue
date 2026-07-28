@@ -91,7 +91,7 @@ const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !=
 .second-base { background: rgba(170,170,170,0.3); color: #aaa; border: 1px solid #aaa; }
 .third-base  { background: rgba(205,127,50,0.3); color: #cd7f32; border: 1px solid #cd7f32; }
 
-.lb-table-scroll { flex: 1; min-height: 0; overflow-y: auto; }
+.lb-table-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 .lb-table-header { display: grid; grid-template-columns: 44px 1fr 80px 80px 80px; padding: 8px 16px; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
 .lb-table-row {
   display: grid; grid-template-columns: 44px 1fr 80px 80px 80px; align-items: center; padding: 14px 16px;

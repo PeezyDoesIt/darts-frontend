@@ -539,6 +539,8 @@ function startGame() {
 .step-pane {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   padding: 24px 20px;
   display: flex;
   flex-direction: column;

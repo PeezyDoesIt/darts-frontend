@@ -99,7 +99,7 @@ function goHome() { gameStore.endGame(); router.push('/') }
   position: relative; overflow: hidden;
 }
 .win-scroll {
-  width: 100%; height: 100vh; height: 100dvh; overflow-y: auto;
+  width: 100%; height: 100vh; height: 100dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }

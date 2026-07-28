@@ -205,6 +205,8 @@ function previewBullseyeSound(value: string) {
   width: 100vw;
   min-height: 100dvh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   position: relative;
   flex-direction: row;
   background-image: url('/Dartbg.avif');
@@ -307,6 +309,8 @@ function previewBullseyeSound(value: string) {
   display: flex; flex-direction: column; gap: 24px;
   max-height: calc(100dvh - 48px);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 .settings-header { display: flex; align-items: center; justify-content: space-between; }
 .settings-title { font-size: 20px; letter-spacing: 0.15em; color: var(--pink); }

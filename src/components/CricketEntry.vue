@@ -190,7 +190,7 @@ defineExpose({ submit, submitted })
 <style scoped>
 .cricket { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; position: relative; }
 
-.cricket-board-scroll { flex: 1; min-height: 0; overflow-y: auto; position: relative; z-index: 1; }
+.cricket-board-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; position: relative; z-index: 1; }
 
 .cricket-board {
   display: flex;

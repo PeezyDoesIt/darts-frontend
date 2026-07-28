@@ -421,7 +421,7 @@ function save() {
 .preview-name { font-size: 22px; font-weight: 900; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.4); font-family: var(--font-display); letter-spacing: 0.05em; }
 
 .existing-section { display: flex; flex-direction: column; gap: 10px; flex: 1; overflow: hidden; }
-.existing-scroll { flex: 1; min-height: 0; overflow-y: auto; }
+.existing-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 .existing-list { display: flex; flex-direction: column; gap: 6px; }
 .existing-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
 .existing-row:hover { background: rgba(255,255,255,0.07); }
