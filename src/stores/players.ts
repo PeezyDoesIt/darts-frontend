@@ -41,6 +41,7 @@ export const usePlayersStore = defineStore('players', () => {
           playerBackgroundFill: null,
           targetLabelColor: null,
           cricketTargetDisplay: 'hide',
+          diceTheme: null,
           pinned: true,
           wins: 100,
           gamesPlayed: 100,

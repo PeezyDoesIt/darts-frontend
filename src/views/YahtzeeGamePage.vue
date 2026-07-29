@@ -89,13 +89,42 @@
             v-for="(val, i) in game.dice"
             :key="i"
             class="die-wrap"
-            :class="{ 'die-held': game.held[i] }"
+            :class="{ 'die-held': game.held[i], [`die-theme-${dieTheme}`]: true }"
             :style="game.held[i] ? { '--held-color': currentPlayer?.color ?? 'var(--pink)' } : {}"
             @click="onDieTap(i)"
           >
             <svg class="die-svg" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-              <rect x="0" y="0" width="36" height="36" rx="6" :fill="game.held[i] ? ((currentPlayer?.color ?? '#ff2d78') + '55') : (currentPlayer?.color ?? '#ff2d78') + '18'" />
-              <circle v-for="(dot, di) in dotPositions[val - 1]" :key="di" :cx="dot[0]" :cy="dot[1]" r="3.2" :fill="game.held[i] ? (currentPlayer?.color ?? '#fff') : '#ffffff'" />
+              <defs v-if="dieTheme === 'metallic'">
+                <linearGradient :id="`mg-${i}`" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%"   :stop-color="game.held[i] ? '#dcdce8' : '#c8c8d8'" />
+                  <stop offset="50%"  :stop-color="game.held[i] ? '#9090a4' : '#787890'" />
+                  <stop offset="100%" :stop-color="game.held[i] ? '#404050' : '#383848'" />
+                </linearGradient>
+              </defs>
+              <rect x="0" y="0" width="36" height="36"
+                :rx="dieFaceRx()"
+                :fill="dieTheme === 'metallic' ? `url(#mg-${i})` : dieFaceFill(!!game.held[i])"
+                :stroke="dieFaceStroke(!!game.held[i])"
+                :stroke-width="dieTheme === 'default' ? 0 : 1.5"
+              />
+              <!-- Wooden grain lines -->
+              <g v-if="dieTheme === 'wooden'">
+                <line v-for="ly in [7, 13, 20, 27]" :key="ly"
+                  x1="1" :y1="ly" x2="35" :y2="ly"
+                  stroke="#4a2008" stroke-width="0.7" opacity="0.3" />
+              </g>
+              <!-- Vintage inner border -->
+              <rect v-if="dieTheme === 'vintage'" x="2" y="2" width="32" height="32" rx="4"
+                fill="none" stroke="#c0a870" stroke-width="0.6" opacity="0.6" />
+              <!-- Pips -->
+              <circle
+                v-for="(dot, di) in dotPositions[val - 1]" :key="di"
+                :cx="dot[0]" :cy="dot[1]" r="3.2"
+                :fill="diePipFill(!!game.held[i])"
+                :style="dieTheme === 'neon'
+                  ? { filter: `drop-shadow(0 0 4px ${currentPlayer?.color ?? '#ff2d78'}) drop-shadow(0 0 2px ${currentPlayer?.color ?? '#ff2d78'})` }
+                  : {}"
+              />
             </svg>
             <span v-if="game.diceMode === 'physical'" class="die-tap-hint">tap to cycle</span>
             <span v-if="game.held[i]" class="held-label" :style="{ color: currentPlayer?.color }">HELD</span>
@@ -280,6 +309,7 @@ import { useRouter } from 'vue-router'
 import { useYahtzeeStore, grandTotal, upperTotal, upperBonus, lowerTotal, calcScore, isScorecardComplete } from '../stores/yahtzee'
 import { usePlayersStore } from '../stores/players'
 import type { YahtzeeCategory, YahtzeeScorecard } from '../stores/yahtzee'
+import type { DiceTheme } from '../types/index'
 
 const router = useRouter()
 const yahtzeeStore = useYahtzeeStore()
@@ -350,6 +380,51 @@ const dotPositions: [number, number][][] = [
   [[12, 10], [24, 10], [18, 18], [12, 26], [24, 26]],
   [[12, 10], [12, 18], [12, 26], [24, 10], [24, 18], [24, 26]],
 ]
+
+const dieTheme = computed<DiceTheme>(() => currentPlayer.value?.diceTheme ?? 'default')
+
+function dieFaceFill(held: boolean): string {
+  const p = currentPlayer.value?.color ?? '#ff2d78'
+  switch (dieTheme.value) {
+    case 'casino':   return held ? '#e4e4e4' : '#ffffff'
+    case 'neon':     return held ? '#141414' : '#080808'
+    case 'metallic': return held ? '#b0b0c0' : '#888898'
+    case 'wooden':   return held ? '#8b5e2c' : '#a0742e'
+    case 'vintage':  return held ? '#d8d0b8' : '#f0e8d0'
+    default:         return held ? (p + '55') : (p + '18')
+  }
+}
+function dieFaceStroke(held: boolean): string {
+  const p = currentPlayer.value?.color ?? '#ff2d78'
+  switch (dieTheme.value) {
+    case 'casino':   return '#222'
+    case 'neon':     return held ? p : (p + '66')
+    case 'metallic': return held ? '#aaa' : '#666'
+    case 'wooden':   return '#5a2e08'
+    case 'vintage':  return '#b0a070'
+    default:         return 'transparent'
+  }
+}
+function dieFaceRx(): number {
+  switch (dieTheme.value) {
+    case 'casino':   return 4
+    case 'metallic': return 3
+    case 'wooden':   return 5
+    case 'vintage':  return 6
+    default:         return 6
+  }
+}
+function diePipFill(held: boolean): string {
+  const p = currentPlayer.value?.color ?? '#ff2d78'
+  switch (dieTheme.value) {
+    case 'casino':   return '#111'
+    case 'neon':     return p
+    case 'metallic': return held ? '#111' : '#222'
+    case 'wooden':   return held ? '#f0d888' : '#2e0e00'
+    case 'vintage':  return '#6c4218'
+    default:         return held ? p : '#ffffff'
+  }
+}
 
 interface CatDef { key: YahtzeeCategory; label: string; dieValue?: number; howTo: string }
 const upperCategories: CatDef[] = [
@@ -573,6 +648,11 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   transition: box-shadow 0.15s;
 }
 .die-held .die-svg { box-shadow: 0 0 12px var(--held-color, var(--pink)); }
+.die-theme-neon.die-held .die-svg { box-shadow: 0 0 18px var(--held-color, var(--pink)), 0 0 6px var(--held-color, var(--pink)); }
+.die-theme-casino .die-svg { box-shadow: 0 3px 8px rgba(0,0,0,0.6); }
+.die-theme-metallic .die-svg { box-shadow: 0 2px 10px rgba(0,0,0,0.7), inset 0 1px 2px rgba(255,255,255,0.2); }
+.die-theme-wooden .die-svg { box-shadow: 0 3px 8px rgba(0,0,0,0.6); }
+.die-theme-vintage .die-svg { box-shadow: 2px 3px 8px rgba(0,0,0,0.5), -1px -1px 4px rgba(255,255,255,0.05); }
 .held-label { font-size: 9px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.08em; }
 .die-tap-hint { font-size: 8px; color: rgba(255,255,255,0.3); letter-spacing: 0.05em; }
 

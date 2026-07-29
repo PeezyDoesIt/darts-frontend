@@ -1,3 +1,5 @@
+export type DiceTheme = 'default' | 'casino' | 'neon' | 'metallic' | 'wooden' | 'vintage'
+
 export type Player = {
   id: string
   name: string
@@ -9,11 +11,21 @@ export type Player = {
   playerBackgroundFill: 'black' | 'blur' | null
   targetLabelColor: string | null
   cricketTargetDisplay: 'show' | 'hide' | 'fade' | 'strike' | null  // null = use game setting
+  diceTheme: DiceTheme | null  // null = same as 'default'
   pinned: boolean
   wins: number
   gamesPlayed: number
   createdAt: string
 }
+
+export const DICE_THEMES: { value: DiceTheme; label: string; icon: string; sub: string }[] = [
+  { value: 'default',  label: 'Default',  icon: '🎲', sub: 'App color' },
+  { value: 'casino',   label: 'Casino',   icon: '🎰', sub: 'White & black' },
+  { value: 'neon',     label: 'Neon',     icon: '✨', sub: 'Glowing pips' },
+  { value: 'metallic', label: 'Metallic', icon: '🪨', sub: 'Chrome finish' },
+  { value: 'wooden',   label: 'Western',  icon: '🤠', sub: 'Wood grain' },
+  { value: 'vintage',  label: 'Vintage',  icon: '📜', sub: 'Aged & worn' },
+]
 
 export const TARGET_LABEL_COLORS = [
   { label: 'Auto',   value: null },

@@ -153,6 +153,23 @@
             </div>
           </div>
 
+          <div class="field">
+            <label class="label">Yahtzee Dice Theme</label>
+            <p class="field-hint">How your dice look when it's your turn in Yahtzee.</p>
+            <div class="dice-theme-grid">
+              <button
+                v-for="t in DICE_THEMES" :key="t.value"
+                v-ripple class="dice-theme-btn"
+                :class="{ active: (diceTheme ?? 'default') === t.value }"
+                @click="diceTheme = t.value"
+              >
+                <span class="dice-theme-icon">{{ t.icon }}</span>
+                <span class="dice-theme-label">{{ t.label }}</span>
+                <span class="dice-theme-sub">{{ t.sub }}</span>
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -229,7 +246,7 @@ import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
-import { PRESET_AVATARS, PLAYER_THEMES, TARGET_LABEL_COLORS, type Player } from '../types/index'
+import { PRESET_AVATARS, PLAYER_THEMES, TARGET_LABEL_COLORS, DICE_THEMES, type Player, type DiceTheme } from '../types/index'
 
 const PLAYER_COLOR_PALETTE = [
   '#ff2d78', '#00d4ff', '#aaff00', '#ff6b1a',
@@ -424,6 +441,7 @@ const bgPosition = ref<'top' | 'center' | 'bottom' | null>(null)
 const bgFill = ref<'black' | 'blur' | null>(null)
 const targetLabelColor = ref<string | null>(null)
 const cricketTargetDisplay = ref<'show' | 'hide' | 'fade' | 'strike' | null>(null)
+const diceTheme = ref<DiceTheme | null>(null)
 
 const cricketTargetDisplayOpts: { value: 'show' | 'hide' | 'fade' | 'strike' | null; label: string; sub: string }[] = [
   { value: null,     label: 'Default', sub: 'Use game setting' },
@@ -496,7 +514,7 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = nextAvailableColor(); avatarUrl.value = null
-  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; bgSize.value = null; bgPosition.value = null; bgFill.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null; saving.value = false
+  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; bgSize.value = null; bgPosition.value = null; bgFill.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null; diceTheme.value = null; saving.value = false
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
@@ -510,6 +528,7 @@ function loadPlayer(p: Player) {
   bgFill.value = p.playerBackgroundFill ?? null
   targetLabelColor.value = p.targetLabelColor ?? null
   cricketTargetDisplay.value = p.cricketTargetDisplay ?? null
+  diceTheme.value = p.diceTheme ?? null
 }
 const saving = ref(false)
 function save() {
@@ -520,10 +539,10 @@ function save() {
   const tlc = targetLabelColor.value
   const ctd = cricketTargetDisplay.value
   if (editingId.value) {
-    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: bgSize.value, playerBackgroundPosition: bgPosition.value, playerBackgroundFill: bgFill.value, targetLabelColor: tlc, cricketTargetDisplay: ctd })
+    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: bgSize.value, playerBackgroundPosition: bgPosition.value, playerBackgroundFill: bgFill.value, targetLabelColor: tlc, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
     editingId.value = null
   } else {
-    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: bgSize.value, playerBackgroundPosition: bgPosition.value, playerBackgroundFill: bgFill.value, targetLabelColor: tlc, cricketTargetDisplay: ctd, pinned: false })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: bgSize.value, playerBackgroundPosition: bgPosition.value, playerBackgroundFill: bgFill.value, targetLabelColor: tlc, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
       resetForm()
@@ -650,6 +669,22 @@ function save() {
 .pinned-warn { color: #f59e0b; font-size: 13px; }
 .confirm-btns { display: flex; gap: 12px; width: 100%; }
 .confirm-btns .btn { flex: 1; }
+
+.dice-theme-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+.dice-theme-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 10px 12px; min-width: 72px;
+  border-radius: 10px; border: 2px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.04); cursor: pointer;
+  transition: all 0.15s; position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.dice-theme-btn:hover { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); }
+.dice-theme-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); }
+.dice-theme-icon { font-size: 22px; }
+.dice-theme-label { font-size: 12px; font-weight: 800; font-family: var(--font-display); letter-spacing: 0.04em; color: #fff; }
+.dice-theme-btn.active .dice-theme-label { color: var(--pink); }
+.dice-theme-sub { font-size: 9px; color: rgba(255,255,255,0.4); letter-spacing: 0.04em; white-space: nowrap; }
 
 .ct-player-opts { display: flex; gap: 6px; flex-wrap: wrap; }
 .ct-player-btn {
