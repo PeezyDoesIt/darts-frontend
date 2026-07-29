@@ -179,9 +179,14 @@
       <div class="scorecard-scroll" :style="scorecardBgStyle">
         <div class="sc-toolbar">
           <span class="sc-toolbar-name" :style="{ color: viewedState?.player.color }">{{ viewedState?.player.name }}</span>
-          <button v-ripple class="sc-theme-btn" @click="scorecardTheme = scorecardTheme === 'dark' ? 'light' : 'dark'">
-            {{ scorecardTheme === 'dark' ? '☀️' : '🌙' }}
-          </button>
+          <div class="sc-toolbar-btns">
+            <button v-ripple class="sc-theme-btn" :class="{ 'sc-btn-active': hideCompleted }" @click="hideCompleted = !hideCompleted" title="Hide completed">
+              {{ hideCompleted ? '👁' : '🙈' }}
+            </button>
+            <button v-ripple class="sc-theme-btn" @click="scorecardTheme = scorecardTheme === 'dark' ? 'light' : 'dark'" title="Toggle theme">
+              {{ scorecardTheme === 'dark' ? '☀️' : '🌙' }}
+            </button>
+          </div>
         </div>
 
         <div class="sc-paper" :class="scorecardTheme === 'light' ? 'sc-light' : 'sc-dark'">
@@ -195,6 +200,7 @@
           <!-- UPPER CATEGORIES -->
           <div
             v-for="cat in upperCategories"
+            v-show="!(hideCompleted && viewedState?.scorecard[cat.key] !== null)"
             :key="cat.key"
             class="sc-row"
             :class="{
@@ -249,6 +255,7 @@
           <!-- LOWER CATEGORIES -->
           <div
             v-for="cat in lowerCategories"
+            v-show="!(hideCompleted && viewedState?.scorecard[cat.key] !== null)"
             :key="cat.key"
             class="sc-row"
             :class="{
@@ -318,6 +325,7 @@ const game = computed(() => yahtzeeStore.game)
 
 const viewingIndex = ref(0)
 const scorecardTheme = ref<'dark' | 'light'>('dark')
+const hideCompleted = ref(false)
 
 const scorecardBgStyle = computed(() => {
   const bg = viewedState.value?.player.playerBackground
@@ -737,6 +745,8 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   font-family: var(--font-display);
   letter-spacing: 0.06em;
 }
+.sc-toolbar-btns { display: flex; gap: 6px; }
+.sc-btn-active { border-color: var(--pink) !important; background: rgba(255,45,120,0.15) !important; }
 .sc-theme-btn {
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.15);
