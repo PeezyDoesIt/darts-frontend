@@ -187,7 +187,7 @@
           <div class="sc-header-row">
             <div class="sc-col-name">UPPER SECTION</div>
             <div class="sc-col-howto">HOW TO SCORE</div>
-            <div class="sc-col-box">GAME</div>
+            <div class="sc-col-box">PTS</div>
           </div>
 
           <!-- UPPER CATEGORIES -->
