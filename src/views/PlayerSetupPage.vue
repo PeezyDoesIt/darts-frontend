@@ -587,8 +587,8 @@ function save() {
 .tab:hover { border-color: var(--pink); color: var(--pink); }
 .tab.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
 
-.theme-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
-.theme-swatch { width: 72px; height: 52px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.1); cursor: pointer; position: relative; overflow: hidden; transition: transform 0.15s, border-color 0.15s; background: rgba(255,255,255,0.06); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; touch-action: pan-y; }
+.theme-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 8px; touch-action: pan-y; }
+.theme-swatch { width: auto; min-width: 0; height: 52px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.1); cursor: pointer; position: relative; overflow: hidden; transition: transform 0.15s, border-color 0.15s; background: rgba(255,255,255,0.06); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; touch-action: pan-y; }
 .theme-swatch:hover { transform: scale(1.05); }
 .theme-swatch.active { border-color: #fff; transform: scale(1.08); }
 .theme-none { font-size: 16px; color: rgba(255,255,255,0.3); }
@@ -710,6 +710,7 @@ function save() {
   .setup-right { width: 100%; padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
   .page-header { padding: 14px 20px; padding-top: calc(14px + env(safe-area-inset-top)); }
   .existing-scroll { flex: none; height: auto; }
+  .theme-grid { grid-template-columns: repeat(6, 1fr); }
 }
 
 /* iPad portrait — allow page to scroll so keyboard doesn't clip content */
