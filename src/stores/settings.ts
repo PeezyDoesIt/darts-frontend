@@ -94,10 +94,12 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('narratorGender', val)
   }
 
-  const narratorPersonality = ref<'default' | 'slj' | 'macho'>(
-    (localStorage.getItem('narratorPersonality') as 'default' | 'slj' | 'macho') ?? 'default'
-  )
-  function setNarratorPersonality(val: 'default' | 'slj' | 'macho') {
+  const savedPersonality = localStorage.getItem('narratorPersonality')
+  const narratorPersonality = ref<'default'>('default')
+  if (savedPersonality && savedPersonality !== 'slj' && savedPersonality !== 'macho') {
+    narratorPersonality.value = savedPersonality as 'default'
+  }
+  function setNarratorPersonality(val: 'default') {
     narratorPersonality.value = val
     localStorage.setItem('narratorPersonality', val)
   }

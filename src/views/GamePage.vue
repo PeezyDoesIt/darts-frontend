@@ -246,10 +246,8 @@
         <div class="timer-control-group">
           <span class="timer-control-label">Narrator</span>
           <div class="timer-control-btns">
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.cleanMode && settingsStore.narratorPersonality === 'default' }" @click="settingsStore.setCleanMode(false); settingsStore.setNarratorPersonality('default')">Normal</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.cleanMode }" @click="settingsStore.setCleanMode(false)">Normal</button>
             <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.cleanMode }" @click="settingsStore.setCleanMode(true)">Clean</button>
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.cleanMode && settingsStore.narratorPersonality === 'slj' }" @click="settingsStore.setCleanMode(false); settingsStore.setNarratorPersonality('slj')">SLJ</button>
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.cleanMode && settingsStore.narratorPersonality === 'macho' }" @click="settingsStore.setCleanMode(false); settingsStore.setNarratorPersonality('macho')">Macho</button>
           </div>
         </div>
         <div class="timer-control-group">
@@ -397,9 +395,6 @@ const playersStore = usePlayersStore()
 const settingsStore = useSettingsStore()
 
 function personalityOpts() {
-  const p = settingsStore.narratorPersonality
-  if (p === 'slj')   return { pitch: 0.6,  rate: 0.82 }
-  if (p === 'macho') return { pitch: 1.15, rate: 1.08 }
   return undefined
 }
 
@@ -594,26 +589,16 @@ function startThrowTimer() {
     const half = Math.floor(throwTimerDuration.value / 2)
     if (throwTimeLeft.value === half && half > 30 && !settingsStore.cleanMode) speak(`${currentPlayer.value.name}, it's your turn`, personalityOpts())
     if (throwTimeLeft.value === 20 && settingsStore.announceThrowAt20 && !settingsStore.cleanMode) {
-      const p = settingsStore.narratorPersonality
-      const name = currentPlayer.value.name
-      const line = p === 'slj'
-        ? `${name}. Shoot the goddamn dart, motherf***er.`
-        : p === 'macho'
-        ? `${name}! Twenty seconds! Throw it! OH YEAH!`
-        : `${name}, you need to shoot.`
-      speak(line, personalityOpts())
+      speak(`${currentPlayer.value.name}, you need to shoot.`, personalityOpts())
     }
     if (throwTimeLeft.value <= 30 && !throwHurryUpSaid && !settingsStore.cleanMode) {
       throwHurryUpSaid = true
       const hurryCount = gameStore.playerHurryUpCounts[currentPlayer.value.id] ?? 0
       gameStore.recordHurryUp(currentPlayer.value.id)
       const name = currentPlayer.value.name
-      const p = settingsStore.narratorPersonality
-      const line = p === 'slj'
-        ? (hurryCount > 0 ? `${name}. I will say this one more time. Hurry. The fuck. Up. This is exactly why nobody wants to play darts with your ass.` : `${name}. Hurry the fuck up. It's your goddamn turn, motherf***er.`)
-        : p === 'macho'
-        ? (hurryCount > 0 ? `${name}! The cream of the crop is WAITING! Dig it! Hurry up and throw, oh yeah!` : `${name}! Hurry up and throw! The madness is running WILD, oh yeah!`)
-        : (hurryCount > 0 ? `${name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.` : `${name}. Hurry the fuck up. It's your turn.`)
+      const line = hurryCount > 0
+        ? `${name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`
+        : `${name}. Hurry the fuck up. It's your turn.`
       speak(line, personalityOpts())
     }
     if (throwTimeLeft.value <= 0) {
