@@ -147,11 +147,23 @@
       </div>
 
       <!-- SCORECARD -->
-      <div class="scorecard-scroll">
-        <div class="scorecard">
-          <!-- UPPER SECTION -->
-          <div class="sc-section-header">UPPER SECTION</div>
+      <div class="scorecard-scroll" :style="scorecardBgStyle">
+        <div class="sc-toolbar">
+          <span class="sc-toolbar-name" :style="{ color: viewedState?.player.color }">{{ viewedState?.player.name }}</span>
+          <button v-ripple class="sc-theme-btn" @click="scorecardTheme = scorecardTheme === 'dark' ? 'light' : 'dark'">
+            {{ scorecardTheme === 'dark' ? '☀️' : '🌙' }}
+          </button>
+        </div>
 
+        <div class="sc-paper" :class="scorecardTheme === 'light' ? 'sc-light' : 'sc-dark'">
+          <!-- UPPER HEADER -->
+          <div class="sc-header-row">
+            <div class="sc-col-name">UPPER SECTION</div>
+            <div class="sc-col-howto">HOW TO SCORE</div>
+            <div class="sc-col-box">GAME</div>
+          </div>
+
+          <!-- UPPER CATEGORIES -->
           <div
             v-for="cat in upperCategories"
             :key="cat.key"
@@ -162,40 +174,50 @@
             }"
             @click="tryScore(cat.key)"
           >
-            <span class="sc-cat-name">{{ cat.label }}</span>
-            <span class="sc-cat-hint">{{ cat.hint }}</span>
-            <span
-              class="sc-score"
-              :class="{ 'sc-score-locked': viewedState?.scorecard[cat.key] !== null, 'sc-score-potential': isMyTurn && canScore && viewedState?.scorecard[cat.key] === null }"
-              :style="isMyTurn && canScore && viewedState?.scorecard[cat.key] === null
-                ? { color: viewedState?.scorecard[cat.key] !== null ? 'rgba(255,255,255,0.45)' : (currentPlayer?.color ?? 'var(--pink)') }
-                : {}"
-            >
-              {{ scorecardDisplay(cat.key) }}
-            </span>
+            <div class="sc-col-name sc-name-inner">
+              <svg class="sc-die-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1.5" y="1.5" width="21" height="21" rx="4" class="sc-die-bg" />
+                <circle
+                  v-for="(dot, di) in dotPositions[(cat.dieValue ?? 1) - 1]"
+                  :key="di"
+                  :cx="dot[0] * 0.667"
+                  :cy="dot[1] * 0.667"
+                  r="2"
+                  class="sc-die-pip"
+                />
+              </svg>
+              <span class="sc-cat-label">{{ cat.label }}</span>
+              <span class="sc-cat-eq">= {{ cat.dieValue }}</span>
+            </div>
+            <div class="sc-col-howto sc-howto-text">{{ cat.howTo }}</div>
+            <div
+              class="sc-col-box sc-score-val"
+              :class="{ 'sc-val-locked': viewedState?.scorecard[cat.key] !== null }"
+              :style="isMyTurn && canScore && viewedState?.scorecard[cat.key] === null ? { color: currentPlayer?.color } : {}"
+            >{{ scorecardDisplay(cat.key) }}</div>
           </div>
 
-          <div class="sc-row sc-row-total">
-            <span class="sc-cat-name">TOTAL SCORE</span>
-            <span class="sc-cat-hint">Upper sum</span>
-            <span class="sc-score sc-score-locked">{{ upperTotal(viewedState!.scorecard) }}</span>
+          <!-- UPPER TOTALS -->
+          <div class="sc-total-row">
+            <div class="sc-col-name sc-total-name"><span class="sc-arrows">▶▶</span> TOTAL SCORE</div>
+            <div class="sc-col-howto sc-total-sub">Add Only Upper Section</div>
+            <div class="sc-col-box sc-score-val sc-val-locked">{{ upperTotal(viewedState!.scorecard) }}</div>
           </div>
-          <div class="sc-row sc-row-total">
-            <span class="sc-cat-name">BONUS</span>
-            <span class="sc-cat-hint">35 if ≥ 63</span>
-            <span class="sc-score sc-score-locked" :style="upperBonus(viewedState!.scorecard) > 0 ? { color: 'var(--gold)' } : {}">
-              {{ upperBonusDisplay }}
-            </span>
+          <div class="sc-total-row">
+            <div class="sc-col-name sc-total-name"><span class="sc-arrows">▶▶</span> BONUS</div>
+            <div class="sc-col-howto sc-total-sub">Score 35 if ≥ 63</div>
+            <div class="sc-col-box sc-score-val sc-val-locked" :class="{ 'sc-val-bonus': upperBonus(viewedState!.scorecard) > 0 }">{{ upperBonusDisplay }}</div>
           </div>
-          <div class="sc-row sc-row-total">
-            <span class="sc-cat-name">UPPER TOTAL</span>
-            <span class="sc-cat-hint"></span>
-            <span class="sc-score sc-score-locked" :style="{ color: 'var(--blue)' }">{{ upperTotal(viewedState!.scorecard) + upperBonus(viewedState!.scorecard) }}</span>
+          <div class="sc-total-row sc-section-total-row">
+            <div class="sc-col-name sc-total-name"><span class="sc-arrows">▶▶</span> UPPER TOTAL</div>
+            <div class="sc-col-howto sc-total-sub"></div>
+            <div class="sc-col-box sc-score-val sc-val-locked">{{ upperTotal(viewedState!.scorecard) + upperBonus(viewedState!.scorecard) }}</div>
           </div>
 
-          <!-- LOWER SECTION -->
-          <div class="sc-section-header">LOWER SECTION</div>
+          <!-- LOWER SECTION HEADER -->
+          <div class="sc-lower-header">══ LOWER SECTION ══</div>
 
+          <!-- LOWER CATEGORIES -->
           <div
             v-for="cat in lowerCategories"
             :key="cat.key"
@@ -206,42 +228,45 @@
             }"
             @click="tryScore(cat.key)"
           >
-            <span class="sc-cat-name">{{ cat.label }}</span>
-            <span class="sc-cat-hint">{{ cat.hint }}</span>
-            <span
-              class="sc-score"
-              :class="{ 'sc-score-locked': viewedState?.scorecard[cat.key] !== null, 'sc-score-potential': isMyTurn && canScore && viewedState?.scorecard[cat.key] === null }"
-              :style="isMyTurn && canScore && viewedState?.scorecard[cat.key] === null
-                ? { color: viewedState?.scorecard[cat.key] !== null ? 'rgba(255,255,255,0.45)' : (currentPlayer?.color ?? 'var(--pink)') }
-                : {}"
-            >
-              {{ scorecardDisplay(cat.key) }}
-            </span>
+            <div class="sc-col-name sc-name-inner sc-lower-name">
+              <span class="sc-cat-label" :class="{ 'sc-yahtzee-lbl': cat.key === 'yahtzee' }">{{ cat.label }}</span>
+            </div>
+            <div class="sc-col-howto sc-howto-text">{{ cat.howTo }}</div>
+            <div
+              class="sc-col-box sc-score-val"
+              :class="{ 'sc-val-locked': viewedState?.scorecard[cat.key] !== null }"
+              :style="isMyTurn && canScore && viewedState?.scorecard[cat.key] === null ? { color: currentPlayer?.color } : {}"
+            >{{ scorecardDisplay(cat.key) }}</div>
           </div>
 
-          <!-- Yahtzee Bonus row -->
+          <!-- YAHTZEE BONUS -->
           <div class="sc-row sc-row-filled">
-            <span class="sc-cat-name">YAHTZEE BONUS</span>
-            <span class="sc-cat-hint">100 per extra</span>
-            <span class="sc-score sc-score-locked" :style="viewedState!.scorecard.yahtzeeBonusCount > 0 ? { color: 'var(--gold)' } : {}">
-              {{ viewedState!.scorecard.yahtzeeBonusCount > 0 ? `×${viewedState!.scorecard.yahtzeeBonusCount} = ${viewedState!.scorecard.yahtzeeBonusCount * 100}` : '—' }}
-            </span>
+            <div class="sc-col-name sc-name-inner sc-lower-name">
+              <span class="sc-cat-label">YAHTZEE BONUS</span>
+            </div>
+            <div class="sc-col-howto sc-bonus-checks">
+              <span v-for="n in 3" :key="n" class="sc-bonus-check" :class="{ 'sc-check-on': viewedState!.scorecard.yahtzeeBonusCount >= n }">✓</span>
+            </div>
+            <div class="sc-col-box sc-score-val sc-val-locked" :class="{ 'sc-val-bonus': viewedState!.scorecard.yahtzeeBonusCount > 0 }">
+              {{ viewedState!.scorecard.yahtzeeBonusCount > 0 ? viewedState!.scorecard.yahtzeeBonusCount * 100 : '—' }}
+            </div>
           </div>
 
-          <div class="sc-row sc-row-total">
-            <span class="sc-cat-name">LOWER TOTAL</span>
-            <span class="sc-cat-hint"></span>
-            <span class="sc-score sc-score-locked" :style="{ color: 'var(--blue)' }">{{ lowerTotal(viewedState!.scorecard) }}</span>
+          <!-- LOWER TOTALS -->
+          <div class="sc-total-row">
+            <div class="sc-col-name sc-total-name"><span class="sc-arrows">▶▶</span> LOWER TOTAL</div>
+            <div class="sc-col-howto sc-total-sub"></div>
+            <div class="sc-col-box sc-score-val sc-val-locked">{{ lowerTotal(viewedState!.scorecard) }}</div>
           </div>
-          <div class="sc-row sc-row-total">
-            <span class="sc-cat-name">UPPER TOTAL</span>
-            <span class="sc-cat-hint"></span>
-            <span class="sc-score sc-score-locked">{{ upperTotal(viewedState!.scorecard) + upperBonus(viewedState!.scorecard) }}</span>
+          <div class="sc-total-row">
+            <div class="sc-col-name sc-total-name"><span class="sc-arrows">▶▶</span> UPPER TOTAL</div>
+            <div class="sc-col-howto sc-total-sub"></div>
+            <div class="sc-col-box sc-score-val sc-val-locked">{{ upperTotal(viewedState!.scorecard) + upperBonus(viewedState!.scorecard) }}</div>
           </div>
-          <div class="sc-row sc-row-grand-total" :style="{ background: (viewedState?.player.color ?? 'var(--pink)') + '18', borderTopColor: (viewedState?.player.color ?? 'var(--pink)') + '60' }">
-            <span class="sc-cat-name display">GRAND TOTAL</span>
-            <span class="sc-cat-hint"></span>
-            <span class="sc-score sc-score-grand display" :style="{ color: viewedState?.player.color ?? 'var(--pink)', filter: `drop-shadow(0 0 8px ${viewedState?.player.color ?? 'var(--pink)'})` }">{{ grandTotal(viewedState!.scorecard) }}</span>
+          <div class="sc-total-row sc-grand-row">
+            <div class="sc-col-name sc-total-name sc-grand-label"><span class="sc-arrows">▶▶</span> GRAND TOTAL</div>
+            <div class="sc-col-howto sc-total-sub"></div>
+            <div class="sc-col-box sc-score-val sc-grand-val" :style="{ color: viewedState?.player.color }">{{ grandTotal(viewedState!.scorecard) }}</div>
           </div>
         </div>
       </div>
@@ -262,6 +287,16 @@ const playersStore = usePlayersStore()
 const game = computed(() => yahtzeeStore.game)
 
 const viewingIndex = ref(0)
+const scorecardTheme = ref<'dark' | 'light'>('dark')
+
+const scorecardBgStyle = computed(() => {
+  const bg = viewedState.value?.player.playerBackground
+  if (!bg || scorecardTheme.value === 'light') return {}
+  if (bg.startsWith('data:') || bg.startsWith('http')) {
+    return { backgroundImage: `url(${bg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }
+  }
+  return { background: bg }
+})
 
 watch(() => game.value?.currentPlayerIndex, (idx) => {
   if (idx !== undefined) viewingIndex.value = idx
@@ -316,23 +351,23 @@ const dotPositions: [number, number][][] = [
   [[12, 10], [12, 18], [12, 26], [24, 10], [24, 18], [24, 26]],
 ]
 
-interface CatDef { key: YahtzeeCategory; label: string; hint: string }
+interface CatDef { key: YahtzeeCategory; label: string; dieValue?: number; howTo: string }
 const upperCategories: CatDef[] = [
-  { key: 'aces',   label: 'Aces',   hint: 'Sum of 1s' },
-  { key: 'twos',   label: 'Twos',   hint: 'Sum of 2s' },
-  { key: 'threes', label: 'Threes', hint: 'Sum of 3s' },
-  { key: 'fours',  label: 'Fours',  hint: 'Sum of 4s' },
-  { key: 'fives',  label: 'Fives',  hint: 'Sum of 5s' },
-  { key: 'sixes',  label: 'Sixes',  hint: 'Sum of 6s' },
+  { key: 'aces',   label: 'Aces',   dieValue: 1, howTo: 'Count and Add Only Aces' },
+  { key: 'twos',   label: 'Twos',   dieValue: 2, howTo: 'Count and Add Only Twos' },
+  { key: 'threes', label: 'Threes', dieValue: 3, howTo: 'Count and Add Only Threes' },
+  { key: 'fours',  label: 'Fours',  dieValue: 4, howTo: 'Count and Add Only Fours' },
+  { key: 'fives',  label: 'Fives',  dieValue: 5, howTo: 'Count and Add Only Fives' },
+  { key: 'sixes',  label: 'Sixes',  dieValue: 6, howTo: 'Count and Add Only Sixes' },
 ]
 const lowerCategories: CatDef[] = [
-  { key: 'threeOfAKind',  label: '3 of a Kind',    hint: 'Sum all if 3+ same' },
-  { key: 'fourOfAKind',   label: '4 of a Kind',    hint: 'Sum all if 4+ same' },
-  { key: 'fullHouse',     label: 'Full House',     hint: '25 pts' },
-  { key: 'smallStraight', label: 'Sm. Straight',   hint: '30 pts' },
-  { key: 'largeStraight', label: 'Lg. Straight',   hint: '40 pts' },
-  { key: 'yahtzee',       label: 'YAHTZEE',        hint: '50 pts' },
-  { key: 'chance',        label: 'Chance',         hint: 'Sum all dice' },
+  { key: 'threeOfAKind',  label: '3 of a Kind',    howTo: 'Add Total of All Dice' },
+  { key: 'fourOfAKind',   label: '4 of a Kind',    howTo: 'Add Total of All Dice' },
+  { key: 'fullHouse',     label: 'Full House',     howTo: 'Score 25' },
+  { key: 'smallStraight', label: 'Sm. Straight',   howTo: 'Score 30' },
+  { key: 'largeStraight', label: 'Lg. Straight',   howTo: 'Score 40' },
+  { key: 'yahtzee',       label: 'YAHTZEE',        howTo: 'Score 50' },
+  { key: 'chance',        label: 'Chance',         howTo: 'Score Total of All 5 Dice' },
 ]
 
 const upperBonusDisplay = computed(() => {
@@ -604,79 +639,188 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   padding-bottom: env(safe-area-inset-bottom);
+  background: #0a0a0a;
 }
-.scorecard {
-  display: flex;
-  flex-direction: column;
-}
-.sc-section-header {
-  padding: 8px 16px;
-  font-size: 10px;
-  font-weight: 900;
-  font-family: var(--font-display);
-  letter-spacing: 0.18em;
-  color: rgba(255,255,255,0.35);
-  background: rgba(255,255,255,0.03);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  text-transform: uppercase;
-}
-.sc-row {
+
+.sc-toolbar {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  gap: 8px;
-  transition: background 0.12s;
-  cursor: default;
+  justify-content: space-between;
+  padding: 7px 12px;
+  background: rgba(0,0,0,0.5);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
 }
-.sc-row:nth-child(even) { background: rgba(255,255,255,0.015); }
-.sc-row-scoreable {
+.sc-toolbar-name {
+  font-size: 13px;
+  font-weight: 900;
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+}
+.sc-theme-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 15px;
   cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+  overflow: hidden;
 }
-.sc-row-scoreable:hover { background: rgba(255,255,255,0.07); }
-.sc-row-scoreable:active { background: rgba(255,255,255,0.04); }
-.sc-row-filled { opacity: 0.65; }
-.sc-row-total {
-  background: rgba(255,255,255,0.04) !important;
-  cursor: default !important;
+.sc-theme-btn:hover { background: rgba(255,255,255,0.15); }
+
+/* PAPER */
+.sc-paper { width: 100%; }
+
+/* GRID */
+.sc-header-row,
+.sc-row,
+.sc-total-row {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr 52px;
 }
-.sc-row-grand-total {
-  background: rgba(255,255,255,0.07) !important;
-  padding: 16px;
-  cursor: default !important;
+.sc-col-name {
+  padding: 7px 8px;
+  display: flex;
+  align-items: center;
 }
-.sc-cat-name {
-  font-size: 14px;
+.sc-col-howto {
+  padding: 7px 6px;
+  display: flex;
+  align-items: center;
+}
+.sc-col-box {
+  padding: 7px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* NAME CELL */
+.sc-name-inner { gap: 5px; }
+.sc-die-icon { width: 18px; height: 18px; flex-shrink: 0; }
+.sc-cat-label {
+  font-size: 12px;
   font-weight: 700;
-  color: #fff;
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
   flex: 1;
   min-width: 0;
 }
-.sc-row-total .sc-cat-name { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: rgba(255,255,255,0.5); text-transform: uppercase; }
-.sc-row-grand-total .sc-cat-name { font-size: 18px; color: #fff; }
-.sc-cat-hint {
+.sc-cat-eq { font-size: 10px; font-weight: 600; flex-shrink: 0; white-space: nowrap; }
+.sc-lower-name { padding-left: 12px; }
+.sc-yahtzee-lbl { font-weight: 900 !important; letter-spacing: 0.05em; }
+
+/* HOW-TO */
+.sc-howto-text { font-size: 10px; font-weight: 500; line-height: 1.3; }
+
+/* SCORE VALUE */
+.sc-score-val { font-size: 15px; font-weight: 900; font-family: var(--font-display); }
+
+/* TOTAL ROWS */
+.sc-total-name {
   font-size: 10px;
-  color: rgba(255,255,255,0.3);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   white-space: nowrap;
-  flex-shrink: 0;
-  width: 88px;
-  text-align: right;
+  gap: 4px;
 }
-.sc-score {
-  font-size: 16px;
+.sc-arrows { font-size: 7px; letter-spacing: -2px; flex-shrink: 0; }
+.sc-total-sub { font-size: 9px; line-height: 1.3; }
+
+/* GRAND TOTAL */
+.sc-grand-label { font-size: 11px !important; }
+.sc-grand-val { font-size: 20px !important; filter: drop-shadow(0 0 6px currentColor); }
+
+/* LOWER SECTION HEADER */
+.sc-lower-header {
+  padding: 10px 0;
+  font-size: 12px;
   font-weight: 900;
   font-family: var(--font-display);
-  min-width: 44px;
-  text-align: right;
-  flex-shrink: 0;
+  letter-spacing: 0.18em;
+  text-align: center;
+  text-transform: uppercase;
 }
-.sc-score-locked { color: rgba(255,255,255,0.4); }
-.sc-score-potential { }
-.sc-score-grand { font-size: 28px; }
+
+/* BONUS CHECKS */
+.sc-bonus-checks { gap: 10px; }
+.sc-bonus-check { font-size: 20px; font-weight: 900; transition: color 0.2s; }
+
+/* DARK THEME */
+.sc-dark { background: rgba(12,12,12,0.88); color: #f0f0f0; }
+.sc-dark .sc-header-row { background: #1c1c1c; border-bottom: 2px solid #3a3a3a; }
+.sc-dark .sc-header-row .sc-col-name,
+.sc-dark .sc-header-row .sc-col-howto,
+.sc-dark .sc-header-row .sc-col-box { font-size: 9px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.55); justify-content: center; }
+.sc-dark .sc-header-row .sc-col-name { justify-content: flex-start; }
+.sc-dark .sc-col-name { border-right: 1px solid rgba(255,255,255,0.09); }
+.sc-dark .sc-col-howto { border-right: 1px solid rgba(255,255,255,0.09); }
+.sc-dark .sc-col-box { border-left: none; }
+.sc-dark .sc-row { border-bottom: 1px solid rgba(255,255,255,0.07); transition: background 0.12s; cursor: default; }
+.sc-dark .sc-row:nth-child(even) { background: rgba(255,255,255,0.02); }
+.sc-dark .sc-row-scoreable { cursor: pointer; }
+.sc-dark .sc-row-scoreable:hover { background: rgba(255,255,255,0.05) !important; }
+.sc-dark .sc-row-filled { opacity: 0.72; }
+.sc-dark .sc-total-row { background: rgba(255,255,255,0.04); border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.06); }
+.sc-dark .sc-section-total-row { border-bottom: 2px solid rgba(255,255,255,0.15); }
+.sc-dark .sc-grand-row { background: rgba(255,255,255,0.07); border-top: 2px solid rgba(255,255,255,0.2); }
+.sc-dark .sc-lower-header { background: #1c1c1c; border-top: 2px solid rgba(255,255,255,0.15); border-bottom: 2px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.65); }
+.sc-dark .sc-die-bg { fill: rgba(255,255,255,0.08); stroke: rgba(255,255,255,0.35); stroke-width: 1; }
+.sc-dark .sc-die-pip { fill: #fff; }
+.sc-dark .sc-cat-label { color: #f0f0f0; }
+.sc-dark .sc-cat-eq { color: rgba(255,255,255,0.45); }
+.sc-dark .sc-howto-text { color: rgba(255,255,255,0.45); }
+.sc-dark .sc-total-name { color: rgba(255,255,255,0.75); }
+.sc-dark .sc-total-sub { color: rgba(255,255,255,0.4); }
+.sc-dark .sc-arrows { color: rgba(255,255,255,0.25); }
+.sc-dark .sc-val-locked { color: rgba(255,255,255,0.5); }
+.sc-dark .sc-val-bonus { color: #ffd400 !important; }
+.sc-dark .sc-yahtzee-lbl { color: #ffd400; }
+.sc-dark .sc-bonus-check { color: rgba(255,255,255,0.15); }
+.sc-dark .sc-check-on { color: #ffd400; }
+
+/* LIGHT THEME */
+.sc-light { background: rgba(245,240,232,0.95); color: #111; }
+.sc-light .sc-header-row { background: #e0d8c8; border-bottom: 2px solid #999; }
+.sc-light .sc-header-row .sc-col-name,
+.sc-light .sc-header-row .sc-col-howto,
+.sc-light .sc-header-row .sc-col-box { font-size: 9px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; color: #444; justify-content: center; }
+.sc-light .sc-header-row .sc-col-name { justify-content: flex-start; }
+.sc-light .sc-col-name { border-right: 1px solid #bbb; }
+.sc-light .sc-col-howto { border-right: 1px solid #bbb; }
+.sc-light .sc-row { border-bottom: 1px solid #ccc; transition: background 0.12s; cursor: default; }
+.sc-light .sc-row:nth-child(even) { background: rgba(0,0,0,0.02); }
+.sc-light .sc-row-scoreable { cursor: pointer; }
+.sc-light .sc-row-scoreable:hover { background: rgba(0,0,0,0.05) !important; }
+.sc-light .sc-row-filled { opacity: 0.72; }
+.sc-light .sc-total-row { background: #ece6d8; border-top: 1px solid #aaa; border-bottom: 1px solid #bbb; }
+.sc-light .sc-section-total-row { border-bottom: 2px solid #999; }
+.sc-light .sc-grand-row { background: #e0d8c8; border-top: 2px solid #888; }
+.sc-light .sc-lower-header { background: #e0d8c8; border-top: 2px solid #aaa; border-bottom: 2px solid #aaa; color: #333; }
+.sc-light .sc-die-bg { fill: #fff; stroke: #333; stroke-width: 1.5; }
+.sc-light .sc-die-pip { fill: #111; }
+.sc-light .sc-cat-label { color: #111; }
+.sc-light .sc-cat-eq { color: #555; }
+.sc-light .sc-howto-text { color: #555; }
+.sc-light .sc-total-name { color: #222; }
+.sc-light .sc-total-sub { color: #666; }
+.sc-light .sc-arrows { color: #999; }
+.sc-light .sc-val-locked { color: #333; }
+.sc-light .sc-val-bonus { color: #b8860b !important; font-weight: 900; }
+.sc-light .sc-yahtzee-lbl { color: #b8860b; }
+.sc-light .sc-bonus-check { color: #ccc; }
+.sc-light .sc-check-on { color: #b8860b; }
 
 @media (max-width: 380px) {
   .die-svg { width: 44px; height: 44px; }
   .dice-row { gap: 6px; }
-  .sc-cat-hint { display: none; }
+  .sc-header-row,
+  .sc-row,
+  .sc-total-row { grid-template-columns: 1fr 1fr 46px; }
+  .sc-cat-label { font-size: 11px; }
+  .sc-howto-text { font-size: 9px; }
 }
 </style>
