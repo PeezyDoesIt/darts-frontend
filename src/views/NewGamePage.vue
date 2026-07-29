@@ -92,10 +92,9 @@
 
       <div v-else class="player-bubble-grid">
         <div
-          v-for="p in sortedPlayers" :key="p.id"
+          v-for="p in sortedPlayers.filter(p => !isSelected(p.id))" :key="p.id"
           v-ripple
           class="player-bubble"
-          :class="{ selected: isSelected(p.id) }"
           @click="togglePlayer(p)"
         >
           <div
@@ -115,7 +114,7 @@
         </div>
       </div>
 
-      <section v-if="selectedPlayers.length > 1" class="order-section">
+      <section v-if="selectedPlayers.length > 0" class="order-section">
         <span class="label">Play Order</span>
         <div class="order-list">
           <div v-for="(p, i) in selectedPlayers" :key="p.id" class="order-row" :style="{ borderLeftColor: p.color }">
