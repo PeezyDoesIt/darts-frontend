@@ -18,6 +18,13 @@
         </div>
 
         <div v-else class="player-bubble-grid">
+          <!-- Add new player bubble -->
+          <div v-ripple class="player-bubble add-player-bubble" @click="router.push('/player-setup')">
+            <div class="bubble-avatar add-bubble-avatar">
+              <span>+</span>
+            </div>
+            <span class="bubble-name">New Player</span>
+          </div>
           <div
             v-for="p in sortedPlayers.filter(p => !isSelected(p.id))"
             :key="p.id"
@@ -239,6 +246,17 @@ function startGame() {
   white-space: nowrap;
 }
 .bubble-pin { position: absolute; top: -2px; right: 4px; font-size: 10px; }
+
+.add-bubble-avatar {
+  background: rgba(255,255,255,0.06) !important;
+  border: 2px dashed rgba(255,255,255,0.2) !important;
+  box-shadow: none !important;
+  font-size: 28px !important;
+  color: rgba(255,255,255,0.4);
+}
+.add-player-bubble .bubble-name { color: rgba(255,255,255,0.3); }
+.add-player-bubble:hover .add-bubble-avatar { border-color: var(--pink) !important; color: var(--pink); }
+.add-player-bubble:hover .bubble-name { color: var(--pink); }
 
 .order-section { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 4px; }
 .order-list { display: flex; flex-direction: column; gap: 8px; }
