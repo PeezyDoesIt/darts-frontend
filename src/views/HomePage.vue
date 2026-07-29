@@ -429,6 +429,31 @@ function previewBullseyeSound(value: string) {
   .home-actions { max-width: 100%; }
 }
 
+/* Desktop / laptop — scale to fit viewport height */
+@media (min-width: 769px) and (min-height: 901px) {
+  .home-left { justify-content: center; }
+}
+@media (min-width: 769px) and (max-height: 900px) {
+  .home-left {
+    justify-content: center;
+    padding: 32px 56px;
+    padding-top: calc(32px + env(safe-area-inset-top));
+    padding-bottom: calc(32px + env(safe-area-inset-bottom));
+    gap: 24px;
+    min-height: 100dvh;
+  }
+  .brand-headline { font-size: clamp(60px, 11vw, 140px); }
+  .brand-title { font-size: clamp(30px, 5.5vw, 70px); }
+  .home-actions { gap: 10px; }
+}
+@media (min-width: 769px) and (max-height: 700px) {
+  .home-left { padding: 20px 56px; gap: 16px; }
+  .brand-headline { font-size: clamp(48px, 9vw, 110px); }
+  .brand-title { font-size: clamp(24px, 4.5vw, 56px); }
+  .brand-sub { font-size: 11px; margin-top: 8px; }
+  .home-actions { gap: 8px; }
+}
+
 /* Settings */
 .settings-gear-btn { flex-shrink: 0; padding-left: 14px; padding-right: 14px; }
 
