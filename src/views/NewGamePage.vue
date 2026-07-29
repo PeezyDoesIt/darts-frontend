@@ -77,10 +77,8 @@
 
     <!-- STEP 2: PLAYERS -->
     <div v-if="currentStep === 2" class="step-pane">
-      <div class="step2-header">
-        <h1 class="step-title display" style="margin:0">ADD PLAYERS</h1>
-        <button v-ripple class="btn btn-outline btn-sm" @click="router.push('/player-setup?from=new-game')">+ Add New</button>
-      </div>
+      <h1 class="step-title display" style="text-align:center;font-size:38px">ADD PLAYERS</h1>
+      <button v-ripple class="btn btn-spray btn-lg add-player-btn" @click="router.push('/player-setup?from=new-game')">+ Add New Player</button>
 
       <div class="player-count-indicator">
         <span class="count-num" :class="{ 'count-ready': selectedPlayers.length >= 2 }">{{ selectedPlayers.length }}</span>
@@ -610,12 +608,7 @@ function startGame() {
 }
 
 /* ===== STEP 2: PLAYERS ===== */
-.step2-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
+.add-player-btn { width: 100%; }
 
 .player-count-indicator {
   display: flex;
