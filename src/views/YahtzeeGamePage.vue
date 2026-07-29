@@ -222,7 +222,6 @@
                 />
               </svg>
               <span class="sc-cat-label">{{ cat.label }}</span>
-              <span class="sc-cat-eq">= {{ cat.dieValue }}</span>
             </div>
             <div class="sc-col-howto sc-howto-text">{{ cat.howTo }}</div>
             <div
@@ -768,7 +767,7 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 .sc-row,
 .sc-total-row {
   display: grid;
-  grid-template-columns: 1fr 1.3fr 52px;
+  grid-template-columns: 108px 1fr 52px;
 }
 .sc-col-name {
   padding: 7px 8px;
@@ -909,7 +908,7 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   .dice-row { gap: 6px; }
   .sc-header-row,
   .sc-row,
-  .sc-total-row { grid-template-columns: 1fr 1fr 46px; }
+  .sc-total-row { grid-template-columns: 96px 1fr 46px; }
   .sc-cat-label { font-size: 11px; }
   .sc-howto-text { font-size: 9px; }
 }
