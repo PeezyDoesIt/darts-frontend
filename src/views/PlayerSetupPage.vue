@@ -44,7 +44,7 @@
                   :x="cell.lx" :y="cell.ly"
                   :transform="`rotate(${cell.lrot},${cell.lx},${cell.ly})`"
                   class="wheel-label"
-                  :font-size="cell.ring === 3 ? '5.5' : '6.5'"
+                  :font-size="'6'"
                   text-anchor="middle" dominant-baseline="middle"
                 >{{ cell.name }}</text>
                 <circle
@@ -347,11 +347,11 @@ function sectorPath(r1: number, r2: number, a1: number, a2: number): string {
   return `M${p1.x} ${p1.y} A${r1} ${r1} 0 0 1 ${p2.x} ${p2.y} L${p3.x} ${p3.y} A${r2} ${r2} 0 0 0 ${p4.x} ${p4.y}Z`
 }
 
-const RING_RADII = [34, 62, 92, 122, 152, 178]
+const RING_RADII = [34, 62, 92, 122, 152]
 
 const wheelCells = computed(() => {
   const cells: { name: string; value: string; path: string; lx: number; ly: number; lrot: number; ring: number }[] = []
-  for (let ring = 0; ring < 5; ring++) {
+  for (let ring = 0; ring < 4; ring++) {
     const r1 = RING_RADII[ring], r2 = RING_RADII[ring + 1]
     for (let seg = 0; seg < 12; seg++) {
       const a1 = seg * 30, a2 = a1 + 30
