@@ -59,6 +59,10 @@
         <div class="turn-right">
           <span class="turn-total display" :style="{ color: currentPlayer?.color }">{{ grandTotal(game.playerStates[game.currentPlayerIndex]!.scorecard) }}</span>
           <span class="turn-pts">pts</span>
+          <div class="header-sc-btns">
+            <button v-ripple class="header-sc-btn" :class="{ 'header-sc-btn-active': hideCompleted }" @click="hideCompleted = !hideCompleted" title="Hide completed">{{ hideCompleted ? '👁' : '🙈' }}</button>
+            <button v-ripple class="header-sc-btn" @click="scorecardTheme = scorecardTheme === 'dark' ? 'light' : 'dark'" title="Toggle theme">{{ scorecardTheme === 'dark' ? '☀️' : '🌙' }}</button>
+          </div>
         </div>
       </div>
 
@@ -177,18 +181,6 @@
 
       <!-- SCORECARD -->
       <div class="scorecard-scroll" :style="scorecardBgStyle">
-        <div class="sc-toolbar">
-          <span class="sc-toolbar-name" :style="{ color: viewedState?.player.color }">{{ viewedState?.player.name }}</span>
-          <div class="sc-toolbar-btns">
-            <button v-ripple class="sc-theme-btn" :class="{ 'sc-btn-active': hideCompleted }" @click="hideCompleted = !hideCompleted" title="Hide completed">
-              {{ hideCompleted ? '👁' : '🙈' }}
-            </button>
-            <button v-ripple class="sc-theme-btn" @click="scorecardTheme = scorecardTheme === 'dark' ? 'light' : 'dark'" title="Toggle theme">
-              {{ scorecardTheme === 'dark' ? '☀️' : '🌙' }}
-            </button>
-          </div>
-        </div>
-
         <div class="sc-paper" :class="scorecardTheme === 'light' ? 'sc-light' : 'sc-dark'">
           <!-- UPPER HEADER -->
           <div class="sc-header-row">
@@ -575,7 +567,7 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 .turn-center { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .turn-name { font-size: 28px; letter-spacing: 0.06em; line-height: 1; }
 .turn-sub { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
-.turn-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0; flex-shrink: 0; }
+.turn-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0; flex-shrink: 0; min-width: 0; }
 .turn-total { font-size: 32px; line-height: 1; }
 .turn-pts { font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 
@@ -729,35 +721,21 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   background: #0a0a0a;
 }
 
-.sc-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 7px 12px;
-  background: rgba(0,0,0,0.5);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  flex-shrink: 0;
-}
-.sc-toolbar-name {
-  font-size: 13px;
-  font-weight: 900;
-  font-family: var(--font-display);
-  letter-spacing: 0.06em;
-}
-.sc-toolbar-btns { display: flex; gap: 6px; }
-.sc-btn-active { border-color: var(--pink) !important; background: rgba(255,45,120,0.15) !important; }
-.sc-theme-btn {
+.header-sc-btns { display: flex; gap: 5px; margin-top: 4px; }
+.header-sc-btn {
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 6px;
-  padding: 3px 10px;
-  font-size: 15px;
+  padding: 3px 7px;
+  font-size: 14px;
   cursor: pointer;
   transition: background 0.15s;
   position: relative;
   overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
-.sc-theme-btn:hover { background: rgba(255,255,255,0.15); }
+.header-sc-btn:hover { background: rgba(255,255,255,0.15); }
+.header-sc-btn-active { border-color: var(--pink) !important; background: rgba(255,45,120,0.15) !important; }
 
 /* PAPER */
 .sc-paper { width: 100%; }
