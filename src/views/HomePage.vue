@@ -150,6 +150,9 @@
         <button v-ripple class="btn btn-spray btn-xl w-full" @click="unlockAudio(); playStartChime(); router.push('/new-game')">
           START NEW GAME
         </button>
+        <button v-ripple class="btn btn-outline btn-lg w-full yahtzee-btn" @click="router.push('/yahtzee/setup')">
+          🎲 YAHTZEE
+        </button>
         <div class="home-secondary">
           <button v-ripple class="btn btn-outline btn-lg" @click="router.push('/leaderboard')">
             Leaderboard
@@ -308,6 +311,8 @@ function previewBullseyeSound(value: string) {
 
 .home-secondary .btn-outline { color: #ffffff; font-weight: 700; border: 2px solid #ffffff; }
 .home-secondary .btn-outline:hover { color: var(--pink); border-color: var(--pink); }
+.yahtzee-btn { color: #ffffff !important; font-weight: 900 !important; border: 2px solid rgba(255,255,255,0.35) !important; font-family: var(--font-display) !important; letter-spacing: 0.08em !important; }
+.yahtzee-btn:hover { border-color: var(--purple) !important; color: var(--purple) !important; box-shadow: 0 0 20px rgba(191,95,255,0.3) !important; }
 
 .home-actions { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 600px; position: relative; z-index: 1; }
 .home-secondary { display: flex; gap: 12px; justify-content: center; }
