@@ -121,5 +121,18 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('announceWalkupAt20', String(val))
   }
 
-  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme, narratorGender, setNarratorGender, narratorPersonality, setNarratorPersonality, announceThrowAt20, setAnnounceThrowAt20, announceWalkupAt20, setAnnounceWalkupAt20 }
+  const coinHeadsImage = ref<string | null>(localStorage.getItem('coinHeadsImage'))
+  const coinTailsImage = ref<string | null>(localStorage.getItem('coinTailsImage'))
+  function setCoinHeadsImage(val: string | null) {
+    coinHeadsImage.value = val
+    if (val) localStorage.setItem('coinHeadsImage', val)
+    else localStorage.removeItem('coinHeadsImage')
+  }
+  function setCoinTailsImage(val: string | null) {
+    coinTailsImage.value = val
+    if (val) localStorage.setItem('coinTailsImage', val)
+    else localStorage.removeItem('coinTailsImage')
+  }
+
+  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme, narratorGender, setNarratorGender, narratorPersonality, setNarratorPersonality, announceThrowAt20, setAnnounceThrowAt20, announceWalkupAt20, setAnnounceWalkupAt20, coinHeadsImage, coinTailsImage, setCoinHeadsImage, setCoinTailsImage }
 })

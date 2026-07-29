@@ -27,6 +27,7 @@
                 {{ marksVisible ? '👁' : '👁‍🗨' }}
               </button>
             </template>
+            <button v-ripple class="btn btn-sm btn-surface coin-flip-btn" @click="showCoinFlip = true" title="Coin flip">🪙</button>
           </div>
         </div>
 
@@ -243,33 +244,6 @@
             <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.disableTimerPause }" @click="settingsStore.setDisableTimerPause(true)">Lock</button>
           </div>
         </div>
-        <div class="timer-control-group">
-          <span class="timer-control-label">Narrator</span>
-          <div class="timer-control-btns">
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.cleanMode }" @click="settingsStore.setCleanMode(false)">Normal</button>
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.cleanMode }" @click="settingsStore.setCleanMode(true)">Clean</button>
-          </div>
-        </div>
-        <div v-if="!settingsStore.cleanMode" class="timer-control-group">
-          <span class="timer-control-label">Style</span>
-          <div class="timer-control-btns" style="flex-wrap:wrap">
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.narratorPersonality === 'default' }"   @click="settingsStore.setNarratorPersonality('default')">Default</button>
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.narratorPersonality === 'hype' }"      @click="settingsStore.setNarratorPersonality('hype')">Hype</button>
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.narratorPersonality === 'savage' }"    @click="settingsStore.setNarratorPersonality('savage')">Savage</button>
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.narratorPersonality === 'announcer' }" @click="settingsStore.setNarratorPersonality('announcer')">Anchor</button>
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.narratorPersonality === 'sarcastic' }" @click="settingsStore.setNarratorPersonality('sarcastic')">Sarcastic</button>
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.narratorPersonality === 'smooth' }"    @click="settingsStore.setNarratorPersonality('smooth')">Smooth</button>
-          </div>
-        </div>
-        <div class="timer-control-group">
-          <span class="timer-control-label">20s Call</span>
-          <div class="timer-control-btns">
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.announceThrowAt20 }" @click="settingsStore.setAnnounceThrowAt20(true)">Throw On</button>
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.announceThrowAt20 }" @click="settingsStore.setAnnounceThrowAt20(false)">Throw Off</button>
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.announceWalkupAt20 }" @click="settingsStore.setAnnounceWalkupAt20(true)">Walk-up On</button>
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.announceWalkupAt20 }" @click="settingsStore.setAnnounceWalkupAt20(false)">Walk-up Off</button>
-          </div>
-        </div>
         <div class="timer-control-group sound-theme-group">
           <span class="timer-control-label">Sound</span>
           <div class="timer-control-btns">
@@ -363,6 +337,63 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <!-- COIN FLIP OVERLAY -->
+    <Transition name="coin-fade">
+      <div v-if="showCoinFlip" class="coin-overlay" @click.self="showCoinFlip = false">
+        <div class="coin-modal">
+          <div class="coin-modal-header">
+            <span class="coin-modal-title display">COIN FLIP</span>
+            <button class="coin-close-btn" @click="showCoinFlip = false">✕</button>
+          </div>
+
+          <div class="coin-arena" @click="flipCoin">
+            <div class="coin-perspective">
+              <div :key="coinAnimKey" class="coin" :class="coinAnimClass">
+                <div class="coin-face coin-face-heads">
+                  <img v-if="settingsStore.coinHeadsImage" :src="settingsStore.coinHeadsImage" class="coin-img" />
+                  <span v-else class="coin-letter">H</span>
+                </div>
+                <div class="coin-face coin-face-tails">
+                  <img v-if="settingsStore.coinTailsImage" :src="settingsStore.coinTailsImage" class="coin-img" />
+                  <span v-else class="coin-letter">T</span>
+                </div>
+              </div>
+            </div>
+            <span class="coin-tap-hint">{{ coinFlipping ? '' : coinResult ? 'Tap to flip again' : 'Tap coin to flip' }}</span>
+          </div>
+
+          <Transition name="result-slide">
+            <div v-if="coinResult && !coinFlipping" class="coin-result">
+              <span class="coin-result-text display" :class="coinResult">{{ coinResult === 'heads' ? 'HEADS' : 'TAILS' }}</span>
+            </div>
+          </Transition>
+
+          <div class="coin-customize">
+            <div class="coin-cust-side">
+              <span class="coin-cust-label">HEADS</span>
+              <button class="coin-cust-btn" @click.stop="pickCoinImage('heads')">
+                <img v-if="settingsStore.coinHeadsImage" :src="settingsStore.coinHeadsImage" class="cust-preview" />
+                <span v-else class="cust-placeholder">+ Photo</span>
+              </button>
+              <button v-if="settingsStore.coinHeadsImage" class="coin-cust-clear" @click.stop="settingsStore.setCoinHeadsImage(null)">✕</button>
+            </div>
+            <div class="coin-cust-divider" />
+            <div class="coin-cust-side">
+              <span class="coin-cust-label">TAILS</span>
+              <button class="coin-cust-btn" @click.stop="pickCoinImage('tails')">
+                <img v-if="settingsStore.coinTailsImage" :src="settingsStore.coinTailsImage" class="cust-preview" />
+                <span v-else class="cust-placeholder">+ Photo</span>
+              </button>
+              <button v-if="settingsStore.coinTailsImage" class="coin-cust-clear" @click.stop="settingsStore.setCoinTailsImage(null)">✕</button>
+            </div>
+          </div>
+
+          <input ref="headsFileInput" type="file" accept="image/*" style="display:none" @change="onCoinImagePicked('heads', $event)" />
+          <input ref="tailsFileInput" type="file" accept="image/*" style="display:none" @change="onCoinImagePicked('tails', $event)" />
+        </div>
+      </div>
+    </Transition>
   </div>
 
   <div v-else class="no-game">
@@ -431,6 +462,44 @@ onBeforeRouteLeave((to, _from, next) => {
 })
 const showAllScores = ref(false)
 const showAddPlayer = ref(false)
+
+// Coin flip
+const showCoinFlip = ref(false)
+const coinAnimKey = ref(0)
+const coinAnimClass = ref<'flip-to-heads' | 'flip-to-tails' | null>(null)
+const coinFlipping = ref(false)
+const coinResult = ref<'heads' | 'tails' | null>(null)
+const headsFileInput = ref<HTMLInputElement | null>(null)
+const tailsFileInput = ref<HTMLInputElement | null>(null)
+
+function flipCoin() {
+  if (coinFlipping.value) return
+  coinResult.value = null
+  coinFlipping.value = true
+  const result: 'heads' | 'tails' = Math.random() < 0.5 ? 'heads' : 'tails'
+  coinAnimKey.value++
+  coinAnimClass.value = result === 'heads' ? 'flip-to-heads' : 'flip-to-tails'
+  setTimeout(() => {
+    coinFlipping.value = false
+    coinResult.value = result
+  }, 2200)
+}
+function pickCoinImage(side: 'heads' | 'tails') {
+  if (side === 'heads') headsFileInput.value?.click()
+  else tailsFileInput.value?.click()
+}
+function onCoinImagePicked(side: 'heads' | 'tails', e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    const data = ev.target?.result as string
+    if (side === 'heads') settingsStore.setCoinHeadsImage(data)
+    else settingsStore.setCoinTailsImage(data)
+    ;(e.target as HTMLInputElement).value = ''
+  }
+  reader.readAsDataURL(file)
+}
 const marksLayout = ref<'top' | 'right'>(
   (localStorage.getItem('cricketMarksLayout') as 'top' | 'right') ?? 'top'
 )
@@ -1020,6 +1089,106 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .no-game { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; width: 100vw; height: 100dvh; }
 .confirm-card { background: #1a1a1a; min-width: 300px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; }
 .confirm-card .q-card-actions { padding: 12px 16px 16px; gap: 10px; }
+
+/* Coin flip button */
+.coin-flip-btn { flex-shrink: 0; align-self: center; margin: 0 4px; padding: 14px 16px; font-size: 20px; }
+
+/* Coin flip overlay */
+.coin-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(0,0,0,0.9); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; padding-top: max(24px, env(safe-area-inset-top)); padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+.coin-modal {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 28px; width: 100%; max-width: 340px;
+}
+.coin-modal-header {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
+}
+.coin-modal-title { font-size: 22px; letter-spacing: 0.2em; color: #ffd700; }
+.coin-close-btn {
+  background: none; border: none; color: rgba(255,255,255,0.45); font-size: 22px;
+  cursor: pointer; padding: 4px 8px; line-height: 1;
+}
+.coin-close-btn:hover { color: #fff; }
+
+.coin-arena {
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.coin-perspective { perspective: 700px; }
+.coin {
+  width: 160px; height: 160px; position: relative;
+  transform-style: preserve-3d;
+}
+.coin.flip-to-heads { animation: flip-to-heads 2.2s cubic-bezier(0.12, 0.5, 0.22, 1) forwards; }
+.coin.flip-to-tails { animation: flip-to-tails 2.2s cubic-bezier(0.12, 0.5, 0.22, 1) forwards; }
+@keyframes flip-to-heads {
+  0%   { transform: rotateY(0deg); }
+  100% { transform: rotateY(1440deg); }
+}
+@keyframes flip-to-tails {
+  0%   { transform: rotateY(0deg); }
+  100% { transform: rotateY(1260deg); }
+}
+.coin-face {
+  position: absolute; inset: 0; border-radius: 50%;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+  background: radial-gradient(circle at 35% 30%, #ffe566, #e8a800 58%, #a07000);
+  border: 4px solid #c89600;
+  box-shadow: inset 0 3px 12px rgba(255,255,200,0.5), inset 0 -3px 8px rgba(0,0,0,0.35), 0 6px 28px rgba(0,0,0,0.7);
+}
+.coin-face-tails { transform: rotateY(180deg); }
+.coin-img { width: 100%; height: 100%; object-fit: cover; }
+.coin-letter {
+  font-family: var(--font-display); font-size: 44px; font-weight: 900;
+  color: #7a4800; text-shadow: 0 1px 3px rgba(255,220,80,0.7); letter-spacing: 0.04em;
+}
+.coin-tap-hint {
+  font-size: 12px; color: rgba(255,255,255,0.38); letter-spacing: 0.1em;
+  text-transform: uppercase; font-weight: 600; min-height: 18px;
+}
+
+.coin-result { display: flex; align-items: center; justify-content: center; }
+.coin-result-text { font-size: 52px; letter-spacing: 0.12em; font-weight: 900; }
+.coin-result-text.heads { color: #ffd700; filter: drop-shadow(0 0 20px rgba(255,215,0,0.7)); }
+.coin-result-text.tails { color: #c8d4e8; filter: drop-shadow(0 0 20px rgba(180,200,240,0.6)); }
+
+.coin-customize {
+  display: flex; align-items: center; gap: 20px;
+  padding: 14px 20px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px; width: 100%;
+}
+.coin-cust-side { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.coin-cust-label {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.38); text-transform: uppercase;
+}
+.coin-cust-btn {
+  width: 64px; height: 64px; border-radius: 50%;
+  border: 2px dashed rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  overflow: hidden; transition: border-color 0.15s, background 0.15s;
+  position: relative;
+}
+.coin-cust-btn:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
+.cust-preview { width: 100%; height: 100%; object-fit: cover; }
+.cust-placeholder { font-size: 11px; color: rgba(255,255,255,0.35); font-weight: 700; }
+.coin-cust-clear {
+  background: none; border: none; color: rgba(255,80,80,0.65);
+  font-size: 13px; cursor: pointer; padding: 2px 6px; line-height: 1;
+}
+.coin-cust-clear:hover { color: #ff4444; }
+.coin-cust-divider { width: 1px; height: 60px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
+
+.coin-fade-enter-active, .coin-fade-leave-active { transition: opacity 0.22s; }
+.coin-fade-enter-from, .coin-fade-leave-to { opacity: 0; }
+.result-slide-enter-active { transition: opacity 0.3s, transform 0.3s; }
+.result-slide-enter-from { opacity: 0; transform: translateY(14px) scale(0.75); }
 
 @media (orientation: landscape) and (max-height: 900px) {
   .turn-header { min-height: 64px; }
