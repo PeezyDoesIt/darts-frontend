@@ -129,44 +129,89 @@ function playWhistle(): Promise<void> {
 async function handleTurnAnnouncement() {
   const name = nextPlayer.value.name
   const prev = prevPlayer.value.name
+  const p = settingsStore.narratorPersonality
+  const term = settingsStore.narratorGender === 'male' ? 'brother' : 'baby'
 
   if (game.value?.bonusTurnActive) {
-    speak(`${name} — bonus throw!`)
-    return
+    const line = p === 'hype'      ? `${name} — BONUS THROW! Let's go!`
+               : p === 'savage'    ? `${name} — bonus throw. Don't waste it.`
+               : p === 'announcer' ? `And ${name} earns a bonus throw! The crowd goes wild!`
+               : p === 'sarcastic' ? `Oh, lucky you. A bonus throw. Wow.`
+               : p === 'smooth'    ? `Ooh, bonus throw for ${name}. Go ahead, ${term}.`
+               : `${name} — bonus throw!`
+    speak(line); return
   }
+
   if (settingsStore.cleanMode) {
-    speak(name)
-    return
+    const line = p === 'hype'      ? `${name}! Let's GO!`
+               : p === 'announcer' ? `Now throwing — ${name}.`
+               : p === 'sarcastic' ? `${name}. I guess.`
+               : p === 'smooth'    ? `${name}, you're up.`
+               : name
+    speak(line); return
   }
 
-  const nextLine = `${name} — it's your turn.`
+  const nextLine = p === 'hype'      ? `LET'S GO! ${name}, get up here — it's your time!`
+                : p === 'savage'    ? `${name}. Get up there.`
+                : p === 'announcer' ? `Now stepping up to the oche — ${name}! The crowd falls silent.`
+                : p === 'sarcastic' ? `${name} — it's your turn. Try not to embarrass yourself.`
+                : p === 'smooth'    ? `Alright ${name}, it's your turn. Make it smooth.`
+                : `${name} — it's your turn.`
 
-  if (settingsStore.quietNarrator) {
-    speak(nextLine)
-    return
-  }
+  if (settingsStore.quietNarrator) { speak(nextLine); return }
+
   if (gameStore.lastTurnHadBull) {
     await playShotgun()
     await new Promise(r => setTimeout(r, 200))
   }
+
   if (gameStore.lastTurnWasTimeout) {
     const count = gameStore.playerTimeoutCounts[prevPlayer.value.id] ?? 0
     await playThemedBuzzer(settingsStore.soundTheme)
     await new Promise(r => setTimeout(r, 200))
-    await speak(`Missed their turn.`)
-    await speak(`Be better.`)
-    if (count >= 3) {
-      await speak(`This is why nobody wants to play darts with you.`)
+    if (p === 'hype') {
+      await speak(`${prev} missed their turn! Unacceptable!`)
+      await speak(`Step your game up!`)
+      if (count >= 3) await speak(`This is getting ridiculous! Do better!`)
+    } else if (p === 'savage') {
+      await speak(`${prev} missed their turn. Pathetic.`)
+      if (count >= 3) await speak(`This is why nobody invites you to darts night.`)
+    } else if (p === 'announcer') {
+      await speak(`${prev} has timed out! A costly mistake in tonight's competition!`)
+      await speak(`The crowd is stunned.`)
+      if (count >= 3) await speak(`This could have serious implications for the standings!`)
+    } else if (p === 'sarcastic') {
+      await speak(`${prev} missed their turn. Shocking. Truly.`)
+      if (count >= 3) await speak(`At this point I'm not even surprised.`)
+    } else if (p === 'smooth') {
+      await speak(`${prev}, that's not a good look, ${term}.`)
+      if (count >= 3) await speak(`Come on now. Pull it together.`)
     } else {
-      await new Promise(r => setTimeout(r, 150))
-      await playWhistle()
-      await new Promise(r => setTimeout(r, 150))
-      await playWhistle()
+      await speak(`Missed their turn.`)
+      await speak(`Be better.`)
+      if (count >= 3) {
+        await speak(`This is why nobody wants to play darts with you.`)
+      } else {
+        await new Promise(r => setTimeout(r, 150))
+        await playWhistle()
+        await new Promise(r => setTimeout(r, 150))
+        await playWhistle()
+      }
     }
     await new Promise(r => setTimeout(r, 300))
     speak(nextLine)
   } else if (gameStore.lastTurnWasZero) {
-    const zeroPhrases = [`Be better.`, `You suck.`, `This is gonna be a long one.`]
+    const zeroPhrases = p === 'hype'
+      ? [`Zero?! Come ON! We need better than that!`, `Shake it off — next turn!`, `That wasn't it, but you got this!`]
+      : p === 'savage'
+      ? [`Zero. Next.`, `Did you even try?`, `Yikes.`]
+      : p === 'announcer'
+      ? [`A scoreless round! The commentators are at a loss for words.`, `Zero points! An unusual turn of events.`, `Difficult conditions out there.`]
+      : p === 'sarcastic'
+      ? [`Zero. Outstanding.`, `A big fat zero. Inspiring.`, `Zero points. Truly a historic performance.`]
+      : p === 'smooth'
+      ? [`Mmm, zero, but we keep it moving.`, `Shake it off. Next turn.`, `Everyone has off nights.`]
+      : [`Be better.`, `You suck.`, `This is gonna be a long one.`]
     await speak(zeroPhrases[Math.floor(Math.random() * zeroPhrases.length)]!)
     speak(nextLine)
   } else {
@@ -185,16 +230,31 @@ onMounted(() => {
     timeLeft.value--
     if (timeLeft.value > 0 && timeLeft.value <= 3) playThemedTick(settingsStore.soundTheme)
     if (timeLeft.value === 20 && settingsStore.announceWalkupAt20 && !settingsStore.cleanMode) {
-      speak(`${nextPlayer.value.name}, walk up now.`)
+      const p = settingsStore.narratorPersonality
+      const term = settingsStore.narratorGender === 'male' ? 'brother' : 'baby'
+      const n = nextPlayer.value.name
+      const line = p === 'hype'      ? `${n}, twenty seconds! Let's MOVE!`
+                 : p === 'savage'    ? `${n}. Walk up.`
+                 : p === 'announcer' ? `${n}, twenty seconds remaining!`
+                 : p === 'sarcastic' ? `${n}, twenty seconds. Not that it seems to matter.`
+                 : p === 'smooth'    ? `${n}, about twenty seconds left, ${term}.`
+                 : `${n}, walk up now.`
+      speak(line)
     }
     if (timeLeft.value <= 30 && !showAlert.value) {
       showAlert.value = true
       if (!settingsStore.cleanMode) {
+        const p = settingsStore.narratorPersonality
+        const term = settingsStore.narratorGender === 'male' ? 'brother' : 'baby'
         const hurryCount = gameStore.playerHurryUpCounts[nextPlayer.value.id] ?? 0
         gameStore.recordHurryUp(nextPlayer.value.id)
-        const line = hurryCount > 0
-          ? `${nextPlayer.value.name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`
-          : `${nextPlayer.value.name}. Hurry the fuck up. It's your turn.`
+        const n = nextPlayer.value.name
+        const line = p === 'hype'      ? (hurryCount > 0 ? `${n}! I SAID let's GO! Move it!`                                              : `${n}! Hurry UP! We're all waiting!`)
+                   : p === 'savage'    ? (hurryCount > 0 ? `${n}. I won't ask again.`                                                     : `${n}. Hurry up.`)
+                   : p === 'announcer' ? (hurryCount > 0 ? `${n}, please step up to the line immediately!`                                : `Officials are urging ${n} to take their position!`)
+                   : p === 'sarcastic' ? (hurryCount > 0 ? `${n}. We're all just waiting here. No rush. Seriously.`                      : `${n}. Any day now.`)
+                   : p === 'smooth'    ? (hurryCount > 0 ? `${n}. Let's go, ${term}. Clock's moving.`                                    : `${n}, whenever you're ready, ${term}.`)
+                   : (hurryCount > 0 ? `${n}. Hurry the fuck up. This is why nobody wants to play darts with you.` : `${n}. Hurry the fuck up. It's your turn.`)
         speak(line)
       }
     }

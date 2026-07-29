@@ -250,6 +250,17 @@
             <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.cleanMode }" @click="settingsStore.setCleanMode(true)">Clean</button>
           </div>
         </div>
+        <div v-if="!settingsStore.cleanMode" class="timer-control-group">
+          <span class="timer-control-label">Style</span>
+          <div class="timer-control-btns" style="flex-wrap:wrap">
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.narratorPersonality === 'default' }"   @click="settingsStore.setNarratorPersonality('default')">Default</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.narratorPersonality === 'hype' }"      @click="settingsStore.setNarratorPersonality('hype')">Hype</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.narratorPersonality === 'savage' }"    @click="settingsStore.setNarratorPersonality('savage')">Savage</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.narratorPersonality === 'announcer' }" @click="settingsStore.setNarratorPersonality('announcer')">Anchor</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.narratorPersonality === 'sarcastic' }" @click="settingsStore.setNarratorPersonality('sarcastic')">Sarcastic</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.narratorPersonality === 'smooth' }"    @click="settingsStore.setNarratorPersonality('smooth')">Smooth</button>
+          </div>
+        </div>
         <div class="timer-control-group">
           <span class="timer-control-label">20s Call</span>
           <div class="timer-control-btns">
@@ -394,9 +405,7 @@ const gameStore = useGameStore()
 const playersStore = usePlayersStore()
 const settingsStore = useSettingsStore()
 
-function personalityOpts() {
-  return undefined
-}
+function pTerm() { return settingsStore.narratorGender === 'male' ? 'brother' : 'baby' }
 
 const game = computed(() => gameStore.game)
 const confirmQuit = ref(false)
@@ -587,19 +596,30 @@ function startThrowTimer() {
     throwTimeLeft.value--
     if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 5) playThemedTick(settingsStore.soundTheme)
     const half = Math.floor(throwTimerDuration.value / 2)
-    if (throwTimeLeft.value === half && half > 30 && !settingsStore.cleanMode) speak(`${currentPlayer.value.name}, it's your turn`, personalityOpts())
+    if (throwTimeLeft.value === half && half > 30 && !settingsStore.cleanMode) speak(`${currentPlayer.value.name}, it's your turn`)
     if (throwTimeLeft.value === 20 && settingsStore.announceThrowAt20 && !settingsStore.cleanMode) {
-      speak(`${currentPlayer.value.name}, you need to shoot.`, personalityOpts())
+      const p = settingsStore.narratorPersonality; const n = currentPlayer.value.name
+      const line = p === 'hype'      ? `${n}, twenty seconds! Let's MOVE!`
+                 : p === 'savage'    ? `${n}. Shoot.`
+                 : p === 'announcer' ? `${n}, twenty seconds remaining in this turn!`
+                 : p === 'sarcastic' ? `${n}, twenty seconds. Not that it seems to matter.`
+                 : p === 'smooth'    ? `${n}, about twenty seconds left, ${pTerm()}.`
+                 : `${n}, you need to shoot.`
+      speak(line)
     }
     if (throwTimeLeft.value <= 30 && !throwHurryUpSaid && !settingsStore.cleanMode) {
       throwHurryUpSaid = true
       const hurryCount = gameStore.playerHurryUpCounts[currentPlayer.value.id] ?? 0
       gameStore.recordHurryUp(currentPlayer.value.id)
       const name = currentPlayer.value.name
-      const line = hurryCount > 0
-        ? `${name}. Hurry the fuck up. It's your turn. This is why nobody wants to play darts with you.`
-        : `${name}. Hurry the fuck up. It's your turn.`
-      speak(line, personalityOpts())
+      const p = settingsStore.narratorPersonality
+      const line = p === 'hype'      ? (hurryCount > 0 ? `${name}! I SAID let's GO! Move it!`                                             : `${name}! Hurry UP! We're all waiting!`)
+                 : p === 'savage'    ? (hurryCount > 0 ? `${name}. I won't ask again.`                                                    : `${name}. Hurry up.`)
+                 : p === 'announcer' ? (hurryCount > 0 ? `${name}, please step up to the line immediately!`                               : `Officials are urging ${name} to take their position!`)
+                 : p === 'sarcastic' ? (hurryCount > 0 ? `${name}. We're all just waiting here. No rush. Seriously.`                     : `${name}. Any day now.`)
+                 : p === 'smooth'    ? (hurryCount > 0 ? `${name}. Let's go, ${pTerm()}. Clock's moving.`                                : `${name}, whenever you're ready, ${pTerm()}.`)
+                 : (hurryCount > 0 ? `${name}. Hurry the fuck up. This is why nobody wants to play darts with you.` : `${name}. Hurry the fuck up. It's your turn.`)
+      speak(line)
     }
     if (throwTimeLeft.value <= 0) {
       clearThrowTimer()

@@ -76,6 +76,17 @@
                 <span class="toggle-sub">Only announces whose turn it is — no commentary</span>
               </div>
             </div>
+            <div v-if="!settingsStore.cleanMode" class="personality-grid">
+              <button
+                v-for="per in PERSONALITIES" :key="per.value"
+                class="personality-btn"
+                :class="{ active: settingsStore.narratorPersonality === per.value }"
+                @click="settingsStore.setNarratorPersonality(per.value as any)"
+              >
+                <span class="per-label">{{ per.label }}</span>
+                <span class="per-sub">{{ per.sub }}</span>
+              </button>
+            </div>
           </div>
 
           <div class="settings-section">
@@ -171,6 +182,15 @@ const hasActiveGame = computed(() => {
   return g !== null && (g.status === 'playing' || g.status === 'between_turns')
 })
 
+
+const PERSONALITIES = [
+  { value: 'default',   label: 'Default',    sub: 'No-nonsense commentary' },
+  { value: 'hype',      label: 'Hype',       sub: 'High energy, gets excited' },
+  { value: 'savage',    label: 'Savage',     sub: 'Cold, cutting, zero sympathy' },
+  { value: 'announcer', label: 'Anchor',     sub: 'Formal sports broadcast' },
+  { value: 'sarcastic', label: 'Sarcastic',  sub: 'Deadpan, dry, unimpressed' },
+  { value: 'smooth',    label: 'Smooth',     sub: 'Low-key, cool, laid back' },
+]
 
 const showSettings = ref(false)
 const availableVoices = ref<VoiceOption[]>([])
@@ -407,6 +427,19 @@ function previewBullseyeSound(value: string) {
 .toggle-info { display: flex; flex-direction: column; gap: 2px; }
 .toggle-title { font-size: 16px; font-weight: 700; color: #fff; }
 .toggle-sub { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.4; }
+
+.personality-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.personality-btn {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04); cursor: pointer; transition: all 0.15s; text-align: left;
+  position: relative; overflow: hidden;
+}
+.personality-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.25); }
+.personality-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); }
+.per-label { font-size: 13px; font-weight: 800; font-family: var(--font-display); letter-spacing: 0.05em; color: #fff; }
+.personality-btn.active .per-label { color: var(--pink); }
+.per-sub { font-size: 10px; color: rgba(255,255,255,0.45); font-weight: 600; line-height: 1.3; }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }

@@ -94,12 +94,13 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('narratorGender', val)
   }
 
-  const savedPersonality = localStorage.getItem('narratorPersonality')
-  const narratorPersonality = ref<'default'>('default')
-  if (savedPersonality && savedPersonality !== 'slj' && savedPersonality !== 'macho') {
-    narratorPersonality.value = savedPersonality as 'default'
-  }
-  function setNarratorPersonality(val: 'default') {
+  type NarratorPersonality = 'default' | 'hype' | 'savage' | 'announcer' | 'sarcastic' | 'smooth'
+  const VALID_PERSONALITIES: NarratorPersonality[] = ['default', 'hype', 'savage', 'announcer', 'sarcastic', 'smooth']
+  const _savedPersonality = localStorage.getItem('narratorPersonality') as NarratorPersonality | null
+  const narratorPersonality = ref<NarratorPersonality>(
+    _savedPersonality && VALID_PERSONALITIES.includes(_savedPersonality) ? _savedPersonality : 'default'
+  )
+  function setNarratorPersonality(val: NarratorPersonality) {
     narratorPersonality.value = val
     localStorage.setItem('narratorPersonality', val)
   }
