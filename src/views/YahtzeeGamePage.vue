@@ -60,6 +60,7 @@
           <span class="turn-total display" :style="{ color: currentPlayer?.color }">{{ grandTotal(game.playerStates[game.currentPlayerIndex]!.scorecard) }}</span>
           <span class="turn-pts">pts</span>
           <div class="header-sc-btns">
+            <button v-ripple class="header-sc-btn" :class="{ 'header-sc-btn-active': showTabs }" @click="showTabs = !showTabs" title="Show players">{{ showTabs ? '▲' : '▼' }}</button>
             <button v-ripple class="header-sc-btn" :class="{ 'header-sc-btn-active': hideCompleted }" @click="hideCompleted = !hideCompleted" title="Hide completed">{{ hideCompleted ? '👁' : '🙈' }}</button>
             <button v-ripple class="header-sc-btn" @click="scorecardTheme = scorecardTheme === 'dark' ? 'light' : 'dark'" title="Toggle theme">{{ scorecardTheme === 'dark' ? '☀️' : '🌙' }}</button>
           </div>
@@ -67,7 +68,7 @@
       </div>
 
       <!-- PLAYER TABS -->
-      <div class="player-tabs">
+      <div v-show="showTabs" class="player-tabs">
         <button
           v-for="(ps, i) in game.playerStates"
           :key="ps.player.id"
@@ -317,6 +318,7 @@ const game = computed(() => yahtzeeStore.game)
 const viewingIndex = ref(0)
 const scorecardTheme = ref<'dark' | 'light'>('dark')
 const hideCompleted = ref(false)
+const showTabs = ref(false)
 
 const scorecardBgStyle = computed(() => {
   const bg = viewedState.value?.player.playerBackground
