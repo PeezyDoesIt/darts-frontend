@@ -148,7 +148,11 @@ function moveDown(i: number) {
 }
 function startGame() {
   if (selectedPlayers.value.length < 2) return
-  yahtzeeStore.startGame(selectedPlayers.value, diceMode.value)
+  try {
+    yahtzeeStore.startGame([...selectedPlayers.value], diceMode.value)
+  } catch (e) {
+    console.error('Yahtzee startGame error:', e)
+  }
   router.push('/yahtzee')
 }
 </script>

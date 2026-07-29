@@ -119,8 +119,24 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
   const game = ref<YahtzeeGame | null>(loadSaved())
 
   function persist() {
-    if (game.value) localStorage.setItem(SAVE_KEY, JSON.stringify(game.value))
-    else localStorage.removeItem(SAVE_KEY)
+    try {
+      if (game.value) {
+        // Strip large image data from players before persisting to avoid storage quota errors
+        const slim = {
+          ...game.value,
+          players: game.value.players.map(p => ({ ...p, avatarUrl: p.avatarUrl?.startsWith('data:') ? null : p.avatarUrl, playerBackground: null })),
+          playerStates: game.value.playerStates.map(ps => ({
+            ...ps,
+            player: { ...ps.player, avatarUrl: ps.player.avatarUrl?.startsWith('data:') ? null : ps.player.avatarUrl, playerBackground: null },
+          })),
+        }
+        localStorage.setItem(SAVE_KEY, JSON.stringify(slim))
+      } else {
+        localStorage.removeItem(SAVE_KEY)
+      }
+    } catch {
+      // Storage quota exceeded — game still runs in memory
+    }
   }
 
   function startGame(players: Player[], diceMode: 'electronic' | 'physical') {
