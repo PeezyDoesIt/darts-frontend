@@ -53,8 +53,7 @@
           </div>
         </div>
         <div class="turn-center">
-          <span class="turn-name display" :style="{ color: currentPlayer?.color, filter: `drop-shadow(0 0 16px ${currentPlayer?.color})` }">{{ currentPlayer?.name }}</span>
-          <span class="turn-sub">{{ isMyTurn ? "it's your turn" : `watching ${currentPlayer?.name}` }}</span>
+          <span class="turn-name display" :style="{ color: currentPlayer?.color, filter: `drop-shadow(0 0 28px ${currentPlayer?.color}) drop-shadow(0 0 8px ${currentPlayer?.color})` }">{{ currentPlayer?.name }}</span>
         </div>
         <div class="turn-right">
           <span class="turn-total display" :style="{ color: currentPlayer?.color }">{{ grandTotal(game.playerStates[game.currentPlayerIndex]!.scorecard) }}</span>
@@ -566,9 +565,8 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   font-size: 26px; overflow: hidden; flex-shrink: 0;
 }
 .turn-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.turn-center { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.turn-name { font-size: 28px; letter-spacing: 0.06em; line-height: 1; }
-.turn-sub { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.turn-center { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.turn-name { font-size: clamp(28px, 5.5dvh, 52px); letter-spacing: 0.04em; line-height: 1; font-weight: 900; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .turn-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0; flex-shrink: 0; min-width: 0; }
 .turn-total { font-size: 32px; line-height: 1; }
 .turn-pts { font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
