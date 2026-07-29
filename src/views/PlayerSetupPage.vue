@@ -44,10 +44,21 @@
                   :x="cell.lx" :y="cell.ly"
                   :transform="`rotate(${cell.lrot},${cell.lx},${cell.ly})`"
                   class="wheel-label"
-                  :font-size="cell.ring === 3 ? '5.5' : cell.ring === 4 ? '6.5' : '7'"
+                  :font-size="cell.ring === 3 ? '5.5' : '6.5'"
                   text-anchor="middle" dominant-baseline="middle"
                 >{{ cell.name }}</text>
-                <circle cx="200" cy="200" r="32" fill="#0a0a0a" />
+                <circle
+                  cx="200" cy="200" r="30"
+                  fill="#0a0a0a"
+                  class="wheel-cell"
+                  :class="{ 'wheel-active': color.toLowerCase() === '#000000' }"
+                  style="cursor:pointer"
+                  @click="color = '#000000'"
+                >
+                  <title>Black</title>
+                </circle>
+                <text x="200" y="200" text-anchor="middle" dominant-baseline="middle"
+                  style="font-size:7px;fill:rgba(255,255,255,0.35);pointer-events:none;font-weight:700;letter-spacing:0.05em">BLACK</text>
               </svg>
             </div>
             <div class="palette-selected-row">
@@ -336,11 +347,11 @@ function sectorPath(r1: number, r2: number, a1: number, a2: number): string {
   return `M${p1.x} ${p1.y} A${r1} ${r1} 0 0 1 ${p2.x} ${p2.y} L${p3.x} ${p3.y} A${r2} ${r2} 0 0 0 ${p4.x} ${p4.y}Z`
 }
 
-const RING_RADII = [34, 62, 92, 122, 152, 178, 200]
+const RING_RADII = [34, 62, 92, 122, 152, 178]
 
 const wheelCells = computed(() => {
   const cells: { name: string; value: string; path: string; lx: number; ly: number; lrot: number; ring: number }[] = []
-  for (let ring = 0; ring < 6; ring++) {
+  for (let ring = 0; ring < 5; ring++) {
     const r1 = RING_RADII[ring], r2 = RING_RADII[ring + 1]
     for (let seg = 0; seg < 12; seg++) {
       const a1 = seg * 30, a2 = a1 + 30
@@ -355,9 +366,10 @@ const wheelCells = computed(() => {
   return cells
 })
 
-const selectedColorName = computed(() =>
-  COLOR_PALETTE.find(c => c.value.toLowerCase() === color.value.toLowerCase())?.name ?? color.value
-)
+const selectedColorName = computed(() => {
+  if (color.value.toLowerCase() === '#000000') return 'Black'
+  return COLOR_PALETTE.find(c => c.value.toLowerCase() === color.value.toLowerCase())?.name ?? color.value
+})
 
 const router = useRouter()
 const route = useRoute()
