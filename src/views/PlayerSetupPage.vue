@@ -25,53 +25,6 @@
           </div>
 
           <div class="field">
-            <label class="label">Player Color</label>
-            <div class="palette-selected-row">
-              <span class="palette-selected-dot" :style="{ background: color, boxShadow: `0 0 10px ${color}` }" />
-              <span class="palette-selected-label">{{ selectedColorName }}</span>
-              <span v-if="colorConflict" class="color-conflict">⚠ Already used by {{ colorConflict }}</span>
-              <button class="color-wheel-toggle" @click="showColorWheel = !showColorWheel">
-                {{ showColorWheel ? '▴ Less' : '▾ Change' }}
-              </button>
-            </div>
-            <div v-if="showColorWheel" class="color-wheel-wrap">
-              <svg class="color-wheel-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  v-for="(cell, idx) in wheelCells" :key="idx"
-                  :d="cell.path"
-                  :fill="cell.value"
-                  class="wheel-cell"
-                  :class="{ 'wheel-active': color.toLowerCase() === cell.value.toLowerCase() }"
-                  @click="color = cell.value"
-                >
-                  <title>{{ cell.name }}</title>
-                </path>
-                <text
-                  v-for="(cell, idx) in wheelCells.filter(c => c.ring >= 2)"
-                  :key="`t${idx}`"
-                  :x="cell.lx" :y="cell.ly"
-                  :transform="`rotate(${cell.lrot},${cell.lx},${cell.ly})`"
-                  class="wheel-label"
-                  :font-size="'6'"
-                  text-anchor="middle" dominant-baseline="middle"
-                >{{ cell.name }}</text>
-                <circle
-                  cx="200" cy="200" r="30"
-                  fill="#0a0a0a"
-                  class="wheel-cell"
-                  :class="{ 'wheel-active': color.toLowerCase() === '#000000' }"
-                  style="cursor:pointer"
-                  @click="color = '#000000'"
-                >
-                  <title>Black</title>
-                </circle>
-                <text x="200" y="200" text-anchor="middle" dominant-baseline="middle"
-                  style="font-size:7px;fill:rgba(255,255,255,0.35);pointer-events:none;font-weight:700;letter-spacing:0.05em">BLACK</text>
-              </svg>
-            </div>
-          </div>
-
-          <div class="field">
             <label class="label">Avatar</label>
             <div class="photo-area">
               <div class="photo-preview" :style="{ background: color, boxShadow: `0 0 20px ${color}60` }">
@@ -154,6 +107,53 @@
                 </button>
                 <span class="ct-player-sub">{{ opt.sub }}</span>
               </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label">Player Color</label>
+            <div class="palette-selected-row">
+              <span class="palette-selected-dot" :style="{ background: color, boxShadow: `0 0 10px ${color}` }" />
+              <span class="palette-selected-label">{{ selectedColorName }}</span>
+              <span v-if="colorConflict" class="color-conflict">⚠ Already used by {{ colorConflict }}</span>
+              <button class="color-wheel-toggle" @click="showColorWheel = !showColorWheel">
+                {{ showColorWheel ? '▴ Less' : '▾ Change' }}
+              </button>
+            </div>
+            <div v-if="showColorWheel" class="color-wheel-wrap">
+              <svg class="color-wheel-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  v-for="(cell, idx) in wheelCells" :key="idx"
+                  :d="cell.path"
+                  :fill="cell.value"
+                  class="wheel-cell"
+                  :class="{ 'wheel-active': color.toLowerCase() === cell.value.toLowerCase() }"
+                  @click="color = cell.value"
+                >
+                  <title>{{ cell.name }}</title>
+                </path>
+                <text
+                  v-for="(cell, idx) in wheelCells.filter(c => c.ring >= 2)"
+                  :key="`t${idx}`"
+                  :x="cell.lx" :y="cell.ly"
+                  :transform="`rotate(${cell.lrot},${cell.lx},${cell.ly})`"
+                  class="wheel-label"
+                  :font-size="'6'"
+                  text-anchor="middle" dominant-baseline="middle"
+                >{{ cell.name }}</text>
+                <circle
+                  cx="200" cy="200" r="30"
+                  fill="#0a0a0a"
+                  class="wheel-cell"
+                  :class="{ 'wheel-active': color.toLowerCase() === '#000000' }"
+                  style="cursor:pointer"
+                  @click="color = '#000000'"
+                >
+                  <title>Black</title>
+                </circle>
+                <text x="200" y="200" text-anchor="middle" dominant-baseline="middle"
+                  style="font-size:7px;fill:rgba(255,255,255,0.35);pointer-events:none;font-weight:700;letter-spacing:0.05em">BLACK</text>
+              </svg>
             </div>
           </div>
 
