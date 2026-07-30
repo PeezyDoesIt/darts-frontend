@@ -181,6 +181,25 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
     persist()
   }
 
+  function autoScoreYahtzee() {
+    if (!game.value || game.value.status !== 'playing') return
+    const state = game.value.playerStates[game.value.currentPlayerIndex]
+    if (!state) return
+    const dice = game.value.dice
+    if (new Set(dice).size !== 1) return
+    const sc = state.scorecard
+    if (sc.yahtzee !== null) {
+      sc.yahtzeeBonusCount++
+    } else {
+      sc.yahtzee = 50
+    }
+    // Give a bonus roll — reset dice without advancing the turn
+    game.value.dice = [1, 1, 1, 1, 1]
+    game.value.held = [false, false, false, false, false]
+    game.value.rollCount = 0
+    persist()
+  }
+
   function scoreCategory(category: YahtzeeCategory) {
     if (!game.value || game.value.status !== 'playing') return
     const state = game.value.playerStates[game.value.currentPlayerIndex]
@@ -222,5 +241,5 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
     persist()
   }
 
-  return { game, startGame, rollDice, toggleHold, setDie, setPhysicalRollCount, scoreCategory, endGame }
+  return { game, startGame, rollDice, toggleHold, setDie, setPhysicalRollCount, autoScoreYahtzee, scoreCategory, endGame }
 })

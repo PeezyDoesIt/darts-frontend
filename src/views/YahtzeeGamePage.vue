@@ -92,52 +92,6 @@
 
       <!-- DICE AREA -->
       <div class="dice-area" v-if="isMyTurn" :style="{ background: `linear-gradient(180deg, ${currentPlayer?.color}0a 0%, transparent 100%)` }">
-        <div class="dice-row">
-          <div
-            v-for="(val, i) in game.dice"
-            :key="i"
-            class="die-wrap"
-            :class="{ 'die-held': game.held[i], [`die-theme-${dieTheme}`]: true }"
-            :style="game.held[i] ? { '--held-color': currentPlayer?.color ?? 'var(--pink)' } : {}"
-            @click="onDieTap(i)"
-          >
-            <svg class="die-svg" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-              <defs v-if="dieTheme === 'metallic'">
-                <linearGradient :id="`mg-${i}`" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%"   :stop-color="game.held[i] ? '#dcdce8' : '#c8c8d8'" />
-                  <stop offset="50%"  :stop-color="game.held[i] ? '#9090a4' : '#787890'" />
-                  <stop offset="100%" :stop-color="game.held[i] ? '#404050' : '#383848'" />
-                </linearGradient>
-              </defs>
-              <rect x="0" y="0" width="36" height="36"
-                :rx="dieFaceRx()"
-                :fill="dieTheme === 'metallic' ? `url(#mg-${i})` : dieFaceFill(!!game.held[i])"
-                :stroke="dieFaceStroke(!!game.held[i])"
-                :stroke-width="dieTheme === 'default' ? 0 : 1.5"
-              />
-              <!-- Wooden grain lines -->
-              <g v-if="dieTheme === 'wooden'">
-                <line v-for="ly in [7, 13, 20, 27]" :key="ly"
-                  x1="1" :y1="ly" x2="35" :y2="ly"
-                  stroke="#4a2008" stroke-width="0.7" opacity="0.3" />
-              </g>
-              <!-- Vintage inner border -->
-              <rect v-if="dieTheme === 'vintage'" x="2" y="2" width="32" height="32" rx="4"
-                fill="none" stroke="#c0a870" stroke-width="0.6" opacity="0.6" />
-              <!-- Pips -->
-              <circle
-                v-for="(dot, di) in dotPositions[val - 1]" :key="di"
-                :cx="dot[0]" :cy="dot[1]" r="3.2"
-                :fill="diePipFill(!!game.held[i])"
-                :style="dieTheme === 'neon'
-                  ? { filter: `drop-shadow(0 0 4px ${currentPlayer?.color ?? '#ff2d78'}) drop-shadow(0 0 2px ${currentPlayer?.color ?? '#ff2d78'})` }
-                  : {}"
-              />
-            </svg>
-            <span v-if="game.diceMode === 'physical'" class="die-tap-hint">tap to cycle</span>
-            <span v-if="game.held[i]" class="held-label" :style="{ color: currentPlayer?.color }">HELD</span>
-          </div>
-        </div>
 
         <!-- YAHTZEE FLASH BANNER -->
         <Transition name="yahtzee-flash">
@@ -148,30 +102,79 @@
           </div>
         </Transition>
 
-        <!-- ELECTRONIC MODE CONTROLS -->
-        <div v-if="game.diceMode === 'electronic'" class="roll-controls">
-          <div class="roll-indicator">
-            <span
-              v-for="n in 3" :key="n"
-              class="roll-pip"
-              :class="{ 'pip-done': n <= game.rollCount }"
-              :style="n <= game.rollCount ? { background: currentPlayer?.color } : {}"
-            />
+        <!-- DICE ROW + ROLL BUTTON (side by side) -->
+        <div class="dice-and-ctrl">
+          <div class="dice-row">
+            <div
+              v-for="(val, i) in game.dice"
+              :key="i"
+              class="die-wrap"
+              :class="{ 'die-held': game.held[i], [`die-theme-${dieTheme}`]: true }"
+              :style="game.held[i] ? { '--held-color': currentPlayer?.color ?? 'var(--pink)' } : {}"
+              @click="onDieTap(i)"
+            >
+              <svg class="die-svg" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+                <defs v-if="dieTheme === 'metallic'">
+                  <linearGradient :id="`mg-${i}`" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%"   :stop-color="game.held[i] ? '#dcdce8' : '#c8c8d8'" />
+                    <stop offset="50%"  :stop-color="game.held[i] ? '#9090a4' : '#787890'" />
+                    <stop offset="100%" :stop-color="game.held[i] ? '#404050' : '#383848'" />
+                  </linearGradient>
+                </defs>
+                <rect x="0" y="0" width="36" height="36"
+                  :rx="dieFaceRx()"
+                  :fill="dieTheme === 'metallic' ? `url(#mg-${i})` : dieFaceFill(!!game.held[i])"
+                  :stroke="dieFaceStroke(!!game.held[i])"
+                  :stroke-width="dieTheme === 'default' ? 0 : 1.5"
+                />
+                <g v-if="dieTheme === 'wooden'">
+                  <line v-for="ly in [7, 13, 20, 27]" :key="ly"
+                    x1="1" :y1="ly" x2="35" :y2="ly"
+                    stroke="#4a2008" stroke-width="0.7" opacity="0.3" />
+                </g>
+                <rect v-if="dieTheme === 'vintage'" x="2" y="2" width="32" height="32" rx="4"
+                  fill="none" stroke="#c0a870" stroke-width="0.6" opacity="0.6" />
+                <circle
+                  v-for="(dot, di) in dotPositions[val - 1]" :key="di"
+                  :cx="dot[0]" :cy="dot[1]" r="3.2"
+                  :fill="diePipFill(!!game.held[i])"
+                  :style="dieTheme === 'neon'
+                    ? { filter: `drop-shadow(0 0 4px ${currentPlayer?.color ?? '#ff2d78'}) drop-shadow(0 0 2px ${currentPlayer?.color ?? '#ff2d78'})` }
+                    : {}"
+                />
+              </svg>
+              <span v-if="game.diceMode === 'physical'" class="die-tap-hint">tap to cycle</span>
+              <span v-if="game.held[i]" class="held-label" :style="{ color: currentPlayer?.color }">HELD</span>
+            </div>
           </div>
-          <button
-            v-ripple
-            class="btn btn-spray btn-lg roll-btn"
-            :disabled="game.rollCount >= 3"
-            @click="doRoll"
-          >
-            {{ game.rollCount === 0 ? 'ROLL DICE' : game.rollCount >= 3 ? 'NO MORE ROLLS' : 'ROLL AGAIN' }}
-          </button>
-          <p v-if="game.rollCount > 0 && !yahtzeeFlash" class="score-hint">Select a category below to score</p>
-          <p v-if="yahtzeeFlash && game.rollCount < 3" class="score-hint yf-hint">You can roll again or score it below!</p>
+
+          <!-- ELECTRONIC: roll button on the right -->
+          <div v-if="game.diceMode === 'electronic'" class="roll-right">
+            <div class="roll-indicator">
+              <span
+                v-for="n in 3" :key="n"
+                class="roll-pip"
+                :class="{ 'pip-done': n <= game.rollCount }"
+                :style="n <= game.rollCount ? { background: currentPlayer?.color } : {}"
+              />
+            </div>
+            <button
+              v-ripple
+              class="btn btn-spray roll-btn-side"
+              :disabled="game.rollCount >= 3"
+              @click="doRoll"
+            >
+              {{ game.rollCount === 0 ? 'ROLL' : game.rollCount >= 3 ? 'DONE' : 'ROLL↺' }}
+            </button>
+          </div>
         </div>
 
+        <!-- HINTS -->
+        <p v-if="game.diceMode === 'electronic' && yahtzeeAutoScored" class="score-hint yf-hint">YAHTZEE scored! Roll again to continue</p>
+        <p v-else-if="game.diceMode === 'electronic' && game.rollCount > 0" class="score-hint">Select a category below to score</p>
+
         <!-- PHYSICAL MODE CONTROLS -->
-        <div v-else class="roll-controls">
+        <div v-if="game.diceMode === 'physical'" class="roll-controls">
           <div class="physical-roll-steps">
             <button
               v-for="n in 3" :key="n"
@@ -333,6 +336,7 @@ const scorecardTheme = ref<'dark' | 'light'>('dark')
 const hideCompleted = ref(false)
 const showTabs = ref(false)
 const yahtzeeFlash = ref(false)
+const yahtzeeAutoScored = ref(false)
 let yahtzeeFlashTimer: ReturnType<typeof setTimeout> | null = null
 
 function doRoll() {
@@ -344,9 +348,12 @@ function doRoll() {
     if (isYahtzee) {
       if (yahtzeeFlashTimer) clearTimeout(yahtzeeFlashTimer)
       yahtzeeFlash.value = true
+      yahtzeeAutoScored.value = true
+      yahtzeeStore.autoScoreYahtzee()
       yahtzeeFlashTimer = setTimeout(() => { yahtzeeFlash.value = false }, 4000)
     } else {
       yahtzeeFlash.value = false
+      yahtzeeAutoScored.value = false
     }
   })
 }
@@ -511,8 +518,10 @@ function onDieTap(i: number) {
 
 function tryScore(category: YahtzeeCategory) {
   if (!isMyTurn.value || !canScore.value) return
+  if (yahtzeeAutoScored.value) return
   if (!viewedState.value || viewedState.value.scorecard[category] !== null) return
   yahtzeeFlash.value = false
+  yahtzeeAutoScored.value = false
   if (yahtzeeFlashTimer) { clearTimeout(yahtzeeFlashTimer); yahtzeeFlashTimer = null }
   yahtzeeStore.scoreCategory(category)
 }
@@ -658,17 +667,38 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 /* DICE AREA */
 .dice-area {
   flex-shrink: 0;
-  padding: 14px 16px 10px;
+  padding: 10px 16px 8px;
   background: rgba(255,255,255,0.02);
   border-bottom: 1px solid rgba(255,255,255,0.06);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+}
+.dice-and-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .dice-row {
+  flex: 1;
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
+}
+.roll-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding-right: 2px;
+}
+.roll-btn-side {
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  min-width: 68px;
+  letter-spacing: 0.06em;
 }
 .die-wrap {
   display: flex;
@@ -956,5 +986,28 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   .sc-total-row { grid-template-columns: 96px 1fr 46px; }
   .sc-cat-label { font-size: 11px; }
   .sc-howto-text { font-size: 9px; }
+}
+
+/* iPad: compact scorecard to fit without scrolling */
+@media (min-width: 768px) {
+  .turn-header { padding: 10px 20px; padding-top: calc(10px + env(safe-area-inset-top)); }
+  .turn-avatar { width: 44px; height: 44px; font-size: 22px; }
+  .turn-name { font-size: clamp(22px, 3.5dvh, 38px); }
+  .dice-area { padding: 6px 16px 5px; gap: 5px; }
+  .die-svg { width: 46px; height: 46px; }
+  .dice-row { gap: 7px; }
+  .score-hint { font-size: 10px; margin: 0; }
+  .scorecard-scroll { overflow-y: hidden; }
+  .sc-col-name,
+  .sc-col-howto,
+  .sc-col-box { padding-top: 3px; padding-bottom: 3px; }
+  .sc-lower-header { padding: 5px 0; }
+  .sc-cat-label { font-size: 10px; }
+  .sc-howto-text { font-size: 8.5px; }
+  .sc-score-val { font-size: 13px; }
+  .sc-total-name { font-size: 9px; }
+  .sc-grand-label { font-size: 10px !important; }
+  .sc-grand-val { font-size: 17px !important; }
+  .sc-bonus-check { font-size: 16px; }
 }
 </style>
