@@ -57,7 +57,7 @@
           </div>
         </div>
         <div class="turn-center">
-          <span class="turn-name display" :style="{ color: currentPlayer?.color, filter: `drop-shadow(0 0 28px ${currentPlayer?.color}) drop-shadow(0 0 8px ${currentPlayer?.color})` }">{{ currentPlayer?.name }}</span>
+          <span class="turn-name display" :style="{ color: currentPlayer?.color, filter: `drop-shadow(0 0 10px ${currentPlayer?.color}) drop-shadow(0 0 4px ${currentPlayer?.color})` }">{{ currentPlayer?.name }}</span>
         </div>
         <div class="turn-right">
           <span class="turn-total display" :style="{ color: currentPlayer?.color }">{{ grandTotal(game.playerStates[game.currentPlayerIndex]!.scorecard) }}</span>
@@ -616,7 +616,7 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 .turn-avatar-tap:hover { transform: scale(1.08); }
 .turn-avatar-tap:active { transform: scale(0.94); }
 .turn-center { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.turn-name { font-size: clamp(28px, 5.5dvh, 52px); letter-spacing: 0.04em; line-height: 1; font-weight: 900; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.turn-name { font-size: clamp(22px, 3.8dvh, 36px); letter-spacing: 0.04em; line-height: 1; font-weight: 900; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .turn-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0; flex-shrink: 0; min-width: 0; }
 .turn-total { font-size: 32px; line-height: 1; }
 .turn-pts { font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
@@ -992,7 +992,7 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 @media (min-width: 768px) {
   .turn-header { padding: 10px 20px; padding-top: calc(10px + env(safe-area-inset-top)); }
   .turn-avatar { width: 44px; height: 44px; font-size: 22px; }
-  .turn-name { font-size: clamp(22px, 3.5dvh, 38px); }
+  .turn-name { font-size: clamp(20px, 3dvh, 32px); }
   .dice-area { padding: 6px 16px 5px; gap: 5px; }
   .die-svg { width: 46px; height: 46px; }
   .dice-row { gap: 7px; }

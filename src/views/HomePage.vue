@@ -427,12 +427,14 @@ function previewBullseyeSound(value: string) {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  scrollbar-width: none;
   position: relative;
   flex-direction: row;
   background-image: url('/Dartbg.avif');
   background-size: cover;
   background-position: center;
 }
+.home::-webkit-scrollbar { display: none; }
 
 .home-left {
   width: 100%;

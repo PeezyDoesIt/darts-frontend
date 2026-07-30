@@ -545,6 +545,7 @@ function startGame() {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  scrollbar-width: none;
   padding: 24px 20px;
   display: flex;
   flex-direction: column;
@@ -553,6 +554,7 @@ function startGame() {
   margin: 0 auto 0 16px;
   width: 100%;
 }
+.step-pane::-webkit-scrollbar { display: none; }
 
 .step-title {
   font-size: 32px;
