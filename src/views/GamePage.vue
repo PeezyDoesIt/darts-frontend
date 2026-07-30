@@ -1185,7 +1185,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .coin-modal-header {
   display: flex; align-items: center; justify-content: space-between; width: 100%;
 }
-.coin-modal-title { font-size: 22px; letter-spacing: 0.2em; color: #ffd700; }
+.coin-modal-title { font-size: 38px; letter-spacing: 0.2em; color: #ffd700; font-weight: 900; }
 .coin-close-btn {
   background: none; border: none; color: rgba(255,255,255,0.45); font-size: 22px;
   cursor: pointer; padding: 4px 8px; line-height: 1;

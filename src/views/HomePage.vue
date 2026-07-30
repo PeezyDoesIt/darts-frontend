@@ -671,7 +671,7 @@ function previewBullseyeSound(value: string) {
   gap: 28px; width: 100%; max-width: 340px;
 }
 .coin-modal-header { display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
-.coin-modal-title { font-size: 22px; letter-spacing: 0.2em; color: #ffd700; font-weight: 900; }
+.coin-modal-title { font-size: 38px; letter-spacing: 0.2em; color: #ffd700; font-weight: 900; }
 .coin-close-btn {
   position: absolute; right: 0;
   background: none; border: none; color: rgba(255,255,255,0.45); font-size: 22px;
