@@ -496,7 +496,7 @@ function previewBullseyeSound(value: string) {
 
 .home-secondary .btn-outline { color: #ffffff; font-weight: 700; border: 2px solid #ffffff; }
 .home-secondary .btn-outline:hover { color: var(--pink); border-color: var(--pink); }
-.yahtzee-btn { background: linear-gradient(135deg, #3d0088 0%, #6600cc 40%, #9900ff 70%, #cc44ff 100%) !important; color: #ffffff !important; font-weight: 900 !important; border: none !important; font-family: var(--font-display) !important; letter-spacing: 0.1em !important; font-size: 22px !important; box-shadow: 0 0 28px rgba(153,0,255,0.5), 0 0 8px rgba(204,68,255,0.3) !important; text-shadow: 0 0 20px rgba(255,255,255,0.6), 0 0 8px currentColor !important; }
+.yahtzee-btn { background: linear-gradient(135deg, #3d0088 0%, #6600cc 40%, #9900ff 70%, #cc44ff 100%) !important; color: #ffffff !important; font-weight: 900 !important; border: none !important; font-family: var(--font-display) !important; letter-spacing: 0.1em !important; font-size: 22px !important; box-shadow: 0 0 28px rgba(153,0,255,0.5), 0 0 8px rgba(204,68,255,0.3) !important; }
 .yahtzee-btn:hover { box-shadow: 0 0 48px rgba(153,0,255,0.8), 0 0 16px rgba(204,68,255,0.5) !important; opacity: 0.9; }
 
 .home-actions { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 600px; position: relative; z-index: 1; }
