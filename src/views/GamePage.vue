@@ -830,7 +830,9 @@ function complementaryColor(hex: string): string {
     else h = ((r - g) / d + 4) / 6
   }
   h = (h + 0.5) % 1
-  return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`
+  // Boost lightness to at least 70% so the colour is always readable on a dark background
+  const outL = Math.max(l, 0.70)
+  return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(outL * 100)}%)`
 }
 
 const currentPlayerNameColor = computed(() => {
@@ -890,7 +892,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .header-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .turn-name-wrap { position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); bottom: 0; display: flex; justify-content: center; align-items: stretch; pointer-events: none; z-index: 0; padding: 0 8px; }
 .turn-round-pill { font-size: clamp(50px, 6.8dvh, 74px); font-weight: 900; line-height: 1; letter-spacing: 0.08em; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 24px; color: rgba(255,255,255,0.8); white-space: nowrap; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; margin-left: 12px; }
-.turn-name { font-size: clamp(62px, 9dvh, 100px); line-height: 1; letter-spacing: 0.04em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 14px; white-space: nowrap; max-width: 70vw; overflow: hidden; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 32px var(--player-color, var(--pink)), 0 0 10px var(--player-color, var(--pink)); }
+.turn-name { font-size: clamp(62px, 9dvh, 100px); line-height: 1; letter-spacing: 0.04em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 14px; white-space: nowrap; max-width: 70vw; overflow: hidden; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 32px var(--player-color, var(--pink)), 0 0 10px var(--player-color, var(--pink)); text-shadow: 0 0 24px currentColor, 0 0 8px currentColor; }
 
 .turn-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding-right: 8px; z-index: 1; position: relative; }
 
