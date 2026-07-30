@@ -17,7 +17,7 @@
           :disabled="myClosed(target)"
           @click="handleTileClick(target)"
         >
-          <span class="target-label" :class="{ 'target-label-bull': target === 'bull' }" :style="{ color: targetColor, filter: `drop-shadow(0 0 12px ${targetColor})` }">{{ target === 'bull' ? '🎯' : target }}</span>
+          <span class="target-label" :class="{ 'target-label-bull': target === 'bull' }" :style="{ color: targetColor, filter: `drop-shadow(0 0 6px ${targetColor}80)` }">{{ target === 'bull' ? '🎯' : target }}</span>
 
           <div class="pips-wrap">
             <span
@@ -227,7 +227,7 @@ defineExpose({ submit, submitted })
 .board-tile.closed .pip.existing { background: #cc0000; border-color: #cc0000; box-shadow: none; color: #000; }
 .board-tile.closed-fade { opacity: 0.35; cursor: default; }
 
-.target-label { font-size: clamp(120px, 20dvh, 220px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(150px, 20dvh, 240px); flex-shrink: 0; display: flex; align-items: center; overflow: hidden; text-shadow: 0 0 32px currentColor, 0 0 10px currentColor; }
+.target-label { font-size: clamp(120px, 20dvh, 220px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(150px, 20dvh, 240px); flex-shrink: 0; display: flex; align-items: center; overflow: hidden; }
 .target-label-bull { font-size: clamp(150px, 26dvh, 280px); }
 .pips-wrap { display: flex; align-items: stretch; gap: 20px; flex: 1; padding: 14px 0; margin-left: 24px; }
 .pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: clamp(28px, 5dvh, 60px); font-weight: 900; font-family: var(--font-display); color: rgba(0,0,0,0.6); line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
