@@ -1181,7 +1181,11 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .coin-modal {
   display: flex; flex-direction: column; align-items: center;
   gap: 28px; width: 100%; max-width: 340px;
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: none;
 }
+.coin-modal::-webkit-scrollbar { display: none; }
 .coin-modal-header {
   display: flex; align-items: center; justify-content: space-between; width: 100%;
 }

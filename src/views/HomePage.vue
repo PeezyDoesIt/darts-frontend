@@ -669,7 +669,11 @@ function previewBullseyeSound(value: string) {
 .coin-modal {
   display: flex; flex-direction: column; align-items: center;
   gap: 28px; width: 100%; max-width: 340px;
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: none;
 }
+.coin-modal::-webkit-scrollbar { display: none; }
 .coin-modal-header { display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
 .coin-modal-title { font-size: 38px; letter-spacing: 0.2em; color: #ffd700; font-weight: 900; }
 .coin-close-btn {
