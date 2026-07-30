@@ -1039,6 +1039,7 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 }
 /* Tablet only: lock scroll so scorecard fits on screen */
 @media (min-width: 768px) and (max-width: 1100px) {
-  .scorecard-scroll { overflow-y: hidden; }
+  .scorecard-scroll { overflow-y: hidden; display: flex; flex-direction: column; }
+  .sc-paper { flex: 1; }
 }
 </style>
