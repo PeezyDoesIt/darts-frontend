@@ -395,7 +395,12 @@ watch(() => game.value?.status, (s) => {
   if (s === 'finished') recordResults()
 })
 
-const currentPlayer = computed(() => game.value?.players[game.value.currentPlayerIndex] ?? null)
+const currentPlayer = computed(() => {
+  const snap = game.value?.players[game.value.currentPlayerIndex]
+  if (!snap) return null
+  // Prefer live player from store so mid-game edits (diceTheme, color, etc.) reflect immediately
+  return playersStore.players.find(p => p.id === snap.id) ?? snap
+})
 const viewedState = computed(() => game.value?.playerStates[viewingIndex.value])
 const isMyTurn = computed(() => viewingIndex.value === game.value?.currentPlayerIndex)
 const canScore = computed(() => (game.value?.rollCount ?? 0) >= 1)
@@ -775,7 +780,7 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 }
 .roll-indicator {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 5px;
   align-items: center;
 }
@@ -1008,12 +1013,17 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 
 /* iPad: compact scorecard to fit without scrolling */
 @media (min-width: 768px) {
-  .turn-header { padding: 10px 20px; padding-top: calc(10px + env(safe-area-inset-top)); }
-  .turn-avatar { width: 44px; height: 44px; font-size: 22px; }
+  .turn-header { padding: 8px 20px; padding-top: calc(8px + env(safe-area-inset-top)); }
+  .turn-avatar { width: 40px; height: 40px; font-size: 20px; }
   .turn-name { font-size: clamp(24px, 4dvh, 38px); }
-  .dice-area { padding: 6px 16px 5px; gap: 5px; }
-  .die-svg { width: 46px; height: 46px; }
-  .dice-row { gap: 7px; }
+  /* Buttons horizontal row to the left of PTS — shrinks header height */
+  .header-sc-btns { flex-direction: row; gap: 4px; }
+  .header-sc-btn { font-size: 16px; padding: 5px 9px; }
+  .turn-total { font-size: 26px; }
+  .turn-pts { font-size: 9px; }
+  .dice-area { padding: 4px 16px 4px; gap: 4px; }
+  .die-svg { width: 44px; height: 44px; }
+  .dice-row { gap: 6px; }
   .score-hint { font-size: 10px; margin: 0; }
   .sc-col-name,
   .sc-col-howto,

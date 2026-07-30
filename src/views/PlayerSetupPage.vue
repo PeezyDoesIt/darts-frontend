@@ -721,11 +721,15 @@ function save() {
   .theme-grid { grid-template-columns: repeat(6, 1fr); }
 }
 
-/* iPad portrait — allow page to scroll so keyboard doesn't clip content */
-@media (min-width: 769px) and (max-width: 1100px) and (orientation: portrait) {
-  .page { height: auto; min-height: 100dvh; overflow-y: auto; }
-  .setup-body { overflow: visible; height: auto; }
-  .setup-form-scroll { overflow-y: visible; }
-  .existing-scroll { flex: none; height: auto; }
+/* iPad — compact layout, hide scrollbar, shrink color wheel */
+@media (min-width: 769px) and (max-width: 1100px) {
+  .setup-form-scroll { scrollbar-width: none; }
+  .setup-form-scroll::-webkit-scrollbar { display: none; }
+  .setup-form { padding: 18px 24px; gap: 16px; }
+  .page-header { padding: 12px 24px; padding-top: calc(12px + env(safe-area-inset-top)); }
+  .field { gap: 7px; }
+  .color-wheel-svg { max-width: 220px; }
+  .setup-right { width: 240px; padding: 20px; gap: 14px; }
+  .preview-avatar { width: 72px; height: 72px; font-size: 36px; }
 }
 </style>
