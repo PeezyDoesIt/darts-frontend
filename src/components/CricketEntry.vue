@@ -12,7 +12,6 @@
           :class="{
             closed: myClosed(target) && closedTargetDisplay === 'show',
             'closed-fade': myClosed(target) && closedTargetDisplay === 'fade',
-            'closed-strike': myClosed(target) && closedTargetDisplay === 'strike',
             active: (roundHits[target] ?? 0) > 0
           }"
           :disabled="myClosed(target)"
@@ -26,7 +25,7 @@
               class="pip"
               :class="{ existing: pipIsExisting(target, n), round: pipIsRound(target, n) }"
               @click.stop="handlePipClick(target, n)"
-            >{{ myClosed(target) && closedTargetDisplay !== 'strike' ? '✕' : '' }}</span>
+            >{{ myClosed(target) ? '✕' : '' }}</span>
           </div>
 
           <span v-if="myClosed(target)" class="closed-badge">✓ CLOSED</span>
@@ -71,7 +70,7 @@ const props = defineProps<{
   scores: Record<string, PlayerScore>
   isCutThroat: boolean
   round: number
-  closedTargetDisplay?: 'show' | 'hide' | 'fade' | 'strike'
+  closedTargetDisplay?: 'show' | 'hide' | 'fade'
   avatarUrl?: string | null
   playerColor?: string
   playerBackground?: string | null
@@ -227,11 +226,6 @@ defineExpose({ submit, submitted })
 .board-tile.closed { cursor: default; }
 .board-tile.closed .pip.existing { background: #cc0000; border-color: #cc0000; box-shadow: none; color: #000; }
 .board-tile.closed-fade { opacity: 0.35; cursor: default; }
-.board-tile.closed-strike { opacity: 0.45; filter: grayscale(0.7); cursor: default; }
-.board-tile.closed-strike::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2;
-  background: linear-gradient(transparent 46%, rgba(255,255,255,0.45) 46%, rgba(255,255,255,0.45) 54%, transparent 54%);
-}
 
 .target-label { font-size: clamp(120px, 20dvh, 220px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(150px, 20dvh, 240px); flex-shrink: 0; display: flex; align-items: center; overflow: hidden; text-shadow: 0 0 32px currentColor, 0 0 10px currentColor; }
 .target-label-bull { font-size: clamp(150px, 26dvh, 280px); }

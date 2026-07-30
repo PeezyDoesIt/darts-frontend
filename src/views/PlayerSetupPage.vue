@@ -453,14 +453,13 @@ const bgSize = ref<'cover' | 'contain' | null>(null)
 const bgPosition = ref<'top' | 'center' | 'bottom' | null>(null)
 const bgFill = ref<'black' | 'blur' | null>(null)
 const targetLabelColor = ref<string | null>(null)
-const cricketTargetDisplay = ref<'show' | 'hide' | 'fade' | 'strike' | null>(null)
+const cricketTargetDisplay = ref<'show' | 'hide' | 'fade' | null>(null)
 const diceTheme = ref<DiceTheme | null>(null)
 
-const cricketTargetDisplayOpts: { value: 'show' | 'hide' | 'fade' | 'strike' | null; label: string; sub: string }[] = [
+const cricketTargetDisplayOpts: { value: 'show' | 'hide' | 'fade' | null; label: string; sub: string }[] = [
   { value: null,     label: 'Default', sub: 'Use game setting' },
   { value: 'show',   label: 'Normal',  sub: 'Standard opacity' },
   { value: 'fade',   label: 'Fade',    sub: 'Ghost out' },
-  { value: 'strike', label: 'Strike',  sub: 'Line through' },
   { value: 'hide',   label: 'Hide',    sub: 'Remove tile' },
 ]
 

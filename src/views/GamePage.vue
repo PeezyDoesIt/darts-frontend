@@ -620,7 +620,6 @@ const TIMER_OPTIONS = [60, 90, 120]
 const ctDisplayOptions = [
   { value: 'show'   as const, label: 'Normal' },
   { value: 'fade'   as const, label: 'Fade' },
-  { value: 'strike' as const, label: 'Strike' },
   { value: 'hide'   as const, label: 'Hide' },
 ]
 
