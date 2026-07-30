@@ -341,9 +341,9 @@
 
           <!-- Series mode selector -->
           <div class="coin-series-modes">
-            <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'single' }" @click="seriesMode = 'single'; resetSeries()">Single</button>
-            <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'bo3' }" @click="seriesMode = 'bo3'; resetSeries()">Best of 3</button>
-            <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'bo5' }" @click="seriesMode = 'bo5'; resetSeries()">Best of 5</button>
+            <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'single' }" @click="seriesMode = 'single'">Single</button>
+            <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'bo3' }" @click="seriesMode = 'bo3'">Best of 3</button>
+            <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'bo5' }" @click="seriesMode = 'bo5'">Best of 5</button>
           </div>
 
           <!-- Question / purpose -->
@@ -562,7 +562,6 @@ function resetSeries() {
 }
 
 watch(showCoinFlip, (v) => { if (!v) { resetSeries(); coinQuestion.value = ''; coinQuestionDraft.value = ''; showQuestionInput.value = false } })
-watch(seriesMode, () => resetSeries())
 function pickCoinImage(side: 'heads' | 'tails') {
   if (side === 'heads') headsFileInput.value?.click()
   else tailsFileInput.value?.click()
