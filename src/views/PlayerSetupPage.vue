@@ -169,7 +169,6 @@
               >
                 <span class="dice-theme-icon">{{ t.icon }}</span>
                 <span class="dice-theme-label">{{ t.label }}</span>
-                <span class="dice-theme-sub">{{ t.sub }}</span>
               </button>
             </div>
           </div>
@@ -689,8 +688,8 @@ function save() {
 
 .dice-theme-grid { display: flex; gap: 8px; flex-wrap: wrap; }
 .dice-theme-btn {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  padding: 10px 12px; min-width: 72px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 20px; min-width: 96px;
   border-radius: 10px; border: 2px solid rgba(255,255,255,0.15);
   background: rgba(255,255,255,0.04); cursor: pointer;
   transition: all 0.15s; position: relative; overflow: hidden;
@@ -698,10 +697,9 @@ function save() {
 }
 .dice-theme-btn:hover { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); }
 .dice-theme-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); }
-.dice-theme-icon { font-size: 22px; }
-.dice-theme-label { font-size: 12px; font-weight: 800; font-family: var(--font-display); letter-spacing: 0.04em; color: #fff; }
+.dice-theme-icon { font-size: 24px; }
+.dice-theme-label { font-size: 15px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; color: #fff; white-space: nowrap; }
 .dice-theme-btn.active .dice-theme-label { color: var(--pink); }
-.dice-theme-sub { font-size: 9px; color: rgba(255,255,255,0.4); letter-spacing: 0.04em; white-space: nowrap; }
 
 .ct-player-opts { display: flex; gap: 8px; flex-wrap: nowrap; }
 .ct-player-wrap { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; }
