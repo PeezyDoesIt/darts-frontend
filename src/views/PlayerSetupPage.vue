@@ -26,7 +26,15 @@
 
           <div class="field">
             <label class="label">Player Color</label>
-            <div class="color-wheel-wrap">
+            <div class="palette-selected-row">
+              <span class="palette-selected-dot" :style="{ background: color, boxShadow: `0 0 10px ${color}` }" />
+              <span class="palette-selected-label">{{ selectedColorName }}</span>
+              <span v-if="colorConflict" class="color-conflict">⚠ Already used by {{ colorConflict }}</span>
+              <button class="color-wheel-toggle" @click="showColorWheel = !showColorWheel">
+                {{ showColorWheel ? '▴ Less' : '▾ Change' }}
+              </button>
+            </div>
+            <div v-if="showColorWheel" class="color-wheel-wrap">
               <svg class="color-wheel-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
                 <path
                   v-for="(cell, idx) in wheelCells" :key="idx"
@@ -39,7 +47,7 @@
                   <title>{{ cell.name }}</title>
                 </path>
                 <text
-                  v-for="(cell, idx) in wheelCells.filter(c => c.ring >= 3)"
+                  v-for="(cell, idx) in wheelCells.filter(c => c.ring >= 2)"
                   :key="`t${idx}`"
                   :x="cell.lx" :y="cell.ly"
                   :transform="`rotate(${cell.lrot},${cell.lx},${cell.ly})`"
@@ -60,11 +68,6 @@
                 <text x="200" y="200" text-anchor="middle" dominant-baseline="middle"
                   style="font-size:7px;fill:rgba(255,255,255,0.35);pointer-events:none;font-weight:700;letter-spacing:0.05em">BLACK</text>
               </svg>
-            </div>
-            <div class="palette-selected-row">
-              <span class="palette-selected-dot" :style="{ background: color, boxShadow: `0 0 10px ${color}` }" />
-              <span class="palette-selected-label">{{ selectedColorName }}</span>
-              <span v-if="colorConflict" class="color-conflict">⚠ Already used by {{ colorConflict }}</span>
             </div>
           </div>
 
@@ -368,7 +371,7 @@ const RING_RADII = [34, 62, 92, 122, 152]
 
 const wheelCells = computed(() => {
   const cells: { name: string; value: string; path: string; lx: number; ly: number; lrot: number; ring: number }[] = []
-  for (let ring = 0; ring < 4; ring++) {
+  for (let ring = 0; ring < 3; ring++) {
     const r1 = RING_RADII[ring], r2 = RING_RADII[ring + 1]
     for (let seg = 0; seg < 12; seg++) {
       const a1 = seg * 30, a2 = a1 + 30
@@ -417,6 +420,8 @@ onMounted(() => {
 const editingId = ref<string | null>(null)
 const name = ref('')
 const color = ref<string>(nextAvailableColor())
+const showColorWheel = ref(false)
+watch(color, () => { showColorWheel.value = false })
 const colorConflict = computed(() => {
   const match = playersStore.players.find(
     p => p.id !== editingId.value && p.color.toLowerCase() === color.value.toLowerCase()
@@ -522,7 +527,7 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = nextAvailableColor(); avatarUrl.value = null
-  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; bgSize.value = null; bgPosition.value = null; bgFill.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null; diceTheme.value = null; saving.value = false
+  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; bgSize.value = null; bgPosition.value = null; bgFill.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null; diceTheme.value = null; saving.value = false; showColorWheel.value = false
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
@@ -611,10 +616,13 @@ function save() {
 .wheel-cell:hover { opacity: 0.8; }
 .wheel-active { stroke: #ffffff !important; stroke-width: 2.5 !important; filter: drop-shadow(0 0 4px rgba(255,255,255,0.9)); }
 .wheel-label { fill: #ffffff; font-weight: 700; letter-spacing: 0.02em; paint-order: stroke fill; stroke: rgba(0,0,0,0.65); stroke-width: 2px; stroke-linejoin: round; pointer-events: none; }
-.palette-selected-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.palette-selected-row { display: flex; align-items: center; gap: 10px; }
 .palette-selected-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); flex-shrink: 0; display: block; }
-.palette-selected-label { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85); letter-spacing: 0.05em; text-transform: uppercase; }
+.palette-selected-label { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85); letter-spacing: 0.05em; text-transform: uppercase; flex: 1; }
 .color-conflict { font-size: 12px; color: #ff4444; font-weight: 700; }
+.color-wheel-toggle { padding: 4px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.color-wheel-toggle:hover { border-color: var(--pink); color: var(--pink); }
+.color-wheel-wrap { display: flex; justify-content: center; padding: 8px 0; }
 
 .emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
 .emoji-btn { width: 50px; height: 50px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-size: 24px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; touch-action: pan-y; }

@@ -70,7 +70,7 @@ export const useGameStore = defineStore('game', () => {
     _pendingTimeout.value = true
   }
 
-  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide' | 'fade' | 'strike', bustEliminates: boolean, cricketPlayToCompletion: boolean, cricketHatTrickBonus: boolean, cricketRoundLimit: number | null, gameTheme: string | null, gameThemeSize: 'cover' | 'contain' | null, gameThemePosition: 'top' | 'center' | 'bottom' | null, gameThemeFill: 'black' | 'blur' | null, players: Player[], skipWalkup: boolean = false) {
+  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide' | 'fade' | 'strike', bustEliminates: boolean, cricketPlayToCompletion: boolean, cricketHatTrickBonus: boolean, cricketRoundLimit: number | null, gameTheme: string | null, gameThemeSize: 'cover' | 'contain' | null, gameThemePosition: 'top' | 'center' | 'bottom' | null, gameThemeFill: 'black' | 'blur' | null, players: Player[], skipWalkup: boolean = false, gameDuration: number | null = null) {
     playerTimeoutCounts.value = {}
     playerHurryUpCounts.value = {}
     lastTurnWasTimeout.value = false
@@ -98,6 +98,8 @@ export const useGameStore = defineStore('game', () => {
       status: 'playing',
       winnerId: null,
       startedAt: new Date().toISOString(),
+      gameDuration,
+      gameStartedAt: Date.now(),
     }
   }
 
@@ -392,12 +394,61 @@ export const useGameStore = defineStore('game', () => {
     game.value.cricketRoundLimit = val
   }
 
+  function setGameDuration(val: number | null) {
+    if (!game.value) return
+    game.value.gameDuration = val
+    // Reset start time so the new duration counts from now
+    if (val !== null) game.value.gameStartedAt = Date.now()
+  }
+
+  // End the game by time — pick the current leader as winner
+  function forceEndByTime() {
+    if (!game.value || game.value.status === 'finished') return
+    const g = game.value
+    let winnerId: string | null = null
+
+    if (g.gameType === 'cricket' || g.gameType === 'cutThroat' || g.gameType === 'speedCricket') {
+      const marksToClose = g.gameType === 'speedCricket' ? 1 : 3
+      let bestClosed = -1, bestPoints = -1
+      for (const p of g.players) {
+        const s = g.scores[p.id]
+        if (s?.kind !== 'cricket') continue
+        const closed = CRICKET_TARGETS.filter(t => s.data.marks[t] >= marksToClose).length
+        const pts = s.data.points
+        if (closed > bestClosed || (closed === bestClosed && pts > bestPoints)) {
+          bestClosed = closed; bestPoints = pts; winnerId = p.id
+        }
+      }
+    } else if (['301','501','701','1001'].includes(g.gameType)) {
+      let lowestRemaining = Infinity
+      for (const p of g.players) {
+        const s = g.scores[p.id]
+        if (s?.kind !== 'ohOne') continue
+        if (s.data.remaining < lowestRemaining) { lowestRemaining = s.data.remaining; winnerId = p.id }
+      }
+    } else {
+      // For other game types, pick whoever has highest total score
+      let bestScore = -Infinity
+      for (const p of g.players) {
+        const s = g.scores[p.id]
+        const total = s?.kind === 'suddenDeath' ? s.data.total
+                    : s?.kind === 'simple' ? s.data.total
+                    : s?.kind === 'horse' ? (5 - s.data.letters) // fewer letters = better
+                    : 0
+        if (total > bestScore) { bestScore = total; winnerId = p.id }
+      }
+    }
+
+    g.winnerId = winnerId
+    g.status = 'finished'
+  }
+
   function endGame() {
     game.value = null
     localStorage.removeItem(SAVE_KEY)
   }
 
-  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, setTimerDuration, setThrowTimerDuration, setRoundLimit, endGame }
+  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, setTimerDuration, setThrowTimerDuration, setRoundLimit, setGameDuration, forceEndByTime, endGame }
 })
 
 function checkCricketWin(game: ActiveGame): string | null {

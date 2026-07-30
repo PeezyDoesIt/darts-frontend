@@ -24,6 +24,7 @@
 
           <!-- Right: action buttons -->
           <div class="turn-right">
+            <span v-if="game.gameDuration !== null" class="game-clock-badge" :class="{ 'game-clock-low': gameTimeLeft !== null && gameTimeLeft <= 300 }">{{ gameTimeLeftDisplay }}</span>
             <button v-ripple class="btn btn-sm btn-surface scores-btn" @click="showAllScores = !showAllScores">SCORES</button>
             <template v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'">
               <button v-ripple class="btn btn-sm btn-surface marks-layout-btn" @click="toggleMarksLayout" :title="marksLayout === 'top' ? 'Move marks to right column' : 'Move marks to top strip'">
@@ -208,6 +209,16 @@
       </Transition>
     </div>
 
+    <!-- Game timer announcement overlay -->
+    <Transition name="timer-announce">
+      <div v-if="showGameTimerAnnounce" class="game-timer-announce-overlay">
+        <div class="gta-content">
+          <div class="gta-icon">⏱</div>
+          <div class="gta-text">{{ gameTimerAnnounceText }}</div>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Fullscreen scores overlay -->
     <div v-if="showAllScores" class="scores-overlay">
       <div class="lb-header">
@@ -255,6 +266,13 @@
             <button v-ripple class="round-limit-btn" :disabled="game.cricketRoundLimit === null || game.cricketRoundLimit <= 1" @click="gameStore.setRoundLimit(Math.max(1, (game.cricketRoundLimit ?? 7) - 1))">−</button>
             <span class="round-limit-val" @click="gameStore.setRoundLimit(game.cricketRoundLimit === null ? 7 : null)">{{ game.cricketRoundLimit ?? 'OFF' }}</span>
             <button v-ripple class="round-limit-btn" @click="gameStore.setRoundLimit((game.cricketRoundLimit ?? 0) + 1)">+</button>
+          </div>
+        </div>
+        <div class="timer-control-group">
+          <span class="timer-control-label">Game Timer</span>
+          <div class="timer-control-btns">
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: game.gameDuration === null }" @click="gameStore.setGameDuration(null)">Off</button>
+            <button v-for="t in [30,45,60,90]" :key="t" v-ripple class="timer-ctrl-btn" :class="{ active: game.gameDuration === t }" @click="gameStore.setGameDuration(t)">{{ t }}m</button>
           </div>
         </div>
       </div>
@@ -731,6 +749,76 @@ function navigateToBetween() {
   }
 }
 
+// Game timer
+const gameTimeLeft = ref<number | null>(null)
+const showGameTimerAnnounce = ref(false)
+const gameTimerAnnounceText = ref('')
+let gameTimerInterval: ReturnType<typeof setInterval> | null = null
+let gameTenMinAnnounced = false
+let gameFiveMinAnnounced = false
+
+const gameTimeLeftDisplay = computed(() => {
+  if (gameTimeLeft.value === null) return ''
+  const s = Math.max(0, gameTimeLeft.value)
+  const m = Math.floor(s / 60)
+  const sec = s % 60
+  return `${m}:${String(sec).padStart(2, '0')}`
+})
+
+function showGameAnnounce(text: string) {
+  gameTimerAnnounceText.value = text
+  showGameTimerAnnounce.value = true
+  setTimeout(() => { showGameTimerAnnounce.value = false }, 4000)
+}
+
+function startGameTimer() {
+  if (gameTimerInterval) { clearInterval(gameTimerInterval); gameTimerInterval = null }
+  const g = game.value
+  if (!g || g.gameDuration === null || g.gameStartedAt === null) { gameTimeLeft.value = null; return }
+  gameTenMinAnnounced = false
+  gameFiveMinAnnounced = false
+  gameTimerInterval = setInterval(() => {
+    const gv = game.value
+    if (!gv || gv.status === 'finished' || gv.gameDuration === null || gv.gameStartedAt === null) {
+      if (gameTimerInterval) { clearInterval(gameTimerInterval); gameTimerInterval = null }
+      gameTimeLeft.value = null
+      return
+    }
+    const elapsedSec = Math.floor((Date.now() - gv.gameStartedAt) / 1000)
+    const totalSec = gv.gameDuration * 60
+    const left = totalSec - elapsedSec
+    gameTimeLeft.value = left
+
+    if (left <= 600 && left > 598 && !gameTenMinAnnounced) {
+      gameTenMinAnnounced = true
+      showGameAnnounce('10 minutes remaining!')
+      speak('Ten minutes remaining in the game!')
+    }
+    if (left <= 300 && left > 298 && !gameFiveMinAnnounced) {
+      gameFiveMinAnnounced = true
+      showGameAnnounce('5 minutes remaining!')
+      speak('Five minutes remaining! Wrap it up!')
+    }
+    if (left <= 0) {
+      if (gameTimerInterval) { clearInterval(gameTimerInterval); gameTimerInterval = null }
+      gameTimeLeft.value = 0
+      showGameAnnounce("Time's up! Game over!")
+      speak("Time is up! Game over!")
+      setTimeout(() => { gameStore.forceEndByTime() }, 1500)
+    }
+  }, 1000)
+}
+
+watch(
+  () => game.value?.gameDuration,
+  () => startGameTimer(),
+  { immediate: true }
+)
+
+onUnmounted(() => {
+  if (gameTimerInterval) { clearInterval(gameTimerInterval); gameTimerInterval = null }
+})
+
 // Throw timer
 const throwTimerDuration = computed(() => settingsStore.disableThrowTimer ? 0 : (game.value?.throwTimerDuration ?? 0))
 const throwTimeLeft = ref(0)
@@ -895,6 +983,16 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .turn-name { font-size: clamp(62px, 9dvh, 100px); line-height: 1; letter-spacing: 0.04em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 14px; white-space: nowrap; max-width: 70vw; overflow: hidden; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 32px var(--player-color, var(--pink)), 0 0 10px var(--player-color, var(--pink)); text-shadow: 0 0 24px currentColor, 0 0 8px currentColor; }
 
 .turn-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding-right: 8px; z-index: 1; position: relative; }
+.game-clock-badge { font-size: 13px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.08em; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.08); border-radius: 6px; padding: 3px 8px; }
+.game-clock-badge.game-clock-low { color: #ff4444; background: rgba(255,68,68,0.12); animation: clock-pulse 1s ease-in-out infinite; }
+@keyframes clock-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+.game-timer-announce-overlay { position: fixed; inset: 0; z-index: 9998; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); pointer-events: none; }
+.gta-content { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.gta-icon { font-size: 64px; }
+.gta-text { font-size: clamp(28px, 5vw, 48px); font-weight: 900; font-family: var(--font-display); letter-spacing: 0.1em; color: #fff; text-shadow: 0 0 40px rgba(255,100,0,0.8), 0 0 12px rgba(255,100,0,0.5); text-align: center; padding: 0 32px; }
+.timer-announce-enter-active, .timer-announce-leave-active { transition: opacity 0.4s, transform 0.4s; }
+.timer-announce-enter-from, .timer-announce-leave-to { opacity: 0; transform: scale(0.9); }
 
 
 .submit-float-btn {

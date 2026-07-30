@@ -172,6 +172,8 @@ export type ActiveGame = {
   status: 'playing' | 'between_turns' | 'finished'
   winnerId: string | null
   startedAt: string
+  gameDuration: number | null   // minutes, null = no game timer
+  gameStartedAt: number | null  // Date.now() timestamp when game was created
 }
 
 export const PLAYER_COLORS = [

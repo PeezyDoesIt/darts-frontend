@@ -73,6 +73,20 @@
         </div>
       </section>
 
+      <!-- Game Timer -->
+      <section class="ng-section">
+        <span class="label">Game Timer</span>
+        <div class="large-timer-options">
+          <button v-ripple class="large-timer-btn" :class="{ active: gameDuration === null }" @click="setGameDuration(null)">Off</button>
+          <button v-for="t in gameDurationOptions" :key="t" v-ripple class="large-timer-btn" :class="{ active: gameDuration === t }" @click="setGameDuration(t)">{{ t }}m</button>
+          <div class="custom-time-bubble" :class="{ active: gameDuration !== null && !gameDurationOptions.includes(gameDuration) }">
+            <input type="number" class="custom-time-input" v-model="gameDurationInput" min="1" max="600" placeholder="—" @change="onGameDurationInput(gameDurationInput)" @focus="($event.target as HTMLInputElement).select()" />
+            <span class="custom-time-unit">m</span>
+          </div>
+        </div>
+        <span v-if="gameDuration !== null" class="ng-hint">Game ends after {{ gameDuration }} minutes. Announcements at 10 and 5 minutes remaining.</span>
+      </section>
+
     </div>
 
     <!-- STEP 2: PLAYERS -->
@@ -398,6 +412,19 @@ function onThrowInput(val: string | number | null) {
   const n = parseInt(String(val))
   if (!isNaN(n) && n >= 0) throwTimerDuration.value = n
 }
+const gameDuration = ref<number | null>(null)
+const gameDurationOptions = [30, 45, 60, 90]
+const gameDurationInput = ref('')
+function setGameDuration(val: number | null) {
+  gameDuration.value = val
+  gameDurationInput.value = val !== null ? String(val) : ''
+}
+function onGameDurationInput(val: string | number | null) {
+  gameDurationInput.value = String(val ?? '')
+  const n = parseInt(String(val))
+  if (!isNaN(n) && n > 0) gameDuration.value = n
+}
+
 const closedTargetDisplay = ref<'show' | 'hide' | 'fade' | 'strike'>('show')
 const bustEliminates = ref(false)
 const cricketPlayToCompletion = ref(false)
@@ -469,7 +496,7 @@ function startGame() {
   if (selectedPlayers.value.length < 2 || !selectedGameType.value) return
   const t = timerDuration.value
   const tt = throwTimerDuration.value
-  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, cricketRoundLimit.value, gameTheme.value, gameThemeSize.value, gameThemePosition.value, gameThemeFill.value, selectedPlayers.value, skipWalkup.value)
+  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, cricketRoundLimit.value, gameTheme.value, gameThemeSize.value, gameThemePosition.value, gameThemeFill.value, selectedPlayers.value, skipWalkup.value, gameDuration.value)
   router.push(skipWalkup.value ? '/game' : '/between')
 }
 </script>
@@ -845,6 +872,7 @@ function startGame() {
 /* Labels & hints */
 .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); }
 .hint { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+.ng-hint { font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.4; margin-top: 6px; }
 
 .btn-blocked { opacity: 0.5; }
 .btn-outline { color: #ffffff !important; font-weight: 700 !important; border: 2px solid #ffffff !important; }

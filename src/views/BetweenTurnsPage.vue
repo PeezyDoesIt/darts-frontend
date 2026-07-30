@@ -407,15 +407,15 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   justify-content: flex-start;
 }
 .between-avatar-bg img {
-  height: clamp(140px, 28vmin, 300px);
+  height: clamp(140px, 35vmin, 420px);
   width: auto;
-  max-width: clamp(140px, 28vmin, 300px);
+  max-width: clamp(140px, 35vmin, 420px);
   object-fit: contain;
   opacity: 0.55; border-radius: 12px 0 0 12px;
 }
 .between-avatar-bg.avatar-left img { border-radius: 0 12px 12px 0; }
 .between-avatar-bg span {
-  font-size: 28vmin; line-height: 1; opacity: 0.75;
+  font-size: clamp(140px, 35vmin, 420px); line-height: 1; opacity: 0.75;
   filter: drop-shadow(0 0 32px rgba(0,0,0,0.5));
 }
 
