@@ -779,10 +779,10 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 .sc-name-inner { gap: 5px; }
 .sc-die-icon { width: 18px; height: 18px; flex-shrink: 0; }
 .sc-cat-label {
-  font-size: 12px;
-  font-weight: 700;
-  font-family: var(--font-display);
-  letter-spacing: 0.03em;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   flex: 1;
   min-width: 0;
 }
