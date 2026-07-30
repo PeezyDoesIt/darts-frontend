@@ -57,7 +57,7 @@
           </div>
         </div>
         <div class="turn-center">
-          <span class="turn-name display" :style="{ color: currentPlayer?.color, filter: `drop-shadow(0 0 10px ${currentPlayer?.color}) drop-shadow(0 0 4px ${currentPlayer?.color})` }">{{ currentPlayer?.name }}</span>
+          <span class="turn-name display" :style="{ color: currentPlayer?.color, filter: `drop-shadow(0 0 16px ${currentPlayer?.color}) drop-shadow(0 0 6px ${currentPlayer?.color})` }">{{ currentPlayer?.name }}</span>
         </div>
         <div class="turn-right">
           <div class="header-sc-btns">
@@ -618,7 +618,7 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 .turn-avatar-tap:hover { transform: scale(1.08); }
 .turn-avatar-tap:active { transform: scale(0.94); }
 .turn-center { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.turn-name { font-size: clamp(22px, 3.8dvh, 36px); letter-spacing: 0.04em; line-height: 1; font-weight: 900; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.turn-name { font-size: clamp(28px, 5dvh, 48px); letter-spacing: 0.04em; line-height: 1; font-weight: 900; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .turn-right { display: flex; flex-direction: row; align-items: center; gap: 8px; flex-shrink: 0; min-width: 0; }
 .turn-score-block { display: flex; flex-direction: column; align-items: flex-end; }
 .turn-total { font-size: 32px; line-height: 1; }
@@ -996,7 +996,7 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 @media (min-width: 768px) {
   .turn-header { padding: 10px 20px; padding-top: calc(10px + env(safe-area-inset-top)); }
   .turn-avatar { width: 44px; height: 44px; font-size: 22px; }
-  .turn-name { font-size: clamp(20px, 3dvh, 32px); }
+  .turn-name { font-size: clamp(24px, 4dvh, 38px); }
   .dice-area { padding: 6px 16px 5px; gap: 5px; }
   .die-svg { width: 46px; height: 46px; }
   .dice-row { gap: 7px; }
