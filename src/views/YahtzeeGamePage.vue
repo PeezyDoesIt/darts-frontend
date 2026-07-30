@@ -139,6 +139,15 @@
           </div>
         </div>
 
+        <!-- YAHTZEE FLASH BANNER -->
+        <Transition name="yahtzee-flash">
+          <div v-if="yahtzeeFlash" class="yahtzee-flash-banner" :style="{ borderColor: currentPlayer?.color, boxShadow: `0 0 24px ${currentPlayer?.color}60` }">
+            <span class="yf-emoji">🎲</span>
+            <span class="yf-text display" :style="{ color: currentPlayer?.color }">YAHTZEE!</span>
+            <span class="yf-emoji">🎲</span>
+          </div>
+        </Transition>
+
         <!-- ELECTRONIC MODE CONTROLS -->
         <div v-if="game.diceMode === 'electronic'" class="roll-controls">
           <div class="roll-indicator">
@@ -153,11 +162,12 @@
             v-ripple
             class="btn btn-spray btn-lg roll-btn"
             :disabled="game.rollCount >= 3"
-            @click="yahtzeeStore.rollDice()"
+            @click="doRoll"
           >
             {{ game.rollCount === 0 ? 'ROLL DICE' : game.rollCount >= 3 ? 'NO MORE ROLLS' : 'ROLL AGAIN' }}
           </button>
-          <p v-if="game.rollCount > 0" class="score-hint">Select a category below to score</p>
+          <p v-if="game.rollCount > 0 && !yahtzeeFlash" class="score-hint">Select a category below to score</p>
+          <p v-if="yahtzeeFlash && game.rollCount < 3" class="score-hint yf-hint">You can roll again or score it below!</p>
         </div>
 
         <!-- PHYSICAL MODE CONTROLS -->
@@ -306,7 +316,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useYahtzeeStore, grandTotal, upperTotal, upperBonus, lowerTotal, calcScore, isScorecardComplete } from '../stores/yahtzee'
 import { usePlayersStore } from '../stores/players'
@@ -322,6 +332,24 @@ const viewingIndex = ref(0)
 const scorecardTheme = ref<'dark' | 'light'>('dark')
 const hideCompleted = ref(false)
 const showTabs = ref(false)
+const yahtzeeFlash = ref(false)
+let yahtzeeFlashTimer: ReturnType<typeof setTimeout> | null = null
+
+function doRoll() {
+  yahtzeeStore.rollDice()
+  nextTick(() => {
+    if (!game.value) return
+    const dice = game.value.dice
+    const isYahtzee = new Set(dice).size === 1
+    if (isYahtzee) {
+      if (yahtzeeFlashTimer) clearTimeout(yahtzeeFlashTimer)
+      yahtzeeFlash.value = true
+      yahtzeeFlashTimer = setTimeout(() => { yahtzeeFlash.value = false }, 4000)
+    } else {
+      yahtzeeFlash.value = false
+    }
+  })
+}
 
 const scorecardBgStyle = computed(() => {
   const bg = viewedState.value?.player.playerBackground
@@ -484,6 +512,8 @@ function onDieTap(i: number) {
 function tryScore(category: YahtzeeCategory) {
   if (!isMyTurn.value || !canScore.value) return
   if (!viewedState.value || viewedState.value.scorecard[category] !== null) return
+  yahtzeeFlash.value = false
+  if (yahtzeeFlashTimer) { clearTimeout(yahtzeeFlashTimer); yahtzeeFlashTimer = null }
   yahtzeeStore.scoreCategory(category)
 }
 
@@ -665,6 +695,30 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 .die-theme-vintage .die-svg { box-shadow: 2px 3px 8px rgba(0,0,0,0.5), -1px -1px 4px rgba(255,255,255,0.05); }
 .held-label { font-size: 9px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.08em; }
 .die-tap-hint { font-size: 8px; color: rgba(255,255,255,0.3); letter-spacing: 0.05em; }
+
+/* YAHTZEE FLASH */
+.yahtzee-flash-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 2px solid;
+  background: rgba(0,0,0,0.5);
+  animation: yf-pulse 0.6s ease-in-out infinite alternate;
+}
+.yf-emoji { font-size: 22px; }
+.yf-text { font-size: 28px; letter-spacing: 0.12em; }
+.yf-hint { color: rgba(255,255,255,0.7) !important; font-weight: 700; }
+@keyframes yf-pulse {
+  from { opacity: 0.85; transform: scale(1); }
+  to   { opacity: 1;    transform: scale(1.02); }
+}
+.yahtzee-flash-enter-active { transition: opacity 0.25s, transform 0.25s; }
+.yahtzee-flash-leave-active { transition: opacity 0.4s, transform 0.4s; }
+.yahtzee-flash-enter-from { opacity: 0; transform: scale(0.8); }
+.yahtzee-flash-leave-to   { opacity: 0; transform: scale(1.1); }
 
 .roll-controls {
   display: flex;
