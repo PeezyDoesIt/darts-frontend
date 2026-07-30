@@ -57,7 +57,7 @@
           </div>
         </div>
         <div class="turn-center">
-          <span class="turn-name display" :style="{ color: currentPlayer?.color, filter: `drop-shadow(0 0 16px ${currentPlayer?.color}) drop-shadow(0 0 6px ${currentPlayer?.color})` }">{{ currentPlayer?.name }}</span>
+          <span class="turn-name display" :style="{ color: currentPlayer?.color, '--pcolor': currentPlayer?.color }">{{ currentPlayer?.name }}</span>
         </div>
         <div class="turn-right">
           <div class="header-sc-btns">
@@ -602,8 +602,9 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   padding: 14px 20px;
   padding-top: calc(14px + env(safe-area-inset-top));
   border-bottom: 1px solid rgba(255,255,255,0.08);
+  position: relative;
 }
-.turn-left { flex-shrink: 0; }
+.turn-left { flex-shrink: 0; z-index: 1; position: relative; }
 .turn-avatar {
   width: 52px; height: 52px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -617,9 +618,22 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 }
 .turn-avatar-tap:hover { transform: scale(1.08); }
 .turn-avatar-tap:active { transform: scale(0.94); }
-.turn-center { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.turn-name { font-size: clamp(28px, 5dvh, 48px); letter-spacing: 0.04em; line-height: 1; font-weight: 900; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.turn-right { display: flex; flex-direction: row; align-items: center; gap: 8px; flex-shrink: 0; min-width: 0; }
+.turn-center {
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  display: flex; justify-content: center; align-items: center;
+  pointer-events: none; z-index: 0; padding: 0 8px;
+}
+.turn-name {
+  font-size: clamp(38px, 6.5dvh, 80px);
+  line-height: 1; letter-spacing: 0.04em; font-weight: 900;
+  background: rgba(0,0,0,0.90); border-radius: 0;
+  padding: 0 14px;
+  white-space: nowrap; max-width: 60vw; overflow: hidden;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 32px var(--pcolor, var(--pink)), 0 0 10px var(--pcolor, var(--pink));
+}
+.turn-right { display: flex; flex-direction: row; align-items: center; gap: 8px; flex-shrink: 0; min-width: 0; z-index: 1; position: relative; margin-left: auto; }
 .turn-score-block { display: flex; flex-direction: column; align-items: flex-end; }
 .turn-total { font-size: 32px; line-height: 1; }
 .turn-pts { font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
