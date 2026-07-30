@@ -1375,6 +1375,16 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .submit-float-btn { bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px; padding: 12px 24px; font-size: 13px; }
 }
 
+@media (min-width: 769px) and (max-width: 1100px) {
+  /* iPad: right-column marks — widen col and shrink pips so they don't overflow */
+  .cricket-col { width: 160px; }
+  .cc-pip { width: 9px; height: 9px; }
+  .cc-cell { gap: 1px; }
+  /* iPad: scores overlay marks — scale down pips to prevent overlap */
+  .mini-pip { width: 24px; height: 24px; }
+  .mini-label { font-size: 28px; }
+}
+
 @media (max-width: 768px) {
   .game { position: fixed; inset: 0; }
   .entry-panel { flex: 1; min-height: 0; }
