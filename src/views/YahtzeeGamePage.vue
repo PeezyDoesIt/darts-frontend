@@ -823,6 +823,7 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 .sc-dark .sc-header-row .sc-col-howto,
 .sc-dark .sc-header-row .sc-col-box { font-size: 9px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.55); justify-content: center; }
 .sc-dark .sc-header-row .sc-col-name { justify-content: flex-start; }
+.sc-dark .sc-header-row .sc-col-howto { justify-content: flex-start; padding-left: 2px; }
 .sc-dark .sc-col-name { border-right: 1px solid rgba(255,255,255,0.09); }
 .sc-dark .sc-col-howto { border-right: 1px solid rgba(255,255,255,0.09); }
 .sc-dark .sc-col-box { border-left: none; }
@@ -856,6 +857,7 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 .sc-light .sc-header-row .sc-col-howto,
 .sc-light .sc-header-row .sc-col-box { font-size: 9px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; color: #444; justify-content: center; }
 .sc-light .sc-header-row .sc-col-name { justify-content: flex-start; }
+.sc-light .sc-header-row .sc-col-howto { justify-content: flex-start; padding-left: 2px; }
 .sc-light .sc-col-name { border-right: 1px solid #bbb; }
 .sc-light .sc-col-howto { border-right: 1px solid #bbb; }
 .sc-light .sc-row { border-bottom: 1px solid #ccc; transition: background 0.12s; cursor: default; }
