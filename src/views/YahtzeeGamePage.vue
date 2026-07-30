@@ -60,12 +60,14 @@
           <span class="turn-name display" :style="{ color: currentPlayer?.color, filter: `drop-shadow(0 0 10px ${currentPlayer?.color}) drop-shadow(0 0 4px ${currentPlayer?.color})` }">{{ currentPlayer?.name }}</span>
         </div>
         <div class="turn-right">
-          <span class="turn-total display" :style="{ color: currentPlayer?.color }">{{ grandTotal(game.playerStates[game.currentPlayerIndex]!.scorecard) }}</span>
-          <span class="turn-pts">pts</span>
           <div class="header-sc-btns">
             <button v-ripple class="header-sc-btn" :class="{ 'header-sc-btn-active': showTabs }" @click="showTabs = !showTabs" title="Show players">{{ showTabs ? '▲' : '▼' }}</button>
             <button v-ripple class="header-sc-btn" :class="{ 'header-sc-btn-active': hideCompleted }" @click="hideCompleted = !hideCompleted" title="Hide completed">{{ hideCompleted ? '👁' : '🙈' }}</button>
             <button v-ripple class="header-sc-btn" @click="scorecardTheme = scorecardTheme === 'dark' ? 'light' : 'dark'" title="Toggle theme">{{ scorecardTheme === 'dark' ? '☀️' : '🌙' }}</button>
+          </div>
+          <div class="turn-score-block">
+            <span class="turn-total display" :style="{ color: currentPlayer?.color }">{{ grandTotal(game.playerStates[game.currentPlayerIndex]!.scorecard) }}</span>
+            <span class="turn-pts">pts</span>
           </div>
         </div>
       </div>
@@ -617,7 +619,8 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 .turn-avatar-tap:active { transform: scale(0.94); }
 .turn-center { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .turn-name { font-size: clamp(22px, 3.8dvh, 36px); letter-spacing: 0.04em; line-height: 1; font-weight: 900; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.turn-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0; flex-shrink: 0; min-width: 0; }
+.turn-right { display: flex; flex-direction: row; align-items: center; gap: 8px; flex-shrink: 0; min-width: 0; }
+.turn-score-block { display: flex; flex-direction: column; align-items: flex-end; }
 .turn-total { font-size: 32px; line-height: 1; }
 .turn-pts { font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 
@@ -817,7 +820,7 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   background: #0a0a0a;
 }
 
-.header-sc-btns { display: flex; gap: 5px; margin-top: 4px; }
+.header-sc-btns { display: flex; flex-direction: column; gap: 3px; }
 .header-sc-btn {
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.15);
