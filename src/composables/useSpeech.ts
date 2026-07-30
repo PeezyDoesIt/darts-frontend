@@ -163,22 +163,25 @@ export function getAvailableVoices(): VoiceOption[] {
     { label: 'Default', value: '', sublabel: 'Auto-selected narrator' },
   ]
 
-  // Add curated character voices first (macOS-specific)
+  // Add curated character voices first (macOS-specific fun voices)
+  const characterNames = new Set(CHARACTER_VOICES.map(c => c.name))
   for (const c of CHARACTER_VOICES) {
     if (voices.some(v => v.name === c.name)) {
       result.push({ label: c.label, value: c.name, sublabel: c.sublabel })
     }
   }
 
-  // Add all other allowed voices available on this device (covers Windows/Google voices)
-  const characterNames = new Set(CHARACTER_VOICES.map(c => c.name))
+  // Add ALL English voices the browser reports — covers any Windows/Mac/Chrome version
   for (const v of voices) {
-    if (ALLOWED_VOICES.includes(v.name) && !characterNames.has(v.name)) {
-      // Clean up label — strip trailing language tag like " - English (United States)"
-      const label = v.name.replace(/ - .+$/, '').replace(' Desktop', '').replace(' Online (Natural)', '')
-      const isOnline = v.name.includes('Online')
-      result.push({ label, value: v.name, sublabel: isOnline ? 'Neural (online)' : 'System voice' })
-    }
+    if (characterNames.has(v.name)) continue          // already listed above
+    if (!v.lang.startsWith('en')) continue            // English only
+    // Clean up label: strip " - English (United States)" and "Desktop"/"Online (Natural)"
+    const label = v.name
+      .replace(/ - English.*$/, '')
+      .replace(/ Desktop$/, '')
+      .replace(/ Online \(Natural\)$/, '')
+    const isOnline = v.name.toLowerCase().includes('online') || !v.localService
+    result.push({ label, value: v.name, sublabel: isOnline ? 'Neural (online)' : 'System voice' })
   }
 
   return result
