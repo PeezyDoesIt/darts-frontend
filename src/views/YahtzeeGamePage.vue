@@ -1011,33 +1011,37 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   .sc-howto-text { font-size: 9px; }
 }
 
-/* iPad: compact scorecard to fit without scrolling */
+/* iPad: compact everything to maximise scorecard space */
 @media (min-width: 768px) {
-  .turn-header { padding: 8px 20px; padding-top: calc(8px + env(safe-area-inset-top)); }
-  .turn-avatar { width: 40px; height: 40px; font-size: 20px; }
-  .turn-name { font-size: clamp(24px, 4dvh, 38px); }
-  /* Buttons horizontal row to the left of PTS — shrinks header height */
+  .turn-header { padding: 6px 20px; padding-top: calc(6px + env(safe-area-inset-top)); }
+  .turn-avatar { width: 38px; height: 38px; font-size: 19px; }
+  .turn-name { font-size: clamp(22px, 3.5dvh, 36px); }
   .header-sc-btns { flex-direction: row; gap: 4px; }
-  .header-sc-btn { font-size: 16px; padding: 5px 9px; }
-  .turn-total { font-size: 26px; }
-  .turn-pts { font-size: 9px; }
-  .dice-area { padding: 4px 16px 4px; gap: 4px; }
-  .die-svg { width: 44px; height: 44px; }
-  .dice-row { gap: 6px; }
-  .score-hint { font-size: 10px; margin: 0; }
+  .header-sc-btn { font-size: 15px; padding: 4px 8px; }
+  .turn-total { font-size: 24px; }
+  .turn-pts { font-size: 8px; }
+  /* Dice area as compact as possible */
+  .dice-area { padding: 3px 16px 3px; gap: 2px; }
+  .die-svg { width: 42px; height: 42px; }
+  .dice-row { gap: 5px; }
+  .roll-btn-side { padding: 7px 10px; font-size: 11px; min-width: 60px; }
+  .roll-pip { width: 8px; height: 8px; }
+  /* Hide hint text — saves a full line of height */
+  .score-hint { display: none; }
+  /* Scorecard rows as tight as possible */
   .sc-col-name,
   .sc-col-howto,
-  .sc-col-box { padding-top: 3px; padding-bottom: 3px; }
-  .sc-lower-header { padding: 5px 0; }
+  .sc-col-box { padding-top: 2px; padding-bottom: 2px; }
+  .sc-lower-header { padding: 4px 0; }
   .sc-cat-label { font-size: 10px; }
   .sc-howto-text { font-size: 8.5px; }
   .sc-score-val { font-size: 13px; }
   .sc-total-name { font-size: 9px; }
   .sc-grand-label { font-size: 10px !important; }
   .sc-grand-val { font-size: 17px !important; }
-  .sc-bonus-check { font-size: 16px; }
+  .sc-bonus-check { font-size: 15px; }
 }
-/* Tablet only: lock scroll so scorecard fits on screen */
+/* Tablet only: lock scroll so scorecard fills remaining screen */
 @media (min-width: 768px) and (max-width: 1100px) {
   .scorecard-scroll { overflow-y: hidden; display: flex; flex-direction: column; }
   .sc-paper { flex: 1; }
