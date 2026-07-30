@@ -8,6 +8,12 @@
         <div class="turn-header" :style="{ '--player-color': currentPlayer.color }">
           <!-- Left: round pill centered in left space -->
           <div class="turn-left">
+            <button class="header-avatar-btn" @click="router.push(`/player-setup?edit=${currentPlayer.id}`)" title="Edit player">
+              <div class="header-avatar" :style="{ background: currentPlayer.color, boxShadow: `0 0 8px ${currentPlayer.color}80` }">
+                <img v-if="isPhoto(currentPlayer.avatarUrl)" :src="currentPlayer.avatarUrl!" alt="" />
+                <span v-else>{{ currentPlayer.avatarUrl ?? '🎯' }}</span>
+              </div>
+            </button>
             <span class="turn-round-pill display">RD {{ game.round }}<template v-if="game.cricketRoundLimit !== null"> / {{ game.cricketRoundLimit }}</template></span>
           </div>
 
@@ -605,7 +611,10 @@ const availablePlayers = computed(() =>
 )
 const lbScrollRef = ref<HTMLElement | null>(null)
 
-const currentPlayer = computed(() => game.value!.players[game.value!.currentPlayerIndex]!)
+const currentPlayer = computed(() => {
+  const snap = game.value!.players[game.value!.currentPlayerIndex]!
+  return playersStore.players.find(p => p.id === snap.id) ?? snap
+})
 const otherPlayers = computed(() => game.value!.players.filter(p => p.id !== currentPlayer.value.id))
 
 const upNext = computed(() => {
@@ -875,7 +884,10 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .turn-header::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--player-color, var(--pink)); box-shadow: 0 0 12px var(--player-color, var(--pink)); z-index: 1; }
 
 /* Header left / center / right layout */
-.turn-left { flex: 1; display: flex; align-items: stretch; justify-content: flex-start; z-index: 1; }
+.turn-left { flex: 1; display: flex; align-items: center; justify-content: flex-start; z-index: 1; }
+.header-avatar-btn { background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; margin-left: 16px; margin-right: 6px; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
+.header-avatar { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; overflow: hidden; border: 1.5px solid rgba(255,255,255,0.25); }
+.header-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .turn-name-wrap { position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); bottom: 0; display: flex; justify-content: center; align-items: stretch; pointer-events: none; z-index: 0; padding: 0 8px; }
 .turn-round-pill { font-size: clamp(50px, 6.8dvh, 74px); font-weight: 900; line-height: 1; letter-spacing: 0.08em; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 24px; color: rgba(255,255,255,0.8); white-space: nowrap; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; margin-left: 12px; }
 .turn-name { font-size: clamp(62px, 9dvh, 100px); line-height: 1; letter-spacing: 0.04em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 14px; white-space: nowrap; max-width: 70vw; overflow: hidden; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 32px var(--player-color, var(--pink)), 0 0 10px var(--player-color, var(--pink)); }
@@ -1032,40 +1044,40 @@ watch(() => game.value?.currentPlayerIndex, () => {
   background: #0a0a0a;
 }
 .lb-header {
-  display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;
-  padding-top: calc(16px + env(safe-area-inset-top));
+  display: flex; align-items: center; justify-content: space-between; padding: 10px 16px;
+  padding-top: calc(10px + env(safe-area-inset-top));
   border-bottom: 1px solid rgba(255,255,255,0.06);
   background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0;
 }
-.lb-header .btn { padding: 8px 28px; font-size: 14px; }
-.game-type-badge { font-size: 38px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); font-family: var(--font-display); line-height: 1; }
+.lb-header .btn { padding: 6px 16px; font-size: 13px; }
+.game-type-badge { font-size: 22px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); font-family: var(--font-display); line-height: 1; }
 .round-label { font-size: 11px; color: #fff; margin-top: 2px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 900; }
 .lb-players-scroll { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.lb-players { flex: 1; display: flex; flex-direction: column; gap: 0; padding: 0; }
+.lb-players { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 0; padding: 0; }
 .lb-player-row {
   flex: 1; min-height: 0; overflow: hidden;
-  display: flex; align-items: stretch; gap: 14px; padding: 10px 20px;
+  display: flex; align-items: center; gap: 10px; padding: 6px 16px;
   background: transparent; border: none; border-left: 6px solid transparent;
   border-bottom: 1px solid rgba(255,255,255,0.06);
   transition: border-color 0.2s, background 0.2s; position: relative;
 }
 .lb-player-row.active { border-left-color: var(--active-color, var(--pink)); }
 .active-dot { display: none; }
-.lb-avatar { width: 56px; height: auto; align-self: stretch; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); }
+.lb-avatar { width: 40px; height: 40px; align-self: center; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); }
 .lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.lb-player-info { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.lb-player-name { font-size: 22px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; display: flex; align-items: center; gap: 10px; color: #fff; }
+.lb-player-info { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.lb-player-name { font-size: 16px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px; color: #fff; }
 .throwing-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.12); border-radius: 3px; padding: 2px 5px; font-family: var(--font-body); }
 .finished-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); border-radius: 3px; padding: 2px 5px; font-family: var(--font-body); }
 .lb-player-row.ptc-finished { opacity: 0.45; }
 .cricket-mini { display: flex; flex-wrap: nowrap; gap: 4px; }
-.mini-target { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; min-width: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; padding: 6px 2px; }
-.mini-label { font-size: 34px; font-weight: 800; color: rgba(255,255,255,0.9); letter-spacing: 0.02em; font-family: var(--font-display); }
+.mini-target { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; min-width: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; padding: 4px 2px; }
+.mini-label { font-size: 20px; font-weight: 800; color: rgba(255,255,255,0.9); letter-spacing: 0.02em; font-family: var(--font-display); }
 .mini-marks { display: flex; gap: 2px; }
-.mini-pip { width: 30px; height: 30px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,0.65); background: rgba(255,255,255,0.18); transition: background 0.1s; flex-shrink: 0; }
-.mini-pip.filled { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 10px rgba(255,45,120,1), 0 0 22px rgba(255,45,120,0.5); }
+.mini-pip { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.65); background: rgba(255,255,255,0.18); transition: background 0.1s; flex-shrink: 0; }
+.mini-pip.filled { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 6px rgba(255,45,120,1), 0 0 12px rgba(255,45,120,0.5); }
 .lb-score { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
-.lb-score-val { font-size: clamp(48px, 8dvh, 120px); font-weight: 900; font-family: var(--font-display); line-height: 1; color: #fff; }
+.lb-score-val { font-size: clamp(28px, 4.5dvh, 72px); font-weight: 900; font-family: var(--font-display); line-height: 1; color: #fff; }
 .lb-score-label { font-size: 13px; color: rgba(255,255,255,0.45); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-align: right; }
 .remove-player-btn { background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: rgba(255,255,255,0.3); cursor: pointer; font-size: 12px; padding: 4px 7px; flex-shrink: 0; transition: all 0.15s; align-self: flex-start; position: relative; overflow: hidden; }
 .remove-player-btn:hover { border-color: #ef4444; color: #ef4444; }
@@ -1380,9 +1392,9 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .cricket-col { width: 160px; }
   .cc-pip { width: 9px; height: 9px; }
   .cc-cell { gap: 1px; }
-  /* iPad: scores overlay marks — scale down pips to prevent overlap */
-  .mini-pip { width: 24px; height: 24px; }
-  .mini-label { font-size: 28px; }
+  /* iPad: scores overlay marks — slightly larger than global since iPad has more space */
+  .mini-pip { width: 20px; height: 20px; }
+  .mini-label { font-size: 24px; }
 }
 
 @media (max-width: 768px) {
@@ -1400,11 +1412,11 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .submit-float-btn { bottom: calc(14px + env(safe-area-inset-bottom)); right: 14px; padding: 12px 22px; font-size: 13px; }
   .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
   .submit-btn { height: 46px; font-size: 16px; }
-  .lb-player-row { padding: 8px 16px; }
-  .lb-avatar { width: 44px; font-size: 22px; }
-  .lb-player-name { font-size: 18px; }
-  .lb-score-val { font-size: clamp(48px, 8dvh, 120px); }
-  .mini-label { font-size: 26px; }
-  .mini-pip { width: 22px; height: 22px; }
+  .lb-player-row { padding: 5px 12px; }
+  .lb-avatar { width: 32px; height: 32px; font-size: 16px; }
+  .lb-player-name { font-size: 13px; }
+  .lb-score-val { font-size: clamp(22px, 3.5dvh, 48px); }
+  .mini-label { font-size: 14px; }
+  .mini-pip { width: 12px; height: 12px; }
 }
 </style>
