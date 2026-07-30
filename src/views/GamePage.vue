@@ -244,14 +244,6 @@
             <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.disableTimerPause }" @click="settingsStore.setDisableTimerPause(true)">Lock</button>
           </div>
         </div>
-        <div class="timer-control-group sound-theme-group">
-          <span class="timer-control-label">Sound</span>
-          <div class="timer-control-btns">
-            <button v-for="t in SOUND_THEMES" :key="t.value" v-ripple
-              class="timer-ctrl-btn" :class="{ active: settingsStore.soundTheme === t.value }"
-              @click="settingsStore.setSoundTheme(t.value)">{{ t.label }}</button>
-          </div>
-        </div>
         <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'" class="timer-control-group">
           <span class="timer-control-label">Round Limit</span>
           <div class="round-limit-control">
@@ -472,7 +464,7 @@ import SimpleEntry from '../components/SimpleEntry.vue'
 type OhOneScore = Extract<PlayerScore, { kind: 'ohOne' }>
 type CricketHits = Record<string | number, number>
 
-const SOUND_THEMES = [
+const SOUND_THEMES_UNUSED = [
   { value: 'default', label: 'Default' },
   { value: 'space',   label: 'Space' },
   { value: 'arcade',  label: 'Arcade' },
@@ -1048,7 +1040,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0;
 }
 .lb-header .btn { padding: 8px 28px; font-size: 14px; }
-.game-type-badge { font-size: 15px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); font-family: var(--font-display); }
+.game-type-badge { font-size: 38px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); font-family: var(--font-display); line-height: 1; }
 .round-label { font-size: 11px; color: #fff; margin-top: 2px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 900; }
 .lb-players-scroll { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .lb-players { flex: 1; display: flex; flex-direction: column; gap: 0; padding: 0; }
