@@ -670,9 +670,10 @@ function previewBullseyeSound(value: string) {
   display: flex; flex-direction: column; align-items: center;
   gap: 28px; width: 100%; max-width: 340px;
 }
-.coin-modal-header { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-.coin-modal-title { font-size: 22px; letter-spacing: 0.2em; color: #ffd700; }
+.coin-modal-header { display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
+.coin-modal-title { font-size: 22px; letter-spacing: 0.2em; color: #ffd700; font-weight: 900; }
 .coin-close-btn {
+  position: absolute; right: 0;
   background: none; border: none; color: rgba(255,255,255,0.45); font-size: 22px;
   cursor: pointer; padding: 4px 8px; line-height: 1;
 }
@@ -852,4 +853,45 @@ function previewBullseyeSound(value: string) {
 .coin-q-confirm:hover { background: rgba(255,215,0,0.3); }
 .coin-q-cancel { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.45); }
 .coin-q-cancel:hover { color: #ff5555; }
+
+/* iPad coin flip — fill the screen, scale everything up */
+@media (min-width: 768px) and (max-width: 1100px) {
+  .coin-overlay { padding: 0; align-items: stretch; justify-content: stretch; }
+  .coin-modal {
+    max-width: none; width: 100%; height: 100%;
+    padding: 48px 64px; padding-top: max(48px, env(safe-area-inset-top));
+    padding-bottom: max(48px, env(safe-area-inset-bottom));
+    justify-content: space-evenly;
+    gap: 0;
+  }
+  .coin-modal-title { font-size: clamp(36px, 5vw, 56px); letter-spacing: 0.25em; }
+  .coin-close-btn { font-size: 32px; padding: 6px 12px; }
+  .coin-series-modes { gap: 16px; }
+  .coin-mode-btn { font-size: 20px; padding: 14px 0; border-radius: 12px; border-width: 3px; }
+  .coin-question-section { max-width: 600px; align-self: center; }
+  .coin-question-toggle { font-size: 16px; padding: 12px 20px; border-radius: 12px; }
+  .coin-question-text { font-size: 22px; }
+  .coin-question-input { font-size: 18px; padding: 13px 16px; border-radius: 12px; }
+  .coin-q-confirm, .coin-q-cancel { width: 48px; height: 48px; font-size: 18px; border-radius: 12px; }
+  .coin-arena { gap: 28px; }
+  .coin-perspective { perspective: 1000px; }
+  .coin { width: 260px; height: 260px; }
+  .coin-letter { font-size: 80px; }
+  .coin-tap-hint { font-size: 18px; min-height: 26px; }
+  .coin-result-text { font-size: 88px; }
+  .coin-series-winner { font-size: 52px; }
+  .coin-series-board { gap: 28px; }
+  .series-side { padding: 18px 24px; border-radius: 16px; border-width: 3px; }
+  .series-label { font-size: 14px; letter-spacing: 0.18em; }
+  .series-count { font-size: 64px; }
+  .series-pips { gap: 8px; margin-top: 6px; }
+  .series-pip { width: 16px; height: 16px; }
+  .series-divider { font-size: 20px; }
+  .coin-reset-btn { font-size: 20px; padding: 16px; border-radius: 12px; border-width: 3px; max-width: 400px; align-self: center; }
+  .coin-customize { padding: 20px 32px; border-radius: 16px; max-width: 500px; align-self: center; }
+  .coin-cust-label { font-size: 14px; letter-spacing: 0.18em; }
+  .coin-cust-btn { width: 96px; height: 96px; border-width: 3px; }
+  .cust-placeholder { font-size: 15px; }
+  .coin-cust-clear { font-size: 18px; }
+}
 </style>
