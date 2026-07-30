@@ -27,7 +27,6 @@
                 {{ marksVisible ? '👁' : '👁‍🗨' }}
               </button>
             </template>
-            <button v-ripple class="btn btn-sm btn-surface coin-flip-btn" @click="showCoinFlip = true" title="Coin flip">🪙</button>
           </div>
         </div>
 
