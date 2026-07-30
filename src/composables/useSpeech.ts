@@ -162,11 +162,25 @@ export function getAvailableVoices(): VoiceOption[] {
   const result: VoiceOption[] = [
     { label: 'Default', value: '', sublabel: 'Auto-selected narrator' },
   ]
+
+  // Add curated character voices first (macOS-specific)
   for (const c of CHARACTER_VOICES) {
     if (voices.some(v => v.name === c.name)) {
       result.push({ label: c.label, value: c.name, sublabel: c.sublabel })
     }
   }
+
+  // Add all other allowed voices available on this device (covers Windows/Google voices)
+  const characterNames = new Set(CHARACTER_VOICES.map(c => c.name))
+  for (const v of voices) {
+    if (ALLOWED_VOICES.includes(v.name) && !characterNames.has(v.name)) {
+      // Clean up label — strip trailing language tag like " - English (United States)"
+      const label = v.name.replace(/ - .+$/, '').replace(' Desktop', '').replace(' Online (Natural)', '')
+      const isOnline = v.name.includes('Online')
+      result.push({ label, value: v.name, sublabel: isOnline ? 'Neural (online)' : 'System voice' })
+    }
+  }
+
   return result
 }
 
