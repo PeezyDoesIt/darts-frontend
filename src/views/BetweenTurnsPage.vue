@@ -244,6 +244,7 @@ onMounted(() => {
     }
     if (timeLeft.value <= 30 && !showAlert.value) {
       showAlert.value = true
+      playThemedChime(settingsStore.soundTheme)
       if (!settingsStore.cleanMode) {
         const p = settingsStore.narratorPersonality
         const term = settingsStore.narratorGender === 'male' ? 'brother' : 'baby'
@@ -256,7 +257,7 @@ onMounted(() => {
                    : p === 'sarcastic' ? (hurryCount > 0 ? `${n}. We're all just waiting here. No rush. Seriously.`                      : `${n}. Any day now.`)
                    : p === 'smooth'    ? (hurryCount > 0 ? `${n}. Let's go, ${term}. Clock's moving.`                                    : `${n}, whenever you're ready, ${term}.`)
                    : (hurryCount > 0 ? `${n}. Hurry the fuck up. This is why nobody wants to play darts with you.` : `${n}. Hurry the fuck up. It's your turn.`)
-        speak(line)
+        setTimeout(() => speak(line), 500)
       }
     }
   }, 1000)
