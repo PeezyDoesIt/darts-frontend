@@ -144,15 +144,16 @@
             <label class="label">Cricket: Closed Targets</label>
             <p class="field-hint">How completed targets appear on your turn. Overrides the game setting.</p>
             <div class="ct-player-opts">
-              <button
-                v-for="opt in cricketTargetDisplayOpts" :key="String(opt.value)"
-                v-ripple class="ct-player-btn"
-                :class="{ active: cricketTargetDisplay === opt.value }"
-                @click="cricketTargetDisplay = opt.value"
-              >
-                <span class="ct-player-label">{{ opt.label }}</span>
+              <div v-for="opt in cricketTargetDisplayOpts" :key="String(opt.value)" class="ct-player-wrap">
+                <button
+                  v-ripple class="ct-player-btn"
+                  :class="{ active: cricketTargetDisplay === opt.value }"
+                  @click="cricketTargetDisplay = opt.value"
+                >
+                  <span class="ct-player-label">{{ opt.label }}</span>
+                </button>
                 <span class="ct-player-sub">{{ opt.sub }}</span>
-              </button>
+              </div>
             </div>
           </div>
 
@@ -702,18 +703,20 @@ function save() {
 .dice-theme-btn.active .dice-theme-label { color: var(--pink); }
 .dice-theme-sub { font-size: 9px; color: rgba(255,255,255,0.4); letter-spacing: 0.04em; white-space: nowrap; }
 
-.ct-player-opts { display: flex; gap: 6px; flex-wrap: wrap; }
+.ct-player-opts { display: flex; gap: 8px; flex-wrap: nowrap; }
+.ct-player-wrap { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; }
 .ct-player-btn {
-  flex: 1; min-width: 72px; padding: 8px 10px; border-radius: 8px;
+  width: 100%; padding: 12px 6px; border-radius: 8px;
   border: 2px solid #ffffff; background: transparent;
-  cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column;
-  align-items: center; gap: 2px; position: relative; overflow: hidden;
+  cursor: pointer; transition: all 0.15s; display: flex;
+  align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
 .ct-player-btn:hover { border-color: var(--pink); background: rgba(255,45,120,0.08); }
 .ct-player-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); }
-.ct-player-label { font-size: 13px; font-weight: 800; font-family: var(--font-display); letter-spacing: 0.05em; color: #fff; }
-.ct-player-sub { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; color: var(--text-muted); text-transform: uppercase; }
+.ct-player-label { font-size: 14px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.06em; color: #fff; }
+.ct-player-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: var(--text-muted); text-transform: uppercase; text-align: center; line-height: 1.3; }
 .ct-player-btn.active .ct-player-label { color: var(--pink); }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
