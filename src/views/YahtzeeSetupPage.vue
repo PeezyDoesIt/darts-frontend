@@ -325,7 +325,7 @@ function startGame() {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
-.start-btn { width: 100%; height: 52px; font-size: 18px; font-weight: 900; font-family: var(--font-display); }
+.start-btn { width: 88%; height: 52px; font-size: 18px; font-weight: 900; font-family: var(--font-display); display: block; margin: 0 auto; }
 .btn-blocked { opacity: 0.5; }
 .btn-outline { color: #ffffff !important; font-weight: 700 !important; border: 2px solid #ffffff !important; }
 .btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
