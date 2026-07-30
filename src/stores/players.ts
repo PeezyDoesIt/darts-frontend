@@ -11,8 +11,18 @@ export const usePlayersStore = defineStore('players', () => {
     if (raw) {
       const loaded = JSON.parse(raw) as Player[]
       const PEEZY_BG = 'linear-gradient(160deg, #0c0c0e 0%, #242428 40%, #484850 70%, #a0a0b0 100%)'
-      players.value = loaded.filter(p => p.id === 'brannon-default').map(p => {
-        if (p.id !== 'brannon-default') return { ...p, playerBackground: p.playerBackground ?? null, playerBackgroundSize: p.playerBackgroundSize ?? null, playerBackgroundPosition: p.playerBackgroundPosition ?? null, playerBackgroundFill: p.playerBackgroundFill ?? null, pinned: p.pinned ?? false, targetLabelColor: p.targetLabelColor ?? null, cricketTargetDisplay: p.cricketTargetDisplay ?? null }
+      players.value = loaded.map(p => {
+        if (p.id !== 'brannon-default') return {
+          ...p,
+          playerBackground: p.playerBackground ?? null,
+          playerBackgroundSize: p.playerBackgroundSize ?? null,
+          playerBackgroundPosition: p.playerBackgroundPosition ?? null,
+          playerBackgroundFill: p.playerBackgroundFill ?? null,
+          pinned: p.pinned ?? false,
+          targetLabelColor: p.targetLabelColor ?? null,
+          cricketTargetDisplay: p.cricketTargetDisplay ?? null,
+          diceTheme: p.diceTheme ?? null,
+        }
         return {
           ...p,
           name: p.name === 'Brannon' ? 'Peezy' : p.name,
@@ -24,6 +34,7 @@ export const usePlayersStore = defineStore('players', () => {
           cricketTargetDisplay: p.cricketTargetDisplay == null ? 'hide' : p.cricketTargetDisplay,
           pinned: p.pinned ?? true,
           targetLabelColor: p.targetLabelColor ?? null,
+          diceTheme: p.diceTheme ?? null,
         }
       })
       persist()
