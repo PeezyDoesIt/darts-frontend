@@ -26,6 +26,7 @@
           {{ !settingsStore.disableTimerPause && paused ? 'PAUSED' : timeLeft }}
         </span>
       </div>
+      <button v-if="!timerOff" class="timer-off-btn" @click.stop="gameStore.setTimerDuration(0)">No countdown</button>
     </div>
 
     <!-- Cricket START button — bottom-right -->
@@ -354,6 +355,15 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   color: #fff;
 }
 .walkup-timer-text.urgent { color: #fff; }
+
+.timer-off-btn {
+  background: none; border: 1px solid rgba(255,255,255,0.18); border-radius: 6px;
+  color: rgba(255,255,255,0.38); font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 6px 18px; cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.timer-off-btn:hover { border-color: rgba(255,255,255,0.4); color: rgba(255,255,255,0.7); }
+.timer-off-btn:active { transform: scale(0.96); }
 
 /* Cricket layout */
 .cricket-layout {
