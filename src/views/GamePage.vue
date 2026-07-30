@@ -456,7 +456,7 @@ import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
 import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore, type CricketTarget } from '../types/index'
 import { speak } from '../composables/useSpeech'
-import { playThemedTick, unlockAudio } from '../composables/useSounds'
+import { playThemedTick, playBombBeep, unlockAudio } from '../composables/useSounds'
 
 const WHITE_LABEL_THEMES = new Set<string | null>(
   PLAYER_THEMES
@@ -749,7 +749,7 @@ function startThrowTimer() {
   throwInterval = setInterval(() => {
     if (throwPaused.value) return
     throwTimeLeft.value--
-    if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 5) playThemedTick(settingsStore.soundTheme)
+    if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 5) playBombBeep()
     const half = Math.floor(throwTimerDuration.value / 2)
     if (throwTimeLeft.value === half && half > 30 && !settingsStore.cleanMode) speak(`${currentPlayer.value.name}, it's your turn`)
     if (throwTimeLeft.value === 20 && settingsStore.announceThrowAt20 && !settingsStore.cleanMode) {

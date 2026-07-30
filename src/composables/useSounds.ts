@@ -892,6 +892,50 @@ export function playBoxingImpact(): Promise<void> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Loud bomb-countdown beep — lower-pitched, heavy, used for final 5s of throw timer
+export function playBombBeep(): void {
+  const ctx = getBeepCtx()
+  if (!ctx) return
+  const run = () => {
+    const now = ctx.currentTime
+
+    const master = ctx.createGain()
+    master.gain.setValueAtTime(0, now)
+    master.gain.linearRampToValueAtTime(1.0, now + 0.003) // instant hard slam
+    master.gain.setValueAtTime(1.0, now + 0.09)
+    master.gain.exponentialRampToValueAtTime(0.001, now + 0.26)
+    master.connect(ctx.destination)
+
+    // Primary tone: 660 Hz — lower and more ominous than the standard 880 Hz tick
+    const osc = ctx.createOscillator()
+    osc.type = 'sine'
+    osc.frequency.value = 660
+    osc.connect(master)
+    osc.start(now); osc.stop(now + 0.26)
+
+    // Sub harmonic at 330 Hz adds weight/thump
+    const sub = ctx.createOscillator()
+    const subGain = ctx.createGain()
+    sub.type = 'sine'
+    sub.frequency.value = 330
+    subGain.gain.setValueAtTime(0.55, now)
+    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.26)
+    sub.connect(subGain); subGain.connect(master)
+    sub.start(now); sub.stop(now + 0.26)
+
+    // Sharp transient click at attack for that hard-beep edge
+    const click = ctx.createOscillator()
+    const clickGain = ctx.createGain()
+    click.type = 'square'
+    click.frequency.value = 1320
+    clickGain.gain.setValueAtTime(0.7, now)
+    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.012)
+    click.connect(clickGain); clickGain.connect(master)
+    click.start(now); click.stop(now + 0.012)
+  }
+  ctx.state === 'suspended' ? ctx.resume().then(run).catch(() => {}) : run()
+}
+
 // THEMED DISPATCHERS
 // theme: 'default' | 'space' | 'arcade' | 'western' | 'boxing'
 // ─────────────────────────────────────────────────────────────────────────────
