@@ -453,11 +453,10 @@ const bgSize = ref<'cover' | 'contain' | null>(null)
 const bgPosition = ref<'top' | 'center' | 'bottom' | null>(null)
 const bgFill = ref<'black' | 'blur' | null>(null)
 const targetLabelColor = ref<string | null>(null)
-const cricketTargetDisplay = ref<'show' | 'hide' | 'fade' | null>(null)
+const cricketTargetDisplay = ref<'show' | 'hide' | 'fade'>('show')
 const diceTheme = ref<DiceTheme | null>(null)
 
-const cricketTargetDisplayOpts: { value: 'show' | 'hide' | 'fade' | null; label: string; sub: string }[] = [
-  { value: null,     label: 'Default', sub: 'Use game setting' },
+const cricketTargetDisplayOpts: { value: 'show' | 'hide' | 'fade'; label: string; sub: string }[] = [
   { value: 'show',   label: 'Normal',  sub: 'Standard opacity' },
   { value: 'fade',   label: 'Fade',    sub: 'Ghost out' },
   { value: 'hide',   label: 'Hide',    sub: 'Remove tile' },
@@ -526,7 +525,7 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = nextAvailableColor(); avatarUrl.value = null
-  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; bgSize.value = null; bgPosition.value = null; bgFill.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = null; diceTheme.value = null; saving.value = false; showColorWheel.value = false
+  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; bgSize.value = null; bgPosition.value = null; bgFill.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false; showColorWheel.value = false
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
@@ -539,7 +538,7 @@ function loadPlayer(p: Player) {
   bgPosition.value = p.playerBackgroundPosition ?? null
   bgFill.value = p.playerBackgroundFill ?? null
   targetLabelColor.value = p.targetLabelColor ?? null
-  cricketTargetDisplay.value = p.cricketTargetDisplay ?? null
+  cricketTargetDisplay.value = p.cricketTargetDisplay ?? 'show'
   diceTheme.value = p.diceTheme ?? null
 }
 const saving = ref(false)
