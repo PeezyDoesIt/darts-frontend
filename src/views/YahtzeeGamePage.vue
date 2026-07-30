@@ -687,9 +687,9 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 }
 .roll-right {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   flex-shrink: 0;
   padding-right: 2px;
 }
@@ -758,7 +758,8 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 }
 .roll-indicator {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 5px;
   align-items: center;
 }
 .roll-pip {
@@ -997,7 +998,6 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   .die-svg { width: 46px; height: 46px; }
   .dice-row { gap: 7px; }
   .score-hint { font-size: 10px; margin: 0; }
-  .scorecard-scroll { overflow-y: hidden; }
   .sc-col-name,
   .sc-col-howto,
   .sc-col-box { padding-top: 3px; padding-bottom: 3px; }
@@ -1009,5 +1009,9 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   .sc-grand-label { font-size: 10px !important; }
   .sc-grand-val { font-size: 17px !important; }
   .sc-bonus-check { font-size: 16px; }
+}
+/* Tablet only: lock scroll so scorecard fits on screen */
+@media (min-width: 768px) and (max-width: 1100px) {
+  .scorecard-scroll { overflow-y: hidden; }
 }
 </style>
