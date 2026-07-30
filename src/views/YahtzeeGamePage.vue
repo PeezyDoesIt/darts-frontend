@@ -47,7 +47,11 @@
       <!-- TURN HEADER -->
       <div class="turn-header" :style="{ background: `linear-gradient(180deg, ${currentPlayer?.color}18 0%, transparent 100%)`, borderBottomColor: currentPlayer?.color + '40' }">
         <div class="turn-left">
-          <div class="turn-avatar" :style="{ background: currentPlayer?.color, boxShadow: `0 0 16px ${currentPlayer?.color}80` }">
+          <div
+            class="turn-avatar turn-avatar-tap"
+            :style="{ background: currentPlayer?.color, boxShadow: `0 0 16px ${currentPlayer?.color}80` }"
+            @click="router.push({ path: '/player-setup', query: { edit: currentPlayer?.id, from: 'yahtzee' } })"
+          >
             <img v-if="isPhoto(currentPlayer?.avatarUrl)" :src="currentPlayer!.avatarUrl!" alt="" />
             <span v-else>{{ currentPlayer?.avatarUrl ?? '🎯' }}</span>
           </div>
@@ -565,6 +569,13 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   font-size: 26px; overflow: hidden; flex-shrink: 0;
 }
 .turn-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.turn-avatar-tap {
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.turn-avatar-tap:hover { transform: scale(1.08); }
+.turn-avatar-tap:active { transform: scale(0.94); }
 .turn-center { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .turn-name { font-size: clamp(28px, 5.5dvh, 52px); letter-spacing: 0.04em; line-height: 1; font-weight: 900; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .turn-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0; flex-shrink: 0; min-width: 0; }

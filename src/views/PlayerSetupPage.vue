@@ -242,7 +242,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
@@ -405,6 +405,14 @@ function nextAvailableColor(excludeId: string | null = null): string {
   )
   return PLAYER_COLOR_PALETTE.find(c => !used.has(c.toLowerCase())) ?? PLAYER_COLOR_PALETTE[0]!
 }
+
+onMounted(() => {
+  const editId = route.query.edit as string | undefined
+  if (editId) {
+    const player = playersStore.players.find(p => p.id === editId)
+    if (player) loadPlayer(player)
+  }
+})
 
 const editingId = ref<string | null>(null)
 const name = ref('')
