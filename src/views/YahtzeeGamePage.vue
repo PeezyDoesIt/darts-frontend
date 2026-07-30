@@ -61,6 +61,7 @@
         </div>
         <div class="turn-right">
           <div class="header-sc-btns">
+            <button v-ripple class="header-sc-btn" :class="{ 'header-sc-btn-active': showDicePicker }" @click="showDicePicker = !showDicePicker" title="Dice style">🎲</button>
             <button v-ripple class="header-sc-btn" :class="{ 'header-sc-btn-active': showTabs }" @click="showTabs = !showTabs" title="Show players">{{ showTabs ? '▲' : '▼' }}</button>
             <button v-ripple class="header-sc-btn" :class="{ 'header-sc-btn-active': hideCompleted }" @click="hideCompleted = !hideCompleted" title="Hide completed">{{ hideCompleted ? '👁' : '🙈' }}</button>
             <button v-ripple class="header-sc-btn" @click="scorecardTheme = scorecardTheme === 'dark' ? 'light' : 'dark'" title="Toggle theme">{{ scorecardTheme === 'dark' ? '☀️' : '🌙' }}</button>
@@ -112,7 +113,7 @@
               :key="i"
               class="die-wrap"
               :class="{ 'die-held': game.held[i], [`die-theme-${dieTheme}`]: true }"
-              :style="game.held[i] ? { '--held-color': currentPlayer?.color ?? 'var(--pink)' } : {}"
+              :style="{ '--held-color': currentPlayer?.color ?? 'var(--pink)', ...dieGradientStyle(!!game.held[i]) }"
               @click="onDieTap(i)"
             >
               <svg class="die-svg" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
@@ -317,6 +318,35 @@
         </div>
       </div>
     </template>
+
+    <!-- DICE PICKER OVERLAY -->
+    <Transition name="dp-fade">
+      <div v-if="showDicePicker" class="dice-picker-overlay" @click.self="showDicePicker = false">
+        <div class="dice-picker-panel">
+          <div class="dice-picker-header">
+            <span class="dice-picker-title display">DICE STYLE</span>
+            <button class="dice-picker-close" @click="showDicePicker = false">✕</button>
+          </div>
+          <div class="dice-picker-scroll">
+            <div v-for="(themes, group) in dicePickerGroups" :key="group" class="dp-group">
+              <div class="dp-group-label">{{ group }}</div>
+              <div class="dp-group-grid">
+                <button
+                  v-for="t in themes" :key="t.value"
+                  class="dp-btn"
+                  :class="{ active: dieTheme === t.value }"
+                  :style="DIE_GRADIENTS[t.value] ? { '--dp-bg': DIE_GRADIENTS[t.value] } : {}"
+                  @click="setDiceTheme(t.value)"
+                >
+                  <span class="dp-btn-icon">{{ t.icon }}</span>
+                  <span class="dp-btn-label">{{ t.label }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -326,7 +356,7 @@ import { useRouter } from 'vue-router'
 import { useYahtzeeStore, grandTotal, upperTotal, upperBonus, lowerTotal, calcScore, isScorecardComplete } from '../stores/yahtzee'
 import { usePlayersStore } from '../stores/players'
 import type { YahtzeeCategory, YahtzeeScorecard } from '../stores/yahtzee'
-import type { DiceTheme } from '../types/index'
+import { DICE_THEMES, DIE_GRADIENTS, GRADIENT_DIE_THEMES, type DiceTheme } from '../types/index'
 
 const router = useRouter()
 const yahtzeeStore = useYahtzeeStore()
@@ -428,8 +458,28 @@ const dotPositions: [number, number][][] = [
 ]
 
 const dieTheme = computed<DiceTheme>(() => currentPlayer.value?.diceTheme ?? 'default')
+const showDicePicker = ref(false)
+const dicePickerGroups = computed(() => {
+  const groups: Record<string, typeof DICE_THEMES> = {}
+  for (const t of DICE_THEMES) {
+    if (!groups[t.group]) groups[t.group] = []
+    groups[t.group]!.push(t)
+  }
+  return groups
+})
+
+function setDiceTheme(theme: DiceTheme) {
+  if (!currentPlayer.value) return
+  playersStore.updatePlayer(currentPlayer.value.id, { diceTheme: theme })
+  showDicePicker.value = false
+}
+
+function isGradient(theme: DiceTheme): boolean {
+  return GRADIENT_DIE_THEMES.has(theme)
+}
 
 function dieFaceFill(held: boolean): string {
+  if (isGradient(dieTheme.value)) return 'none'
   const p = currentPlayer.value?.color ?? '#ff2d78'
   switch (dieTheme.value) {
     case 'casino':   return held ? '#e4e4e4' : '#ffffff'
@@ -441,6 +491,7 @@ function dieFaceFill(held: boolean): string {
   }
 }
 function dieFaceStroke(held: boolean): string {
+  if (isGradient(dieTheme.value)) return held ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)'
   const p = currentPlayer.value?.color ?? '#ff2d78'
   switch (dieTheme.value) {
     case 'casino':   return '#222'
@@ -456,11 +507,11 @@ function dieFaceRx(): number {
     case 'casino':   return 4
     case 'metallic': return 3
     case 'wooden':   return 5
-    case 'vintage':  return 6
     default:         return 6
   }
 }
 function diePipFill(held: boolean): string {
+  if (isGradient(dieTheme.value)) return held ? '#ffffff' : 'rgba(255,255,255,0.85)'
   const p = currentPlayer.value?.color ?? '#ff2d78'
   switch (dieTheme.value) {
     case 'casino':   return '#111'
@@ -470,6 +521,13 @@ function diePipFill(held: boolean): string {
     case 'vintage':  return '#6c4218'
     default:         return held ? p : '#ffffff'
   }
+}
+
+function dieGradientStyle(held: boolean): Record<string, string> {
+  if (!isGradient(dieTheme.value)) return {}
+  const grad = DIE_GRADIENTS[dieTheme.value]
+  if (!grad) return {}
+  return { '--die-face-bg': held ? grad.replace('135deg', '155deg') : grad }
 }
 
 interface CatDef { key: YahtzeeCategory; label: string; dieValue?: number; howTo: string }
@@ -732,6 +790,10 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   transition: transform 0.1s;
 }
 .die-wrap:active { transform: scale(0.92); }
+/* Gradient die themes — background applied via CSS var, SVG rect is transparent */
+[class*="die-theme-"] .die-svg { background: var(--die-face-bg, transparent); border-radius: 6px; }
+[class*="die-theme-"].die-held .die-svg { box-shadow: 0 0 14px var(--held-color, var(--pink)), 0 0 4px var(--held-color, var(--pink)); }
+
 .die-svg {
   width: 52px;
   height: 52px;
@@ -747,6 +809,56 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
 .die-theme-vintage .die-svg { box-shadow: 2px 3px 8px rgba(0,0,0,0.5), -1px -1px 4px rgba(255,255,255,0.05); }
 .held-label { font-size: 9px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.08em; }
 .die-tap-hint { font-size: 8px; color: rgba(255,255,255,0.3); letter-spacing: 0.05em; }
+
+/* ===== DICE PICKER OVERLAY ===== */
+.dice-picker-overlay {
+  position: fixed; inset: 0; z-index: 999;
+  background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.dice-picker-panel {
+  width: 100%; max-width: 680px; max-height: 80dvh;
+  background: #111; border-top: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px 20px 0 0;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.dice-picker-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 24px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+.dice-picker-title { font-size: 20px; letter-spacing: 0.12em; color: #fff; }
+.dice-picker-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7); font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.dice-picker-scroll { flex: 1; overflow-y: auto; padding: 16px 20px 28px; -webkit-overflow-scrolling: touch; }
+.dp-group { margin-bottom: 20px; }
+.dp-group-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(255,255,255,0.4); margin-bottom: 10px;
+}
+.dp-group-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.dp-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 14px; min-width: 80px;
+  border-radius: 10px; border: 2px solid rgba(255,255,255,0.12);
+  background: var(--dp-bg, rgba(255,255,255,0.05));
+  cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.dp-btn:hover { border-color: rgba(255,255,255,0.3); transform: scale(1.04); }
+.dp-btn.active { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.3); transform: scale(1.06); }
+.dp-btn-icon { font-size: 20px; line-height: 1; }
+.dp-btn-label { font-size: 11px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; color: #fff; white-space: nowrap; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+
+.dp-fade-enter-active, .dp-fade-leave-active { transition: opacity 0.2s; }
+.dp-fade-enter-from, .dp-fade-leave-to { opacity: 0; }
+.dp-fade-enter-active .dice-picker-panel, .dp-fade-leave-active .dice-picker-panel { transition: transform 0.25s; }
+.dp-fade-enter-from .dice-picker-panel, .dp-fade-leave-to .dice-picker-panel { transform: translateY(100%); }
 
 /* YAHTZEE FLASH */
 .yahtzee-flash-banner {

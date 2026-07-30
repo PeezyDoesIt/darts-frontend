@@ -9,7 +9,9 @@ export const useSettingsStore = defineStore('settings', () => {
 
   // quietNarrator: only announce whose turn it is, skip commentary
   const quietNarrator = ref<boolean>(
-    localStorage.getItem('quietNarrator') === 'true'
+    localStorage.getItem('quietNarrator') !== null
+      ? localStorage.getItem('quietNarrator') === 'true'
+      : true  // default on
   )
 
   // per-timer overrides
