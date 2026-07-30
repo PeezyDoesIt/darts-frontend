@@ -354,6 +354,27 @@
             <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'bo5' }" @click="seriesMode = 'bo5'; resetSeries()">Best of 5</button>
           </div>
 
+          <!-- Question / purpose -->
+          <div class="coin-question-section">
+            <div v-if="coinQuestion" class="coin-question-display">
+              <span class="coin-question-text">{{ coinQuestion }}</span>
+              <button class="coin-question-clear" @click.stop="coinQuestion = ''; showQuestionInput = false">✕</button>
+            </div>
+            <div v-else-if="showQuestionInput" class="coin-question-input-row" @click.stop>
+              <input
+                v-model="coinQuestionDraft"
+                class="coin-question-input"
+                placeholder="What are we flipping for?"
+                maxlength="80"
+                @keydown.enter="setCoinQuestion"
+                @keydown.esc="showQuestionInput = false; coinQuestionDraft = ''"
+              />
+              <button class="coin-q-confirm" @click.stop="setCoinQuestion">✓</button>
+              <button class="coin-q-cancel" @click.stop="showQuestionInput = false; coinQuestionDraft = ''">✕</button>
+            </div>
+            <button v-else class="coin-question-toggle" @click.stop="showQuestionInput = true">✏️ What's the flip for?</button>
+          </div>
+
           <div class="coin-arena" @click="flipCoin">
             <div class="coin-perspective">
               <div :key="coinAnimKey" class="coin" :class="coinAnimClass">
@@ -505,6 +526,17 @@ const seriesMode = ref<'single' | 'bo3' | 'bo5'>('single')
 const seriesHeads = ref(0)
 const seriesTails = ref(0)
 
+// Coin question
+const coinQuestion = ref('')
+const coinQuestionDraft = ref('')
+const showQuestionInput = ref(false)
+
+function setCoinQuestion() {
+  coinQuestion.value = coinQuestionDraft.value.trim()
+  coinQuestionDraft.value = ''
+  showQuestionInput.value = false
+}
+
 const seriesTarget = computed(() => seriesMode.value === 'bo3' ? 2 : seriesMode.value === 'bo5' ? 3 : 0)
 const seriesWinner = computed(() => {
   if (seriesTarget.value === 0) return null
@@ -537,7 +569,7 @@ function resetSeries() {
   coinResult.value = null
 }
 
-watch(showCoinFlip, (v) => { if (!v) resetSeries() })
+watch(showCoinFlip, (v) => { if (!v) { resetSeries(); coinQuestion.value = ''; coinQuestionDraft.value = ''; showQuestionInput.value = false } })
 watch(seriesMode, () => resetSeries())
 function pickCoinImage(side: 'heads' | 'tails') {
   if (side === 'heads') headsFileInput.value?.click()
@@ -1298,6 +1330,48 @@ watch(() => game.value?.currentPlayerIndex, () => {
   position: relative; overflow: hidden;
 }
 .coin-reset-btn:hover { border-color: #ffd700; color: #ffd700; background: rgba(255,215,0,0.1); }
+
+/* Question feature */
+.coin-question-section { width: 100%; display: flex; flex-direction: column; align-items: center; }
+.coin-question-toggle {
+  background: none; border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px;
+  color: rgba(255,255,255,0.35); font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
+  padding: 7px 16px; cursor: pointer; width: 100%; transition: all 0.15s;
+}
+.coin-question-toggle:hover { border-color: rgba(255,215,0,0.4); color: rgba(255,215,0,0.6); }
+.coin-question-display {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  background: rgba(255,215,0,0.07); border: 1px solid rgba(255,215,0,0.25);
+  border-radius: 10px; padding: 10px 14px;
+}
+.coin-question-text {
+  flex: 1; font-size: 15px; font-weight: 800; font-family: var(--font-display);
+  letter-spacing: 0.04em; color: #ffd700; text-align: center;
+  filter: drop-shadow(0 0 8px rgba(255,215,0,0.4));
+}
+.coin-question-clear {
+  background: none; border: none; color: rgba(255,215,0,0.5); font-size: 14px;
+  cursor: pointer; padding: 2px 4px; flex-shrink: 0; line-height: 1;
+}
+.coin-question-clear:hover { color: #ff5555; }
+.coin-question-input-row {
+  display: flex; align-items: center; gap: 6px; width: 100%;
+}
+.coin-question-input {
+  flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 8px; color: #fff; font-size: 14px; font-weight: 600;
+  padding: 9px 12px; outline: none; font-family: inherit;
+}
+.coin-question-input::placeholder { color: rgba(255,255,255,0.3); }
+.coin-question-input:focus { border-color: rgba(255,215,0,0.6); }
+.coin-q-confirm, .coin-q-cancel {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 8px; border: none;
+  font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+}
+.coin-q-confirm { background: rgba(255,215,0,0.15); color: #ffd700; }
+.coin-q-confirm:hover { background: rgba(255,215,0,0.3); }
+.coin-q-cancel { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.45); }
+.coin-q-cancel:hover { color: #ff5555; }
 
 @media (orientation: landscape) and (max-height: 900px) {
   .turn-header { min-height: 64px; }
