@@ -172,6 +172,7 @@ export function getAvailableVoices(): VoiceOption[] {
   }
 
   // Add ALL English voices the browser reports — covers any Windows/Mac/Chrome version
+  const seenLabels = new Set<string>()
   for (const v of voices) {
     if (characterNames.has(v.name)) continue          // already listed above
     if (!v.lang.startsWith('en')) continue            // English only
@@ -180,6 +181,8 @@ export function getAvailableVoices(): VoiceOption[] {
       .replace(/ - English.*$/, '')
       .replace(/ Desktop$/, '')
       .replace(/ Online \(Natural\)$/, '')
+    if (seenLabels.has(label)) continue               // skip duplicate display names
+    seenLabels.add(label)
     const isOnline = v.name.toLowerCase().includes('online') || !v.localService
     result.push({ label, value: v.name, sublabel: isOnline ? 'Neural (online)' : 'System voice' })
   }
