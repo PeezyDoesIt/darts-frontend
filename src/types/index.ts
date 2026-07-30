@@ -10,7 +10,7 @@ export type Player = {
   playerBackgroundPosition: 'top' | 'center' | 'bottom' | null
   playerBackgroundFill: 'black' | 'blur' | null
   targetLabelColor: string | null
-  cricketTargetDisplay: 'show' | 'hide' | 'fade' | null  // null = use game setting
+  cricketTargetDisplay: 'show' | 'hide' | null  // null = use game setting
   diceTheme: DiceTheme | null  // null = same as 'default'
   pinned: boolean
   wins: number
@@ -153,7 +153,7 @@ export type ActiveGame = {
   gameType: GameType
   timerDuration: number
   throwTimerDuration: number
-  closedTargetDisplay: 'show' | 'hide' | 'fade'
+  closedTargetDisplay: 'show' | 'hide'
   bustEliminates: boolean
   cricketPlayToCompletion: boolean
   cricketHatTrickBonus: boolean

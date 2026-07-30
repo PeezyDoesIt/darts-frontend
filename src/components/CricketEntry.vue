@@ -11,7 +11,6 @@
           class="board-tile"
           :class="{
             closed: myClosed(target) && closedTargetDisplay === 'show',
-            'closed-fade': myClosed(target) && closedTargetDisplay === 'fade',
             active: (roundHits[target] ?? 0) > 0
           }"
           :disabled="myClosed(target)"
@@ -70,7 +69,7 @@ const props = defineProps<{
   scores: Record<string, PlayerScore>
   isCutThroat: boolean
   round: number
-  closedTargetDisplay?: 'show' | 'hide' | 'fade'
+  closedTargetDisplay?: 'show' | 'hide'
   avatarUrl?: string | null
   playerColor?: string
   playerBackground?: string | null
@@ -225,7 +224,6 @@ defineExpose({ submit, submitted })
 .board-tile:not(:disabled):active { transform: scale(0.98); }
 .board-tile.closed { cursor: default; }
 .board-tile.closed .pip.existing { background: #cc0000; border-color: #cc0000; box-shadow: none; color: #000; }
-.board-tile.closed-fade { opacity: 0.35; cursor: default; }
 
 .target-label { font-size: clamp(120px, 20dvh, 220px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(150px, 20dvh, 240px); flex-shrink: 0; display: flex; align-items: center; overflow: hidden; }
 .target-label-bull { font-size: clamp(150px, 26dvh, 280px); }

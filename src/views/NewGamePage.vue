@@ -425,7 +425,7 @@ function onGameDurationInput(val: string | number | null) {
   if (!isNaN(n) && n > 0) gameDuration.value = n
 }
 
-const closedTargetDisplay = ref<'show' | 'hide' | 'fade'>('show')
+const closedTargetDisplay = ref<'show' | 'hide'>('show')
 const bustEliminates = ref(false)
 const cricketPlayToCompletion = ref(false)
 const cricketHatTrickBonus = ref(false)
@@ -433,7 +433,6 @@ const cricketRoundLimit = ref<number | null>(null)
 const skipWalkup = ref(false)
 const closedTargetOptions = [
   { value: 'show'   as const, label: 'Normal',        sub: 'Closed targets stay visible' },
-  { value: 'fade'   as const, label: 'Fade Out',       sub: 'Closed targets go transparent' },
   { value: 'hide'   as const, label: 'Hide',           sub: 'Closed targets disappear' },
 ]
 const OBSIDIAN = 'linear-gradient(160deg, #050505 0%, #111111 40%, #222222 75%, #333344 100%)'
