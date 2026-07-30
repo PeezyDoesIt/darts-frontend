@@ -712,13 +712,51 @@ function save() {
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
 @media (max-width: 768px) {
-  .page { height: auto; min-height: 100vh; min-height: 100dvh; overflow: auto; }
-  .setup-body { flex-direction: column; overflow: visible; height: auto; }
-  .setup-form-scroll { flex: none; overflow-y: visible; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
-  .setup-right { width: 100%; padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
-  .page-header { padding: 14px 20px; padding-top: calc(14px + env(safe-area-inset-top)); }
-  .existing-scroll { flex: none; height: auto; }
-  .theme-grid { grid-template-columns: repeat(6, 1fr); }
+  /* Page fills screen, form scrolls internally */
+  .page { height: 100dvh; overflow: hidden; }
+  .page::-webkit-scrollbar { display: none; }
+
+  /* Header: wrap to two rows — back/save on top, title below */
+  .page-header {
+    flex-wrap: wrap; padding: 10px 16px;
+    padding-top: calc(10px + env(safe-area-inset-top));
+    gap: 6px;
+  }
+  .page-title { order: 3; width: 100%; text-align: center; font-size: 18px; letter-spacing: 0.08em; }
+
+  /* Body: form takes full height, right panel hidden (moves to bottom via scroll) */
+  .setup-body { flex-direction: column; overflow: hidden; }
+  .setup-form-scroll {
+    flex: 1; min-height: 0; overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    border-right: none;
+    border-bottom: none;
+  }
+  .setup-form-scroll::-webkit-scrollbar { display: none; }
+  .setup-form { padding: 16px; gap: 18px; }
+
+  /* Right panel: collapsed to just existing players, minimal height */
+  .setup-right {
+    width: 100%; flex-shrink: 0;
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    gap: 10px; max-height: 200px;
+    overflow: hidden; border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .preview-card { display: none; }
+  .existing-section { flex: 1; overflow: hidden; }
+  .existing-scroll { flex: 1; overflow-y: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .existing-scroll::-webkit-scrollbar { display: none; }
+
+  /* Compact form elements */
+  .color-wheel-svg { max-width: min(280px, 80vw); }
+  .theme-grid { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .theme-swatch { height: 44px; }
+  .dice-theme-grid { gap: 6px; }
+  .dice-theme-btn { padding: 6px 10px; }
+  .name-input { font-size: 17px; padding: 10px 14px; }
+  .field { gap: 8px; }
 }
 
 /* iPad — compact layout, hide scrollbar, shrink color wheel */
