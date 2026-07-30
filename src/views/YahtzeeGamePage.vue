@@ -1041,9 +1041,14 @@ function goHome() { yahtzeeStore.endGame(); router.push('/') }
   .sc-grand-val { font-size: 17px !important; }
   .sc-bonus-check { font-size: 15px; }
 }
-/* Tablet only: lock scroll so scorecard fills remaining screen */
-@media (min-width: 768px) and (max-width: 1100px) {
+/* Tablet portrait: lock scroll so scorecard fills without overflowing */
+@media (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
   .scorecard-scroll { overflow-y: hidden; display: flex; flex-direction: column; }
+  .sc-paper { flex: 1; }
+}
+/* Tablet landscape: scorecard fills page and scrolls if needed */
+@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+  .scorecard-scroll { display: flex; flex-direction: column; overflow-y: auto; }
   .sc-paper { flex: 1; }
 }
 </style>
