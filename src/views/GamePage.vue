@@ -347,6 +347,13 @@
             <button class="coin-close-btn" @click="showCoinFlip = false">✕</button>
           </div>
 
+          <!-- Series mode selector -->
+          <div class="coin-series-modes">
+            <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'single' }" @click="seriesMode = 'single'; resetSeries()">Single</button>
+            <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'bo3' }" @click="seriesMode = 'bo3'; resetSeries()">Best of 3</button>
+            <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'bo5' }" @click="seriesMode = 'bo5'; resetSeries()">Best of 5</button>
+          </div>
+
           <div class="coin-arena" @click="flipCoin">
             <div class="coin-perspective">
               <div :key="coinAnimKey" class="coin" :class="coinAnimClass">
@@ -360,14 +367,35 @@
                 </div>
               </div>
             </div>
-            <span class="coin-tap-hint">{{ coinFlipping ? '' : coinResult ? 'Tap to flip again' : 'Tap coin to flip' }}</span>
+            <span class="coin-tap-hint">{{ coinFlipping ? '' : seriesWinner ? 'Series complete!' : coinResult ? 'Tap to flip again' : 'Tap coin to flip' }}</span>
+          </div>
+
+          <!-- Series scoreboard -->
+          <div v-if="seriesMode !== 'single'" class="coin-series-board">
+            <div class="series-side" :class="{ 'series-winner-side': seriesWinner === 'heads' }">
+              <span class="series-label">HEADS</span>
+              <span class="series-count">{{ seriesHeads }}</span>
+              <div class="series-pips">
+                <span v-for="n in seriesTarget" :key="n" class="series-pip" :class="{ 'pip-filled': seriesHeads >= n }" />
+              </div>
+            </div>
+            <div class="series-divider">vs</div>
+            <div class="series-side" :class="{ 'series-winner-side': seriesWinner === 'tails' }">
+              <span class="series-label">TAILS</span>
+              <span class="series-count">{{ seriesTails }}</span>
+              <div class="series-pips">
+                <span v-for="n in seriesTarget" :key="n" class="series-pip" :class="{ 'pip-filled': seriesTails >= n }" />
+              </div>
+            </div>
           </div>
 
           <Transition name="result-slide">
             <div v-if="coinResult && !coinFlipping" class="coin-result">
-              <span class="coin-result-text display" :class="coinResult">{{ coinResult === 'heads' ? 'HEADS' : 'TAILS' }}</span>
+              <span v-if="seriesWinner" class="coin-series-winner display">{{ seriesWinner === 'heads' ? 'HEADS WINS!' : 'TAILS WINS!' }}</span>
+              <span v-else class="coin-result-text display" :class="coinResult">{{ coinResult === 'heads' ? 'HEADS' : 'TAILS' }}</span>
             </div>
           </Transition>
+          <button v-if="seriesMode !== 'single' && seriesTotal > 0" v-ripple class="coin-reset-btn" @click="resetSeries()">↺ Reset Series</button>
 
           <div class="coin-customize">
             <div class="coin-cust-side">
@@ -472,8 +500,22 @@ const coinResult = ref<'heads' | 'tails' | null>(null)
 const headsFileInput = ref<HTMLInputElement | null>(null)
 const tailsFileInput = ref<HTMLInputElement | null>(null)
 
+// Series tracking
+const seriesMode = ref<'single' | 'bo3' | 'bo5'>('single')
+const seriesHeads = ref(0)
+const seriesTails = ref(0)
+
+const seriesTarget = computed(() => seriesMode.value === 'bo3' ? 2 : seriesMode.value === 'bo5' ? 3 : 0)
+const seriesWinner = computed(() => {
+  if (seriesTarget.value === 0) return null
+  if (seriesHeads.value >= seriesTarget.value) return 'heads'
+  if (seriesTails.value >= seriesTarget.value) return 'tails'
+  return null
+})
+const seriesTotal = computed(() => seriesHeads.value + seriesTails.value)
+
 function flipCoin() {
-  if (coinFlipping.value) return
+  if (coinFlipping.value || seriesWinner.value !== null) return
   coinResult.value = null
   coinFlipping.value = true
   const result: 'heads' | 'tails' = Math.random() < 0.5 ? 'heads' : 'tails'
@@ -482,8 +524,21 @@ function flipCoin() {
   setTimeout(() => {
     coinFlipping.value = false
     coinResult.value = result
+    if (seriesTarget.value > 0 && seriesWinner.value === null) {
+      if (result === 'heads') seriesHeads.value++
+      else seriesTails.value++
+    }
   }, 2200)
 }
+
+function resetSeries() {
+  seriesHeads.value = 0
+  seriesTails.value = 0
+  coinResult.value = null
+}
+
+watch(showCoinFlip, (v) => { if (!v) resetSeries() })
+watch(seriesMode, () => resetSeries())
 function pickCoinImage(side: 'heads' | 'tails') {
   if (side === 'heads') headsFileInput.value?.click()
   else tailsFileInput.value?.click()
@@ -1189,6 +1244,60 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .coin-fade-enter-from, .coin-fade-leave-to { opacity: 0; }
 .result-slide-enter-active { transition: opacity 0.3s, transform 0.3s; }
 .result-slide-enter-from { opacity: 0; transform: translateY(14px) scale(0.75); }
+
+/* Series */
+.coin-series-modes { display: flex; gap: 8px; justify-content: center; width: 100%; }
+.coin-mode-btn {
+  flex: 1; padding: 7px 0; border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+  position: relative; overflow: hidden;
+}
+.coin-mode-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+.coin-mode-btn.active { border-color: #ffd700; color: #ffd700; background: rgba(255,215,0,0.1); }
+
+.coin-series-board {
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px; width: 100%; padding: 10px 0;
+}
+.series-side {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  flex: 1; padding: 10px; border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  transition: all 0.3s;
+}
+.series-winner-side {
+  border-color: #ffd700;
+  background: rgba(255,215,0,0.12);
+  box-shadow: 0 0 16px rgba(255,215,0,0.25);
+}
+.series-label { font-size: 10px; font-weight: 900; letter-spacing: 0.12em; color: rgba(255,255,255,0.5); }
+.series-winner-side .series-label { color: #ffd700; }
+.series-count { font-size: 36px; font-weight: 900; font-family: var(--font-display); color: #fff; line-height: 1; }
+.series-winner-side .series-count { color: #ffd700; }
+.series-pips { display: flex; gap: 5px; margin-top: 2px; }
+.series-pip {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  transition: background 0.2s;
+}
+.series-pip.pip-filled { background: #ffd700; box-shadow: 0 0 6px rgba(255,215,0,0.6); }
+.series-divider { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.3); }
+
+.coin-series-winner { font-size: 28px; letter-spacing: 0.1em; color: #ffd700; filter: drop-shadow(0 0 12px rgba(255,215,0,0.6)); }
+
+.coin-reset-btn {
+  width: 100%; padding: 10px; border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+  position: relative; overflow: hidden;
+}
+.coin-reset-btn:hover { border-color: #ffd700; color: #ffd700; background: rgba(255,215,0,0.1); }
 
 @media (orientation: landscape) and (max-height: 900px) {
   .turn-header { min-height: 64px; }
