@@ -82,6 +82,18 @@ import { useSettingsStore } from '../stores/settings'
 import { speak, cancelPendingSpeak } from '../composables/useSpeech'
 import { playShotgun, playThemedBuzzer, playThemedTick, playThemedChime, unlockAudio } from '../composables/useSounds'
 
+// Module-level tracker so last-used index persists across component remounts (each turn nav)
+const _lastPickedIndex: Record<string, number> = {}
+
+function pickRandom<T>(key: string, arr: T[]): T {
+  if (arr.length === 1) return arr[0]!
+  const last = _lastPickedIndex[key] ?? -1
+  const candidates = arr.map((_, i) => i).filter(i => i !== last)
+  const idx = candidates[Math.floor(Math.random() * candidates.length)]!
+  _lastPickedIndex[key] = idx
+  return arr[idx]!
+}
+
 const router = useRouter()
 const gameStore = useGameStore()
 const settingsStore = useSettingsStore()
@@ -170,6 +182,24 @@ async function handleTurnAnnouncement() {
                 : p === 'smooth'    ? `Alright ${name}, it's your turn. Make it smooth.`
                 : `${name} — it's your turn.`
 
+  // Zero-score roast fires even in quiet mode — dirty mode explicitly opts into this
+  if (gameStore.lastTurnWasZero) {
+    const zeroPhrases = p === 'hype'
+      ? [`Zero?! Come ON! We need better than that!`, `Shake it off — next turn!`, `That wasn't it, but you got this!`]
+      : p === 'savage'
+      ? [`Zero. Next.`, `Did you even try?`, `Yikes.`]
+      : p === 'announcer'
+      ? [`A scoreless round! The commentators are at a loss for words.`, `Zero points! An unusual turn of events.`, `Difficult conditions out there.`]
+      : p === 'sarcastic'
+      ? [`Zero. Outstanding.`, `A big fat zero. Inspiring.`, `Zero points. Truly a historic performance.`]
+      : p === 'smooth'
+      ? [`Mmm, zero, but we keep it moving.`, `Shake it off. Next turn.`, `Everyone has off nights.`]
+      : [`What the fuck was that?`, `Holy shit! Please, sit down. Who's next?`, `Who invited Helen Keller to play?`, `Damn!... That was trash.`, `Were you even facing the board?`]
+    await speak(pickRandom(`zero:${p}`, zeroPhrases))
+    speak(nextLine)
+    return
+  }
+
   if (settingsStore.quietNarrator) { speak(nextLine); return }
 
   if (gameStore.lastTurnHadBull) {
@@ -182,27 +212,27 @@ async function handleTurnAnnouncement() {
     await playThemedBuzzer(settingsStore.soundTheme)
     await new Promise(r => setTimeout(r, 200))
     if (p === 'hype') {
-      await speak(`${prev} missed their turn! Unacceptable!`)
-      await speak(`Step your game up!`)
-      if (count >= 3) await speak(`This is getting ridiculous! Do better!`)
+      await speak(pickRandom(`timeout:hype`, [`${prev} missed their turn! Unacceptable!`, `${prev}! Where are you?! Get UP here!`, `${prev} — you just gave away a free turn!`]))
+      await speak(pickRandom(`timeout:hype2`, [`Step your game up!`, `This is not the time to be slacking!`, `We need energy out here!`]))
+      if (count >= 3) await speak(pickRandom(`timeout:hype3`, [`This is getting ridiculous! Do better!`, `Again?! Come on ${prev}!`, `Three times! THREE TIMES!`]))
     } else if (p === 'savage') {
-      await speak(`${prev} missed their turn. Pathetic.`)
-      if (count >= 3) await speak(`This is why nobody invites you to darts night.`)
+      await speak(pickRandom(`timeout:savage`, [`${prev} missed their turn. Pathetic.`, `${prev}. Not even trying.`, `${prev} timed out. Embarrassing.`]))
+      if (count >= 3) await speak(pickRandom(`timeout:savage3`, [`This is why nobody invites you to darts night.`, `At this rate, why are you even here?`, `You're making everyone else look good by comparison.`]))
     } else if (p === 'announcer') {
-      await speak(`${prev} has timed out! A costly mistake in tonight's competition!`)
-      await speak(`The crowd is stunned.`)
-      if (count >= 3) await speak(`This could have serious implications for the standings!`)
+      await speak(pickRandom(`timeout:announcer`, [`${prev} has timed out! A costly mistake in tonight's competition!`, `${prev} fails to respond in time! The judges are not pleased!`, `A timeout for ${prev}! This could prove very costly!`]))
+      await speak(pickRandom(`timeout:announcer2`, [`The crowd is stunned.`, `An awkward silence falls over the venue.`, `Nobody saw that coming.`]))
+      if (count >= 3) await speak(pickRandom(`timeout:announcer3`, [`This could have serious implications for the standings!`, `The commentators are struggling to explain this one.`, `A pattern is emerging here, and it is not a good one.`]))
     } else if (p === 'sarcastic') {
-      await speak(`${prev} missed their turn. Shocking. Truly.`)
-      if (count >= 3) await speak(`At this point I'm not even surprised.`)
+      await speak(pickRandom(`timeout:sarcastic`, [`${prev} missed their turn. Shocking. Truly.`, `Oh wow. ${prev} timed out. Again. Wow.`, `${prev} couldn't be bothered. Great effort.`]))
+      if (count >= 3) await speak(pickRandom(`timeout:sarcastic3`, [`At this point I'm not even surprised.`, `I've started expecting this. I hate that I've started expecting this.`, `Maybe darts isn't the game for ${prev}.`]))
     } else if (p === 'smooth') {
-      await speak(`${prev}, that's not a good look, ${term}.`)
-      if (count >= 3) await speak(`Come on now. Pull it together.`)
+      await speak(pickRandom(`timeout:smooth`, [`${prev}, that's not a good look, ${term}.`, `Come on ${prev}, we need you here.`, `${prev}, you can't be doing that, ${term}.`]))
+      if (count >= 3) await speak(pickRandom(`timeout:smooth3`, [`Come on now. Pull it together.`, `Get it together, ${term}. We're all watching.`, `That's three times now. Let's not make it four.`]))
     } else {
-      await speak(`Missed their turn.`)
-      await speak(`Be better.`)
+      await speak(pickRandom(`timeout:default`, [`${prev} missed their turn.`, `Where the hell is ${prev}?`, `${prev} just wasted everyone's time.`]))
+      await speak(pickRandom(`timeout:default2`, [`Be better.`, `Get your ass up here.`, `This ain't it.`]))
       if (count >= 3) {
-        await speak(`This is why nobody wants to play darts with you.`)
+        await speak(pickRandom(`timeout:default3`, [`This is why nobody wants to play darts with you.`, `Three timeouts. THREE.`, `At this point just sit down.`]))
       } else {
         await new Promise(r => setTimeout(r, 150))
         await playWhistle()
@@ -211,20 +241,6 @@ async function handleTurnAnnouncement() {
       }
     }
     await new Promise(r => setTimeout(r, 300))
-    speak(nextLine)
-  } else if (gameStore.lastTurnWasZero) {
-    const zeroPhrases = p === 'hype'
-      ? [`Zero?! Come ON! We need better than that!`, `Shake it off — next turn!`, `That wasn't it, but you got this!`]
-      : p === 'savage'
-      ? [`Zero. Next.`, `Did you even try?`, `Yikes.`]
-      : p === 'announcer'
-      ? [`A scoreless round! The commentators are at a loss for words.`, `Zero points! An unusual turn of events.`, `Difficult conditions out there.`]
-      : p === 'sarcastic'
-      ? [`Zero. Outstanding.`, `A big fat zero. Inspiring.`, `Zero points. Truly a historic performance.`]
-      : p === 'smooth'
-      ? [`Mmm, zero, but we keep it moving.`, `Shake it off. Next turn.`, `Everyone has off nights.`]
-      : [`What the fuck was that?`, `Holy shit! Please, sit down. Who's next?`, `Who invited Helen Keller to play?`, `Damn!... That was trash.`, `Were you even facing the board?`]
-    await speak(zeroPhrases[Math.floor(Math.random() * zeroPhrases.length)]!)
     speak(nextLine)
   } else {
     speak(nextLine)
@@ -262,12 +278,29 @@ onMounted(() => {
         const hurryCount = gameStore.playerHurryUpCounts[nextPlayer.value.id] ?? 0
         gameStore.recordHurryUp(nextPlayer.value.id)
         const n = nextPlayer.value.name
-        const line = p === 'hype'      ? (hurryCount > 0 ? `${n}! I SAID let's GO! Move it!`                                              : `${n}! Hurry UP! We're all waiting!`)
-                   : p === 'savage'    ? (hurryCount > 0 ? `${n}. I won't ask again.`                                                     : `${n}. Hurry up.`)
-                   : p === 'announcer' ? (hurryCount > 0 ? `${n}, please step up to the line immediately!`                                : `Officials are urging ${n} to take their position!`)
-                   : p === 'sarcastic' ? (hurryCount > 0 ? `${n}. We're all just waiting here. No rush. Seriously.`                      : `${n}. Any day now.`)
-                   : p === 'smooth'    ? (hurryCount > 0 ? `${n}. Let's go, ${term}. Clock's moving.`                                    : `${n}, whenever you're ready, ${term}.`)
-                   : (hurryCount > 0 ? `${n}. Hurry the fuck up. This is why nobody wants to play darts with you.` : `${n}. Hurry the fuck up. It's your turn.`)
+        const line = p === 'hype'
+          ? pickRandom(`hurry:hype:${hurryCount > 0}`, hurryCount > 0
+              ? [`${n}! I SAID let's GO! Move it!`, `${n}! Stop stalling and GET UP HERE!`, `${n}! MOVE! We don't have all day!`]
+              : [`${n}! Hurry UP! We're all waiting!`, `${n}! Let's go, let's go, let's GO!`, `${n}! The clock is ticking!`])
+          : p === 'savage'
+          ? pickRandom(`hurry:savage:${hurryCount > 0}`, hurryCount > 0
+              ? [`${n}. I won't ask again.`, `${n}. Last warning.`, `${n}. Now.`]
+              : [`${n}. Hurry up.`, `${n}. Walk up.`, `${n}. Let's go.`])
+          : p === 'announcer'
+          ? pickRandom(`hurry:announcer:${hurryCount > 0}`, hurryCount > 0
+              ? [`${n}, please step up to the line immediately!`, `${n} is being warned by officials again!`, `The referee is losing patience with ${n}!`]
+              : [`Officials are urging ${n} to take their position!`, `${n} has thirty seconds remaining!`, `The clock is running, ${n}!`])
+          : p === 'sarcastic'
+          ? pickRandom(`hurry:sarcastic:${hurryCount > 0}`, hurryCount > 0
+              ? [`${n}. We're all just waiting here. No rush. Seriously.`, `Oh yes, take your time ${n}. It's not like anyone else is here.`, `${n}. Still waiting. Still here. Just us.`]
+              : [`${n}. Any day now.`, `${n}. The darts aren't going to throw themselves.`, `${n}. We've aged considerably waiting for you.`])
+          : p === 'smooth'
+          ? pickRandom(`hurry:smooth:${hurryCount > 0}`, hurryCount > 0
+              ? [`${n}. Let's go, ${term}. Clock's moving.`, `Come on ${n}, time's running out, ${term}.`, `${n}, we need you now, ${term}.`]
+              : [`${n}, whenever you're ready, ${term}.`, `Take a breath and step up, ${n}.`, `${n}, the floor is yours, ${term}.`])
+          : pickRandom(`hurry:default:${hurryCount > 0}`, hurryCount > 0
+              ? [`${n}. Hurry the fuck up. This is why nobody wants to play darts with you.`, `${n}. I will not say it again. GET. UP. HERE.`, `${n}. Move your ass. NOW.`]
+              : [`${n}. Hurry the fuck up. It's your turn.`, `${n}. Get up here. Right now.`, `${n}. Clock's running. Move it.`])
         setTimeout(() => speak(line), 500)
       }
     }
@@ -286,7 +319,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 <style scoped>
 .between {
   width: 100vw; height: 100dvh; display: flex; align-items: center; justify-content: center;
-  position: relative; overflow: hidden;
+  position: relative; overflow: clip;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -310,6 +343,8 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   font-size: clamp(100px, 20vmin, 225px);
   letter-spacing: 0.04em; line-height: 1;
   text-align: center; transition: color 0.3s;
+  -webkit-text-stroke: 8px #000;
+  paint-order: stroke fill;
 }
 
 
@@ -370,13 +405,10 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
 }
 
 
-/* Black highlight capsule behind player name */
+/* Transparent wrapper — outline is handled by text-stroke on the name itself */
 .name-highlight-wrap {
   display: inline-flex;
   justify-content: center;
-  background: rgba(0,0,0,0.65);
-  border-radius: 16px;
-  padding: 0 24px;
 }
 
 /* Cricket layout */
@@ -393,6 +425,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   line-height: 1;
   text-align: center;
   transition: color 0.3s, text-shadow 0.3s;
+  -webkit-text-stroke: 8px #000;
   paint-order: stroke fill;
 }
 
@@ -403,6 +436,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   cursor: pointer; transition: all 0.15s; letter-spacing: 0.14em;
   font-family: var(--font-display); position: relative; overflow: hidden;
   box-shadow: 0 4px 24px rgba(220,38,38,0.45);
+  flex-shrink: 0;
 }
 .btn-ready:hover { background: #ef4444; }
 .btn-ready:active { transform: scale(0.97); }

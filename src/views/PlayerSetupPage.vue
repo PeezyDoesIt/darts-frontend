@@ -54,27 +54,26 @@
                 </label>
                 <button v-if="bgImagePreview" v-ripple class="btn btn-outline btn-sm" @click="bgImagePreview = null; playerBackground = null">Clear</button>
               </div>
-              <div v-if="bgImagePreview" class="bg-fit-controls">
-                <div class="bg-fit-row">
-                  <span class="bg-fit-label">Size</span>
-                  <div class="bg-fit-btns">
-                    <button v-ripple class="bg-fit-btn" :class="{ active: bgSize === 'cover' || bgSize === null }" @click="bgSize = 'cover'">Cover</button>
-                    <button v-ripple class="bg-fit-btn" :class="{ active: bgSize === 'contain' }" @click="bgSize = 'contain'">Contain</button>
-                  </div>
-                </div>
-                <div v-if="bgSize === 'contain'" class="bg-fit-row">
-                  <span class="bg-fit-label">Fill</span>
-                  <div class="bg-fit-btns">
-                    <button v-ripple class="bg-fit-btn" :class="{ active: bgFill === 'black' || bgFill === null }" @click="bgFill = 'black'">Black</button>
-                    <button v-ripple class="bg-fit-btn" :class="{ active: bgFill === 'blur' }" @click="bgFill = 'blur'">Blur</button>
-                  </div>
-                </div>
-                <div class="bg-fit-row">
-                  <span class="bg-fit-label">Position</span>
-                  <div class="bg-fit-btns">
-                    <button v-ripple class="bg-fit-btn" :class="{ active: bgPosition === 'center' || bgPosition === null }" @click="bgPosition = 'center'">Center</button>
-                  </div>
-                </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label">Font Color</label>
+            <div class="color-dropdown-wrap">
+              <button class="color-dropdown-btn" @click="showColorDropdown = !showColorDropdown">
+                <span class="color-dropdown-swatch" :style="{ background: color, border: color === '#000000' ? '2px solid rgba(255,255,255,0.35)' : '2px solid transparent' }" />
+                <span class="color-dropdown-label">{{ selectedColorName }}</span>
+                <span class="color-dropdown-arrow">{{ showColorDropdown ? '▲' : '▼' }}</span>
+              </button>
+              <div v-if="showColorDropdown" class="color-dropdown-menu">
+                <button
+                  v-for="s in FONT_COLORS" :key="s.value"
+                  class="color-swatch-sm"
+                  :class="{ 'color-swatch-active': color.toLowerCase() === s.value.toLowerCase() }"
+                  :style="{ background: s.value, border: s.value === '#000000' ? '2px solid rgba(255,255,255,0.3)' : '2px solid transparent' }"
+                  :title="s.name"
+                  @click="color = s.value; showColorDropdown = false"
+                />
               </div>
             </div>
           </div>
@@ -96,25 +95,6 @@
             </div>
           </div>
 
-          <div class="field">
-            <label class="label">Player Color</label>
-            <div class="palette-selected-row">
-              <span class="palette-selected-dot" :style="{ background: color, boxShadow: `0 0 10px ${color}`, border: color === '#000000' ? '2px solid rgba(255,255,255,0.3)' : '2px solid rgba(255,255,255,0.1)' }" />
-              <span class="palette-selected-label">{{ selectedColorName }}</span>
-              <span v-if="colorConflict" class="color-conflict">⚠ Already used by {{ colorConflict }}</span>
-            </div>
-            <div class="swatch-grid">
-              <button
-                v-for="s in SWATCH_COLORS" :key="s.value"
-                v-ripple
-                class="swatch-btn"
-                :class="{ 'swatch-active': color.toLowerCase() === s.value.toLowerCase() }"
-                :style="{ background: s.value, border: s.value === '#000000' ? '2px solid rgba(255,255,255,0.2)' : '2px solid transparent' }"
-                :title="s.name"
-                @click="color = s.value"
-              />
-            </div>
-          </div>
 
           <div class="field">
             <label class="label">Yahtzee Dice Theme</label>
@@ -210,54 +190,28 @@ import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { PRESET_AVATARS, PLAYER_THEMES, TARGET_LABEL_COLORS, DICE_THEMES, type Player, type DiceTheme } from '../types/index'
 
-const SWATCH_COLORS: { name: string; value: string }[] = [
-  // Neutrals
-  { name: 'Black',      value: '#000000' },
-  { name: 'Charcoal',   value: '#333333' },
-  { name: 'Gray',       value: '#777777' },
-  { name: 'Silver',     value: '#aaaaaa' },
-  { name: 'White',      value: '#ffffff' },
-  { name: 'Gold',       value: '#ffd700' },
-  // Reds & pinks
-  { name: 'Red',        value: '#e00000' },
-  { name: 'Scarlet',    value: '#ff2400' },
-  { name: 'Hot Pink',   value: '#ff2d78' },
-  { name: 'Magenta',    value: '#ff00e4' },
-  { name: 'Deep Rose',  value: '#8b0050' },
-  { name: 'Maroon',     value: '#800000' },
-  // Oranges & yellows
-  { name: 'Orange Red', value: '#ff4500' },
-  { name: 'Orange',     value: '#ff6600' },
-  { name: 'Amber',      value: '#ffbf00' },
-  { name: 'Yellow',     value: '#ffff00' },
-  { name: 'Lime',       value: '#aaff00' },
-  { name: 'Chartreuse', value: '#7fff00' },
-  // Greens & teals
-  { name: 'Lime Green', value: '#32cd32' },
-  { name: 'Green',      value: '#008000' },
-  { name: 'Teal',       value: '#008080' },
-  { name: 'Cyan',       value: '#00bcd4' },
-  { name: 'Seafoam',    value: '#64ffda' },
-  { name: 'Aqua',       value: '#00ffaa' },
-  // Blues
-  { name: 'Sky Blue',   value: '#00d4ff' },
-  { name: 'Royal Blue', value: '#4169e1' },
-  { name: 'Blue',       value: '#0066ff' },
-  { name: 'Cobalt',     value: '#0047ab' },
-  { name: 'Navy',       value: '#001f5b' },
-  { name: 'Violet',     value: '#7c3aed' },
-  // Purples & pinks
-  { name: 'Purple',     value: '#bf5fff' },
-  { name: 'Grape',      value: '#6f2da8' },
-  { name: 'Indigo',     value: '#4b0082' },
-  { name: 'Lavender',   value: '#c084fc' },
-  { name: 'Pink',       value: '#ff69b4' },
-  { name: 'Rose Pink',  value: '#ff80ab' },
+const FONT_COLORS: { name: string; value: string }[] = [
+  { name: 'White',    value: '#ffffff' },
+  { name: 'Black',    value: '#000000' },
+  { name: 'Silver',   value: '#aaaaaa' },
+  { name: 'Gold',     value: '#ffd700' },
+  { name: 'Red',      value: '#e00000' },
+  { name: 'Orange',   value: '#ff6600' },
+  { name: 'Yellow',   value: '#ffff00' },
+  { name: 'Lime',     value: '#aaff00' },
+  { name: 'Green',    value: '#00c853' },
+  { name: 'Teal',     value: '#008080' },
+  { name: 'Cyan',     value: '#00bcd4' },
+  { name: 'Blue',     value: '#0066ff' },
+  { name: 'Purple',   value: '#bf5fff' },
+  { name: 'Hot Pink', value: '#ff2d78' },
+  { name: 'Magenta',  value: '#ff00e4' },
 ]
 
-const selectedColorName = computed(() => {
-  return SWATCH_COLORS.find(c => c.value.toLowerCase() === color.value.toLowerCase())?.name ?? color.value
-})
+const showColorDropdown = ref(false)
+const selectedColorName = computed(() =>
+  FONT_COLORS.find(c => c.value.toLowerCase() === color.value.toLowerCase())?.name ?? color.value
+)
 
 const router = useRouter()
 const route = useRoute()
@@ -280,12 +234,7 @@ onMounted(() => {
 const editingId = ref<string | null>(null)
 const name = ref('')
 const color = ref<string>('#ffffff')
-const colorConflict = computed(() => {
-  const match = playersStore.players.find(
-    p => p.id !== editingId.value && p.color.toLowerCase() === color.value.toLowerCase()
-  )
-  return match?.name ?? null
-})
+
 const avatarUrl = ref<string | null>(null)
 const avatarMode = ref<'emoji' | 'photo'>('photo')
 const photoPreview = ref<string | null>(null)
@@ -307,9 +256,7 @@ function doDelete() {
 const bgMode = ref<'image'>('image')
 const playerBackground = ref<string | null>(null)
 const bgImagePreview = ref<string | null>(null)
-const bgSize = ref<'cover' | 'contain' | null>(null)
-const bgPosition = ref<'top' | 'center' | 'bottom' | null>(null)
-const bgFill = ref<'black' | 'blur' | null>(null)
+
 const targetLabelColor = ref<string | null>(null)
 const cricketTargetDisplay = ref<'show' | 'hide'>('show')
 const diceTheme = ref<DiceTheme | null>(null)
@@ -321,15 +268,13 @@ const cricketTargetDisplayOpts: { value: 'show' | 'hide'; label: string; sub: st
 
 const bgPreviewStyle = computed(() => {
   if (bgImagePreview.value) {
-    const isBlur = bgFill.value === 'blur' && bgSize.value === 'contain'
-    return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: bgSize.value ?? 'cover', backgroundPosition: bgPosition.value ?? 'center', backgroundRepeat: 'no-repeat', backgroundColor: isBlur ? 'transparent' : '#000' }
+    return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundColor: '#000' }
   }
   return { background: 'rgba(255,255,255,0.05)' }
 })
 const previewCardStyle = computed(() => {
   if (bgImagePreview.value) {
-    const isBlur = bgFill.value === 'blur' && bgSize.value === 'contain'
-    return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: bgSize.value ?? 'cover', backgroundPosition: bgPosition.value ?? 'center', backgroundRepeat: 'no-repeat', backgroundColor: isBlur ? 'transparent' : '#000', boxShadow: `0 0 40px ${color.value}40` }
+    return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundColor: '#000', boxShadow: `0 0 40px ${color.value}40` }
   }
   if (playerBackground.value) return { background: playerBackground.value, boxShadow: `0 0 40px ${color.value}40` }
   return { background: `linear-gradient(135deg, ${color.value}cc, ${color.value}66)`, boxShadow: `0 0 40px ${color.value}40` }
@@ -382,7 +327,7 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = '#ffffff'; avatarUrl.value = null
-  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'image'; bgSize.value = null; bgPosition.value = null; bgFill.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false
+  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'image'; targetLabelColor.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
@@ -391,9 +336,7 @@ function loadPlayer(p: Player) {
   playerBackground.value = p.playerBackground ?? null
   if (p.playerBackground?.startsWith('data:')) { bgMode.value = 'image'; bgImagePreview.value = p.playerBackground }
   else { bgMode.value = 'image'; bgImagePreview.value = null }
-  bgSize.value = p.playerBackgroundSize ?? null
-  bgPosition.value = p.playerBackgroundPosition ?? null
-  bgFill.value = p.playerBackgroundFill ?? null
+
   targetLabelColor.value = p.targetLabelColor ?? null
   cricketTargetDisplay.value = p.cricketTargetDisplay ?? 'show'
   diceTheme.value = p.diceTheme ?? null
@@ -407,10 +350,10 @@ function save() {
   const tlc = targetLabelColor.value
   const ctd = cricketTargetDisplay.value
   if (editingId.value) {
-    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: bgSize.value, playerBackgroundPosition: bgPosition.value, playerBackgroundFill: bgFill.value, targetLabelColor: tlc, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
+    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: null, playerBackgroundPosition: null, playerBackgroundFill: null, targetLabelColor: tlc, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
     editingId.value = null
   } else {
-    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: bgSize.value, playerBackgroundPosition: bgPosition.value, playerBackgroundFill: bgFill.value, targetLabelColor: tlc, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: null, playerBackgroundPosition: null, playerBackgroundFill: null, targetLabelColor: tlc, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
       resetForm()
@@ -444,11 +387,11 @@ function save() {
 .setup-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
 .setup-form-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; border-right: 1px solid rgba(255,255,255,0.06); }
 .setup-form { padding: 28px; display: flex; flex-direction: column; gap: 24px; }
-.setup-form .label { color: #ffffff; font-weight: 800; }
+.setup-form .label { color: #ffffff; font-weight: 800; font-size: 18px; letter-spacing: 0.06em; text-transform: uppercase; }
 .btn-outline { color: #ffffff !important; font-weight: 700 !important; border: 2px solid #ffffff !important; }
 .btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
 
-.field { display: flex; flex-direction: column; gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 12px; padding-bottom: 8px; }
 
 .bg-tabs, .avatar-tabs { display: flex; gap: 8px; }
 .tab { padding: 8px 20px; border-radius: 6px; border: 2px solid #ffffff; background: transparent; color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
@@ -457,15 +400,43 @@ function save() {
 
 .bg-preview { width: 80px; height: 80px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 
-.field-hint { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.4; }
-.palette-selected-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-.palette-selected-dot { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; display: block; }
-.palette-selected-label { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85); letter-spacing: 0.05em; text-transform: uppercase; flex: 1; }
+.field-hint { font-size: 14px; color: var(--text-muted); margin: 0; line-height: 1.4; }
+
 .color-conflict { font-size: 12px; color: #ff4444; font-weight: 700; }
-.swatch-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
-.swatch-btn { width: 100%; aspect-ratio: 1; border-radius: 8px; cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; position: relative; overflow: hidden; }
-.swatch-btn:hover { transform: scale(1.1); }
-.swatch-active { transform: scale(1.12) !important; box-shadow: 0 0 0 3px #fff, 0 0 12px rgba(255,255,255,0.5) !important; }
+/* Font color dropdown */
+.color-dropdown-wrap { position: relative; }
+.color-dropdown-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; border-radius: 8px;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.06);
+  color: #fff; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: border-color 0.15s;
+  width: 100%; text-align: left;
+}
+.color-dropdown-btn:hover { border-color: rgba(255,255,255,0.4); }
+.color-dropdown-swatch { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display: block; }
+.color-dropdown-label { flex: 1; letter-spacing: 0.05em; text-transform: uppercase; }
+.color-dropdown-arrow { font-size: 10px; opacity: 0.6; }
+.color-dropdown-menu {
+  margin-top: 6px;
+  padding: 10px;
+  background: rgba(20,20,28,0.97);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 7px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.color-swatch-sm {
+  width: 32px; height: 32px; border-radius: 6px;
+  cursor: pointer; transition: transform 0.12s, box-shadow 0.12s;
+  position: relative; overflow: hidden;
+}
+.color-swatch-sm:hover { transform: scale(1.12); }
+.color-swatch-active { box-shadow: 0 0 0 3px #fff, 0 0 10px rgba(255,255,255,0.4) !important; transform: scale(1.12); }
 
 .emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
 .emoji-btn { width: 50px; height: 50px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-size: 24px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; touch-action: pan-y; }
@@ -474,13 +445,6 @@ function save() {
 .emoji-none-btn { color: rgba(255,255,255,0.4); font-size: 18px; font-weight: 700; }
 
 .photo-area { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-.bg-fit-controls { width: 100%; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); }
-.bg-fit-row { display: flex; align-items: center; gap: 10px; }
-.bg-fit-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; min-width: 56px; }
-.bg-fit-btns { display: flex; gap: 6px; }
-.bg-fit-btn { padding: 5px 14px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
-.bg-fit-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-.bg-fit-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.15); color: var(--pink); }
 .photo-preview { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
 .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
 

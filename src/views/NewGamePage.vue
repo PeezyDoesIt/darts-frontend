@@ -190,60 +190,7 @@
           </div>
         </section>
 
-        <!-- Scoring Screen Theme -->
-        <section class="ng-section">
-          <span class="label">Scoring Screen Theme</span>
-          <div class="bg-tabs">
-            <button v-ripple class="tab" :class="{ active: gameThemeMode === 'theme' }" @click="gameThemeMode = 'theme'">Colors</button>
-            <button v-ripple class="tab" :class="{ active: gameThemeMode === 'image' }" @click="gameThemeMode = 'image'">Photo</button>
-          </div>
-          <div v-if="gameThemeMode === 'theme'" class="theme-swatch-grid">
-            <button
-              v-for="t in PLAYER_THEMES.filter(t => t.value)"
-              :key="String(t.value)"
-              class="theme-swatch"
-              :class="{ active: gameTheme === t.value }"
-              :style="{ background: t.value as string }"
-              :title="t.label"
-              @click="selectGameTheme(t.value as string)"
-            />
-          </div>
-          <div v-else class="game-theme-photo-row">
-            <div class="game-theme-preview" :style="gameThemePreviewStyle">
-              <span v-if="!gameThemeImage" style="font-size:13px;opacity:0.4;letter-spacing:0.08em">PHOTO</span>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <label v-ripple class="btn btn-spray btn-lg" style="cursor:pointer;position:relative;overflow:hidden">
-                Choose Photo
-                <input type="file" accept="image/*" style="display:none" @change="onGameThemeFileChange" />
-              </label>
-              <button v-if="gameThemeImage" v-ripple class="btn btn-outline btn-sm" @click="gameThemeImage = null; gameTheme = OBSIDIAN">Clear</button>
-            </div>
-          </div>
-          <span v-if="gameTheme && gameThemeMode === 'theme'" class="selected-theme-name">{{ PLAYER_THEMES.find(t => t.value === gameTheme)?.label }}</span>
-          <div v-if="gameThemeImage" class="bg-fit-controls">
-            <div class="bg-fit-row">
-              <span class="bg-fit-label">Size</span>
-              <div class="bg-fit-btns">
-                <button v-ripple class="bg-fit-btn" :class="{ active: gameThemeSize === 'cover' || gameThemeSize === null }" @click="gameThemeSize = 'cover'">Cover</button>
-                <button v-ripple class="bg-fit-btn" :class="{ active: gameThemeSize === 'contain' }" @click="gameThemeSize = 'contain'">Contain</button>
-              </div>
-            </div>
-            <div v-if="gameThemeSize === 'contain'" class="bg-fit-row">
-              <span class="bg-fit-label">Fill</span>
-              <div class="bg-fit-btns">
-                <button v-ripple class="bg-fit-btn" :class="{ active: gameThemeFill === 'black' || gameThemeFill === null }" @click="gameThemeFill = 'black'">Black</button>
-                <button v-ripple class="bg-fit-btn" :class="{ active: gameThemeFill === 'blur' }" @click="gameThemeFill = 'blur'">Blur</button>
-              </div>
-            </div>
-            <div class="bg-fit-row">
-              <span class="bg-fit-label">Position</span>
-              <div class="bg-fit-btns">
-                <button v-ripple class="bg-fit-btn" :class="{ active: gameThemePosition === 'center' || gameThemePosition === null }" @click="gameThemePosition = 'center'">Center</button>
-              </div>
-            </div>
-          </div>
-        </section>
+
       </template>
 
     </div>

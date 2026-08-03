@@ -27,7 +27,6 @@
           <!-- Right: action buttons -->
           <div class="turn-right">
             <span v-if="game.gameDuration !== null" class="game-clock-badge" :class="{ 'game-clock-low': gameTimeLeft !== null && gameTimeLeft <= 300 }">{{ gameTimeLeftDisplay }}</span>
-            <button v-ripple class="btn btn-sm btn-surface scores-btn" :class="{ 'scores-btn-cricket': game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket' }" @click="showAllScores = !showAllScores">SCORES</button>
             <button v-ripple class="btn btn-sm header-quit-btn" @click="confirmQuit = true" title="Quit game">✕</button>
             <template v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'">
               <button v-ripple class="btn btn-sm btn-surface marks-layout-btn" @click="toggleMarksLayout" :title="marksLayout === 'top' ? 'Move marks to right column' : 'Move marks to top strip'">
@@ -45,7 +44,11 @@
                 ANY
               </button>
             </template>
+            <button v-ripple class="btn btn-sm btn-surface scores-btn" :class="{ 'scores-btn-cricket': game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket' }" @click="showAllScores = !showAllScores">SCORES</button>
           </div>
+
+          <!-- Arrow indicator shown only when marks panel is open -->
+          <div v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket') && marksVisible && marksLayout === 'top'" class="marks-open-arrow" />
         </div>
 
         <!-- Cricket marks grid: top strip (default) -->
@@ -1061,9 +1064,9 @@ const entryPanelStyle = computed(() => {
   const bg = currentPlayer.value.playerBackground ?? game.value?.gameTheme
   if (!bg) return {}
   if (bg.startsWith('data:') || bg.startsWith('http')) {
-    const size = (isPlayerBg ? currentPlayer.value.playerBackgroundSize : game.value?.gameThemeSize) ?? 'cover'
-    const position = (isPlayerBg ? currentPlayer.value.playerBackgroundPosition : game.value?.gameThemePosition) ?? 'center'
-    const fill = isPlayerBg ? currentPlayer.value.playerBackgroundFill : game.value?.gameThemeFill
+    const size = isPlayerBg ? 'cover' : (game.value?.gameThemeSize ?? 'cover')
+    const position = isPlayerBg ? 'center' : (game.value?.gameThemePosition ?? 'center')
+    const fill = isPlayerBg ? null : game.value?.gameThemeFill
     const bgColor = (fill === 'blur' && size === 'contain') ? 'transparent' : '#000'
     return { backgroundImage: `url(${bg})`, backgroundSize: size, backgroundPosition: position, backgroundRepeat: 'no-repeat', backgroundColor: bgColor }
   }
@@ -1188,6 +1191,20 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .turn-name.turn-name-no-glow { box-shadow: none; text-shadow: none; }
 
 .turn-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding-right: 8px; z-index: 1; position: relative; }
+
+/* Downward arrow at bottom of header — visible only when marks panel is open */
+.marks-open-arrow {
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 9px solid rgba(0,0,0,0.85);
+  z-index: 10;
+  pointer-events: none;
+}
 .header-quit-btn { width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: rgba(255,80,80,0.8); border: 1.5px solid rgba(255,80,80,0.35); border-radius: 6px; background: rgba(255,40,40,0.08); flex-shrink: 0; margin-left: 2px; }
 .header-quit-btn:hover { background: rgba(255,40,40,0.2); color: #ff5050; border-color: rgba(255,80,80,0.6); }
 .game-clock-badge { font-size: 13px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.08em; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.08); border-radius: 6px; padding: 3px 8px; }
@@ -1302,11 +1319,10 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .marks-visibility-btn { flex-shrink: 0; align-self: center; margin: 0 4px 0 0; padding: 14px 16px; font-size: 16px; }
 .marks-visibility-btn.marks-hidden { opacity: 0.35; }
 
-/* 3-button header: compact buttons + restrict name center zone to avoid overlap */
+/* 3-button header: compact buttons */
 .turn-header-3btns .scores-btn { height: 46px; padding: 0 16px; font-size: 16px; margin: 0 4px 0 0; font-weight: 900; border: 1.5px solid rgba(255,255,255,0.3); letter-spacing: 0.1em; }
 .turn-header-3btns .marks-layout-btn { padding: 8px 10px; margin: 0 2px; font-size: 13px; }
 .turn-header-3btns .marks-visibility-btn { padding: 8px 10px; margin: 0 2px 0 0; font-size: 13px; }
-.turn-header-3btns .turn-name-wrap { padding-right: 200px; }
 
 /* Cricket marks right column */
 .cricket-col {
