@@ -8,6 +8,8 @@ import WinPage from '../views/WinPage.vue'
 import LeaderboardPage from '../views/LeaderboardPage.vue'
 import YahtzeeSetupPage from '../views/YahtzeeSetupPage.vue'
 import YahtzeeGamePage from '../views/YahtzeeGamePage.vue'
+import LRCSetupPage from '../views/LRCSetupPage.vue'
+import LRCGamePage from '../views/LRCGamePage.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -21,11 +23,24 @@ const router = createRouter({
     { path: '/leaderboard',   name: 'Leaderboard',   component: LeaderboardPage },
     { path: '/yahtzee/setup', name: 'YahtzeeSetup',  component: YahtzeeSetupPage },
     { path: '/yahtzee',       name: 'YahtzeeGame',   component: YahtzeeGamePage },
+    { path: '/lrc/setup',     name: 'LRCSetup',      component: LRCSetupPage },
+    { path: '/lrc',           name: 'LRCGame',       component: LRCGamePage },
   ],
 })
 
 // On hard refresh, restore the correct page based on saved game state
 router.beforeEach((to) => {
+  // LRC active game redirect
+  if (to.path === '/') {
+    try {
+      const lrcRaw = localStorage.getItem('lrc_active_game')
+      if (lrcRaw) {
+        const lrcGame = JSON.parse(lrcRaw)
+        if (lrcGame.phase && lrcGame.phase !== 'game_over') return '/lrc'
+      }
+    } catch {}
+  }
+
   const raw = localStorage.getItem('darts_active_game')
   if (!raw) return
   const game = JSON.parse(raw)
