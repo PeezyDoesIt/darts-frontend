@@ -236,10 +236,18 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
     persist()
   }
 
+  function addPlayerToGame(player: import('../types/index').Player) {
+    if (!game.value) return
+    if (game.value.players.some(p => p.id === player.id)) return
+    game.value.players.push(player)
+    game.value.playerStates.push({ player, scorecard: emptyScorecard() })
+    persist()
+  }
+
   function endGame() {
     game.value = null
     persist()
   }
 
-  return { game, startGame, rollDice, toggleHold, setDie, setPhysicalRollCount, autoScoreYahtzee, scoreCategory, endGame }
+  return { game, startGame, rollDice, toggleHold, setDie, setPhysicalRollCount, autoScoreYahtzee, scoreCategory, addPlayerToGame, endGame }
 })

@@ -4,14 +4,14 @@
     <div class="cricket-board-scroll">
       <TransitionGroup tag="div" name="tile-vanish" class="cricket-board">
         <button
-          v-for="target in CRICKET_TARGETS"
-          :key="target"
+          v-for="target in effectiveTargets"
+          :key="String(target)"
           v-show="closedTargetDisplay !== 'hide' || !myClosed(target)"
           v-ripple
           class="board-tile"
           :class="{
             closed: myClosed(target) && closedTargetDisplay === 'show',
-            active: (roundHits[target] ?? 0) > 0
+            active: (roundHits[String(target)] ?? 0) > 0
           }"
           :disabled="myClosed(target)"
           @click="handleTileClick(target)"
@@ -28,7 +28,7 @@
           </div>
 
           <span v-if="myClosed(target)" class="closed-badge">✓ CLOSED</span>
-          <span v-else-if="(roundHits[target] ?? 0) > 0" class="hit-badge">+{{ roundHits[target] }}</span>
+          <span v-else-if="(roundHits[String(target)] ?? 0) > 0" class="hit-badge">+{{ roundHits[String(target)] }}</span>
           <span v-else class="hit-badge invisible">+0</span>
         </button>
       </TransitionGroup>
@@ -78,6 +78,8 @@ const props = defineProps<{
   throwTimeLeft?: number
   throwTimerDuration?: number
   throwPaused?: boolean
+  wildTargets?: number[]
+  wildPlayerMarks?: Record<string, number>
 }>()
 
 const WHITE_LABEL_THEMES = new Set<string | null>(
@@ -113,30 +115,36 @@ const targetColor = computed(() => {
 })
 
 const emit = defineEmits<{
-  submit: [hits: Record<CricketTarget, number>]
+  submit: [hits: Record<string, number>]
   toggleThrowPause: []
 }>()
 
-const roundHits = ref<Partial<Record<CricketTarget, number>>>({})
+type EffTarget = number | 'bull'
+const roundHits = ref<Record<string, number>>({})
 const submitted = ref(false)
 
 const myScore = computed(() => {
   const s = props.scores[props.playerId]
   return s?.kind === 'cricket' ? s : null
 })
-const existingMarks = computed((): Record<CricketTarget, number> =>
-  myScore.value?.data.marks ?? { 20: 0, 19: 0, 18: 0, 17: 0, 16: 0, 15: 0, bull: 0 }
-)
+const effectiveTargets = computed((): readonly EffTarget[] => {
+  if (props.wildTargets) return [...props.wildTargets, 'bull']
+  return CRICKET_TARGETS as readonly EffTarget[]
+})
+const existingMarks = computed((): Record<string, number> => {
+  if (props.wildPlayerMarks) return props.wildPlayerMarks
+  return myScore.value?.data.marks ?? { 20: 0, 19: 0, 18: 0, 17: 0, 16: 0, 15: 0, bull: 0 }
+})
 const totalHitsThisRound = computed(() =>
   Object.values(roundHits.value).reduce((a, b) => a + (b ?? 0), 0)
 )
 
 const mtc = computed(() => props.marksToClose ?? 3)
-function myClosed(target: CricketTarget) { return (existingMarks.value[target] ?? 0) >= mtc.value }
-function pipIsExisting(target: CricketTarget, n: number) { return (existingMarks.value[target] ?? 0) >= n }
-function pipIsRound(target: CricketTarget, n: number) {
-  const existing = existingMarks.value[target] ?? 0
-  return existing < n && existing + (roundHits.value[target] ?? 0) >= n
+function myClosed(target: EffTarget) { return (existingMarks.value[String(target)] ?? 0) >= mtc.value }
+function pipIsExisting(target: EffTarget, n: number) { return (existingMarks.value[String(target)] ?? 0) >= n }
+function pipIsRound(target: EffTarget, n: number) {
+  const existing = existingMarks.value[String(target)] ?? 0
+  return existing < n && existing + (roundHits.value[String(target)] ?? 0) >= n
 }
 function playBullSound() {
   const s = settingsStore.bullseyeSound
@@ -152,33 +160,35 @@ function playBullSound() {
   playShotgun()
 }
 
-function handleTileClick(target: CricketTarget) {
+function handleTileClick(target: EffTarget) {
   if (myClosed(target)) return
-  const existing = existingMarks.value[target] ?? 0
+  const key = String(target)
+  const existing = existingMarks.value[key] ?? 0
   const max = mtc.value - existing
-  const current = roundHits.value[target] ?? 0
+  const current = roundHits.value[key] ?? 0
   const next = current >= max ? 0 : current + 1
-  roundHits.value = { ...roundHits.value, [target]: next }
+  roundHits.value = { ...roundHits.value, [key]: next }
   if (target === 'bull' && next > current) playBullSound()
 }
 
 // Tapping pip N directly sets the hit count so that pips 1..N are all lit.
 // Tapping the already-selected pip resets to 0.
-function handlePipClick(target: CricketTarget, n: number) {
+function handlePipClick(target: EffTarget, n: number) {
   if (myClosed(target)) return
-  const existing = existingMarks.value[target] ?? 0
+  const key = String(target)
+  const existing = existingMarks.value[key] ?? 0
   if (n <= existing) return // already a committed mark, can't change it
   const hitsNeeded = n - existing
-  const current = roundHits.value[target] ?? 0
+  const current = roundHits.value[key] ?? 0
   const next = current === hitsNeeded ? 0 : hitsNeeded
-  roundHits.value = { ...roundHits.value, [target]: next }
+  roundHits.value = { ...roundHits.value, [key]: next }
   if (target === 'bull' && next > current) playBullSound()
 }
 function submit() {
   if (submitted.value) return
   submitted.value = true
-  const hits: Record<CricketTarget, number> = {} as Record<CricketTarget, number>
-  for (const t of CRICKET_TARGETS) hits[t] = roundHits.value[t] ?? 0
+  const hits: Record<string, number> = {}
+  for (const t of effectiveTargets.value) hits[String(t)] = roundHits.value[String(t)] ?? 0
   emit('submit', hits)
   roundHits.value = {}
 }

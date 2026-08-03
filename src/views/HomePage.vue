@@ -162,6 +162,7 @@
           </button>
           <button v-ripple class="btn btn-outline btn-lg settings-gear-btn" @click="openSettings" title="Narrator Settings">⚙️</button>
           <button v-ripple class="btn btn-outline btn-lg settings-gear-btn" @click="showCoinFlip = true" title="Flip a Coin">🪙</button>
+          <button v-ripple class="btn btn-outline btn-lg settings-gear-btn" @click="openSyncModal" title="Cloud Sync">☁</button>
         </div>
       </div>
 
@@ -272,6 +273,48 @@
         </div>
       </div>
     </Transition>
+
+    <!-- CLOUD SYNC MODAL -->
+    <Transition name="fade">
+      <div v-if="showSyncModal" class="settings-overlay" @click.self="showSyncModal = false">
+        <div class="settings-panel sync-panel">
+          <div class="settings-header">
+            <span class="settings-title display">CLOUD SYNC</span>
+            <button class="settings-close" @click="showSyncModal = false">✕</button>
+          </div>
+
+          <!-- Signed in -->
+          <div v-if="authStore.user" class="sync-signed-in">
+            <div class="sync-status-icon">☁✓</div>
+            <div class="sync-email">{{ authStore.user.email }}</div>
+            <div class="sync-desc">Player profiles are syncing across your devices.</div>
+            <button v-ripple class="btn btn-outline btn-lg" @click="authStore.signOut(); showSyncModal = false">Sign Out</button>
+          </div>
+
+          <!-- Not signed in -->
+          <div v-else class="sync-sign-in">
+            <div v-if="!syncSent">
+              <div class="sync-desc">Enter your email to sync player profiles across all your devices. We'll send you a magic link — no password needed.</div>
+              <input
+                v-model="syncEmail"
+                class="sync-email-input"
+                type="email"
+                placeholder="your@email.com"
+                @keydown.enter="sendMagicLink"
+              />
+              <div v-if="syncError" class="sync-error">{{ syncError }}</div>
+              <button v-ripple class="btn btn-spray btn-lg w-full" :disabled="syncLoading" @click="sendMagicLink">
+                {{ syncLoading ? 'Sending...' : 'Send Magic Link' }}
+              </button>
+            </div>
+            <div v-else class="sync-sent">
+              <div class="sync-status-icon">📧</div>
+              <div class="sync-desc">Check your email! Click the link to sign in and start syncing.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -280,6 +323,7 @@ import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSettingsStore } from '../stores/settings'
 import { useGameStore } from '../stores/game'
+import { useAuthStore } from '../stores/auth'
 import { GAME_TYPE_LABELS } from '../types/index'
 import { speak, speakOhBaby, getAvailableVoices, type VoiceOption } from '../composables/useSpeech'
 import { playShotgun, playBuzzer, playStartChime, unlockAudio } from '../composables/useSounds'
@@ -287,6 +331,29 @@ import { playShotgun, playBuzzer, playStartChime, unlockAudio } from '../composa
 const router = useRouter()
 const settingsStore = useSettingsStore()
 const gameStore = useGameStore()
+const authStore = useAuthStore()
+
+// Cloud sync modal
+const showSyncModal = ref(false)
+const syncEmail = ref('')
+const syncSent = ref(false)
+const syncError = ref('')
+const syncLoading = ref(false)
+
+async function sendMagicLink() {
+  if (!syncEmail.value.trim()) return
+  syncLoading.value = true
+  syncError.value = ''
+  const { error } = await authStore.sendMagicLink(syncEmail.value.trim())
+  syncLoading.value = false
+  if (error) { syncError.value = error } else { syncSent.value = true }
+}
+function openSyncModal() {
+  syncSent.value = false
+  syncError.value = ''
+  syncEmail.value = ''
+  showSyncModal.value = true
+}
 
 // Coin flip
 const showCoinFlip = ref(false)
@@ -516,6 +583,14 @@ function previewBullseyeSound(value: string) {
   .brand-headline { font-size: clamp(64px, 10vw, 100px); }
   .brand-title { font-size: clamp(32px, 5vw, 50px); }
   .home-actions { max-width: 100%; }
+}
+
+/* iPad landscape — bigger title, tighter buttons */
+@media (min-width: 769px) and (max-width: 1100px) and (orientation: landscape) {
+  .brand-headline { font-size: clamp(80px, 14vw, 160px); }
+  .brand-title { font-size: clamp(40px, 7vw, 80px); }
+  .home-actions { max-width: 520px; gap: 10px; }
+  .home-secondary .btn { font-size: 16px; padding: 12px 20px; }
 }
 
 /* Desktop / laptop — scale to fit viewport height */
@@ -857,6 +932,21 @@ function previewBullseyeSound(value: string) {
 .coin-q-confirm:hover { background: rgba(255,215,0,0.3); }
 .coin-q-cancel { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.45); }
 .coin-q-cancel:hover { color: #ff5555; }
+
+/* Cloud Sync */
+.sync-panel { max-width: 420px; }
+.sync-signed-in,
+.sync-sign-in { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px 0 8px; text-align: center; }
+.sync-status-icon { font-size: 40px; }
+.sync-email { font-size: 14px; font-weight: 700; color: var(--pink); }
+.sync-desc { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.6; max-width: 320px; }
+.sync-email-input {
+  width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 10px; color: #fff; font-size: 15px; outline: none; text-align: center;
+}
+.sync-email-input:focus { border-color: var(--pink); }
+.sync-error { font-size: 12px; color: #ff5555; }
+.sync-sent { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; padding: 8px 0; }
 
 /* iPad coin flip — scale up elements, keep centered modal layout */
 @media (min-width: 768px) and (max-width: 1100px) {

@@ -1,26 +1,25 @@
 export type DiceTheme =
   | 'default' | 'casino' | 'neon' | 'metallic' | 'wooden' | 'vintage'
-  | 'obsidian' | 'titanium' | 'deepsea' | 'oilslick' | 'aurora' | 'emerald' | 'toxic'
-  | 'blood' | 'magma' | 'coral' | 'flamingo' | 'candy' | 'synthwave' | 'nebula' | 'storm' | 'cyber' | 'coffee'
-  | 'crystal' | 'fire' | 'galaxy'
+  | 'deepsea' | 'oilslick' | 'aurora' | 'toxic'
+  | 'magma' | 'flamingo' | 'candy' | 'synthwave' | 'nebula' | 'storm' | 'cyber' | 'coffee'
+  | 'crystal' | 'fire'
+  | 'rosegold' | 'arctic' | 'gold' | 'midnight' | 'lavender' | 'slate'
+  | 'silver' | 'copper' | 'sapphire' | 'citrus' | 'sunset' | 'mint' | 'peach' | 'walnut'
 
 export const GRADIENT_DIE_THEMES = new Set<DiceTheme>([
-  'obsidian','titanium','deepsea','oilslick','aurora','emerald','toxic',
-  'blood','magma','coral','flamingo','candy','synthwave','nebula','storm','cyber','coffee',
-  'crystal','fire','galaxy',
+  'deepsea','oilslick','aurora','toxic',
+  'magma','flamingo','candy','synthwave','nebula','storm','cyber','coffee',
+  'crystal','fire',
+  'rosegold','arctic','gold','midnight','lavender','slate',
+  'silver','copper','sapphire','citrus','sunset','mint','peach','walnut',
 ])
 
 export const DIE_GRADIENTS: Record<string, string> = {
-  obsidian:  'linear-gradient(135deg, #111111 0%, #222233 60%, #333355 100%)',
-  titanium:  'linear-gradient(135deg, #1e2430 0%, #3a4455 50%, #607090 100%)',
   deepsea:   'linear-gradient(135deg, #001a33 0%, #006666 60%, #00aa88 100%)',
   oilslick:  'linear-gradient(135deg, #200040 0%, #001a4d 33%, #004040 66%, #001200 100%)',
   aurora:    'linear-gradient(135deg, #003322 0%, #00aa66 60%, #44ffcc 100%)',
-  emerald:   'linear-gradient(135deg, #003d15 0%, #00a550 60%, #00cc66 100%)',
   toxic:     'linear-gradient(135deg, #143300 0%, #44cc00 60%, #aaff00 100%)',
-  blood:     'linear-gradient(135deg, #0a0000 0%, #550000 50%, #aa0000 100%)',
   magma:     'linear-gradient(135deg, #1a0500 0%, #8b2500 50%, #ff4500 100%)',
-  coral:     'linear-gradient(135deg, #0f0500 0%, #882200 50%, #cc5544 100%)',
   flamingo:  'linear-gradient(135deg, #12000a 0%, #880044 50%, #ee4488 100%)',
   candy:     'linear-gradient(135deg, #220020 0%, #880055 50%, #cc00cc 100%)',
   synthwave: 'linear-gradient(135deg, #0d0020 0%, #5500bb 40%, #cc00ff 70%, #ff0066 100%)',
@@ -30,7 +29,20 @@ export const DIE_GRADIENTS: Record<string, string> = {
   coffee:    'linear-gradient(135deg, #1c0a00 0%, #4a2200 50%, #7a4010 100%)',
   crystal:   'linear-gradient(135deg, #0a1f3a 0%, #0066aa 50%, #44ccff 80%, #aaeeff 100%)',
   fire:      'linear-gradient(135deg, #1a0000 0%, #cc2200 35%, #ff6600 70%, #ffcc00 100%)',
-  galaxy:    'linear-gradient(135deg, #020008 0%, #110033 30%, #330055 60%, #551199 80%, #220066 100%)',
+  rosegold:  'linear-gradient(135deg, #2a0a12 0%, #7a2535 40%, #c07060 70%, #e8a888 100%)',
+  arctic:    'linear-gradient(135deg, #d8f0ff 0%, #a0d4ff 30%, #68b8ff 65%, #3399ee 100%)',
+  gold:      'linear-gradient(135deg, #150e00 0%, #604000 35%, #b87c00 65%, #f0c800 85%, #ffe066 100%)',
+  midnight:  'linear-gradient(135deg, #000003 0%, #08002a 40%, #180055 70%, #2c0088 100%)',
+  lavender:  'linear-gradient(135deg, #120018 0%, #440088 50%, #8844cc 78%, #cc88ff 100%)',
+  slate:     'linear-gradient(135deg, #080810 0%, #181828 40%, #28324a 68%, #384860 100%)',
+  silver:    'linear-gradient(135deg, #909090 0%, #d8d8d8 30%, #f4f4f4 55%, #c8c8c8 75%, #e8e8e8 100%)',
+  copper:    'linear-gradient(135deg, #1a0800 0%, #7a3010 40%, #c06030 68%, #e09060 100%)',
+  sapphire:  'linear-gradient(135deg, #000820 0%, #0033aa 45%, #1166ff 75%, #4499ff 100%)',
+  citrus:    'linear-gradient(135deg, #1a1a00 0%, #888800 40%, #ddcc00 70%, #ffee00 100%)',
+  sunset:    'linear-gradient(135deg, #0a0015 0%, #660033 30%, #cc3300 60%, #ff8800 85%, #ffcc44 100%)',
+  mint:      'linear-gradient(135deg, #001a10 0%, #008855 45%, #44ddaa 75%, #aaffd8 100%)',
+  peach:     'linear-gradient(135deg, #1a0800 0%, #883310 40%, #dd7744 70%, #ffbb88 100%)',
+  walnut:    'linear-gradient(135deg, #0a0400 0%, #3d1a00 35%, #6b3a10 65%, #9a6030 100%)',
 }
 
 export type Player = {
@@ -52,37 +64,46 @@ export type Player = {
 }
 
 export const DICE_THEMES: { value: DiceTheme; label: string; icon: string; group: string }[] = [
-  // Classic
-  { value: 'default',   label: 'Default',   icon: '🎲', group: 'Classic' },
-  { value: 'casino',    label: 'Casino',    icon: '🎰', group: 'Classic' },
-  { value: 'neon',      label: 'Neon',      icon: '✨', group: 'Classic' },
-  { value: 'metallic',  label: 'Metallic',  icon: '🪨', group: 'Classic' },
-  { value: 'wooden',    label: 'Western',   icon: '🤠', group: 'Classic' },
-  { value: 'vintage',   label: 'Vintage',   icon: '📜', group: 'Classic' },
-  // Dark / Neutral
-  { value: 'obsidian',  label: 'Obsidian',  icon: '⬛', group: 'Colors' },
-  { value: 'titanium',  label: 'Titanium',  icon: '🔷', group: 'Colors' },
-  { value: 'coffee',    label: 'Coffee',    icon: '☕', group: 'Colors' },
-  { value: 'galaxy',    label: 'Galaxy',    icon: '🌌', group: 'Colors' },
-  // Greens
-  { value: 'deepsea',   label: 'Deep Sea',  icon: '🌊', group: 'Colors' },
-  { value: 'emerald',   label: 'Emerald',   icon: '💚', group: 'Colors' },
-  { value: 'aurora',    label: 'Aurora',    icon: '🌿', group: 'Colors' },
-  { value: 'toxic',     label: 'Toxic',     icon: '☢️', group: 'Colors' },
-  // Blues / Purples
-  { value: 'storm',     label: 'Storm',     icon: '⛈️', group: 'Colors' },
-  { value: 'cyber',     label: 'Cyber',     icon: '🤖', group: 'Colors' },
-  { value: 'nebula',    label: 'Nebula',    icon: '🔮', group: 'Colors' },
-  { value: 'synthwave', label: 'Synthwave', icon: '🌆', group: 'Colors' },
-  { value: 'candy',     label: 'Candy',     icon: '🍬', group: 'Colors' },
-  { value: 'oilslick',  label: 'Oil Slick', icon: '🫧', group: 'Colors' },
-  { value: 'crystal',   label: 'Crystal',   icon: '💎', group: 'Colors' },
-  // Reds / Oranges / Pinks
-  { value: 'blood',     label: 'Blood',     icon: '🩸', group: 'Colors' },
-  { value: 'magma',     label: 'Magma',     icon: '🌋', group: 'Colors' },
-  { value: 'fire',      label: 'Fire',      icon: '🔥', group: 'Colors' },
-  { value: 'coral',     label: 'Coral',     icon: '🪸', group: 'Colors' },
-  { value: 'flamingo',  label: 'Flamingo',  icon: '🦩', group: 'Colors' },
+  // Classics & Neutrals
+  { value: 'casino',    label: 'Casino',    icon: '🎰', group: '' },
+  { value: 'vintage',   label: 'Vintage',   icon: '📜', group: '' },
+  { value: 'silver',    label: 'Silver',    icon: '🪙', group: '' },
+  { value: 'slate',     label: 'Slate',     icon: '🔲', group: '' },
+  { value: 'coffee',    label: 'Coffee',    icon: '☕', group: '' },
+  { value: 'walnut',    label: 'Walnut',    icon: '🪵', group: '' },
+  // Pastels & Soft
+  { value: 'arctic',    label: 'Arctic',    icon: '🧊', group: '' },
+  { value: 'rosegold',  label: 'Rose Gold', icon: '🌸', group: '' },
+  { value: 'lavender',  label: 'Lavender',  icon: '💜', group: '' },
+  { value: 'candy',     label: 'Candy',     icon: '🍬', group: '' },
+  { value: 'peach',     label: 'Peach',     icon: '🍑', group: '' },
+  // Darks & Purples
+  { value: 'midnight',  label: 'Midnight',  icon: '🌑', group: '' },
+  { value: 'nebula',    label: 'Nebula',    icon: '🔮', group: '' },
+  { value: 'synthwave', label: 'Synthwave', icon: '🌆', group: '' },
+  { value: 'oilslick',  label: 'Oil Slick', icon: '🫧', group: '' },
+  // Blues & Greens
+  { value: 'sapphire',  label: 'Sapphire',  icon: '💙', group: '' },
+  { value: 'deepsea',   label: 'Deep Sea',  icon: '🌊', group: '' },
+  { value: 'crystal',   label: 'Crystal',   icon: '💎', group: '' },
+  { value: 'storm',     label: 'Storm',     icon: '⛈️', group: '' },
+  { value: 'cyber',     label: 'Cyber',     icon: '🤖', group: '' },
+  { value: 'mint',      label: 'Mint',      icon: '🌱', group: '' },
+  { value: 'aurora',    label: 'Aurora',    icon: '🌿', group: '' },
+  { value: 'toxic',     label: 'Toxic',     icon: '☢️', group: '' },
+  { value: 'citrus',    label: 'Citrus',    icon: '🍋', group: '' },
+  // Reds & Warm
+  { value: 'magma',     label: 'Magma',     icon: '🌋', group: '' },
+  { value: 'fire',      label: 'Fire',      icon: '🔥', group: '' },
+  { value: 'sunset',    label: 'Sunset',    icon: '🌅', group: '' },
+  { value: 'flamingo',  label: 'Flamingo',  icon: '🦩', group: '' },
+  { value: 'copper',    label: 'Copper',    icon: '🔶', group: '' },
+  { value: 'gold',      label: 'Gold',      icon: '🥇', group: '' },
+  // Special
+  { value: 'neon',      label: 'Neon',      icon: '⚡', group: '' },
+  { value: 'metallic',  label: 'Metallic',  icon: '🔩', group: '' },
+  { value: 'wooden',    label: 'Wooden',    icon: '🪵', group: '' },
+  { value: 'default',   label: 'Default',   icon: '🎲', group: '' },
 ]
 
 export const TARGET_LABEL_COLORS = [
@@ -168,6 +189,7 @@ export type CricketMarks = Record<CricketTarget, number> // 0-3
 export type CricketPlayerScore = {
   marks: CricketMarks
   points: number
+  wildMarks?: Record<string, number>  // wild mode: marks per number (keyed by String(target))
 }
 
 export type OhOnePlayerScore = {
@@ -178,6 +200,7 @@ export type OhOnePlayerScore = {
 export type SimplePlayerScore = {
   total: number
   history: number[]
+  completedNums?: number[]  // ATC any-order mode: which numbers (1-20) are done
 }
 
 export type HorsePlayerScore = {
@@ -232,6 +255,10 @@ export type ActiveGame = {
   startedAt: string
   gameDuration: number | null   // minutes, null = no game timer
   gameStartedAt: number | null  // Date.now() timestamp when game was created
+  horseSetterIndex: number      // index of the current setter in HORSE
+  wildEnabled: boolean
+  wildTargets: number[]          // current 6 non-bull numbers in wild cricket
+  wildLockedNums: number[]       // numbers locked by at least one mark (never reshuffled)
 }
 
 export const PLAYER_COLORS = [

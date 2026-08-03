@@ -44,17 +44,35 @@ export const useGameStore = defineStore('game', () => {
       const parsed = JSON.parse(raw) as ActiveGame
       // Only restore in-progress games
       if (parsed.status !== 'playing' && parsed.status !== 'between_turns') return null
+      if (parsed.horseSetterIndex === undefined) parsed.horseSetterIndex = 0
+      if (parsed.wildEnabled === undefined) parsed.wildEnabled = false
+      if (parsed.wildTargets === undefined) parsed.wildTargets = [20, 19, 18, 17, 16, 15]
+      if (parsed.wildLockedNums === undefined) parsed.wildLockedNums = []
       return parsed
     } catch { return null }
   }
   const game = ref<ActiveGame | null>(loadSavedGame())
-  watch(game, (val) => {
-    if (val && (val.status === 'playing' || val.status === 'between_turns')) {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(val))
-    } else {
-      localStorage.removeItem(SAVE_KEY)
-    }
-  }, { deep: true })
+
+  let _persistTimer: ReturnType<typeof setTimeout> | null = null
+  function persist() {
+    if (_persistTimer !== null) clearTimeout(_persistTimer)
+    _persistTimer = setTimeout(() => {
+      _persistTimer = null
+      const val = game.value
+      if (val && (val.status === 'playing' || val.status === 'between_turns')) {
+        // Strip large base64 image data to keep serialization fast
+        const slim = {
+          ...val,
+          players: val.players.map(p => ({ ...p, avatarUrl: p.avatarUrl?.startsWith('data:') ? null : p.avatarUrl, playerBackground: null })),
+        }
+        try { localStorage.setItem(SAVE_KEY, JSON.stringify(slim)) } catch {}
+      } else {
+        localStorage.removeItem(SAVE_KEY)
+      }
+    }, 300)
+  }
+
+  watch(game, persist, { deep: true })
   const lastTurnWasZero = ref(false)
   const lastTurnWasTimeout = ref(false)
   const lastTurnHadBull = ref(false)
@@ -100,10 +118,14 @@ export const useGameStore = defineStore('game', () => {
       startedAt: new Date().toISOString(),
       gameDuration,
       gameStartedAt: Date.now(),
+      horseSetterIndex: 0,
+      wildEnabled: false,
+      wildTargets: [20, 19, 18, 17, 16, 15],
+      wildLockedNums: [],
     }
   }
 
-  function submitScore(playerId: string, value: number | Record<CricketTarget, number>) {
+  function submitScore(playerId: string, value: number | Record<string, number>) {
     if (!game.value || game.value.status !== 'playing') return
     lastTurnWasZero.value = typeof value === 'number'
       ? value === 0
@@ -143,33 +165,55 @@ export const useGameStore = defineStore('game', () => {
       const marksToClose = game.value.gameType === 'speedCricket' ? 1 : 3
       const totalHitsThisTurn = Object.values(value).reduce((a, b) => a + b, 0)
 
-      for (const [targetStr, hits] of Object.entries(value)) {
-        const target = targetStr as CricketTarget
-        if (hits === 0) continue
-        score.data.marks[target] = Math.min(marksToClose, score.data.marks[target] + hits)
-      }
+      if (game.value.wildEnabled) {
+        // Wild cricket: update wildMarks, lock numbers, check win
+        if (!score.data.wildMarks) score.data.wildMarks = {}
+        for (const [key, hits] of Object.entries(value)) {
+          if (hits === 0) continue
+          score.data.wildMarks[key] = Math.min(marksToClose, (score.data.wildMarks[key] ?? 0) + hits)
+          const num = parseInt(key)
+          if (!isNaN(num) && !game.value.wildLockedNums.includes(num)) {
+            game.value.wildLockedNums.push(num)
+          }
+        }
+        // Win: player closed all current wildTargets + bull
+        const allWildKeys = [...game.value.wildTargets.map(String), 'bull']
+        const allClosed = allWildKeys.every(k => (score.data.wildMarks![k] ?? 0) >= marksToClose)
+        if (allClosed) {
+          game.value.winnerId = playerId
+          game.value.status = 'finished'
+          return
+        }
+      } else {
+        for (const [targetStr, hits] of Object.entries(value)) {
+          const target = targetStr as CricketTarget
+          if (hits === 0) continue
+          score.data.marks[target] = Math.min(marksToClose, score.data.marks[target] + hits)
+        }
 
-      if (game.value.cricketPlayToCompletion) {
-        // Track finish order: player closes all targets → placed in order
-        const allClosed = CRICKET_TARGETS.every(t => score.data.marks[t] >= marksToClose)
-        if (allClosed && !game.value.cricketFinishOrder.includes(playerId)) {
-          game.value.cricketFinishOrder.push(playerId)
-          if (game.value.cricketFinishOrder.length === game.value.players.length) {
-            game.value.winnerId = game.value.cricketFinishOrder[0]!
+        if (game.value.cricketPlayToCompletion) {
+          // Track finish order: player closes all targets → placed in order
+          const allClosed = CRICKET_TARGETS.every(t => score.data.marks[t] >= marksToClose)
+          if (allClosed && !game.value.cricketFinishOrder.includes(playerId)) {
+            game.value.cricketFinishOrder.push(playerId)
+            if (game.value.cricketFinishOrder.length === game.value.players.length) {
+              game.value.winnerId = game.value.cricketFinishOrder[0]!
+              game.value.status = 'finished'
+              return
+            }
+          }
+        } else {
+          const winner = checkCricketWin(game.value)
+          if (winner) {
+            game.value.winnerId = winner
             game.value.status = 'finished'
             return
           }
         }
-      } else {
-        const winner = checkCricketWin(game.value)
-        if (winner) {
-          game.value.winnerId = winner
-          game.value.status = 'finished'
-          return
-        }
       }
+
       // Hat trick bonus: 3+ marks in one turn → same player goes again
-      if (game.value.cricketHatTrickBonus && totalHitsThisTurn >= 3) {
+      if (game.value.cricketHatTrickBonus && totalHitsThisTurn >= 3 && game.value.players.length > 1) {
         game.value.bonusTurnActive = true
         game.value.status = 'between_turns'
         return
@@ -177,35 +221,79 @@ export const useGameStore = defineStore('game', () => {
     } else if (score.kind === 'simple' && typeof value === 'number') {
       score.data.total += value
       score.data.history.push(value)
-
-    } else if (score.kind === 'horse' && typeof value === 'number') {
-      score.data.history.push(value)
-      const isLastPlayer = game.value.currentPlayerIndex === game.value.players.length - 1
-      if (isLastPlayer) {
-        // Target = first player's score this round
-        const p0Score = game.value.scores[game.value.players[0]!.id]
-        const target = p0Score?.kind === 'horse' ? (p0Score.data.history.at(-1) ?? 0) : 0
-        const toEliminate: string[] = []
-        for (let i = 1; i < game.value.players.length; i++) {
-          const ps = game.value.scores[game.value.players[i]!.id]
-          if (ps?.kind !== 'horse') continue
-          if ((ps.data.history.at(-1) ?? 0) < target) {
-            ps.data.letters++
-            if (ps.data.letters >= HORSE_MAX) toEliminate.push(game.value.players[i]!.id)
-          }
-        }
-        for (const pid of toEliminate) eliminatePlayer(pid)
+      // ATC win: first player to reach 20 numbers wins
+      if (game.value.gameType === 'aroundTheClock' && score.data.total >= 20) {
         if (game.value.players.length === 1) {
-          game.value.winnerId = game.value.players[0]!.id
+          game.value.winnerId = playerId
           game.value.status = 'finished'
           return
         }
-        // Manual end-of-round advance
-        game.value.round++
-        game.value.currentPlayerIndex = 0
+        // Multi-player: first to 20 wins
+        game.value.winnerId = playerId
+        game.value.status = 'finished'
+        return
+      }
+
+    } else if (score.kind === 'horse' && typeof value === 'number') {
+      score.data.history.push(value)
+      const setterIdx = game.value.horseSetterIndex
+      const isCurrentSetter = game.value.currentPlayerIndex === setterIdx
+
+      if (isCurrentSetter) {
+        if (value === 0) {
+          // Setter missed → earn a letter, rotate setter
+          score.data.letters++
+          if (score.data.letters >= HORSE_MAX) {
+            // Setter eliminated — rotate index before elimination (eliminatePlayer will adjust if needed)
+            const nextSetterIdx = (setterIdx + 1) % game.value.players.length
+            eliminatePlayer(playerId)
+            if (game.value.players.length === 1) {
+              game.value.winnerId = game.value.players[0]!.id
+              game.value.status = 'finished'
+              return
+            }
+            game.value.horseSetterIndex = nextSetterIdx % game.value.players.length
+          } else {
+            game.value.horseSetterIndex = (setterIdx + 1) % game.value.players.length
+          }
+          game.value.round++
+          game.value.currentPlayerIndex = game.value.horseSetterIndex
+        } else {
+          // Setter set a valid target — move to first non-setter player
+          const nextIdx = (setterIdx + 1) % game.value.players.length
+          game.value.currentPlayerIndex = nextIdx
+        }
         game.value.status = 'between_turns'
         return
       }
+
+      // Non-setter: must exactly match the setter's target
+      const setterId = game.value.players[setterIdx]?.id
+      const setterScore = setterId ? game.value.scores[setterId] : null
+      const target = setterScore?.kind === 'horse' ? (setterScore.data.history.at(-1) ?? 0) : 0
+      if (value !== target) {
+        score.data.letters++
+        if (score.data.letters >= HORSE_MAX) {
+          eliminatePlayer(playerId)
+          if (game.value.players.length === 1) {
+            game.value.winnerId = game.value.players[0]!.id
+            game.value.status = 'finished'
+            return
+          }
+        }
+      }
+
+      // Advance to next non-setter, or back to setter if round complete
+      const currentSetterIdx = game.value.horseSetterIndex
+      const nextPlayerIdx = (game.value.currentPlayerIndex + 1) % game.value.players.length
+      if (nextPlayerIdx === currentSetterIdx) {
+        game.value.round++
+        game.value.currentPlayerIndex = currentSetterIdx
+      } else {
+        game.value.currentPlayerIndex = nextPlayerIdx
+      }
+      game.value.status = 'between_turns'
+      return
 
     } else if (score.kind === 'suddenDeath' && typeof value === 'number') {
       score.data.total += value
@@ -268,6 +356,10 @@ export const useGameStore = defineStore('game', () => {
     if (!game.value) return
     const idx = game.value.players.findIndex(p => p.id === playerId)
     if (idx === -1) return
+    // Keep horseSetterIndex valid when a player before the setter is removed
+    if (game.value.gameType === 'horse' && idx < game.value.horseSetterIndex) {
+      game.value.horseSetterIndex--
+    }
     game.value.players = game.value.players.filter(p => p.id !== playerId)
     delete game.value.scores[playerId]
     if (idx < game.value.currentPlayerIndex) game.value.currentPlayerIndex--
@@ -280,6 +372,11 @@ export const useGameStore = defineStore('game', () => {
     if (!game.value) return
     const { players, currentPlayerIndex } = game.value
 
+    // Wild cricket: reshuffle unlocked targets after each turn
+    if (game.value.wildEnabled && (game.value.gameType === 'cricket' || game.value.gameType === 'speedCricket')) {
+      reshuffleWild(game.value)
+    }
+
 
     if (game.value.cricketPlayToCompletion && game.value.cricketFinishOrder.length > 0) {
       const finishSet = new Set(game.value.cricketFinishOrder)
@@ -291,7 +388,7 @@ export const useGameStore = defineStore('game', () => {
       }
       if (nextIndex <= currentPlayerIndex) game.value.round++
       game.value.currentPlayerIndex = nextIndex
-      game.value.status = 'between_turns'
+      game.value.status = players.length === 1 ? 'playing' : 'between_turns'
       return
     }
 
@@ -316,7 +413,7 @@ export const useGameStore = defineStore('game', () => {
       game.value.round++
     }
     game.value.currentPlayerIndex = nextIndex
-    game.value.status = 'between_turns'
+    game.value.status = players.length === 1 ? 'playing' : 'between_turns'
   }
 
   function startNextTurn() {
@@ -401,6 +498,21 @@ export const useGameStore = defineStore('game', () => {
     if (val !== null) game.value.gameStartedAt = Date.now()
   }
 
+  function setSkipWalkup(val: boolean) {
+    if (!game.value) return
+    game.value.skipWalkup = val
+  }
+
+  function setWildEnabled(val: boolean) {
+    if (!game.value) return
+    game.value.wildEnabled = val
+    if (val) {
+      // Reset wild state when enabling
+      game.value.wildLockedNums = []
+      game.value.wildTargets = [20, 19, 18, 17, 16, 15]
+    }
+  }
+
   // End the game by time — pick the current leader as winner
   function forceEndByTime() {
     if (!game.value || game.value.status === 'finished') return
@@ -448,8 +560,33 @@ export const useGameStore = defineStore('game', () => {
     localStorage.removeItem(SAVE_KEY)
   }
 
-  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, setTimerDuration, setThrowTimerDuration, setRoundLimit, setGameDuration, forceEndByTime, endGame }
+  function setAtcCompletedNums(playerId: string, nums: number[]) {
+    if (!game.value) return
+    const score = game.value.scores[playerId]
+    if (score?.kind === 'simple') {
+      score.data.completedNums = nums
+    }
+  }
+
+  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, setAtcCompletedNums, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, setTimerDuration, setThrowTimerDuration, setRoundLimit, setGameDuration, setSkipWalkup, setWildEnabled, forceEndByTime, endGame }
 })
+
+function reshuffleWild(game: ActiveGame) {
+  const locked = game.wildLockedNums
+  const needed = 6 - locked.length
+  if (needed <= 0) return
+  const available: number[] = []
+  for (let n = 1; n <= 20; n++) {
+    if (!locked.includes(n)) available.push(n)
+  }
+  // Fisher-Yates shuffle
+  for (let i = available.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[available[i], available[j]] = [available[j]!, available[i]!]
+  }
+  const newNums = available.slice(0, needed).sort((a, b) => b - a)
+  game.wildTargets = [...locked, ...newNums]
+}
 
 function checkCricketWin(game: ActiveGame): string | null {
   const marksToClose = game.gameType === 'speedCricket' ? 1 : 3

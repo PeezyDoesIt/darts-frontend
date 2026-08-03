@@ -49,6 +49,7 @@ const PRONUNCIATIONS: [RegExp, string][] = [
   [/Beremiah/gi, 'bear uh maya'],
   [/Beremy/gi, 'bear uh mee'],
   [/\bTony\b/gi, 'Tohnee'],
+  [/\bButta\b/gi, 'Buh duh'],
 ]
 
 function applyPronunciations(text: string): string {
@@ -157,35 +158,53 @@ const CHARACTER_VOICES: { name: string; label: string; sublabel: string }[] = [
   { name: 'Pipe Organ', label: 'Pipe Organ',  sublabel: 'Musical tones' },
 ]
 
+// Curated standard voices to show in the picker (checked by partial name match)
+const CURATED_VOICE_FRAGMENTS: { fragment: string; label: string; sublabel: string }[] = [
+  { fragment: 'Samantha', label: 'Samantha', sublabel: 'System voice' },
+  { fragment: 'Zira',     label: 'Zira',     sublabel: 'System voice' },
+]
+
+// Priority-ordered name fragments for finding a good Australian voice
+const AU_FRAGMENTS = ['Natasha', 'Karen', 'Lee', 'Mitchell']
+// Priority-ordered name fragments for finding a good British voice
+const GB_FRAGMENTS = ['Emma', 'Ryan', 'Daniel', 'Kate', 'Hazel', 'George', 'Oliver']
+
+function findLocaleVoice(voices: SpeechSynthesisVoice[], fragments: string[], lang: string): SpeechSynthesisVoice | null {
+  // Prefer a named match (usually higher quality Natural/online voices)
+  for (const frag of fragments) {
+    const v = voices.find(v => v.name.includes(frag) && v.lang.startsWith(lang))
+    if (v) return v
+  }
+  // Fall back to any voice with the right locale
+  return voices.find(v => v.lang.startsWith(lang)) ?? null
+}
+
 export function getAvailableVoices(): VoiceOption[] {
   const voices = window.speechSynthesis.getVoices()
   const result: VoiceOption[] = [
     { label: 'Default', value: '', sublabel: 'Auto-selected narrator' },
   ]
 
-  // Add curated character voices first (macOS-specific fun voices)
-  const characterNames = new Set(CHARACTER_VOICES.map(c => c.name))
+  // Add curated character voices (macOS-specific fun voices)
   for (const c of CHARACTER_VOICES) {
     if (voices.some(v => v.name === c.name)) {
       result.push({ label: c.label, value: c.name, sublabel: c.sublabel })
     }
   }
 
-  // Add ALL English voices the browser reports — covers any Windows/Mac/Chrome version
-  const seenLabels = new Set<string>()
-  for (const v of voices) {
-    if (characterNames.has(v.name)) continue          // already listed above
-    if (!v.lang.startsWith('en')) continue            // English only
-    // Clean up label: strip " - English (United States)" and "Desktop"/"Online (Natural)"
-    const label = v.name
-      .replace(/ - English.*$/, '')
-      .replace(/ Desktop$/, '')
-      .replace(/ Online \(Natural\)$/, '')
-    if (seenLabels.has(label)) continue               // skip duplicate display names
-    seenLabels.add(label)
-    const isOnline = v.name.toLowerCase().includes('online') || !v.localService
-    result.push({ label, value: v.name, sublabel: isOnline ? 'Neural (online)' : 'System voice' })
+  // Add Samantha and Zira if available on this device
+  for (const { fragment, label, sublabel } of CURATED_VOICE_FRAGMENTS) {
+    const match = voices.find(v => v.name.includes(fragment) && v.lang.startsWith('en'))
+    if (match) result.push({ label, value: match.name, sublabel })
   }
+
+  // Australian accent
+  const auVoice = findLocaleVoice(voices, AU_FRAGMENTS, 'en-AU')
+  if (auVoice) result.push({ label: 'Australian', value: auVoice.name, sublabel: auVoice.name })
+
+  // British accent
+  const gbVoice = findLocaleVoice(voices, GB_FRAGMENTS, 'en-GB')
+  if (gbVoice) result.push({ label: 'British', value: gbVoice.name, sublabel: gbVoice.name })
 
   return result
 }

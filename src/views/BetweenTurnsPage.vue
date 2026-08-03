@@ -8,25 +8,30 @@
       <span v-else-if="nextPlayer.avatarUrl">{{ nextPlayer.avatarUrl }}</span>
     </div>
 
-    <!-- Cricket layout: name + timer bar + start button -->
+    <!-- Cricket layout: name + timer circle + start button -->
     <div v-if="isCricket" class="between-inner cricket-layout">
-      <div class="cricket-player-name display"
-        :style="{ color: showAlert ? '#ef4444' : '#ffffff', filter: showAlert ? `drop-shadow(0 0 24px #ef4444)` : 'drop-shadow(0 0 24px rgba(255,255,255,0.4))' }">
-        {{ nextPlayer.name }}
+      <div class="name-highlight-wrap">
+        <div class="cricket-player-name display"
+          :style="{ color: showAlert ? '#ef4444' : nextPlayer.color, textShadow: showAlert ? '0 0 32px #ef4444, -4px -4px 0 #000, 4px -4px 0 #000, -4px 4px 0 #000, 4px 4px 0 #000' : `-4px -4px 0 #000, 4px -4px 0 #000, -4px 4px 0 #000, 4px 4px 0 #000, 0 0 40px ${nextPlayer.color}` }">
+          {{ nextPlayer.name }}
+        </div>
       </div>
-      <div class="name-bar" :style="{ background: showAlert ? '#ef4444' : nextPlayer.color, boxShadow: `0 0 18px ${showAlert ? '#ef4444' : nextPlayer.color}` }" />
 
       <div v-if="game?.bonusTurnActive" class="bonus-badge display">BONUS THROW</div>
 
-      <div v-if="!timerOff" class="walkup-timer-bar" :class="{ 'timer-alert': showAlert }" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
-        <div class="walkup-timer-fill"
+      <svg v-if="!timerOff" class="circle-timer-svg" :class="{ 'timer-alert': showAlert }" viewBox="0 0 160 160" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
+        <circle cx="80" cy="80" r="68" class="circle-track" />
+        <circle cx="80" cy="80" r="68" class="circle-progress"
           :class="{ urgent: showAlert, paused: paused }"
-          :style="{ width: `${progress * 100}%`, transition: paused ? 'none' : 'width 1s linear' }" />
-        <span class="walkup-timer-text display" :class="{ urgent: showAlert }">
-          {{ !settingsStore.disableTimerPause && paused ? 'PAUSED' : timeLeft }}
-        </span>
-      </div>
-      <button v-if="!timerOff" class="timer-off-btn" @click.stop="gameStore.setTimerDuration(0)">No countdown</button>
+          :stroke="showAlert ? '#ef4444' : nextPlayer.color"
+          :stroke-dasharray="427"
+          :stroke-dashoffset="427 * (1 - progress)"
+          :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear' }"
+        />
+        <text x="80" y="80" class="circle-timer-text" text-anchor="middle" dominant-baseline="middle">
+          {{ !settingsStore.disableTimerPause && paused ? '⏸' : timeLeft }}
+        </text>
+      </svg>
     </div>
 
     <!-- Cricket START button — bottom-right -->
@@ -38,21 +43,27 @@
     <div v-else class="between-inner default-layout">
       <div class="default-content">
 
-        <div class="default-name display"
-          :style="{ color: showAlert ? '#ef4444' : nextPlayer.color, filter: `drop-shadow(0 0 ${showAlert ? 28 : 20}px ${showAlert ? '#ef4444' : nextPlayer.color})` }">
-          {{ nextPlayer.name }}
+        <div class="name-highlight-wrap">
+          <div class="default-name display"
+            :style="{ color: showAlert ? '#ef4444' : nextPlayer.color, textShadow: showAlert ? '0 0 32px #ef4444, -4px -4px 0 #000, 4px -4px 0 #000, -4px 4px 0 #000, 4px 4px 0 #000' : `-4px -4px 0 #000, 4px -4px 0 #000, -4px 4px 0 #000, 4px 4px 0 #000, 0 0 40px ${nextPlayer.color}` }">
+            {{ nextPlayer.name }}
+          </div>
         </div>
-        <div class="name-bar" :style="{ background: showAlert ? '#ef4444' : nextPlayer.color, boxShadow: `0 0 18px ${showAlert ? '#ef4444' : nextPlayer.color}` }" />
 
-        <!-- Horizontal countdown bar -->
-        <div v-if="!timerOff" class="walkup-timer-bar" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
-          <div class="walkup-timer-fill"
+        <!-- Circular countdown timer -->
+        <svg v-if="!timerOff" class="circle-timer-svg" :class="{ 'timer-alert': showAlert }" viewBox="0 0 160 160" @click="togglePause" :title="settingsStore.disableTimerPause ? 'Pause locked' : paused ? 'Resume' : 'Pause'">
+          <circle cx="80" cy="80" r="68" class="circle-track" />
+          <circle cx="80" cy="80" r="68" class="circle-progress"
             :class="{ urgent: showAlert, paused: paused }"
-            :style="{ width: `${progress * 100}%`, transition: paused ? 'none' : 'width 1s linear' }" />
-          <span class="walkup-timer-text display" :class="{ urgent: showAlert }">
-            {{ !settingsStore.disableTimerPause && paused ? 'PAUSED' : timeLeft }}
-          </span>
-        </div>
+            :stroke="showAlert ? '#ef4444' : nextPlayer.color"
+            :stroke-dasharray="427"
+            :stroke-dashoffset="427 * (1 - progress)"
+            :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear' }"
+          />
+          <text x="80" y="80" class="circle-timer-text" text-anchor="middle" dominant-baseline="middle">
+            {{ !settingsStore.disableTimerPause && paused ? '⏸' : timeLeft }}
+          </text>
+        </svg>
 
         <button v-ripple class="btn-ready" @click="startTurn">
           START
@@ -212,7 +223,7 @@ async function handleTurnAnnouncement() {
       ? [`Zero. Outstanding.`, `A big fat zero. Inspiring.`, `Zero points. Truly a historic performance.`]
       : p === 'smooth'
       ? [`Mmm, zero, but we keep it moving.`, `Shake it off. Next turn.`, `Everyone has off nights.`]
-      : [`Be better.`, `You suck.`, `This is gonna be a long one.`]
+      : [`What the fuck was that?`, `Holy shit! Please, sit down. Who's next?`, `Who invited Helen Keller to play?`, `Damn!... That was trash.`, `Were you even facing the board?`]
     await speak(zeroPhrases[Math.floor(Math.random() * zeroPhrases.length)]!)
     speak(nextLine)
   } else {
@@ -268,7 +279,7 @@ onUnmounted(() => {
   cancelPendingSpeak()
 })
 
-function startTurn() { unlockAudio(); playThemedChime(settingsStore.soundTheme); gameStore.startNextTurn(); router.push('/game') }
+function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/game') }
 function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:') || url?.startsWith('http')) }
 </script>
 
@@ -279,7 +290,7 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
-.between::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.55); z-index: 0; }
+.between::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.20); z-index: 0; }
 .between-inner { display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; width: 100%; height: 100%; padding: 32px 24px; position: relative; z-index: 2; }
 
 /* Default layout — stacked column: name → circle → button */
@@ -301,12 +312,6 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   text-align: center; transition: color 0.3s;
 }
 
-.name-bar {
-  width: clamp(120px, 60%, 400px);
-  height: 12px;
-  border-radius: 6px;
-  transition: background 0.3s, box-shadow 0.3s;
-}
 
 .bonus-badge {
   font-size: clamp(28px, 5dvh, 52px);
@@ -321,50 +326,58 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   to   { opacity: 1;   transform: scale(1.03); }
 }
 
-/* Horizontal walkup timer bar */
-.walkup-timer-bar {
-  width: 100%; max-width: 560px;
-  height: clamp(56px, 9dvh, 88px);
-  position: relative; border-radius: 10px; overflow: hidden;
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
-  cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
-  transition: box-shadow 0.3s, border-color 0.3s;
+/* Circular SVG timer */
+.circle-timer-svg {
+  width: clamp(140px, 28vmin, 220px);
+  height: clamp(140px, 28vmin, 220px);
+  cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0; overflow: visible;
+  filter: drop-shadow(0 0 8px rgba(0,0,0,0.6));
+  transition: filter 0.3s;
 }
-.walkup-timer-bar:active { opacity: 0.9; }
-.walkup-timer-bar.timer-alert {
-  border-color: rgba(255,34,34,0.5);
-  animation: walkup-glow 0.75s ease-in-out infinite alternate;
+.circle-timer-svg.timer-alert {
+  animation: circle-alert-pulse 0.75s ease-in-out infinite alternate;
 }
-@keyframes walkup-glow {
-  from { box-shadow: 0 0 6px rgba(220,38,38,0.25); }
-  to   { box-shadow: 0 0 14px rgba(255,34,34,0.5); }
+@keyframes circle-alert-pulse {
+  from { filter: drop-shadow(0 0 8px rgba(239,68,68,0.3)); }
+  to   { filter: drop-shadow(0 0 20px rgba(239,68,68,0.7)); }
 }
-.walkup-timer-fill {
-  position: absolute; left: 0; top: 0; bottom: 0;
-  background: #eab308; transition: width 1s linear, background 0.3s;
+.circle-track {
+  fill: rgba(255,255,255,0.06);
+  stroke: rgba(255,255,255,0.12);
+  stroke-width: 10;
 }
-.walkup-timer-fill.urgent { background: #dc2626; animation: fill-flash 0.75s ease-in-out infinite alternate; }
-@keyframes fill-flash {
-  from { background: #dc2626; }
-  to   { background: #ff2222; }
+.circle-progress {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke 0.3s;
 }
-.walkup-timer-fill.paused { background: rgba(255,255,255,0.3); animation: none; }
-.walkup-timer-text {
-  position: relative; z-index: 1; width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: clamp(52px, 9dvh, 96px); font-weight: 900; letter-spacing: 0.04em;
-  color: #fff;
+.circle-progress.urgent { animation: progress-flash 0.75s ease-in-out infinite alternate; }
+@keyframes progress-flash {
+  from { opacity: 0.75; }
+  to   { opacity: 1; }
 }
-.walkup-timer-text.urgent { color: #fff; }
+.circle-progress.paused { opacity: 0.4; animation: none; }
+.circle-timer-text {
+  font-family: var(--font-display);
+  font-size: 52px;
+  font-weight: 900;
+  fill: #ffffff;
+  letter-spacing: 0.02em;
+}
 
-.timer-off-btn {
-  background: none; border: 1px solid rgba(255,255,255,0.18); border-radius: 6px;
-  color: rgba(255,255,255,0.38); font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
-  text-transform: uppercase; padding: 6px 18px; cursor: pointer; transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
+
+/* Black highlight capsule behind player name */
+.name-highlight-wrap {
+  display: inline-flex;
+  justify-content: center;
+  background: rgba(0,0,0,0.65);
+  border-radius: 16px;
+  padding: 0 24px;
 }
-.timer-off-btn:hover { border-color: rgba(255,255,255,0.4); color: rgba(255,255,255,0.7); }
-.timer-off-btn:active { transform: scale(0.96); }
 
 /* Cricket layout */
 .cricket-layout {
@@ -375,11 +388,12 @@ function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:
   width: 100%; max-width: 760px; align-self: center;
 }
 .cricket-player-name {
-  font-size: clamp(175px, 35dvh, 425px);
+  font-size: clamp(120px, 28dvh, 340px);
   letter-spacing: 0.04em;
   line-height: 1;
   text-align: center;
-  transition: color 0.3s;
+  transition: color 0.3s, text-shadow 0.3s;
+  paint-order: stroke fill;
 }
 
 

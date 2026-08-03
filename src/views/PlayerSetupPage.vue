@@ -43,21 +43,7 @@
 
           <div class="field">
             <label class="label">Background</label>
-            <div class="bg-tabs">
-              <button v-ripple class="tab" :class="{ active: bgMode === 'theme' }" @click="bgMode = 'theme'">Themes</button>
-              <button v-ripple class="tab" :class="{ active: bgMode === 'image' }" @click="bgMode = 'image'">Upload Image</button>
-            </div>
-            <div v-if="bgMode === 'theme'" class="theme-grid">
-              <button v-for="t in PLAYER_THEMES" :key="String(t.value)" v-ripple
-                class="theme-swatch" :class="{ active: playerBackground === t.value }"
-                :style="t.value ? { background: t.value } : {}"
-                @click="playerBackground = t.value ?? null; bgImagePreview = null">
-                <span v-if="!t.value" class="theme-none">✕</span>
-                <span v-if="playerBackground === t.value && t.value" class="theme-check">✓</span>
-                <span class="theme-label">{{ t.label }}</span>
-              </button>
-            </div>
-            <div v-else class="photo-area">
+            <div class="photo-area">
               <div class="bg-preview" :style="bgPreviewStyle">
                 <span v-if="!bgImagePreview" style="font-size:13px;opacity:0.4;letter-spacing:0.08em">PHOTO</span>
               </div>
@@ -113,47 +99,20 @@
           <div class="field">
             <label class="label">Player Color</label>
             <div class="palette-selected-row">
-              <span class="palette-selected-dot" :style="{ background: color, boxShadow: `0 0 10px ${color}` }" />
+              <span class="palette-selected-dot" :style="{ background: color, boxShadow: `0 0 10px ${color}`, border: color === '#000000' ? '2px solid rgba(255,255,255,0.3)' : '2px solid rgba(255,255,255,0.1)' }" />
               <span class="palette-selected-label">{{ selectedColorName }}</span>
               <span v-if="colorConflict" class="color-conflict">⚠ Already used by {{ colorConflict }}</span>
-              <button class="color-wheel-toggle" @click="showColorWheel = !showColorWheel">
-                {{ showColorWheel ? '▴ Less' : '▾ Change' }}
-              </button>
             </div>
-            <div v-if="showColorWheel" class="color-wheel-wrap">
-              <svg class="color-wheel-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  v-for="(cell, idx) in wheelCells" :key="idx"
-                  :d="cell.path"
-                  :fill="cell.value"
-                  class="wheel-cell"
-                  :class="{ 'wheel-active': color.toLowerCase() === cell.value.toLowerCase() }"
-                  @click="color = cell.value"
-                >
-                  <title>{{ cell.name }}</title>
-                </path>
-                <text
-                  v-for="(cell, idx) in wheelCells.filter(c => c.ring >= 2)"
-                  :key="`t${idx}`"
-                  :x="cell.lx" :y="cell.ly"
-                  :transform="`rotate(${cell.lrot},${cell.lx},${cell.ly})`"
-                  class="wheel-label"
-                  :font-size="'6'"
-                  text-anchor="middle" dominant-baseline="middle"
-                >{{ cell.name }}</text>
-                <circle
-                  cx="200" cy="200" r="30"
-                  fill="#0a0a0a"
-                  class="wheel-cell"
-                  :class="{ 'wheel-active': color.toLowerCase() === '#000000' }"
-                  style="cursor:pointer"
-                  @click="color = '#000000'"
-                >
-                  <title>Black</title>
-                </circle>
-                <text x="200" y="200" text-anchor="middle" dominant-baseline="middle"
-                  style="font-size:7px;fill:rgba(255,255,255,0.35);pointer-events:none;font-weight:700;letter-spacing:0.05em">BLACK</text>
-              </svg>
+            <div class="swatch-grid">
+              <button
+                v-for="s in SWATCH_COLORS" :key="s.value"
+                v-ripple
+                class="swatch-btn"
+                :class="{ 'swatch-active': color.toLowerCase() === s.value.toLowerCase() }"
+                :style="{ background: s.value, border: s.value === '#000000' ? '2px solid rgba(255,255,255,0.2)' : '2px solid transparent' }"
+                :title="s.name"
+                @click="color = s.value"
+              />
             </div>
           </div>
 
@@ -251,144 +210,53 @@ import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { PRESET_AVATARS, PLAYER_THEMES, TARGET_LABEL_COLORS, DICE_THEMES, type Player, type DiceTheme } from '../types/index'
 
-const PLAYER_COLOR_PALETTE = [
-  '#ff2d78', '#00d4ff', '#aaff00', '#ff6b1a',
-  '#bf5fff', '#ffd700', '#ff4444', '#00ffaa',
+const SWATCH_COLORS: { name: string; value: string }[] = [
+  // Neutrals
+  { name: 'Black',      value: '#000000' },
+  { name: 'Charcoal',   value: '#333333' },
+  { name: 'Gray',       value: '#777777' },
+  { name: 'Silver',     value: '#aaaaaa' },
+  { name: 'White',      value: '#ffffff' },
+  { name: 'Gold',       value: '#ffd700' },
+  // Reds & pinks
+  { name: 'Red',        value: '#e00000' },
+  { name: 'Scarlet',    value: '#ff2400' },
+  { name: 'Hot Pink',   value: '#ff2d78' },
+  { name: 'Magenta',    value: '#ff00e4' },
+  { name: 'Deep Rose',  value: '#8b0050' },
+  { name: 'Maroon',     value: '#800000' },
+  // Oranges & yellows
+  { name: 'Orange Red', value: '#ff4500' },
+  { name: 'Orange',     value: '#ff6600' },
+  { name: 'Amber',      value: '#ffbf00' },
+  { name: 'Yellow',     value: '#ffff00' },
+  { name: 'Lime',       value: '#aaff00' },
+  { name: 'Chartreuse', value: '#7fff00' },
+  // Greens & teals
+  { name: 'Lime Green', value: '#32cd32' },
+  { name: 'Green',      value: '#008000' },
+  { name: 'Teal',       value: '#008080' },
+  { name: 'Cyan',       value: '#00bcd4' },
+  { name: 'Seafoam',    value: '#64ffda' },
+  { name: 'Aqua',       value: '#00ffaa' },
+  // Blues
+  { name: 'Sky Blue',   value: '#00d4ff' },
+  { name: 'Royal Blue', value: '#4169e1' },
+  { name: 'Blue',       value: '#0066ff' },
+  { name: 'Cobalt',     value: '#0047ab' },
+  { name: 'Navy',       value: '#001f5b' },
+  { name: 'Violet',     value: '#7c3aed' },
+  // Purples & pinks
+  { name: 'Purple',     value: '#bf5fff' },
+  { name: 'Grape',      value: '#6f2da8' },
+  { name: 'Indigo',     value: '#4b0082' },
+  { name: 'Lavender',   value: '#c084fc' },
+  { name: 'Pink',       value: '#ff69b4' },
+  { name: 'Rose Pink',  value: '#ff80ab' },
 ]
-
-// 2D color wheel: WHEEL_DATA[ring][segment]
-// ring 0 = innermost/darkest, ring 5 = outermost/lightest
-// 12 segments clockwise from top: Magenta, Pink, Red, RedOrange, Orange, Amber, Yellow, Lime, Green, Teal, Blue, Purple
-const WHEEL_DATA: { name: string; value: string }[][] = [
-  // Ring 0 — darkest
-  [
-    { name: 'Eggplant',   value: '#380028' },
-    { name: 'Dark Rose',  value: '#5a0023' },
-    { name: 'Maroon',     value: '#800000' },
-    { name: 'Dark Brick', value: '#6d2002' },
-    { name: 'Espresso',   value: '#5c2000' },
-    { name: 'Dark Amber', value: '#3d2800' },
-    { name: 'Dark Olive', value: '#3d3c00' },
-    { name: 'Army Dark',  value: '#2d4200' },
-    { name: 'Racing',     value: '#0e3b1a' },
-    { name: 'Dark Teal',  value: '#003330' },
-    { name: 'Navy',       value: '#001f5b' },
-    { name: 'Dark Violet',value: '#1a0038' },
-  ],
-  // Ring 1
-  [
-    { name: 'Dark Magenta',value: '#6b0057' },
-    { name: 'Deep Rose',  value: '#8b0050' },
-    { name: 'Burgundy',   value: '#800020' },
-    { name: 'Ruby',       value: '#9b111e' },
-    { name: 'Rust',       value: '#b7410e' },
-    { name: 'Sepia',      value: '#8b6914' },
-    { name: 'Olive',      value: '#808000' },
-    { name: 'Army',       value: '#4b5320' },
-    { name: 'Forest',     value: '#228b22' },
-    { name: 'Sea Blue',   value: '#006994' },
-    { name: 'Prussian',   value: '#003153' },
-    { name: 'Indigo',     value: '#4b0082' },
-  ],
-  // Ring 2
-  [
-    { name: 'Mulberry',   value: '#c0009e' },
-    { name: 'Raspberry',  value: '#e30b5c' },
-    { name: 'Carmine',    value: '#960018' },
-    { name: 'Brick',      value: '#cb4154' },
-    { name: 'Burnt Org',  value: '#cc5500' },
-    { name: 'Ochre',      value: '#cc7722' },
-    { name: 'Dark Yellow',value: '#cccc00' },
-    { name: 'Olive Drab', value: '#6b8e23' },
-    { name: 'Green',      value: '#008000' },
-    { name: 'Teal',       value: '#008080' },
-    { name: 'Cobalt',     value: '#0047ab' },
-    { name: 'Grape',      value: '#6f2da8' },
-  ],
-  // Ring 3
-  [
-    { name: 'Magenta',    value: '#ff00e4' },
-    { name: 'Hot Pink',   value: '#ff2d78' },
-    { name: 'Scarlet',    value: '#ff2400' },
-    { name: 'Orange Red', value: '#ff4500' },
-    { name: 'Orange',     value: '#ff6600' },
-    { name: 'Amber',      value: '#ffbf00' },
-    { name: 'Yellow',     value: '#ffff00' },
-    { name: 'Chartreuse', value: '#7fff00' },
-    { name: 'Lime',       value: '#32cd32' },
-    { name: 'Cyan',       value: '#00bcd4' },
-    { name: 'Royal Blue', value: '#4169e1' },
-    { name: 'Violet',     value: '#7c3aed' },
-  ],
-  // Ring 4
-  [
-    { name: 'Pink',       value: '#ff69b4' },
-    { name: 'Rose Pink',  value: '#ff80ab' },
-    { name: 'Coral',      value: '#ff6961' },
-    { name: 'Salmon',     value: '#ff8a65' },
-    { name: 'Peach Org',  value: '#ffab40' },
-    { name: 'Gold',       value: '#ffd700' },
-    { name: 'Light Yellow',value: '#fff176' },
-    { name: 'Lime Green', value: '#b5e853' },
-    { name: 'Spring',     value: '#90ee90' },
-    { name: 'Seafoam',    value: '#64ffda' },
-    { name: 'Sky Blue',   value: '#87cefa' },
-    { name: 'Lavender',   value: '#c084fc' },
-  ],
-  // Ring 5 — lightest
-  [
-    { name: 'Baby Pink',  value: '#ffb6c1' },
-    { name: 'Blush',      value: '#ffc2d4' },
-    { name: 'Light Red',  value: '#ffcdd2' },
-    { name: 'Peach',      value: '#ffd0b5' },
-    { name: 'Light Org',  value: '#ffe0b2' },
-    { name: 'Pale Gold',  value: '#fff3cd' },
-    { name: 'Cream',      value: '#fffde7' },
-    { name: 'Pale Lime',  value: '#f0f4c3' },
-    { name: 'Pale Green', value: '#dcf5dc' },
-    { name: 'Pale Teal',  value: '#b2dfdb' },
-    { name: 'Pale Blue',  value: '#e3f2fd' },
-    { name: 'Pale Violet',value: '#ede9fe' },
-  ],
-]
-
-const COLOR_PALETTE = WHEEL_DATA.flat()
-
-function polarToCart(r: number, deg: number) {
-  const rad = (deg - 90) * Math.PI / 180
-  return { x: +(200 + r * Math.cos(rad)).toFixed(2), y: +(200 + r * Math.sin(rad)).toFixed(2) }
-}
-
-function sectorPath(r1: number, r2: number, a1: number, a2: number): string {
-  const g = 0.7
-  const s = a1 + g, e = a2 - g
-  const p1 = polarToCart(r1, s), p2 = polarToCart(r1, e)
-  const p3 = polarToCart(r2, e), p4 = polarToCart(r2, s)
-  return `M${p1.x} ${p1.y} A${r1} ${r1} 0 0 1 ${p2.x} ${p2.y} L${p3.x} ${p3.y} A${r2} ${r2} 0 0 0 ${p4.x} ${p4.y}Z`
-}
-
-const RING_RADII = [34, 62, 92, 122, 152]
-
-const wheelCells = computed(() => {
-  const cells: { name: string; value: string; path: string; lx: number; ly: number; lrot: number; ring: number }[] = []
-  for (let ring = 0; ring < 3; ring++) {
-    const r1 = RING_RADII[ring], r2 = RING_RADII[ring + 1]
-    for (let seg = 0; seg < 12; seg++) {
-      const a1 = seg * 30, a2 = a1 + 30
-      const { name, value } = WHEEL_DATA[ring][seg]
-      const mid = a1 + 15
-      const midR = (r1 + r2) / 2
-      const lp = polarToCart(midR, mid)
-      const lrot = mid <= 180 ? mid : mid + 180
-      cells.push({ name, value, path: sectorPath(r1, r2, a1, a2), lx: lp.x, ly: lp.y, lrot, ring })
-    }
-  }
-  return cells
-})
 
 const selectedColorName = computed(() => {
-  if (color.value.toLowerCase() === '#000000') return 'Black'
-  return COLOR_PALETTE.find(c => c.value.toLowerCase() === color.value.toLowerCase())?.name ?? color.value
+  return SWATCH_COLORS.find(c => c.value.toLowerCase() === color.value.toLowerCase())?.name ?? color.value
 })
 
 const router = useRouter()
@@ -400,14 +268,6 @@ const sortedPlayers = computed(() =>
   [...playersStore.players].sort((a, b) => Number(b.pinned) - Number(a.pinned))
 )
 
-function nextAvailableColor(excludeId: string | null = null): string {
-  const used = new Set(
-    playersStore.players
-      .filter(p => p.id !== excludeId)
-      .map(p => p.color.toLowerCase())
-  )
-  return PLAYER_COLOR_PALETTE.find(c => !used.has(c.toLowerCase())) ?? PLAYER_COLOR_PALETTE[0]!
-}
 
 onMounted(() => {
   const editId = route.query.edit as string | undefined
@@ -419,9 +279,7 @@ onMounted(() => {
 
 const editingId = ref<string | null>(null)
 const name = ref('')
-const color = ref<string>(nextAvailableColor())
-const showColorWheel = ref(false)
-watch(color, () => { showColorWheel.value = false })
+const color = ref<string>('#ffffff')
 const colorConflict = computed(() => {
   const match = playersStore.players.find(
     p => p.id !== editingId.value && p.color.toLowerCase() === color.value.toLowerCase()
@@ -446,7 +304,7 @@ function doDelete() {
   deleteTarget.value = null
 }
 
-const bgMode = ref<'theme' | 'image'>('theme')
+const bgMode = ref<'image'>('image')
 const playerBackground = ref<string | null>(null)
 const bgImagePreview = ref<string | null>(null)
 const bgSize = ref<'cover' | 'contain' | null>(null)
@@ -523,8 +381,8 @@ function closeCamera() {
   stream = null
 }
 function resetForm() {
-  editingId.value = null; name.value = ''; color.value = nextAvailableColor(); avatarUrl.value = null
-  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'theme'; bgSize.value = null; bgPosition.value = null; bgFill.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false; showColorWheel.value = false
+  editingId.value = null; name.value = ''; color.value = '#ffffff'; avatarUrl.value = null
+  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'image'; bgSize.value = null; bgPosition.value = null; bgFill.value = null; targetLabelColor.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
@@ -532,7 +390,7 @@ function loadPlayer(p: Player) {
   avatarUrl.value = photoPreview.value
   playerBackground.value = p.playerBackground ?? null
   if (p.playerBackground?.startsWith('data:')) { bgMode.value = 'image'; bgImagePreview.value = p.playerBackground }
-  else { bgMode.value = 'theme'; bgImagePreview.value = null }
+  else { bgMode.value = 'image'; bgImagePreview.value = null }
   bgSize.value = p.playerBackgroundSize ?? null
   bgPosition.value = p.playerBackgroundPosition ?? null
   bgFill.value = p.playerBackgroundFill ?? null
@@ -597,29 +455,17 @@ function save() {
 .tab:hover { border-color: var(--pink); color: var(--pink); }
 .tab.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
 
-.theme-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 8px; touch-action: pan-y; }
-.theme-swatch { width: auto; min-width: 0; height: 52px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.1); cursor: pointer; position: relative; overflow: hidden; transition: transform 0.15s, border-color 0.15s; background: rgba(255,255,255,0.06); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; touch-action: pan-y; }
-.theme-swatch:hover { transform: scale(1.05); }
-.theme-swatch.active { border-color: #fff; transform: scale(1.08); }
-.theme-none { font-size: 16px; color: rgba(255,255,255,0.3); }
-.theme-check { position: absolute; top: 4px; right: 5px; font-size: 11px; color: #fff; font-weight: 900; }
-.theme-label { font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.8); text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
 .bg-preview { width: 80px; height: 80px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 
 .field-hint { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.4; }
-.color-wheel-wrap { display: flex; justify-content: center; padding: 8px 0; }
-.color-wheel-svg { width: 100%; max-width: 320px; height: auto; cursor: pointer; }
-.wheel-cell { stroke: rgba(0,0,0,0.15); stroke-width: 0.5; transition: opacity 0.1s; }
-.wheel-cell:hover { opacity: 0.8; }
-.wheel-active { stroke: #ffffff !important; stroke-width: 2.5 !important; filter: drop-shadow(0 0 4px rgba(255,255,255,0.9)); }
-.wheel-label { fill: #ffffff; font-weight: 700; letter-spacing: 0.02em; paint-order: stroke fill; stroke: rgba(0,0,0,0.65); stroke-width: 2px; stroke-linejoin: round; pointer-events: none; }
-.palette-selected-row { display: flex; align-items: center; gap: 10px; }
-.palette-selected-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); flex-shrink: 0; display: block; }
+.palette-selected-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.palette-selected-dot { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; display: block; }
 .palette-selected-label { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85); letter-spacing: 0.05em; text-transform: uppercase; flex: 1; }
 .color-conflict { font-size: 12px; color: #ff4444; font-weight: 700; }
-.color-wheel-toggle { padding: 4px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-.color-wheel-toggle:hover { border-color: var(--pink); color: var(--pink); }
-.color-wheel-wrap { display: flex; justify-content: center; padding: 8px 0; }
+.swatch-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.swatch-btn { width: 100%; aspect-ratio: 1; border-radius: 8px; cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; position: relative; overflow: hidden; }
+.swatch-btn:hover { transform: scale(1.1); }
+.swatch-active { transform: scale(1.12) !important; box-shadow: 0 0 0 3px #fff, 0 0 12px rgba(255,255,255,0.5) !important; }
 
 .emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
 .emoji-btn { width: 50px; height: 50px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-size: 24px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; touch-action: pan-y; }

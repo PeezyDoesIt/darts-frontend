@@ -5,33 +5,44 @@
       <!-- Entry panel -->
       <div class="entry-panel" :style="entryPanelStyle">
         <div v-if="showBlurBg" class="entry-bg-blur" :style="entryBlurBgStyle" />
-        <div class="turn-header" :style="{ '--player-color': currentPlayer.color }">
+        <div class="turn-header" :class="{ 'turn-header-3btns': game.gameType === 'aroundTheClock' || game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket' }" :style="{ '--player-color': currentPlayer.color }">
           <!-- Left: round pill centered in left space -->
           <div class="turn-left">
-            <button class="header-avatar-btn" @click="router.push(`/player-setup?edit=${currentPlayer.id}`)" title="Edit player">
+            <button class="header-avatar-btn" @click="router.push({ path: '/player-setup', query: { edit: currentPlayer.id } })" title="Edit player">
               <div class="header-avatar" :style="{ background: currentPlayer.color, boxShadow: `0 0 8px ${currentPlayer.color}80` }">
                 <img v-if="isPhoto(currentPlayer.avatarUrl)" :src="currentPlayer.avatarUrl!" alt="" />
                 <span v-else>{{ currentPlayer.avatarUrl ?? '🎯' }}</span>
               </div>
             </button>
-            <span class="turn-round-pill display">RD {{ game.round }}<template v-if="game.cricketRoundLimit !== null"> / {{ game.cricketRoundLimit }}</template></span>
+            <span class="turn-round-pill display">ROUND {{ game.round }}<template v-if="game.cricketRoundLimit !== null"> / {{ game.cricketRoundLimit }}</template></span>
           </div>
 
           <!-- Center: player name (absolutely centered) -->
           <div class="turn-name-wrap">
-            <span class="turn-name display" :style="{ color: currentPlayerNameColor, filter: `drop-shadow(0 0 28px ${currentPlayer.color}) drop-shadow(0 0 8px ${currentPlayer.color})` }">{{ currentPlayer.name }}</span>
+            <span class="turn-name display"
+              :class="{ 'turn-name-no-glow': game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket' || game.gameType === 'horse' || game.gameType === 'aroundTheClock' }"
+              :style="{ color: currentPlayerNameColor, filter: (game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket' || game.gameType === 'horse' || game.gameType === 'aroundTheClock') ? undefined : `drop-shadow(0 0 6px ${currentPlayer.color}60)` }">{{ currentPlayer.name }}</span>
           </div>
 
           <!-- Right: action buttons -->
           <div class="turn-right">
             <span v-if="game.gameDuration !== null" class="game-clock-badge" :class="{ 'game-clock-low': gameTimeLeft !== null && gameTimeLeft <= 300 }">{{ gameTimeLeftDisplay }}</span>
-            <button v-ripple class="btn btn-sm btn-surface scores-btn" @click="showAllScores = !showAllScores">SCORES</button>
+            <button v-ripple class="btn btn-sm btn-surface scores-btn" :class="{ 'scores-btn-cricket': game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket' }" @click="showAllScores = !showAllScores">SCORES</button>
+            <button v-ripple class="btn btn-sm header-quit-btn" @click="confirmQuit = true" title="Quit game">✕</button>
             <template v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'">
               <button v-ripple class="btn btn-sm btn-surface marks-layout-btn" @click="toggleMarksLayout" :title="marksLayout === 'top' ? 'Move marks to right column' : 'Move marks to top strip'">
                 {{ marksLayout === 'top' ? '▶' : '▼' }}
               </button>
               <button v-ripple class="btn btn-sm btn-surface marks-visibility-btn" :class="{ 'marks-hidden': !marksVisible }" @click="toggleMarksVisible" :title="marksVisible ? 'Hide scores' : 'Show scores'">
                 {{ marksVisible ? '👁' : '👁‍🗨' }}
+              </button>
+            </template>
+            <template v-if="game.gameType === 'aroundTheClock'">
+              <button v-ripple class="btn btn-sm btn-surface marks-visibility-btn" :class="{ 'marks-hidden': !atcListVisible }" @click="atcListVisible = !atcListVisible" title="Toggle number list">
+                LIST
+              </button>
+              <button v-ripple class="btn btn-sm btn-surface marks-layout-btn" :class="{ 'marks-hidden': !atcAnyOrder }" @click="atcAnyOrder = !atcAnyOrder" title="Toggle any-order mode">
+                ANY
               </button>
             </template>
           </div>
@@ -91,13 +102,13 @@
           <CricketEntry
             v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'"
             ref="cricketEntryRef"
-            :key="currentPlayer.id"
+            :key="currentPlayer.id + '-' + game.round"
             :playerId="currentPlayer.id"
             :scores="game.scores"
             :isCutThroat="game.gameType === 'cutThroat'"
             :marksToClose="game.gameType === 'speedCricket' ? 1 : 3"
             :round="game.round"
-            :closedTargetDisplay="currentPlayer.cricketTargetDisplay ?? game.closedTargetDisplay"
+            :closedTargetDisplay="game.closedTargetDisplay"
             :avatarUrl="currentPlayer.avatarUrl"
             :playerColor="currentPlayer.color"
             :playerBackground="currentPlayer.playerBackground"
@@ -105,6 +116,8 @@
             :throwTimeLeft="throwTimeLeft"
             :throwTimerDuration="throwTimerDuration"
             :throwPaused="throwPaused"
+            :wildTargets="game.wildEnabled && game.gameType !== 'cutThroat' ? game.wildTargets : undefined"
+            :wildPlayerMarks="game.wildEnabled && game.gameType !== 'cutThroat' ? wildPlayerMarks : undefined"
             @submit="handleCricketSubmit"
             @toggleThrowPause="toggleThrowPause"
           />
@@ -118,12 +131,30 @@
             @submit="handleNumpadSubmit"
             @toggleThrowPause="toggleThrowPause"
           />
+          <AroundTheClockEntry
+            v-else-if="game.gameType === 'aroundTheClock'"
+            :key="currentPlayer.id"
+            :completedCount="atcCompletedCount"
+            :playerColor="currentPlayer.color"
+            :anyOrder="atcAnyOrder"
+            :completedNums="atcCompletedNums"
+            :showNumList="atcListVisible"
+            :throwTimeLeft="throwTimeLeft"
+            :throwTimerDuration="throwTimerDuration"
+            :throwPaused="throwPaused"
+            @submit="handleAtcSubmit"
+            @toggleThrowPause="toggleThrowPause"
+          />
           <SimpleEntry
             v-else
             :key="currentPlayer.id"
             :gameType="game.gameType"
             :round="game.round"
             :hint="horseHint"
+            :horseLetters="horseLetters"
+            :isHorseSetter="isHorseSetter"
+            :horseTarget="horseTarget"
+            :playerColor="currentPlayer.color"
             :throwTimeLeft="throwTimeLeft"
             :throwTimerDuration="throwTimerDuration"
             :throwPaused="throwPaused"
@@ -134,6 +165,68 @@
 
 
       </div>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+           WIDESCREEN SIDEBAR — only visible at min-width: 1101px
+           To remove: delete this entire comment block + the CSS section
+           marked "WIDESCREEN SIDEBAR" at the bottom of the style block
+           ═══════════════════════════════════════════════════════════════ -->
+      <div class="ws-sidebar" :class="{ 'ws-sidebar-collapsed': sidebarCollapsed }">
+        <button class="ws-collapse-btn" @click="sidebarCollapsed = !sidebarCollapsed" :title="sidebarCollapsed ? 'Show scores' : 'Hide scores'">{{ sidebarCollapsed ? '◀' : '▶' }}</button>
+        <div class="ws-sidebar-inner" v-show="!sidebarCollapsed">
+        <div class="ws-game-info">
+          <span class="ws-game-type">{{ GAME_TYPE_LABELS[game.gameType] }}</span>
+          <span class="ws-round">Round {{ game.round }}<template v-if="game.cricketRoundLimit !== null"> / {{ game.cricketRoundLimit }}</template></span>
+        </div>
+        <div class="ws-players">
+          <div
+            v-for="p in game.players"
+            :key="p.id"
+            class="ws-player-row"
+            :class="{ 'ws-active': p.id === currentPlayer.id }"
+            :style="p.id === currentPlayer.id ? { '--ws-color': p.color, background: p.color + '14', borderLeftColor: p.color } : { borderLeftColor: 'transparent' }"
+          >
+            <div class="ws-avatar" :style="{ background: p.color }">
+              <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
+              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+            </div>
+            <div class="ws-player-info">
+              <span class="ws-player-name" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">
+                {{ p.name }}
+                <span v-if="p.id === currentPlayer.id" class="ws-throwing-tag">▶</span>
+              </span>
+              <!-- Cricket marks -->
+              <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'" class="ws-cricket-marks">
+                <div v-for="t in CRICKET_TARGETS" :key="t" class="ws-mark-cell"
+                  :class="{ 'ws-mark-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= (game.gameType === 'speedCricket' ? 1 : 3) }">
+                  <span class="ws-mark-label">{{ t === 'bull' ? 'B' : t }}</span>
+                  <div class="ws-mark-pips">
+                    <span v-for="n in (game.gameType === 'speedCricket' ? 1 : 3)" :key="n"
+                      class="ws-pip"
+                      :class="{ filled: (getCricketMarks(p.id)?.[t] ?? 0) >= n }"
+                      :style="(getCricketMarks(p.id)?.[t] ?? 0) >= n ? { background: p.color } : {}"
+                    />
+                  </div>
+                </div>
+              </div>
+              <!-- Non-cricket score -->
+              <span v-else class="ws-score">{{ displayScore(p.id) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="ws-footer">
+          <div v-if="game.gameType === 'cricket' || game.gameType === 'speedCricket'" class="ws-wild-row">
+            <span class="ws-wild-label">Wild</span>
+            <div class="ws-wild-btns">
+              <button v-ripple class="timer-ctrl-btn" :class="{ active: !game.wildEnabled }" @click="gameStore.setWildEnabled(false)">Off</button>
+              <button v-ripple class="timer-ctrl-btn" :class="{ active: game.wildEnabled }" @click="gameStore.setWildEnabled(true)">On</button>
+            </div>
+          </div>
+          <button v-ripple class="btn btn-sm btn-danger ws-quit-btn" @click="confirmQuit = true">Quit</button>
+        </div>
+        </div><!-- /ws-sidebar-inner -->
+      </div>
+      <!-- ═══════════════════ END WIDESCREEN SIDEBAR ═══════════════════ -->
 
       <!-- Cricket marks grid: right column (optional layout) -->
       <div v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket') && marksLayout === 'right' && marksVisible" class="cricket-col">
@@ -229,16 +322,22 @@
           <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'" class="ct-display-row">
             <button v-for="opt in ctDisplayOptions" :key="opt.value" v-ripple
               class="ct-display-btn" :class="{ active: game.closedTargetDisplay === opt.value }"
-              @click="gameStore.setClosedTargetDisplay(opt.value)">{{ opt.label }}</button>
+              @click="gameStore.setClosedTargetDisplay(opt.value); showAllScores = false">{{ opt.label }}</button>
           </div>
           <button v-ripple class="btn btn-sm btn-surface" @click="showAddPlayer = !showAddPlayer">+ Add</button>
           <button v-ripple class="btn btn-sm btn-surface close-scores-btn" @click="showAllScores = false">✕</button>
-          <button v-ripple class="btn btn-sm btn-danger" @click="confirmQuit = true">Quit</button>
         </div>
       </div>
 
       <!-- Timer controls -->
       <div class="timer-controls-row">
+        <div v-if="game.gameType === 'cricket' || game.gameType === 'speedCricket'" class="timer-control-group">
+          <span class="timer-control-label">Wild Mode</span>
+          <div class="timer-control-btns">
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: !game.wildEnabled }" @click="gameStore.setWildEnabled(false); showAllScores = false">Off</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: game.wildEnabled }" @click="gameStore.setWildEnabled(true); showAllScores = false">On</button>
+          </div>
+        </div>
         <div class="timer-control-group">
           <span class="timer-control-label">Walk-up</span>
           <div class="timer-control-btns">
@@ -274,6 +373,16 @@
             <button v-ripple class="timer-ctrl-btn" :class="{ active: game.gameDuration === null }" @click="gameStore.setGameDuration(null)">Off</button>
             <button v-for="t in [30,45,60,90]" :key="t" v-ripple class="timer-ctrl-btn" :class="{ active: game.gameDuration === t }" @click="gameStore.setGameDuration(t)">{{ t }}m</button>
           </div>
+        </div>
+        <div class="timer-control-group">
+          <span class="timer-control-label">Walk-up Screen</span>
+          <div class="timer-control-btns">
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: !game.skipWalkup }" @click="gameStore.setSkipWalkup(false)">Show</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: game.skipWalkup }" @click="gameStore.setSkipWalkup(true)">Skip</button>
+          </div>
+        </div>
+        <div class="timer-control-group">
+          <button v-ripple class="btn btn-sm btn-danger" @click="confirmQuit = true; showAllScores = false">Quit Game</button>
         </div>
       </div>
 
@@ -333,7 +442,7 @@
               <span class="lb-score-val" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">{{ displayScore(p.id) }}</span>
               <span class="lb-score-label">{{ scoreLabel }}</span>
             </div>
-            <button v-if="game.players.length > 2 && !(game.cricketPlayToCompletion && game.cricketFinishOrder.includes(p.id))" v-ripple class="remove-player-btn" @click.stop="gameStore.removePlayerFromGame(p.id)" title="Remove from game">✕</button>
+            <button v-if="game.players.length > 2 && !(game.cricketPlayToCompletion && game.cricketFinishOrder.includes(p.id))" v-ripple class="remove-player-btn" @click.stop="confirmRemoveId = p.id" title="Remove from game">✕</button>
           </div>
         </div>
       </div>
@@ -353,6 +462,20 @@
       </q-card>
     </q-dialog>
 
+    <!-- Remove player confirm dialog -->
+    <q-dialog :model-value="confirmRemoveId !== null" @update:model-value="confirmRemoveId = null">
+      <q-card dark class="confirm-card">
+        <q-card-section>
+          <div class="text-h6">Remove {{ confirmRemovePlayer?.name ?? 'player' }}?</div>
+          <div class="text-body2 text-grey-5 q-mt-sm">They will be taken out of the game.</div>
+        </q-card-section>
+        <q-card-actions align="right">
+          <button v-ripple class="btn btn-surface btn-sm" @click="confirmRemoveId = null">Cancel</button>
+          <button v-ripple class="btn btn-danger btn-sm" @click="doRemovePlayer">Remove</button>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <!-- COIN FLIP OVERLAY -->
     <Transition name="coin-fade">
       <div v-if="showCoinFlip" class="coin-overlay" @click.self="showCoinFlip = false">
@@ -362,94 +485,103 @@
             <button class="coin-close-btn" @click="showCoinFlip = false">✕</button>
           </div>
 
-          <!-- Series mode selector -->
-          <div class="coin-series-modes">
-            <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'single' }" @click="seriesMode = 'single'">Single</button>
-            <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'bo3' }" @click="seriesMode = 'bo3'">Best of 3</button>
-            <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'bo5' }" @click="seriesMode = 'bo5'">Best of 5</button>
-          </div>
-
-          <!-- Question / purpose -->
-          <div class="coin-question-section">
-            <div v-if="coinQuestion" class="coin-question-display">
-              <span class="coin-question-text">{{ coinQuestion }}</span>
-              <button class="coin-question-clear" @click.stop="coinQuestion = ''; showQuestionInput = false">✕</button>
-            </div>
-            <div v-else-if="showQuestionInput" class="coin-question-input-row" @click.stop>
-              <input
-                v-model="coinQuestionDraft"
-                class="coin-question-input"
-                placeholder="What are we flipping for?"
-                maxlength="80"
-                @keydown.enter="setCoinQuestion"
-                @keydown.esc="showQuestionInput = false; coinQuestionDraft = ''"
-              />
-              <button class="coin-q-confirm" @click.stop="setCoinQuestion">✓</button>
-              <button class="coin-q-cancel" @click.stop="showQuestionInput = false; coinQuestionDraft = ''">✕</button>
-            </div>
-            <button v-else class="coin-question-toggle" @click.stop="showQuestionInput = true">✏️ What's the flip for?</button>
-          </div>
-
-          <div class="coin-arena" @click="flipCoin">
-            <div class="coin-perspective">
-              <div :key="coinAnimKey" class="coin" :class="coinAnimClass">
-                <div class="coin-face coin-face-heads">
-                  <img v-if="settingsStore.coinHeadsImage" :src="settingsStore.coinHeadsImage" class="coin-img" />
-                  <span v-else class="coin-letter">H</span>
+          <div class="coin-body">
+            <!-- Left column (landscape) / top (portrait): the coin itself -->
+            <div class="coin-left">
+              <div class="coin-arena" @click="flipCoin">
+                <div class="coin-perspective">
+                  <div :key="coinAnimKey" class="coin" :class="coinAnimClass">
+                    <div class="coin-face coin-face-heads">
+                      <img v-if="settingsStore.coinHeadsImage" :src="settingsStore.coinHeadsImage" class="coin-img" />
+                      <span v-else class="coin-letter">H</span>
+                    </div>
+                    <div class="coin-face coin-face-tails">
+                      <img v-if="settingsStore.coinTailsImage" :src="settingsStore.coinTailsImage" class="coin-img" />
+                      <span v-else class="coin-letter">T</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="coin-face coin-face-tails">
-                  <img v-if="settingsStore.coinTailsImage" :src="settingsStore.coinTailsImage" class="coin-img" />
-                  <span v-else class="coin-letter">T</span>
+                <span class="coin-tap-hint">{{ coinFlipping ? '' : seriesWinner ? 'Series complete!' : coinResult ? 'Tap to flip again' : 'Tap coin to flip' }}</span>
+              </div>
+
+              <Transition name="result-slide">
+                <div v-if="coinResult && !coinFlipping" class="coin-result">
+                  <span v-if="seriesWinner" class="coin-series-winner display">{{ seriesWinner === 'heads' ? 'HEADS WINS!' : 'TAILS WINS!' }}</span>
+                  <span v-else class="coin-result-text display" :class="coinResult">{{ coinResult === 'heads' ? 'HEADS' : 'TAILS' }}</span>
+                </div>
+              </Transition>
+            </div>
+
+            <!-- Right column (landscape) / bottom (portrait): all controls -->
+            <div class="coin-right">
+              <!-- Series mode selector -->
+              <div class="coin-series-modes">
+                <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'single' }" @click="seriesMode = 'single'">Single</button>
+                <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'bo3' }" @click="seriesMode = 'bo3'">Best of 3</button>
+                <button v-ripple class="coin-mode-btn" :class="{ active: seriesMode === 'bo5' }" @click="seriesMode = 'bo5'">Best of 5</button>
+              </div>
+
+              <!-- Question / purpose -->
+              <div class="coin-question-section">
+                <div v-if="coinQuestion" class="coin-question-display">
+                  <span class="coin-question-text">{{ coinQuestion }}</span>
+                  <button class="coin-question-clear" @click.stop="coinQuestion = ''; showQuestionInput = false">✕</button>
+                </div>
+                <div v-else-if="showQuestionInput" class="coin-question-input-row" @click.stop>
+                  <input
+                    v-model="coinQuestionDraft"
+                    class="coin-question-input"
+                    placeholder="What are we flipping for?"
+                    maxlength="80"
+                    @keydown.enter="setCoinQuestion"
+                    @keydown.esc="showQuestionInput = false; coinQuestionDraft = ''"
+                  />
+                  <button class="coin-q-confirm" @click.stop="setCoinQuestion">✓</button>
+                  <button class="coin-q-cancel" @click.stop="showQuestionInput = false; coinQuestionDraft = ''">✕</button>
+                </div>
+                <button v-else class="coin-question-toggle" @click.stop="showQuestionInput = true">✏️ What's the flip for?</button>
+              </div>
+
+              <!-- Series scoreboard -->
+              <div v-if="seriesMode !== 'single'" class="coin-series-board">
+                <div class="series-side" :class="{ 'series-winner-side': seriesWinner === 'heads' }">
+                  <span class="series-label">HEADS</span>
+                  <span class="series-count">{{ seriesHeads }}</span>
+                  <div class="series-pips">
+                    <span v-for="n in seriesTarget" :key="n" class="series-pip" :class="{ 'pip-filled': seriesHeads >= n }" />
+                  </div>
+                </div>
+                <div class="series-divider">vs</div>
+                <div class="series-side" :class="{ 'series-winner-side': seriesWinner === 'tails' }">
+                  <span class="series-label">TAILS</span>
+                  <span class="series-count">{{ seriesTails }}</span>
+                  <div class="series-pips">
+                    <span v-for="n in seriesTarget" :key="n" class="series-pip" :class="{ 'pip-filled': seriesTails >= n }" />
+                  </div>
                 </div>
               </div>
-            </div>
-            <span class="coin-tap-hint">{{ coinFlipping ? '' : seriesWinner ? 'Series complete!' : coinResult ? 'Tap to flip again' : 'Tap coin to flip' }}</span>
-          </div>
 
-          <!-- Series scoreboard -->
-          <div v-if="seriesMode !== 'single'" class="coin-series-board">
-            <div class="series-side" :class="{ 'series-winner-side': seriesWinner === 'heads' }">
-              <span class="series-label">HEADS</span>
-              <span class="series-count">{{ seriesHeads }}</span>
-              <div class="series-pips">
-                <span v-for="n in seriesTarget" :key="n" class="series-pip" :class="{ 'pip-filled': seriesHeads >= n }" />
+              <button v-if="seriesMode !== 'single' && seriesTotal > 0" v-ripple class="coin-reset-btn" @click="resetSeries()">↺ Reset Series</button>
+
+              <div class="coin-customize">
+                <div class="coin-cust-side">
+                  <span class="coin-cust-label">HEADS</span>
+                  <button class="coin-cust-btn" @click.stop="pickCoinImage('heads')">
+                    <img v-if="settingsStore.coinHeadsImage" :src="settingsStore.coinHeadsImage" class="cust-preview" />
+                    <span v-else class="cust-placeholder">+ Photo</span>
+                  </button>
+                  <button v-if="settingsStore.coinHeadsImage" class="coin-cust-clear" @click.stop="settingsStore.setCoinHeadsImage(null)">✕</button>
+                </div>
+                <div class="coin-cust-divider" />
+                <div class="coin-cust-side">
+                  <span class="coin-cust-label">TAILS</span>
+                  <button class="coin-cust-btn" @click.stop="pickCoinImage('tails')">
+                    <img v-if="settingsStore.coinTailsImage" :src="settingsStore.coinTailsImage" class="cust-preview" />
+                    <span v-else class="cust-placeholder">+ Photo</span>
+                  </button>
+                  <button v-if="settingsStore.coinTailsImage" class="coin-cust-clear" @click.stop="settingsStore.setCoinTailsImage(null)">✕</button>
+                </div>
               </div>
-            </div>
-            <div class="series-divider">vs</div>
-            <div class="series-side" :class="{ 'series-winner-side': seriesWinner === 'tails' }">
-              <span class="series-label">TAILS</span>
-              <span class="series-count">{{ seriesTails }}</span>
-              <div class="series-pips">
-                <span v-for="n in seriesTarget" :key="n" class="series-pip" :class="{ 'pip-filled': seriesTails >= n }" />
-              </div>
-            </div>
-          </div>
-
-          <Transition name="result-slide">
-            <div v-if="coinResult && !coinFlipping" class="coin-result">
-              <span v-if="seriesWinner" class="coin-series-winner display">{{ seriesWinner === 'heads' ? 'HEADS WINS!' : 'TAILS WINS!' }}</span>
-              <span v-else class="coin-result-text display" :class="coinResult">{{ coinResult === 'heads' ? 'HEADS' : 'TAILS' }}</span>
-            </div>
-          </Transition>
-          <button v-if="seriesMode !== 'single' && seriesTotal > 0" v-ripple class="coin-reset-btn" @click="resetSeries()">↺ Reset Series</button>
-
-          <div class="coin-customize">
-            <div class="coin-cust-side">
-              <span class="coin-cust-label">HEADS</span>
-              <button class="coin-cust-btn" @click.stop="pickCoinImage('heads')">
-                <img v-if="settingsStore.coinHeadsImage" :src="settingsStore.coinHeadsImage" class="cust-preview" />
-                <span v-else class="cust-placeholder">+ Photo</span>
-              </button>
-              <button v-if="settingsStore.coinHeadsImage" class="coin-cust-clear" @click.stop="settingsStore.setCoinHeadsImage(null)">✕</button>
-            </div>
-            <div class="coin-cust-divider" />
-            <div class="coin-cust-side">
-              <span class="coin-cust-label">TAILS</span>
-              <button class="coin-cust-btn" @click.stop="pickCoinImage('tails')">
-                <img v-if="settingsStore.coinTailsImage" :src="settingsStore.coinTailsImage" class="cust-preview" />
-                <span v-else class="cust-placeholder">+ Photo</span>
-              </button>
-              <button v-if="settingsStore.coinTailsImage" class="coin-cust-clear" @click.stop="settingsStore.setCoinTailsImage(null)">✕</button>
             </div>
           </div>
 
@@ -474,7 +606,7 @@ import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
 import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore, type CricketTarget } from '../types/index'
 import { speak } from '../composables/useSpeech'
-import { playThemedTick, playBombBeep, unlockAudio } from '../composables/useSounds'
+import { playThemedTick, playBombBeep, playGameShowBuzzer, playTurnStartTone, playTurnEndBeep, unlockAudio } from '../composables/useSounds'
 
 const WHITE_LABEL_THEMES = new Set<string | null>(
   PLAYER_THEMES
@@ -484,7 +616,9 @@ const WHITE_LABEL_THEMES = new Set<string | null>(
 import CricketEntry from '../components/CricketEntry.vue'
 import NumpadEntry from '../components/NumpadEntry.vue'
 import SimpleEntry from '../components/SimpleEntry.vue'
+import AroundTheClockEntry from '../components/AroundTheClockEntry.vue'
 type OhOneScore = Extract<PlayerScore, { kind: 'ohOne' }>
+type SimpleScore = Extract<PlayerScore, { kind: 'simple' }>
 type CricketHits = Record<string | number, number>
 
 const SOUND_THEMES_UNUSED = [
@@ -505,6 +639,12 @@ function pTerm() { return settingsStore.narratorGender === 'male' ? 'brother' : 
 const game = computed(() => gameStore.game)
 const confirmQuit = ref(false)
 const intentionalQuit = ref(false)
+const confirmRemoveId = ref<string | null>(null)
+const confirmRemovePlayer = computed(() => game.value?.players.find(p => p.id === confirmRemoveId.value))
+function doRemovePlayer() {
+  if (confirmRemoveId.value) gameStore.removePlayerFromGame(confirmRemoveId.value)
+  confirmRemoveId.value = null
+}
 
 function handleBeforeUnload(e: BeforeUnloadEvent) {
   if (game.value?.status === 'playing' || game.value?.status === 'between_turns') {
@@ -516,7 +656,9 @@ function handleBeforeUnload(e: BeforeUnloadEvent) {
 onBeforeRouteLeave((to, _from, next) => {
   // Allow navigation that is part of the normal game flow
   const gameFlowRoutes = ['/between', '/win', '/game']
-  if (intentionalQuit.value || !game.value || game.value.status === 'finished' || gameFlowRoutes.includes(to.path)) {
+  const isAddPlayer = to.path === '/player-setup' && to.query.addToGame
+  const isEditPlayer = to.path === '/player-setup' && to.query.edit
+  if (intentionalQuit.value || !game.value || game.value.status === 'finished' || gameFlowRoutes.includes(to.path) || isAddPlayer || isEditPlayer) {
     next()
     return
   }
@@ -526,6 +668,7 @@ onBeforeRouteLeave((to, _from, next) => {
 })
 const showAllScores = ref(false)
 const showAddPlayer = ref(false)
+const sidebarCollapsed = ref(false)
 
 // Coin flip
 const showCoinFlip = ref(false)
@@ -615,7 +758,7 @@ function toggleMarksVisible() {
 }
 const cricketEntryRef = ref<InstanceType<typeof CricketEntry> | null>(null)
 
-const TIMER_OPTIONS = [60, 90, 120]
+const TIMER_OPTIONS = [30, 60, 90, 120]
 
 const ctDisplayOptions = [
   { value: 'show'   as const, label: 'Normal' },
@@ -651,14 +794,42 @@ const scoreLabel = computed(() => {
   return 'total'
 })
 
+const atcCompletedCount = computed((): number => {
+  if (!game.value) return 0
+  const s = game.value.scores[currentPlayer.value.id] as SimpleScore | undefined
+  return s?.data.total ?? 0
+})
+const atcCompletedNums = computed((): number[] => {
+  if (!game.value) return []
+  const s = game.value.scores[currentPlayer.value.id] as SimpleScore | undefined
+  return s?.data.completedNums ?? []
+})
+const atcListVisible = ref(false)
+const atcAnyOrder = ref(false)
+
+const horseLetters = computed((): number => {
+  if (game.value?.gameType !== 'horse') return 0
+  const s = game.value.scores[currentPlayer.value.id]
+  return s?.kind === 'horse' ? s.data.letters : 0
+})
+
+const isHorseSetter = computed((): boolean => {
+  if (!game.value || game.value.gameType !== 'horse') return false
+  return game.value.currentPlayerIndex === game.value.horseSetterIndex
+})
+
+const horseTarget = computed((): number | undefined => {
+  if (!game.value || game.value.gameType !== 'horse') return undefined
+  const setter = game.value.players[game.value.horseSetterIndex]
+  if (!setter) return undefined
+  const s = game.value.scores[setter.id]
+  return s?.kind === 'horse' ? s.data.history.at(-1) : undefined
+})
+
 const horseHint = computed((): string | null => {
-  if (game.value?.gameType !== 'horse') return null
-  if (game.value.currentPlayerIndex === 0) return 'You set the target — throw your best score'
-  const p0 = game.value.players[0]
-  if (!p0) return null
-  const p0Score = game.value.scores[p0.id]
-  if (p0Score?.kind !== 'horse') return null
-  const target = p0Score.data.history.at(-1)
+  if (!game.value || game.value.gameType !== 'horse') return null
+  if (isHorseSetter.value) return 'You set the target'
+  const target = horseTarget.value
   return target !== undefined ? `Target to beat: ${target}` : null
 })
 
@@ -690,7 +861,19 @@ function displayScore(playerId: string): string {
   if (s.kind === 'bobs27') return s.data.busted ? 'BUST' : String(s.data.score)
   return '—'
 }
-function handleCricketSubmit(marks: CricketHits) { unlockAudio(); gameStore.submitScore(currentPlayer.value.id, marks as Record<CricketTarget, number>) }
+const wildPlayerMarks = computed(() => {
+  if (!game.value?.wildEnabled) return undefined
+  const s = game.value.scores[currentPlayer.value.id]
+  return s?.kind === 'cricket' ? (s.data.wildMarks ?? {}) : undefined
+})
+function handleCricketSubmit(marks: CricketHits) { unlockAudio(); playTurnEndBeep(); gameStore.submitScore(currentPlayer.value.id, marks) }
+function handleAtcSubmit(delta: number, completedNums?: number[]) {
+  unlockAudio()
+  gameStore.submitScore(currentPlayer.value.id, delta)
+  if (completedNums !== undefined) {
+    gameStore.setAtcCompletedNums(currentPlayer.value.id, completedNums)
+  }
+}
 
 // Score reveal (oh-one games)
 const showScoreReveal = ref(false)
@@ -864,6 +1047,7 @@ function startThrowTimer() {
     }
     if (throwTimeLeft.value <= 0) {
       clearThrowTimer()
+      playGameShowBuzzer()
       gameStore.recordTimeout(currentPlayer.value.id)
       const gt = game.value?.gameType
       if (gt === 'cricket' || gt === 'cutThroat' || gt === 'speedCricket') handleCricketSubmit({} as Record<CricketTarget, number>)
@@ -939,6 +1123,22 @@ onMounted(() => {
   if (game.value?.status === 'playing') startThrowTimer()
   scrollActivePlayerIntoView()
   window.addEventListener('beforeunload', handleBeforeUnload)
+
+  // Play turn-start tone every time the game screen loads (first turn and after BetweenTurns)
+  playTurnStartTone()
+
+  // Announce the first player — BetweenTurnsPage handles turns 2+ but never runs for turn 1
+  if (game.value && game.value.round === 1 && game.value.currentPlayerIndex === 0) {
+    const name = game.value.players[0]?.name ?? ''
+    const p = settingsStore.narratorPersonality
+    const line = p === 'hype'      ? `LET'S GO! ${name}, get up here — it's your time!`
+               : p === 'savage'    ? `${name}. Get up there.`
+               : p === 'announcer' ? `Now stepping up to the oche — ${name}! The crowd falls silent.`
+               : p === 'sarcastic' ? `${name} — it's your turn. Try not to embarrass yourself.`
+               : p === 'smooth'    ? `Alright ${name}, it's your turn. Make it smooth.`
+               : `${name} — it's your turn.`
+    setTimeout(() => speak(line), 300)
+  }
 })
 onUnmounted(() => {
   clearThrowTimer()
@@ -946,6 +1146,11 @@ onUnmounted(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload)
 })
 
+watch(() => game.value?.round, () => {
+  // Single-player: advanceTurn() keeps status='playing' so the status watcher never re-fires.
+  // Restart the throw timer whenever a new round begins while already in playing state.
+  if (game.value?.status === 'playing') startThrowTimer()
+})
 watch(() => game.value?.status, (status) => {
   if (status === 'between_turns') { clearThrowTimer(); if (!pendingRevealNavigation) navigateToBetween() }
   if (status === 'finished') { clearThrowTimer(); if (!pendingRevealNavigation) router.push('/win') }
@@ -967,20 +1172,24 @@ watch(() => game.value?.currentPlayerIndex, () => {
   display: flex; align-items: stretch; gap: 0;
   padding-top: env(safe-area-inset-top);
   flex-shrink: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255,255,255,0.10); position: relative; z-index: 1; min-height: 90px;
+  border-bottom: 1px solid rgba(255,255,255,0.10); position: relative; z-index: 1; min-height: 90px; overflow: hidden;
 }
 .turn-header::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--player-color, var(--pink)); box-shadow: 0 0 12px var(--player-color, var(--pink)); z-index: 1; }
 
 /* Header left / center / right layout */
 .turn-left { flex: 1; display: flex; align-items: center; justify-content: flex-start; z-index: 1; }
-.header-avatar-btn { background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; margin-left: 16px; margin-right: 6px; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
+.turn-header-3btns .turn-left { align-items: flex-end; padding-bottom: 8px; }
+.header-avatar-btn { background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; margin-left: 16px; margin-right: 6px; -webkit-tap-highlight-color: transparent; flex-shrink: 0; position: relative; z-index: 2; }
 .header-avatar { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; overflow: hidden; border: 1.5px solid rgba(255,255,255,0.25); }
 .header-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .turn-name-wrap { position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); bottom: 0; display: flex; justify-content: center; align-items: stretch; pointer-events: none; z-index: 0; padding: 0 8px; }
 .turn-round-pill { font-size: clamp(50px, 6.8dvh, 74px); font-weight: 900; line-height: 1; letter-spacing: 0.08em; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 24px; color: rgba(255,255,255,0.8); white-space: nowrap; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; margin-left: 12px; }
-.turn-name { font-size: clamp(62px, 9dvh, 100px); line-height: 1; letter-spacing: 0.04em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 14px; white-space: nowrap; max-width: 70vw; overflow: hidden; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 32px var(--player-color, var(--pink)), 0 0 10px var(--player-color, var(--pink)); text-shadow: 0 0 24px currentColor, 0 0 8px currentColor; }
+.turn-name { font-size: clamp(62px, 9dvh, 100px); line-height: 1; letter-spacing: 0.04em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 14px; white-space: nowrap; max-width: 70vw; overflow: hidden; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px var(--player-color, var(--pink)), 0 0 3px var(--player-color, var(--pink)); text-shadow: 0 0 8px currentColor; }
+.turn-name.turn-name-no-glow { box-shadow: none; text-shadow: none; }
 
 .turn-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding-right: 8px; z-index: 1; position: relative; }
+.header-quit-btn { width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: rgba(255,80,80,0.8); border: 1.5px solid rgba(255,80,80,0.35); border-radius: 6px; background: rgba(255,40,40,0.08); flex-shrink: 0; margin-left: 2px; }
+.header-quit-btn:hover { background: rgba(255,40,40,0.2); color: #ff5050; border-color: rgba(255,80,80,0.6); }
 .game-clock-badge { font-size: 13px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.08em; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.08); border-radius: 6px; padding: 3px 8px; }
 .game-clock-badge.game-clock-low { color: #ff4444; background: rgba(255,68,68,0.12); animation: clock-pulse 1s ease-in-out infinite; }
 @keyframes clock-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
@@ -1048,6 +1257,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   font-size: 12px; font-weight: 800; letter-spacing: 0.03em;
   color: rgba(255,255,255,0.5); white-space: nowrap; overflow: hidden;
   text-overflow: ellipsis; font-family: var(--font-display);
+  text-align: center;
 }
 .cs-cell {
   flex: 1; display: flex; justify-content: center; align-items: center; gap: 2px;
@@ -1091,6 +1301,12 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .marks-layout-btn { flex-shrink: 0; align-self: center; margin: 0 4px; padding: 14px 16px; font-size: 14px; }
 .marks-visibility-btn { flex-shrink: 0; align-self: center; margin: 0 4px 0 0; padding: 14px 16px; font-size: 16px; }
 .marks-visibility-btn.marks-hidden { opacity: 0.35; }
+
+/* 3-button header: compact buttons + restrict name center zone to avoid overlap */
+.turn-header-3btns .scores-btn { height: 46px; padding: 0 16px; font-size: 16px; margin: 0 4px 0 0; font-weight: 900; border: 1.5px solid rgba(255,255,255,0.3); letter-spacing: 0.1em; }
+.turn-header-3btns .marks-layout-btn { padding: 8px 10px; margin: 0 2px; font-size: 13px; }
+.turn-header-3btns .marks-visibility-btn { padding: 8px 10px; margin: 0 2px 0 0; font-size: 13px; }
+.turn-header-3btns .turn-name-wrap { padding-right: 200px; }
 
 /* Cricket marks right column */
 .cricket-col {
@@ -1289,12 +1505,23 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .coin-modal {
   display: flex; flex-direction: column; align-items: center;
-  gap: 28px; width: 100%; max-width: 340px;
+  gap: 16px; width: 100%; max-width: 340px;
   max-height: calc(100dvh - 48px);
   overflow-y: auto; overflow-x: hidden;
   scrollbar-width: none;
 }
 .coin-modal::-webkit-scrollbar { display: none; }
+.coin-body {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 16px; width: 100%;
+}
+.coin-left {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.coin-right {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; width: 100%;
+}
 .coin-modal-header {
   display: flex; align-items: center; justify-content: space-between; width: 100%;
 }
@@ -1483,6 +1710,30 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .turn-name { font-size: clamp(32px, 4.5dvh, 48px); }
   .scores-btn { height: 48px; padding: 0 20px; font-size: 26px; margin: 0 10px; }
   .submit-float-btn { bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px; padding: 12px 24px; font-size: 13px; }
+
+  /* Coin flip: two-column layout so everything fits without scrolling */
+  .coin-overlay { padding: 12px 16px; }
+  .coin-modal { max-width: 700px; gap: 10px; }
+  .coin-modal-title { font-size: 26px; }
+  .coin-body { flex-direction: row; align-items: flex-start; gap: 20px; }
+  .coin-left { flex-shrink: 0; gap: 6px; }
+  .coin-right { flex: 1; gap: 8px; min-width: 0; }
+  .coin { width: 110px; height: 110px; }
+  .coin-letter { font-size: 32px; }
+  .coin-arena { gap: 8px; }
+  .coin-tap-hint { font-size: 10px; }
+  .coin-result-text { font-size: 36px; }
+  .coin-series-winner { font-size: 20px; }
+  .coin-customize { padding: 8px 12px; }
+  .coin-cust-btn { width: 44px; height: 44px; }
+  .coin-cust-divider { height: 44px; }
+  .coin-series-board { padding: 4px 0; }
+  .series-count { font-size: 28px; }
+  .coin-reset-btn { padding: 6px; font-size: 12px; }
+  .coin-mode-btn { padding: 5px 0; font-size: 11px; }
+  .coin-question-toggle { padding: 5px 12px; font-size: 11px; }
+  .coin-question-display { padding: 6px 10px; }
+  .coin-question-text { font-size: 12px; }
 }
 
 @media (min-width: 769px) and (max-width: 1100px) {
@@ -1493,6 +1744,13 @@ watch(() => game.value?.currentPlayerIndex, () => {
   /* iPad: scores overlay marks — slightly larger than global since iPad has more space */
   .mini-pip { width: 20px; height: 20px; }
   .mini-label { font-size: 24px; }
+}
+
+@media (min-width: 769px) and (max-width: 1100px) and (orientation: portrait) {
+  /* Prevent player name from overlapping the right-side buttons in portrait */
+  .turn-name { max-width: 48vw; }
+  /* Cricket: keep SCORES button sized at mid widths */
+  .scores-btn.scores-btn-cricket { height: 48px; padding: 0 18px; font-size: 18px; margin: 0 4px 0 0; }
 }
 
 @media (max-width: 768px) {
@@ -1517,4 +1775,170 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .mini-label { font-size: 14px; }
   .mini-pip { width: 12px; height: 12px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   WIDESCREEN SIDEBAR — safe to delete entirely (template block + this CSS)
+   ═══════════════════════════════════════════════════════════════════════ */
+.ws-sidebar {
+  display: none;
+}
+@media (min-width: 1101px) {
+  .ws-sidebar {
+    display: flex;
+    flex-direction: row;
+    width: 300px;
+    flex-shrink: 0;
+    background: rgba(0,0,0,0.6);
+    border-left: 1px solid rgba(255,255,255,0.07);
+    overflow: hidden;
+    transition: width 0.2s ease;
+  }
+  .ws-sidebar-collapsed {
+    width: 28px;
+  }
+  .ws-collapse-btn {
+    width: 28px;
+    min-width: 28px;
+    height: 100%;
+    background: transparent;
+    border: none;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.35);
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+  }
+  .ws-collapse-btn:hover {
+    color: rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.05);
+  }
+  .ws-sidebar-inner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .ws-game-info {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 16px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    flex-shrink: 0;
+  }
+  .ws-game-type {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .ws-round {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .ws-players {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+  .ws-players::-webkit-scrollbar { width: 3px; }
+  .ws-players::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+  .ws-player-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-left: 3px solid transparent;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .ws-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    overflow: hidden;
+  }
+  .ws-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .ws-player-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .ws-player-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.55);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ws-throwing-tag {
+    font-size: 10px;
+    color: var(--ws-color, var(--pink));
+  }
+  .ws-score {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.7);
+    line-height: 1;
+  }
+  .ws-cricket-marks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+    margin-top: 2px;
+  }
+  .ws-mark-cell {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .ws-mark-cell.ws-mark-closed .ws-mark-label { color: rgba(255,255,255,0.2); }
+  .ws-mark-cell.ws-mark-closed .ws-pip { opacity: 0.2; }
+  .ws-mark-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.45);
+    min-width: 12px;
+  }
+  .ws-mark-pips { display: flex; gap: 2px; }
+  .ws-pip {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    transition: background 0.15s;
+  }
+  .ws-pip.filled { background: rgba(255,255,255,0.5); }
+  .ws-footer {
+    padding: 12px 14px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    flex-shrink: 0;
+  }
+  .ws-wild-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .ws-wild-label { font-size: 12px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+  .ws-wild-btns { display: flex; gap: 6px; }
+  .ws-quit-btn { width: 100%; }
+}
+/* ═══════════════════ END WIDESCREEN SIDEBAR ═══════════════════════════ */
 </style>

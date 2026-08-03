@@ -4,11 +4,6 @@
 
     <div class="win-scroll">
       <div class="win-inner">
-        <div class="trophy-wrap">
-          <span class="trophy">🏆</span>
-          <div class="trophy-glow" :style="{ background: winner?.color }" />
-        </div>
-
         <div class="winner-label display">WINNER</div>
 
         <div class="winner-avatar" :style="{ background: winner?.color, boxShadow: `0 0 60px ${winner?.color}` }">
@@ -21,12 +16,20 @@
         </div>
         <div class="winner-sub">takes the glory</div>
 
+        <div class="trophy-wrap">
+          <span class="trophy">🏆</span>
+          <div class="trophy-glow" :style="{ background: winner?.color }" />
+        </div>
+
         <div class="final-scores">
           <div v-for="(p, i) in finalPlayers" :key="p.id" class="final-row"
             :class="{ winner: p.id === winner?.id }"
             :style="p.id === winner?.id ? { borderColor: p.color, background: `${p.color}20` } : {}">
             <span v-if="game?.cricketPlayToCompletion" class="final-place" :style="i === 0 ? { color: p.color } : {}">{{ ordinal(i + 1) }}</span>
-            <div class="final-avatar" :style="{ background: p.color, boxShadow: `0 0 10px ${p.color}80` }">{{ p.avatarUrl ?? '🎯' }}</div>
+            <div class="final-avatar" :style="{ background: p.color, boxShadow: `0 0 10px ${p.color}80` }">
+              <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
+              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+            </div>
             <span class="final-name">{{ p.name }}</span>
             <span v-if="!game?.cricketPlayToCompletion" class="final-score" :style="p.id === winner?.id ? { color: p.color } : {}">{{ displayScore(p.id) }}</span>
           </div>

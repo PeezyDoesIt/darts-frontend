@@ -7,7 +7,7 @@
       </button>
       <div class="step-dots">
         <button
-          v-for="n in 3" :key="n"
+          v-for="n in 2" :key="n"
           class="step-dot"
           :class="{ active: currentStep === n, done: currentStep > n }"
           :disabled="currentStep <= n"
@@ -21,7 +21,7 @@
 
     <!-- STEP 1: GAME TYPE -->
     <div v-if="currentStep === 1" class="step-pane">
-      <h1 class="step-title display">PICK A GAME</h1>
+      <h1 class="step-title display" style="text-align:center;font-size:52px;letter-spacing:0.12em;margin-bottom:4px">PICK A GAME</h1>
 
       <div class="game-type-pills">
         <div class="game-type-row">
@@ -47,6 +47,19 @@
       <p v-if="selectedGameType" class="game-type-caption">
         {{ GAME_TYPE_DESCRIPTIONS[selectedGameType] }}
       </p>
+
+      <!-- Wild Mode — always visible for Cricket / Speed Cricket -->
+      <section v-if="selectedGameType === 'cricket' || selectedGameType === 'speedCricket'" class="ng-section ng-wild-section">
+        <div class="toggle-row ng-wild-row" @click="cricketWild = !cricketWild">
+          <div class="toggle-track" :class="{ active: cricketWild }">
+            <div class="toggle-thumb" />
+          </div>
+          <div class="toggle-info">
+            <span class="toggle-label ng-wild-label">Wild Mode</span>
+            <span class="toggle-sub">Random targets each round — numbers lock when closed</span>
+          </div>
+        </div>
+      </section>
 
       <!-- Walk-up Timer -->
       <section class="ng-section">
@@ -86,71 +99,6 @@
         </div>
         <span v-if="gameDuration !== null" class="ng-hint">Game ends after {{ gameDuration }} minutes. Announcements at 10 and 5 minutes remaining.</span>
       </section>
-
-    </div>
-
-    <!-- STEP 2: PLAYERS -->
-    <div v-if="currentStep === 2" class="step-pane">
-      <h1 class="step-title display" style="text-align:center;font-size:38px">ADD PLAYERS</h1>
-      <button v-ripple class="btn btn-spray btn-lg add-player-btn" @click="router.push('/player-setup?from=new-game')">+ Add New Player</button>
-
-      <div class="player-count-indicator">
-        <span class="count-num" :class="{ 'count-ready': selectedPlayers.length >= 2 }">{{ selectedPlayers.length }}</span>
-        <span class="count-label">of 8 selected</span>
-      </div>
-
-      <div v-if="playersStore.players.length === 0" class="empty-players">
-        No players yet.
-        <button v-ripple class="link-btn" @click="router.push('/player-setup')">Add one →</button>
-      </div>
-
-      <div v-else class="player-bubble-grid">
-        <div
-          v-for="p in sortedPlayers.filter(p => !isSelected(p.id))" :key="p.id"
-          v-ripple
-          class="player-bubble"
-          @click="togglePlayer(p)"
-        >
-          <div
-            class="bubble-avatar"
-            :style="{
-              background: p.color,
-              boxShadow: isSelected(p.id)
-                ? `0 0 0 3px ${p.color}, 0 0 20px ${p.color}80`
-                : `0 0 0 2px rgba(255,255,255,0.08)`
-            }"
-          >
-            <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-            <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
-          </div>
-          <span class="bubble-name" :style="isSelected(p.id) ? { color: p.color } : {}">{{ p.name }}</span>
-          <span v-if="p.pinned" class="bubble-pin">📌</span>
-        </div>
-      </div>
-
-      <section v-if="selectedPlayers.length > 0" class="order-section">
-        <span class="label">Play Order</span>
-        <div class="order-list">
-          <div v-for="(p, i) in selectedPlayers" :key="p.id" class="order-row" :style="{ borderLeftColor: p.color }">
-            <span class="order-num display" :style="{ color: p.color }">{{ i + 1 }}</span>
-            <div class="order-avatar" :style="{ background: p.color }">
-              <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
-            </div>
-            <span class="order-name">{{ p.name }}</span>
-            <div class="order-btns">
-              <button v-ripple :disabled="i === 0" @click="moveUp(i)" class="btn btn-sm btn-surface">↑</button>
-              <button v-ripple :disabled="i === selectedPlayers.length - 1" @click="moveDown(i)" class="btn btn-sm btn-surface">↓</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-    </div>
-
-    <!-- STEP 3: SETTINGS -->
-    <div v-if="currentStep === 3" class="step-pane">
-      <h1 class="step-title display">SETTINGS</h1>
 
       <!-- Skip Walk-up Toggle -->
       <section class="ng-section">
@@ -297,6 +245,66 @@
           </div>
         </section>
       </template>
+
+    </div>
+
+    <!-- STEP 2: PLAYERS -->
+    <div v-if="currentStep === 2" class="step-pane">
+      <h1 class="step-title display" style="text-align:center;font-size:38px">ADD PLAYERS</h1>
+      <button v-ripple class="btn btn-spray btn-lg add-player-btn" @click="router.push('/player-setup?from=new-game')">+ Add New Player</button>
+
+      <div class="player-count-indicator">
+        <span class="count-num" :class="{ 'count-ready': selectedPlayers.length >= 1 }">{{ selectedPlayers.length }}</span>
+        <span class="count-label">of 8 selected</span>
+      </div>
+
+      <div v-if="playersStore.players.length === 0" class="empty-players">
+        No players yet.
+        <button v-ripple class="link-btn" @click="router.push('/player-setup')">Add one →</button>
+      </div>
+
+      <div v-else class="player-bubble-grid">
+        <div
+          v-for="p in sortedPlayers.filter(p => !isSelected(p.id))" :key="p.id"
+          v-ripple
+          class="player-bubble"
+          @click="togglePlayer(p)"
+        >
+          <div
+            class="bubble-avatar"
+            :style="{
+              background: p.color,
+              boxShadow: isSelected(p.id)
+                ? `0 0 0 3px ${p.color}, 0 0 20px ${p.color}80`
+                : `0 0 0 2px rgba(255,255,255,0.08)`
+            }"
+          >
+            <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
+            <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+          </div>
+          <span class="bubble-name" :style="isSelected(p.id) ? { color: p.color } : {}">{{ p.name }}</span>
+          <span v-if="p.pinned" class="bubble-pin">📌</span>
+        </div>
+      </div>
+
+      <section v-if="selectedPlayers.length > 0" class="order-section">
+        <span class="label">Play Order</span>
+        <div class="order-list">
+          <div v-for="(p, i) in selectedPlayers" :key="p.id" class="order-row" :style="{ borderLeftColor: p.color }">
+            <span class="order-num display" :style="{ color: p.color }">{{ i + 1 }}</span>
+            <div class="order-avatar" :style="{ background: p.color }">
+              <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
+              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+            </div>
+            <span class="order-name">{{ p.name }}</span>
+            <div class="order-btns">
+              <button v-ripple :disabled="i === 0" @click="moveUp(i)" class="btn btn-sm btn-surface">↑</button>
+              <button v-ripple :disabled="i === selectedPlayers.length - 1" @click="moveDown(i)" class="btn btn-sm btn-surface">↓</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </div>
 
     <!-- FOOTER -->
@@ -323,22 +331,13 @@
       >NEXT →</button>
 
       <button
-        v-else-if="currentStep === 2"
-        v-ripple
-        class="btn btn-spray start-btn"
-        :class="{ 'btn-blocked': selectedPlayers.length < 2 }"
-        :disabled="selectedPlayers.length < 2"
-        @click="selectedPlayers.length >= 2 ? currentStep = 3 : null"
-      >NEXT →</button>
-
-      <button
         v-else
         v-ripple
         class="btn btn-spray start-btn"
-        :class="{ 'btn-blocked': selectedPlayers.length < 2 || !selectedGameType }"
+        :class="{ 'btn-blocked': selectedPlayers.length < 1 || !selectedGameType }"
         @click="startGame"
       >
-        {{ !selectedGameType ? 'Pick a Game' : selectedPlayers.length < 2 ? 'Need 2+ Players' : 'START GAME →' }}
+        {{ selectedPlayers.length < 1 ? 'Select a Player' : 'START GAME →' }}
       </button>
     </div>
   </div>
@@ -430,6 +429,7 @@ const bustEliminates = ref(false)
 const cricketPlayToCompletion = ref(false)
 const cricketHatTrickBonus = ref(false)
 const cricketRoundLimit = ref<number | null>(null)
+const cricketWild = ref(false)
 const skipWalkup = ref(false)
 const closedTargetOptions = [
   { value: 'show'   as const, label: 'Normal',        sub: 'Closed targets stay visible' },
@@ -491,10 +491,11 @@ function moveDown(i: number) {
   selectedPlayers.value = arr
 }
 function startGame() {
-  if (selectedPlayers.value.length < 2 || !selectedGameType.value) return
+  if (selectedPlayers.value.length < 1 || !selectedGameType.value) return
   const t = timerDuration.value
   const tt = throwTimerDuration.value
   gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, cricketRoundLimit.value, gameTheme.value, gameThemeSize.value, gameThemePosition.value, gameThemeFill.value, selectedPlayers.value, skipWalkup.value, gameDuration.value)
+  if (cricketWild.value) gameStore.setWildEnabled(true)
   router.push(skipWalkup.value ? '/game' : '/between')
 }
 </script>
@@ -776,6 +777,12 @@ function startGame() {
 .custom-time-unit { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.5); line-height: 1; }
 .custom-time-bubble.active .custom-time-unit { color: var(--pink); }
 
+/* Wild Mode section */
+.ng-wild-section { margin-bottom: 4px; }
+.ng-wild-row { border-color: rgba(255, 180, 0, 0.35) !important; background: rgba(255, 180, 0, 0.06) !important; }
+.ng-wild-row:hover { background: rgba(255, 180, 0, 0.12) !important; }
+.ng-wild-label { color: var(--gold) !important; font-size: 16px; }
+
 /* Advanced toggle */
 .advanced-toggle-btn {
   background: none;
@@ -930,5 +937,17 @@ function startGame() {
 @media (max-width: 480px) {
   .player-bubble-grid { grid-template-columns: repeat(3, 1fr); gap: 16px 8px; }
   .bubble-avatar { width: 60px; height: 60px; font-size: 28px; }
+}
+
+@media (min-width: 1101px) {
+  .step-pane { overflow-y: auto; gap: 14px; padding: 16px 20px; }
+  .player-bubble-grid { grid-template-columns: repeat(8, 1fr); gap: 14px 10px; }
+  .bubble-avatar { width: 56px; height: 56px; font-size: 26px; }
+  .bubble-name { font-size: 11px; }
+  .order-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .order-row { flex: none; width: auto; padding: 6px 12px; }
+  .order-name { font-size: 13px; }
+  .add-player-btn { align-self: flex-start; padding: 8px 20px; font-size: 14px; }
+  .step-title { font-size: 22px; margin-bottom: 0; }
 }
 </style>

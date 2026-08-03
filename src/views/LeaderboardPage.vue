@@ -12,20 +12,29 @@
 
       <div v-if="sorted.length >= 2" class="podium">
         <div v-if="sorted[1]" class="podium-slot second">
-          <div class="pod-avatar" :style="{ background: sorted[1].color, boxShadow: `0 0 20px ${sorted[1].color}80` }">{{ sorted[1].avatarUrl ?? '🎯' }}</div>
+          <div class="pod-avatar" :style="{ background: sorted[1].color, boxShadow: `0 0 20px ${sorted[1].color}80` }">
+            <img v-if="isPhoto(sorted[1].avatarUrl)" :src="sorted[1].avatarUrl!" alt="" />
+            <span v-else>{{ sorted[1].avatarUrl ?? '🎯' }}</span>
+          </div>
           <div class="pod-name">{{ sorted[1].name }}</div>
           <div class="pod-wins display" :style="{ color: sorted[1].color }">{{ sorted[1].wins }}W</div>
           <div class="pod-base second-base">2ND</div>
         </div>
         <div v-if="sorted[0]" class="podium-slot first">
           <div class="pod-crown">👑</div>
-          <div class="pod-avatar large" :style="{ background: sorted[0].color, boxShadow: `0 0 30px ${sorted[0].color}` }">{{ sorted[0].avatarUrl ?? '🎯' }}</div>
+          <div class="pod-avatar large" :style="{ background: sorted[0].color, boxShadow: `0 0 30px ${sorted[0].color}` }">
+            <img v-if="isPhoto(sorted[0].avatarUrl)" :src="sorted[0].avatarUrl!" alt="" />
+            <span v-else>{{ sorted[0].avatarUrl ?? '🎯' }}</span>
+          </div>
           <div class="pod-name">{{ sorted[0].name }}</div>
           <div class="pod-wins display" :style="{ color: sorted[0].color }">{{ sorted[0].wins }}W</div>
           <div class="pod-base first-base">1ST</div>
         </div>
         <div v-if="sorted[2]" class="podium-slot third">
-          <div class="pod-avatar" :style="{ background: sorted[2].color, boxShadow: `0 0 16px ${sorted[2].color}60` }">{{ sorted[2].avatarUrl ?? '🎯' }}</div>
+          <div class="pod-avatar" :style="{ background: sorted[2].color, boxShadow: `0 0 16px ${sorted[2].color}60` }">
+            <img v-if="isPhoto(sorted[2].avatarUrl)" :src="sorted[2].avatarUrl!" alt="" />
+            <span v-else>{{ sorted[2].avatarUrl ?? '🎯' }}</span>
+          </div>
           <div class="pod-name">{{ sorted[2].name }}</div>
           <div class="pod-wins display" :style="{ color: sorted[2].color }">{{ sorted[2].wins }}W</div>
           <div class="pod-base third-base">3RD</div>
@@ -40,7 +49,10 @@
           :style="i < 3 ? { borderLeftColor: p.color } : {}">
           <span class="rank display" :style="i < 3 ? { color: p.color } : {}">{{ i + 1 }}</span>
           <div class="player-cell">
-            <div class="cell-avatar" :style="{ background: p.color, boxShadow: `0 0 10px ${p.color}60` }">{{ p.avatarUrl ?? '🎯' }}</div>
+            <div class="cell-avatar" :style="{ background: p.color, boxShadow: `0 0 10px ${p.color}60` }">
+              <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
+              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+            </div>
             <span>{{ p.name }}</span>
           </div>
           <span>{{ p.gamesPlayed }}</span>
@@ -62,6 +74,11 @@ import { usePlayersStore } from '../stores/players'
 const router = useRouter()
 const playersStore = usePlayersStore()
 const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !== a.wins ? b.wins - a.wins : b.gamesPlayed - a.gamesPlayed))
+
+function isPhoto(url: string | null | undefined): boolean {
+  if (!url) return false
+  return url.startsWith('data:') || url.startsWith('http') || url.startsWith('/')
+}
 </script>
 
 <style scoped>
@@ -82,8 +99,9 @@ const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !=
 .podium { display: flex; align-items: flex-end; gap: 20px; flex-shrink: 0; }
 .podium-slot { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .pod-crown { font-size: 32px; }
-.pod-avatar { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+.pod-avatar { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; overflow: hidden; }
 .pod-avatar.large { width: 96px; height: 96px; font-size: 48px; }
+.pod-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .pod-name { font-size: 14px; font-weight: 700; }
 .pod-wins { font-size: 24px; }
 .pod-base { font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 6px 18px; border-radius: 4px; font-family: var(--font-display); }

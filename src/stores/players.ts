@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { v4 as uuid } from 'uuid'
 import type { Player } from '../types/index'
+import { supabase } from '../lib/supabase'
 
 export const usePlayersStore = defineStore('players', () => {
   const players = ref<Player[]>([])
@@ -26,7 +27,8 @@ export const usePlayersStore = defineStore('players', () => {
         return {
           ...p,
           name: p.name === 'Brannon' ? 'Peezy' : p.name,
-          avatarUrl: p.avatarUrl === '🎯' || p.avatarUrl == null ? '☣️' : p.avatarUrl,
+          color: '#e00000',
+          avatarUrl: p.avatarUrl === '☣️' || p.avatarUrl == null ? '🎯' : p.avatarUrl,
           playerBackground: p.playerBackground == null ? PEEZY_BG : p.playerBackground,
           playerBackgroundSize: p.playerBackgroundSize ?? null,
           playerBackgroundPosition: p.playerBackgroundPosition ?? null,
@@ -44,8 +46,8 @@ export const usePlayersStore = defineStore('players', () => {
         {
           id: 'brannon-default',
           name: 'Peezy',
-          color: '#ff2d78',
-          avatarUrl: '☣️',
+          color: '#e00000',
+          avatarUrl: '🎯',
           playerBackground: 'linear-gradient(160deg, #0c0c0e 0%, #242428 40%, #484850 70%, #a0a0b0 100%)',
           playerBackgroundSize: null,
           playerBackgroundPosition: null,
@@ -84,6 +86,9 @@ export const usePlayersStore = defineStore('players', () => {
     }
     players.value.push(player)
     persist()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) supabase.from('players').upsert(playerToDb(player, session.user.id))
+    })
     return player
   }
 
@@ -92,6 +97,12 @@ export const usePlayersStore = defineStore('players', () => {
     if (idx !== -1) {
       players.value[idx] = { ...players.value[idx]!, ...data }
       persist()
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          const updated = players.value[idx]!
+          supabase.from('players').upsert(playerToDb(updated, session.user.id))
+        }
+      })
     }
   }
 
@@ -111,9 +122,81 @@ export const usePlayersStore = defineStore('players', () => {
   function deletePlayer(id: string) {
     players.value = players.value.filter(p => p.id !== id)
     persist()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) supabase.from('players').delete().eq('id', id)
+    })
+  }
+
+  function playerToDb(p: Player, userId: string) {
+    return {
+      id: p.id,
+      user_id: userId,
+      name: p.name,
+      color: p.color,
+      avatar_url: p.avatarUrl,
+      player_background: p.playerBackground,
+      player_background_size: p.playerBackgroundSize,
+      player_background_position: p.playerBackgroundPosition,
+      player_background_fill: p.playerBackgroundFill,
+      target_label_color: p.targetLabelColor,
+      cricket_target_display: p.cricketTargetDisplay,
+      dice_theme: p.diceTheme,
+      pinned: p.pinned,
+      wins: p.wins,
+      games_played: p.gamesPlayed,
+      created_at: p.createdAt,
+      updated_at: new Date().toISOString(),
+    }
+  }
+
+  function dbToPlayer(row: Record<string, unknown>): Player {
+    return {
+      id: row.id as string,
+      name: row.name as string,
+      color: row.color as string,
+      avatarUrl: (row.avatar_url as string | null) ?? null,
+      playerBackground: (row.player_background as string | null) ?? null,
+      playerBackgroundSize: (row.player_background_size as 'cover' | 'contain' | null) ?? null,
+      playerBackgroundPosition: (row.player_background_position as 'top' | 'center' | 'bottom' | null) ?? null,
+      playerBackgroundFill: (row.player_background_fill as 'black' | 'blur' | null) ?? null,
+      targetLabelColor: (row.target_label_color as string | null) ?? null,
+      cricketTargetDisplay: (row.cricket_target_display as 'show' | 'hide' | null) ?? null,
+      diceTheme: (row.dice_theme as import('../types/index').DiceTheme | null) ?? null,
+      pinned: (row.pinned as boolean) ?? false,
+      wins: (row.wins as number) ?? 0,
+      gamesPlayed: (row.games_played as number) ?? 0,
+      createdAt: row.created_at as string,
+    }
+  }
+
+  async function syncFromCloud() {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const { data, error } = await supabase
+      .from('players')
+      .select('*')
+      .order('created_at', { ascending: true })
+
+    if (error || !data) return
+
+    const cloudPlayers = data.map(dbToPlayer)
+    const cloudIds = new Set(cloudPlayers.map(p => p.id))
+
+    // Local players not yet in the cloud
+    const localOnly = players.value.filter(p => !cloudIds.has(p.id))
+
+    // Cloud is authoritative; also keep any local-only players
+    players.value = [...cloudPlayers, ...localOnly]
+    persist()
+
+    // Push local-only players up to cloud
+    for (const p of localOnly) {
+      await supabase.from('players').upsert(playerToDb(p, session.user.id))
+    }
   }
 
   loadFromStorage()
 
-  return { players, addPlayer, updatePlayer, deletePlayer, recordWin, recordGame }
+  return { players, addPlayer, updatePlayer, deletePlayer, recordWin, recordGame, syncFromCloud }
 })

@@ -95,11 +95,11 @@
       <button
         v-ripple
         class="btn btn-spray btn-lg start-btn"
-        :disabled="selectedPlayers.length < 2"
-        :class="{ 'btn-blocked': selectedPlayers.length < 2 }"
+        :disabled="selectedPlayers.length < 1"
+        :class="{ 'btn-blocked': selectedPlayers.length < 1 }"
         @click="startGame"
       >
-        {{ selectedPlayers.length < 2 ? 'Need 2+ Players' : 'START GAME →' }}
+        {{ selectedPlayers.length < 1 ? 'Select a Player' : 'START GAME →' }}
       </button>
     </div>
   </div>
@@ -147,7 +147,7 @@ function moveDown(i: number) {
   selectedPlayers.value = arr
 }
 function startGame() {
-  if (selectedPlayers.value.length < 2) return
+  if (selectedPlayers.value.length < 1) return
   try {
     yahtzeeStore.startGame([...selectedPlayers.value], diceMode.value)
   } catch (e) {
@@ -333,5 +333,12 @@ function startGame() {
 @media (max-width: 480px) {
   .player-bubble-grid { grid-template-columns: repeat(3, 1fr); gap: 16px 8px; }
   .bubble-avatar { width: 60px; height: 60px; font-size: 28px; }
+}
+
+@media (min-width: 1101px) {
+  .setup-title { font-size: 52px; font-weight: 900; letter-spacing: 0.18em; }
+  .dice-mode-btns { justify-content: center; }
+  .dice-mode-btn { flex: none; width: 18%; }
+  .start-btn { width: 66%; height: 64px; font-size: 32px; }
 }
 </style>

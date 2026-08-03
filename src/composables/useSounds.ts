@@ -892,6 +892,78 @@ export function playBoxingImpact(): Promise<void> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Game show wrong-answer buzzer — descending "BWAAAH", loud, harsh
+export function playGameShowBuzzer(): void {
+  const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+  if (!AudioCtx) return
+  const ctx = new AudioCtx()
+  const schedule = () => {
+    const now = ctx.currentTime
+    const duration = 0.75
+
+    // Brick-wall clipper for maximum harshness
+    const shaper = ctx.createWaveShaper()
+    const n = 512
+    const curve = new Float32Array(n)
+    for (let i = 0; i < n; i++) {
+      const x = (i * 2) / n - 1
+      curve[i] = Math.max(-0.97, Math.min(0.97, x * 22))
+    }
+    shaper.curve = curve
+    shaper.oversample = '4x'
+
+    const master = ctx.createGain()
+    master.gain.setValueAtTime(0, now)
+    master.gain.linearRampToValueAtTime(1.2, now + 0.004) // instant slam
+    master.gain.setValueAtTime(1.2, now + 0.55)
+    master.gain.linearRampToValueAtTime(0, now + duration)
+    master.connect(ctx.destination)
+
+    // Main descending buzz — starts high, sweeps down fast (classic "BWAAAH")
+    const osc = ctx.createOscillator()
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(220, now)
+    osc.frequency.exponentialRampToValueAtTime(75, now + 0.45)
+    osc.frequency.setValueAtTime(70, now + 0.45)
+    osc.connect(shaper)
+    shaper.connect(master)
+    osc.start(now)
+    osc.stop(now + duration)
+
+    // Octave layer adds thickness
+    const osc2 = ctx.createOscillator()
+    const osc2Gain = ctx.createGain()
+    osc2.type = 'sawtooth'
+    osc2.frequency.setValueAtTime(440, now)
+    osc2.frequency.exponentialRampToValueAtTime(150, now + 0.45)
+    osc2Gain.gain.setValueAtTime(0.4, now)
+    osc2Gain.gain.linearRampToValueAtTime(0, now + duration)
+    osc2.connect(osc2Gain)
+    osc2Gain.connect(master)
+    osc2.start(now)
+    osc2.stop(now + duration)
+
+    // Attack transient noise — the initial "crack" that makes it feel punchy
+    const bufSize = Math.ceil(ctx.sampleRate * 0.04)
+    const noiseBuf = ctx.createBuffer(1, bufSize, ctx.sampleRate)
+    const nd = noiseBuf.getChannelData(0)
+    for (let i = 0; i < bufSize; i++) nd[i] = Math.random() * 2 - 1
+    const noise = ctx.createBufferSource()
+    noise.buffer = noiseBuf
+    const noiseGain = ctx.createGain()
+    noiseGain.gain.setValueAtTime(4.0, now)
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04)
+    noise.connect(noiseGain)
+    noiseGain.connect(master)
+    noise.start(now)
+    noise.stop(now + 0.04)
+
+    setTimeout(() => ctx.close(), duration * 1000 + 100)
+  }
+  ctx.resume().then(schedule)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Loud bomb-countdown beep — lower-pitched, heavy, used for final 5s of throw timer
 export function playBombBeep(): void {
   const ctx = getBeepCtx()
@@ -983,4 +1055,56 @@ export function playThemedBullseye(theme: string): Promise<void> {
     case 'boxing':  return playBoxingImpact()
     default:        return playBullseye()
   }
+}
+
+// Bright rising 3-note arpeggio — plays when a player's turn begins
+export function playTurnStartTone(): void {
+  const ctx = getBeepCtx()
+  if (!ctx) return
+  const go = () => {
+    const now = ctx.currentTime
+    // E5 → G#5 → B5 — bright, welcoming, "your turn" feel
+    const notes = [659.25, 830.61, 987.77]
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'triangle'
+      osc.frequency.value = freq
+      const t = now + i * 0.11
+      gain.gain.setValueAtTime(0, t)
+      gain.gain.linearRampToValueAtTime(0.45, t + 0.015)
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.38)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(t)
+      osc.stop(t + 0.4)
+    })
+  }
+  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+}
+
+// Short falling 2-note thud — plays when NEXT is tapped to end a turn
+export function playTurnEndBeep(): void {
+  const ctx = getBeepCtx()
+  if (!ctx) return
+  const go = () => {
+    const now = ctx.currentTime
+    // G3 → D3 — lower, heavier, "done / submit" feel
+    const notes = [196.00, 146.83]
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'square'
+      osc.frequency.value = freq
+      const t = now + i * 0.13
+      gain.gain.setValueAtTime(0, t)
+      gain.gain.linearRampToValueAtTime(0.3, t + 0.01)
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(t)
+      osc.stop(t + 0.25)
+    })
+  }
+  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
 }
