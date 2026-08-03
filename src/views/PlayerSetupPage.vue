@@ -144,9 +144,11 @@
                   <span>{{ p.name }}</span>
                   <span style="font-size:12px;color:var(--text-muted)">{{ p.wins }}W · {{ p.gamesPlayed }}G</span>
                 </div>
-                <button v-ripple class="btn btn-sm edit-btn" :class="{ active: editingId === p.id }" @click.stop="loadPlayer(p)" title="Edit">✏️</button>
-                <button v-ripple class="btn btn-sm pin-btn" :class="{ active: p.pinned }" :title="p.pinned ? 'Unpin' : 'Pin'" @click.stop="playersStore.updatePlayer(p.id, { pinned: !p.pinned })">📌</button>
-                <button v-ripple class="btn btn-sm btn-danger" @click.stop="confirmDelete(p)">🗑</button>
+                <div class="row-actions">
+                  <button v-ripple class="row-btn edit-btn" :class="{ active: editingId === p.id }" @click.stop="loadPlayer(p)" title="Edit">✏️</button>
+                  <button v-ripple class="row-btn pin-btn" :class="{ active: p.pinned }" :title="p.pinned ? 'Unpin' : 'Pin'" @click.stop="playersStore.updatePlayer(p.id, { pinned: !p.pinned })">📌</button>
+                  <button v-ripple class="row-btn row-btn-danger" @click.stop="confirmDelete(p)" title="Delete">🗑</button>
+                </div>
               </div>
             </div>
           </div>
@@ -472,16 +474,22 @@ function save() {
 .existing-row { display: flex; align-items: center; gap: 6px; padding: 10px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
 .existing-row:hover { background: rgba(255,255,255,0.07); }
 .existing-row.pinned { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.06); }
-.edit-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); font-size: 14px; padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: all 0.15s; filter: grayscale(1); flex-shrink: 0; }
+.row-actions { display: flex; gap: 4px; flex-shrink: 0; align-items: center; }
+.row-btn {
+  width: 32px; height: 32px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04); font-size: 14px; cursor: pointer;
+  transition: all 0.15s; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; padding: 0; position: relative; overflow: hidden;
+  filter: grayscale(1);
+}
+.row-btn:hover { filter: none; opacity: 0.85; }
 .edit-btn.active { filter: none; border-color: var(--pink); background: rgba(255,45,120,0.15); }
-.edit-btn:hover { filter: none; opacity: 0.8; }
 .existing-row.editing { border-color: rgba(255,45,120,0.4); background: rgba(255,45,120,0.06); }
-.pin-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); font-size: 14px; padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: all 0.15s; filter: grayscale(1); flex-shrink: 0; }
 .pin-btn.active { filter: none; border-color: rgba(245,158,11,0.5); background: rgba(245,158,11,0.12); }
-.pin-btn:hover { filter: none; opacity: 0.8; }
-.existing-row .btn-danger { flex-shrink: 0; padding: 4px 8px; font-size: 14px; }
+.row-btn-danger { border-color: rgba(220,50,50,0.3); background: rgba(220,50,50,0.08); filter: none; }
+.row-btn-danger:hover { background: rgba(220,50,50,0.25); border-color: rgba(220,50,50,0.6); }
 .existing-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 14px; font-weight: 700; overflow: hidden; }
-.existing-info span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.existing-info > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .roster-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
 
 /* Camera dialog */
