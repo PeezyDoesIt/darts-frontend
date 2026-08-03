@@ -99,16 +99,23 @@
           <div class="field">
             <label class="label">Yahtzee Dice Theme</label>
             <p class="field-hint">How your dice look when it's your turn in Yahtzee.</p>
-            <div class="dice-theme-grid">
-              <button
-                v-for="t in DICE_THEMES" :key="t.value"
-                v-ripple class="dice-theme-btn"
-                :class="{ active: (diceTheme ?? 'default') === t.value }"
-                @click="diceTheme = t.value"
-              >
-                <span class="dice-theme-icon">{{ t.icon }}</span>
-                <span class="dice-theme-label">{{ t.label }}</span>
+            <div class="color-dropdown-wrap">
+              <button class="color-dropdown-btn dice-dropdown-btn" @click="showDiceDropdown = !showDiceDropdown">
+                <span class="dice-dropdown-icon">{{ selectedDiceTheme?.icon ?? '🎲' }}</span>
+                <span class="color-dropdown-label">{{ selectedDiceTheme?.label ?? 'Default' }}</span>
+                <span class="color-dropdown-arrow">{{ showDiceDropdown ? '▲' : '▼' }}</span>
               </button>
+              <div v-if="showDiceDropdown" class="dice-dropdown-menu">
+                <button
+                  v-for="t in DICE_THEMES" :key="t.value"
+                  class="dice-dropdown-item"
+                  :class="{ active: (diceTheme ?? 'default') === t.value }"
+                  @click="diceTheme = t.value; showDiceDropdown = false"
+                >
+                  <span class="dice-dropdown-item-icon">{{ t.icon }}</span>
+                  <span class="dice-dropdown-item-label">{{ t.label }}</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -211,6 +218,11 @@ const FONT_COLORS: { name: string; value: string }[] = [
 const showColorDropdown = ref(false)
 const selectedColorName = computed(() =>
   FONT_COLORS.find(c => c.value.toLowerCase() === color.value.toLowerCase())?.name ?? color.value
+)
+
+const showDiceDropdown = ref(false)
+const selectedDiceTheme = computed(() =>
+  DICE_THEMES.find(t => t.value === (diceTheme.value ?? 'default'))
 )
 
 const router = useRouter()
@@ -410,7 +422,7 @@ function save() {
   padding: 10px 16px; border-radius: 8px;
   border: 1.5px solid rgba(255,255,255,0.2);
   background: rgba(255,255,255,0.06);
-  color: #fff; font-size: 14px; font-weight: 700;
+  color: #fff; font-size: 16px; font-weight: 700;
   cursor: pointer; transition: border-color 0.15s;
   width: 100%; text-align: left;
 }
@@ -493,20 +505,38 @@ function save() {
 .confirm-btns { display: flex; gap: 12px; width: 100%; }
 .confirm-btns .btn { flex: 1; }
 
-.dice-theme-grid { display: flex; gap: 8px; flex-wrap: wrap; }
-.dice-theme-btn {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 10px 20px; min-width: 96px;
-  border-radius: 10px; border: 2px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.04); cursor: pointer;
-  transition: all 0.15s; position: relative; overflow: hidden;
+.dice-dropdown-btn { font-size: 16px; }
+.dice-dropdown-icon { font-size: 20px; flex-shrink: 0; }
+.dice-dropdown-menu {
+  margin-top: 6px;
+  padding: 8px;
+  background: rgba(20,20,28,0.97);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  max-height: 240px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.dice-dropdown-menu::-webkit-scrollbar { display: none; }
+.dice-dropdown-item {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 10px; border-radius: 7px;
+  border: 1.5px solid transparent;
+  background: rgba(255,255,255,0.04);
+  cursor: pointer; transition: all 0.12s;
   -webkit-tap-highlight-color: transparent;
 }
-.dice-theme-btn:hover { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); }
-.dice-theme-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); }
-.dice-theme-icon { font-size: 24px; }
-.dice-theme-label { font-size: 15px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; color: #fff; white-space: nowrap; }
-.dice-theme-btn.active .dice-theme-label { color: var(--pink); }
+.dice-dropdown-item:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+.dice-dropdown-item.active { border-color: var(--pink); background: rgba(255,45,120,0.15); }
+.dice-dropdown-item-icon { font-size: 18px; flex-shrink: 0; }
+.dice-dropdown-item-label { font-size: 12px; font-weight: 800; font-family: var(--font-display); letter-spacing: 0.04em; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dice-dropdown-item.active .dice-dropdown-item-label { color: var(--pink); }
 
 .ct-player-opts { display: flex; gap: 8px; flex-wrap: nowrap; }
 .ct-player-wrap { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; }
@@ -569,8 +599,7 @@ function save() {
   .color-wheel-svg { max-width: min(280px, 80vw); }
   .theme-grid { grid-template-columns: repeat(5, 1fr); gap: 6px; }
   .theme-swatch { height: 44px; }
-  .dice-theme-grid { gap: 6px; }
-  .dice-theme-btn { padding: 6px 10px; }
+  .dice-dropdown-menu { grid-template-columns: repeat(2, 1fr); }
   .name-input { font-size: 17px; padding: 10px 14px; }
   .field { gap: 8px; }
 }
