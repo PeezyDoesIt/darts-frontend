@@ -3,7 +3,7 @@
     <div class="drip-bar" />
 
     <!-- FINISHED OVERLAY -->
-    <div v-if="game && game.status === 'finished'" class="finish-overlay" :style="{ background: `radial-gradient(ellipse at center, ${winner?.color}40 0%, #0a0a0a 80%)` }">
+    <div v-if="game && game.status === 'finished'" class="finish-overlay" :style="winner ? { background: `radial-gradient(ellipse at center, ${winner.color}40 0%, #0a0a0a 80%)` } : {}">
       <div class="finish-scroll">
         <div class="finish-inner">
           <div class="trophy-wrap">
@@ -173,7 +173,8 @@
 
         <!-- HINTS -->
         <p v-if="game.diceMode === 'electronic' && yahtzeeAutoScored" class="score-hint yf-hint">YAHTZEE scored! Roll again to continue</p>
-        <p v-else-if="game.diceMode === 'electronic' && game.rollCount > 0" class="score-hint">Select a category below to score</p>
+        <p v-else-if="game.diceMode === 'electronic' && game.rollCount > 0 && game.rollCount < 3" class="score-hint">Tap dice to hold · press <strong>ROLL↺</strong> to reroll · or pick a category to score</p>
+        <p v-else-if="game.diceMode === 'electronic' && game.rollCount >= 3" class="score-hint">3 rolls used — select a category to score</p>
 
         <!-- PHYSICAL MODE CONTROLS -->
         <div v-if="game.diceMode === 'physical'" class="roll-controls">
@@ -940,6 +941,8 @@ function afterScore(category: YahtzeeCategory) {
   yahtzeeAutoScored.value = false
   if (yahtzeeFlashTimer) { clearTimeout(yahtzeeFlashTimer); yahtzeeFlashTimer = null }
   yahtzeeStore.scoreCategory(category)
+  // Explicit fallback: ensure winner screen shows even if the status watch fires late
+  if (game.value?.status === 'finished') recordResults()
 }
 
 // Show walk-up overlay when turn advances
@@ -999,6 +1002,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   display: flex;
   align-items: flex-start;
   justify-content: center;
+  background: #0a0a0a;
 }
 .finish-scroll {
   width: 100%;

@@ -193,6 +193,20 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
     } else {
       sc.yahtzee = 50
     }
+    // Check if this auto-score completed the last category on the last turn
+    const allDone = game.value.playerStates.every(ps => isScorecardComplete(ps.scorecard))
+    if (allDone) {
+      let bestScore = -1
+      let winnerId: string | null = null
+      for (const ps of game.value.playerStates) {
+        const total = grandTotal(ps.scorecard)
+        if (total > bestScore) { bestScore = total; winnerId = ps.player.id }
+      }
+      game.value.status = 'finished'
+      game.value.winnerId = winnerId
+      persist()
+      return
+    }
     // Give a bonus roll — reset dice without advancing the turn
     game.value.dice = [1, 1, 1, 1, 1]
     game.value.held = [false, false, false, false, false]
