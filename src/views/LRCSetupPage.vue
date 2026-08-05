@@ -20,7 +20,10 @@
     <div class="setup-body">
       <!-- Left panel: Select Players -->
       <div class="panel panel-left">
-        <div class="panel-label">SELECT PLAYERS</div>
+        <div class="panel-label-row">
+          <div class="panel-label">SELECT PLAYERS</div>
+          <button v-ripple class="new-player-btn" @click="router.push('/player-setup')">+ New Player</button>
+        </div>
 
         <div class="player-list">
           <div
@@ -304,6 +307,38 @@ function handleStart() {
   text-transform: uppercase;
   color: var(--text-muted, rgba(255,255,255,0.4));
   margin-bottom: 4px;
+}
+.panel-label-row .panel-label {
+  margin-bottom: 0;
+}
+
+/* Panel label row */
+.panel-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.new-player-btn {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.75);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.new-player-btn:hover {
+  border-color: rgba(255,255,255,0.35);
+  color: #fff;
+  background: rgba(255,255,255,0.1);
 }
 
 /* Player list */

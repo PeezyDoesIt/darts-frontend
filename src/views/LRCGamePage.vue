@@ -33,51 +33,38 @@
         </div>
       </div>
 
-      <!-- Player seats -->
-      <div
-        v-for="(player, si) in displayPlayers"
-        :key="player.id"
-        class="seat"
-        :class="{
-          'seat-current': si === 0,
-          'seat-out': player.chips === 0,
-        }"
-        :style="getSeatStyle(si, displayPlayers.length)"
-      >
+      <!-- Player seats (skip si=0 — current player is shown in action bar) -->
+      <template v-for="(player, si) in displayPlayers" :key="player.id">
         <div
-          class="seat-avatar"
-          :class="{ 'seat-avatar-current': si === 0 }"
-          :style="{
-            width: si === 0 ? '72px' : '52px',
-            height: si === 0 ? '72px' : '52px',
-            background: isPhoto(player.avatarUrl) ? 'transparent' : player.color,
-            boxShadow: si === 0 ? `0 0 0 3px ${player.color}, 0 0 18px ${player.color}88` : 'none',
-            opacity: player.chips === 0 ? 0.4 : 1,
-          }"
+          v-if="si > 0"
+          class="seat"
+          :class="{ 'seat-out': player.chips === 0 }"
+          :style="getSeatStyle(si, displayPlayers.length)"
         >
-          <img v-if="isPhoto(player.avatarUrl)" :src="player.avatarUrl!" class="seat-avatar-img" />
-          <span v-else class="seat-avatar-emoji" :style="{ fontSize: si === 0 ? '30px' : '22px' }">{{ player.avatarUrl ?? '?' }}</span>
+          <div
+            class="seat-avatar"
+            :style="{
+              width: '52px',
+              height: '52px',
+              background: isPhoto(player.avatarUrl) ? 'transparent' : player.color,
+              opacity: player.chips === 0 ? 0.4 : 1,
+            }"
+          >
+            <img v-if="isPhoto(player.avatarUrl)" :src="player.avatarUrl!" class="seat-avatar-img" />
+            <span v-else class="seat-avatar-emoji" style="font-size: 22px">{{ player.avatarUrl ?? '?' }}</span>
+          </div>
+          <div class="seat-name">{{ player.name }}</div>
+          <div v-if="player.chips === 0" class="seat-out-label">OUT</div>
+          <div v-else class="seat-chips">
+            <span
+              v-for="n in Math.min(player.chips, 6)"
+              :key="n"
+              class="chip-dot chip-dot-other"
+            />
+            <span v-if="player.chips > 6" class="chip-extra chip-dot-other">+{{ player.chips - 6 }}</span>
+          </div>
         </div>
-        <div class="seat-name" :class="{ 'seat-name-current': si === 0 }">{{ player.name }}</div>
-        <div v-if="player.chips === 0" class="seat-out-label">OUT</div>
-        <div v-else class="seat-chips">
-          <span
-            v-for="n in Math.min(player.chips, 6)"
-            :key="n"
-            class="chip-dot"
-            :class="si === 0 ? 'chip-dot-current' : 'chip-dot-other'"
-          />
-          <span v-if="player.chips > 6" class="chip-extra" :class="si === 0 ? 'chip-dot-current' : 'chip-dot-other'">+{{ player.chips - 6 }}</span>
-        </div>
-      </div>
-
-      <!-- Turn indicator -->
-      <div
-        v-if="game.phase === 'idle' || game.phase === 'rolling'"
-        class="turn-indicator"
-      >
-        {{ currentPlayer?.name }}'s Turn
-      </div>
+      </template>
 
       <!-- Dice row -->
       <div
@@ -95,27 +82,39 @@
         </div>
       </div>
 
-      <!-- Action result text -->
-      <div v-if="game.phase === 'result'" class="action-result">
-        {{ game.lastAction }}
-      </div>
+    </div>
 
-      <!-- Roll button -->
-      <div class="btn-area">
-        <div v-if="game.phase === 'idle'" class="roll-wrap">
-          <div class="roll-player-name">{{ currentPlayer?.name }}</div>
-          <button v-ripple class="roll-btn" @click="lrcStore.rollDice()">ROLL</button>
-        </div>
-        <button
-          v-else-if="game.phase === 'result'"
-          v-ripple
-          class="next-btn"
-          @click="lrcStore.nextTurn()"
+    <!-- Action bar -->
+    <div v-if="game && game.phase !== 'game_over'" class="action-bar">
+      <div class="bar-left">
+        <div
+          class="bar-avatar"
+          :style="{
+            background: isPhoto(currentPlayer?.avatarUrl) ? 'transparent' : (currentPlayer?.color ?? '#888'),
+            boxShadow: `0 0 0 2px ${currentPlayer?.color ?? '#888'}, 0 0 14px ${currentPlayer?.color ?? '#888'}66`,
+          }"
         >
-          NEXT TURN →
-        </button>
+          <img v-if="isPhoto(currentPlayer?.avatarUrl)" :src="currentPlayer!.avatarUrl!" class="bar-avatar-img" />
+          <span v-else class="bar-avatar-emoji">{{ currentPlayer?.avatarUrl ?? '?' }}</span>
+        </div>
+        <div class="bar-info">
+          <div class="bar-name" :style="{ color: currentPlayer?.color ?? '#fff' }">{{ currentPlayer?.name }}</div>
+          <div class="bar-chips">
+            <span
+              v-for="n in Math.min(currentPlayer?.chips ?? 0, 8)"
+              :key="n"
+              class="chip-dot chip-dot-current"
+            />
+            <span v-if="(currentPlayer?.chips ?? 0) > 8" class="chip-extra chip-dot-current">+{{ (currentPlayer?.chips ?? 0) - 8 }}</span>
+          </div>
+          <div v-if="game.phase === 'result' && game.lastAction" class="bar-action">{{ game.lastAction }}</div>
+        </div>
       </div>
-
+      <div class="bar-right">
+        <button v-if="game.phase === 'idle'" v-ripple class="roll-btn" @click="lrcStore.rollDice()">ROLL</button>
+        <span v-else-if="game.phase === 'rolling'" class="bar-rolling">Rolling…</span>
+        <button v-else-if="game.phase === 'result'" v-ripple class="next-btn" @click="lrcStore.nextTurn()">NEXT →</button>
+      </div>
     </div>
 
     <!-- Winner overlay -->
@@ -416,11 +415,6 @@ watch(
   text-overflow: ellipsis;
   text-align: center;
 }
-.seat-name-current {
-  font-size: 13px;
-  font-weight: 900;
-  color: #fff;
-}
 .seat-out-label {
   font-size: 9px;
   font-weight: 900;
@@ -452,25 +446,10 @@ watch(
   font-weight: 800;
 }
 
-/* Turn indicator */
-.turn-indicator {
-  position: absolute;
-  top: 61%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: rgba(255,255,255,0.55);
-  font-family: var(--font-display);
-  white-space: nowrap;
-  text-align: center;
-}
-
 /* Dice row */
 .dice-row {
   position: absolute;
-  top: 64%;
+  top: 63%;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -551,50 +530,90 @@ watch(
   100% { transform: rotate(0deg) scale(1) translateY(0); }
 }
 
-/* Action result */
-.action-result {
-  position: absolute;
-  top: 57%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 13px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.7);
+/* Action bar */
+.action-bar {
+  flex-shrink: 0;
+  height: 88px;
+  background: rgba(255,255,255,0.03);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 16px;
+}
+.bar-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.bar-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.bar-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.bar-avatar-emoji {
+  font-size: 26px;
+  line-height: 1;
+}
+.bar-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.bar-name {
+  font-size: 17px;
+  font-weight: 900;
+  font-family: var(--font-display);
   white-space: nowrap;
-  text-align: center;
-  max-width: 90vw;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-/* Button area */
-.btn-area {
-  position: absolute;
-  bottom: 4%;
-  left: 50%;
-  transform: translateX(-50%);
+.bar-chips {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 4px;
   align-items: center;
-  gap: 6px;
 }
-.roll-wrap {
+.bar-action {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bar-right {
+  flex-shrink: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 6px;
 }
-.roll-player-name {
-  font-size: 12px;
+.bar-rolling {
+  font-size: 14px;
   font-weight: 700;
-  color: rgba(255,255,255,0.45);
-  letter-spacing: 0.06em;
-  text-align: center;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.08em;
+  font-family: var(--font-display);
 }
+
+/* Buttons */
 .roll-btn {
-  height: 60px;
-  min-width: 200px;
-  font-size: 22px;
+  height: 56px;
+  min-width: 140px;
+  font-size: 20px;
   font-weight: 900;
   font-family: var(--font-display);
   letter-spacing: 0.15em;
@@ -613,9 +632,9 @@ watch(
   transform: translateY(-1px);
 }
 .next-btn {
-  height: 60px;
-  min-width: 200px;
-  font-size: 22px;
+  height: 56px;
+  min-width: 140px;
+  font-size: 18px;
   font-weight: 900;
   font-family: var(--font-display);
   letter-spacing: 0.1em;

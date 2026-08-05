@@ -43,8 +43,23 @@ export const useLRCStore = defineStore('lrc', () => {
   }
 
   function persist() {
-    if (game.value) localStorage.setItem(STORAGE_KEY, JSON.stringify(game.value))
-    else localStorage.removeItem(STORAGE_KEY)
+    try {
+      if (game.value) {
+        // Strip large image data from avatars before persisting
+        const slim = {
+          ...game.value,
+          players: game.value.players.map(p => ({
+            ...p,
+            avatarUrl: p.avatarUrl?.startsWith('data:') ? null : p.avatarUrl,
+          })),
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(slim))
+      } else {
+        localStorage.removeItem(STORAGE_KEY)
+      }
+    } catch {
+      // Storage quota exceeded — game still runs in memory
+    }
   }
 
   function startGame(players: Omit<LRCPlayer, 'chips'>[], diceStyle: LRCDiceStyle) {
