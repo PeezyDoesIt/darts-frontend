@@ -112,7 +112,13 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
   function loadSaved(): YahtzeeGame | null {
     try {
       const raw = localStorage.getItem(SAVE_KEY)
-      return raw ? (JSON.parse(raw) as YahtzeeGame) : null
+      if (!raw) return null
+      const parsed = JSON.parse(raw) as YahtzeeGame
+      // Only restore in-progress games, matching the darts store. Restoring a finished one
+      // re-ran recordResults() on every mount, adding another win/game to every player each
+      // time the win screen was refreshed — unbounded inflation of the leaderboard.
+      if (parsed.status !== 'playing') return null
+      return parsed
     } catch { return null }
   }
 

@@ -8,7 +8,11 @@
     </div>
 
     <div class="lb-body">
-      <div v-if="sorted.length === 0" class="empty">No players yet. Go add some!</div>
+      <div v-if="sorted.length === 0" class="empty">
+        <div class="empty-title display">NO PLAYERS YET</div>
+        <div class="empty-sub">Add someone and start keeping score.</div>
+        <button v-ripple class="btn btn-spray btn-lg" @click="router.push('/player-setup')">+ Add Player</button>
+      </div>
 
       <div v-if="sorted.length >= 2" class="podium">
         <div v-if="sorted[1]" class="podium-slot second">
@@ -41,7 +45,7 @@
         </div>
       </div>
 
-      <div class="lb-table-scroll">
+      <div v-if="sorted.length > 0" class="lb-table-scroll">
         <div class="lb-table-header">
           <span>#</span><span>Player</span><span>Games</span><span>Wins</span><span>Win %</span>
         </div>
@@ -94,7 +98,9 @@ function isPhoto(url: string | null | undefined): boolean {
 .btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
 
 .lb-body { flex: 1; display: flex; gap: 48px; padding: 36px 48px; overflow: hidden; }
-.empty { width: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 18px; }
+.empty { width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 40px 24px; text-align: center; }
+.empty-title { font-size: 32px; letter-spacing: 0.06em; color: var(--text); }
+.empty-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 10px; }
 
 .podium { display: flex; align-items: flex-end; gap: 20px; flex-shrink: 0; }
 .podium-slot { display: flex; flex-direction: column; align-items: center; gap: 8px; }

@@ -4,8 +4,25 @@ import { v4 as uuid } from 'uuid'
 import type { Player } from '../types/index'
 import { supabase } from '../lib/supabase'
 
+// The old seed shipped 'brannon-default' with a fabricated 100 wins / 100 games.
+// Those counters sync to Postgres on the first real game, so the fake baseline has to be
+// subtracted out rather than left to compound — and subtracted, not zeroed, because any
+// games actually played since are stacked on top of it. Runs once, then never again.
+const SEED_MIGRATION_KEY = 'darts_seed_baseline_removed_v1'
+const FABRICATED_BASELINE = 100
+
 export const usePlayersStore = defineStore('players', () => {
   const players = ref<Player[]>([])
+
+  function stripFabricatedBaseline() {
+    if (localStorage.getItem(SEED_MIGRATION_KEY)) return
+    const seeded = players.value.find(p => p.id === 'brannon-default')
+    if (seeded) {
+      seeded.wins = Math.max(0, (seeded.wins ?? 0) - FABRICATED_BASELINE)
+      seeded.gamesPlayed = Math.max(0, (seeded.gamesPlayed ?? 0) - FABRICATED_BASELINE)
+    }
+    localStorage.setItem(SEED_MIGRATION_KEY, new Date().toISOString())
+  }
 
   function loadFromStorage() {
     const raw = localStorage.getItem('darts_players')
@@ -39,28 +56,13 @@ export const usePlayersStore = defineStore('players', () => {
           diceTheme: p.diceTheme ?? null,
         }
       })
+      stripFabricatedBaseline()
       persist()
     } else {
-      // Seed default players
-      players.value = [
-        {
-          id: 'brannon-default',
-          name: 'Peezy',
-          color: '#e00000',
-          avatarUrl: '🎯',
-          playerBackground: 'linear-gradient(160deg, #0c0c0e 0%, #242428 40%, #484850 70%, #a0a0b0 100%)',
-          playerBackgroundSize: null,
-          playerBackgroundPosition: null,
-          playerBackgroundFill: null,
-          targetLabelColor: null,
-          cricketTargetDisplay: 'hide',
-          diceTheme: null,
-          pinned: true,
-          wins: 100,
-          gamesPlayed: 100,
-          createdAt: '2024-01-01T00:00:00.000Z',
-        },
-      ]
+      // A fresh install starts with no players. Previously this seeded a fake player with
+      // 100 wins / 100 games, which showed a fabricated 100% win rate, pinned itself to the
+      // top of every "most played" sort, and made the leaderboard's empty state unreachable.
+      players.value = []
       persist()
     }
   }
