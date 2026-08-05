@@ -1,12 +1,22 @@
 /**
  * Base API client — always points to the Cloudflare Workers backend.
- * Set VITE_API_URL in .env for local dev, .env.production for deployment.
+ *
+ * VITE_API_URL comes from .env for local dev. It is NOT available in CI:
+ * .env.production is gitignored, and the Pages workflow runs `npm run build`
+ * without env vars, so production builds resolve it to undefined. Throwing at
+ * module load in that case takes the whole app down at import time — a failure
+ * that only appears once something actually imports this module, and that CI
+ * builds green. Fall back to the deployed host instead.
+ *
+ * Set VITE_API_URL in the Cloudflare Pages project settings to override.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL as string
+const DEFAULT_API_URL = 'https://api.peezydoesit.net'
 
-if (!BASE_URL) {
-  throw new Error('VITE_API_URL is not defined. Check your .env file.')
+const BASE_URL = (import.meta.env.VITE_API_URL as string | undefined)?.trim() || DEFAULT_API_URL
+
+if (!import.meta.env.VITE_API_URL && import.meta.env.DEV) {
+  console.warn(`[api] VITE_API_URL is not set — falling back to ${DEFAULT_API_URL}`)
 }
 
 export type ApiResponse<T> = {
