@@ -16,9 +16,13 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = session?.user ?? null
     loading.value = false
 
+    // INITIAL_SESSION fires on every load where a session already exists; SIGNED_IN only
+    // fires on a fresh sign-in. Listening for SIGNED_IN alone meant that returning to the
+    // app never pulled cloud data — the roster only ever synced in the single session where
+    // the magic link was clicked.
     supabase.auth.onAuthStateChange((event, session) => {
       user.value = session?.user ?? null
-      if (event === 'SIGNED_IN') {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
         syncing.value = true
         playersStore.syncFromCloud().finally(() => {
           syncing.value = false

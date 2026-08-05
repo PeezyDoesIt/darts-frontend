@@ -11,6 +11,28 @@ import { supabase } from '../lib/supabase'
 const SEED_MIGRATION_KEY = 'darts_seed_baseline_removed_v1'
 const FABRICATED_BASELINE = 100
 
+/**
+ * Runs a Supabase write and reports the outcome.
+ *
+ * Supabase's query builder is LAZY: the HTTP request is only issued when the builder is
+ * awaited or `.then()`-ed. Calling `supabase.from(...).upsert(...)` and discarding the
+ * result — which is what this store used to do everywhere — never sends anything at all.
+ * That is why cloud sync had accounts signed in but not a single stored row.
+ *
+ * Writes stay off the UI's critical path (nothing here is awaited by callers), but they
+ * are now actually issued, and a failure is visible instead of invisible.
+ */
+function fireWrite(label: string, run: () => PromiseLike<{ error: unknown }>) {
+  void (async () => {
+    try {
+      const { error } = await run()
+      if (error) console.warn(`[players] ${label} failed:`, error)
+    } catch (e) {
+      console.warn(`[players] ${label} failed:`, e)
+    }
+  })()
+}
+
 export const usePlayersStore = defineStore('players', () => {
   const players = ref<Player[]>([])
 
@@ -88,8 +110,10 @@ export const usePlayersStore = defineStore('players', () => {
     }
     players.value.push(player)
     persist()
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) supabase.from('players').upsert(playerToDb(player, session.user.id))
+    fireWrite('addPlayer', async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return { error: null }
+      return await supabase.from('players').upsert(playerToDb(player, session.user.id))
     })
     return player
   }
@@ -99,11 +123,11 @@ export const usePlayersStore = defineStore('players', () => {
     if (idx !== -1) {
       players.value[idx] = { ...players.value[idx]!, ...data }
       persist()
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          const updated = players.value[idx]!
-          supabase.from('players').upsert(playerToDb(updated, session.user.id))
-        }
+      const updated = players.value[idx]!
+      fireWrite('updatePlayer', async () => {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) return { error: null }
+        return await supabase.from('players').upsert(playerToDb(updated, session.user.id))
       })
     }
   }
@@ -124,8 +148,10 @@ export const usePlayersStore = defineStore('players', () => {
   function deletePlayer(id: string) {
     players.value = players.value.filter(p => p.id !== id)
     persist()
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) supabase.from('players').delete().eq('id', id)
+    fireWrite('deletePlayer', async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return { error: null }
+      return await supabase.from('players').delete().eq('id', id)
     })
   }
 
@@ -180,7 +206,10 @@ export const usePlayersStore = defineStore('players', () => {
       .select('*')
       .order('created_at', { ascending: true })
 
-    if (error || !data) return
+    if (error || !data) {
+      console.warn('[players] syncFromCloud read failed:', error)
+      return
+    }
 
     const cloudPlayers = data.map(dbToPlayer)
     const cloudIds = new Set(cloudPlayers.map(p => p.id))
@@ -194,7 +223,8 @@ export const usePlayersStore = defineStore('players', () => {
 
     // Push local-only players up to cloud
     for (const p of localOnly) {
-      await supabase.from('players').upsert(playerToDb(p, session.user.id))
+      const { error: pushError } = await supabase.from('players').upsert(playerToDb(p, session.user.id))
+      if (pushError) console.warn('[players] syncFromCloud push failed for', p.name, pushError)
     }
   }
 
