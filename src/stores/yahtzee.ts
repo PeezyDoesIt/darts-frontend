@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { v4 as uuid } from 'uuid'
 import type { Player } from '../types/index'
 
 export type YahtzeeCategory =
@@ -15,6 +16,10 @@ export interface YahtzeePlayerState {
 }
 
 export interface YahtzeeGame {
+  /** Stable per-game id. Sent to the API as the idempotency key so a result can never
+   *  be recorded twice, however many times the win screen mounts. */
+  id: string
+  startedAt: string
   players: Player[]
   playerStates: YahtzeePlayerState[]
   currentPlayerIndex: number
@@ -118,6 +123,10 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
       // re-ran recordResults() on every mount, adding another win/game to every player each
       // time the win screen was refreshed — unbounded inflation of the leaderboard.
       if (parsed.status !== 'playing') return null
+      // Games saved before ids existed would otherwise send an empty idempotency key and
+      // be rejected by the API. Backfill so a game in flight across the upgrade survives.
+      if (!parsed.id) parsed.id = uuid()
+      if (!parsed.startedAt) parsed.startedAt = new Date().toISOString()
       return parsed
     } catch { return null }
   }
@@ -147,6 +156,8 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
 
   function startGame(players: Player[], diceMode: 'electronic' | 'physical') {
     game.value = {
+      id: uuid(),
+      startedAt: new Date().toISOString(),
       players,
       playerStates: players.map(p => ({ player: p, scorecard: emptyScorecard() })),
       currentPlayerIndex: 0,

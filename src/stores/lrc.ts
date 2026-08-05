@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
+import { v4 as uuid } from 'uuid'
 
 export type LRCDiceFace = 'L' | 'R' | 'C' | '●'
 export type LRCDiceStyle = 'neon' | 'casino' | 'retro' | 'wood'
@@ -14,6 +15,10 @@ export interface LRCPlayer {
 }
 
 export interface LRCGame {
+  /** Stable per-game id. Sent to the API as the idempotency key so a result can never
+   *  be recorded twice, however many times the game-over screen re-renders. */
+  id: string
+  startedAt: string
   players: LRCPlayer[]
   centerPot: number
   currentPlayerIndex: number
@@ -37,7 +42,13 @@ export const useLRCStore = defineStore('lrc', () => {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw) {
         const parsed = JSON.parse(raw) as LRCGame
-        if (parsed.phase !== 'game_over') game.value = parsed
+        if (parsed.phase !== 'game_over') {
+          // Backfill for games saved before ids existed, so one in flight across the
+          // upgrade still has a valid idempotency key to send.
+          if (!parsed.id) parsed.id = uuid()
+          if (!parsed.startedAt) parsed.startedAt = new Date().toISOString()
+          game.value = parsed
+        }
       }
     } catch {}
   }
@@ -64,6 +75,8 @@ export const useLRCStore = defineStore('lrc', () => {
 
   function startGame(players: Omit<LRCPlayer, 'chips'>[], diceStyle: LRCDiceStyle) {
     game.value = {
+      id: uuid(),
+      startedAt: new Date().toISOString(),
       players: players.map(p => ({ ...p, chips: 3 })),
       centerPot: 0,
       currentPlayerIndex: 0,

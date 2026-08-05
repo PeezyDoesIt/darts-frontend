@@ -149,6 +149,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLRCStore } from '../stores/lrc'
 import { usePlayersStore } from '../stores/players'
+import { recordGameResult } from '../api/gameResults'
 
 const router = useRouter()
 const lrcStore = useLRCStore()
@@ -227,6 +228,18 @@ watch(
           gamesPlayed: stored.gamesPlayed + 1,
         })
       }
+    })
+    // Guests are excluded from the local counters above because they have no player
+    // record, but they did play — so they belong in the durable result.
+    void recordGameResult({
+      clientGameId: g.id,
+      gameType: 'lrc',
+      winnerId: g.winnerId ?? '',
+      playerIds: g.players.map(p => p.id),
+      startedAt: g.startedAt ?? null,
+      finishedAt: new Date().toISOString(),
+      roundCount: g.round ?? null,
+      finalScores: Object.fromEntries(g.players.map(p => [p.id, { chips: p.chips }])),
     })
   }
 )

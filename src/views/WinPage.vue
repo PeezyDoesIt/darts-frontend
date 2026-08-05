@@ -50,6 +50,7 @@ import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
 import { speak } from '../composables/useSpeech'
+import { recordGameResult } from '../api/gameResults'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -80,6 +81,19 @@ onMounted(() => {
   if (winner.value) {
     speak(`${winner.value.name} wins! Well played.`)
   }
+  // Durable record for the leaderboard and time-based stats. Deliberately not awaited:
+  // the win screen must render regardless, and the call is idempotent server-side.
+  const g = game.value
+  void recordGameResult({
+    clientGameId: g.id,
+    gameType: g.gameType,
+    winnerId: g.winnerId ?? '',
+    playerIds: g.players.map(p => p.id),
+    startedAt: g.startedAt ?? null,
+    finishedAt: new Date().toISOString(),
+    roundCount: g.round ?? null,
+    finalScores: g.scores ?? null,
+  })
 })
 
 function displayScore(playerId: string) {
