@@ -17,7 +17,15 @@ jobs:
 
       - run: npm ci
 
+      # Vite inlines import.meta.env.VITE_* at BUILD time, and the build runs here — the
+      # Pages project has no Git connection, so Cloudflare only receives an already-built
+      # dist/. A variable set in the Pages dashboard would be a runtime value for Functions
+      # and would never reach this bundle. .env.production is gitignored, so without this
+      # the variable is simply undefined in every deployed build.
+      # Public config, not a secret: this host is already in the API's CORS allowlist.
       - run: npm run build
+        env:
+          VITE_API_URL: https://api.peezydoesit.net
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
