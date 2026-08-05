@@ -572,7 +572,9 @@ function previewBullseyeSound(value: string) {
 .lrc-btn:hover { box-shadow: 0 0 48px rgba(50,170,50,0.7), 0 0 16px rgba(85,204,102,0.5) !important; opacity: 0.9; }
 
 .home-actions { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 600px; position: relative; z-index: 1; }
-.home-secondary { display: flex; gap: 12px; justify-content: center; }
+/* wrap rather than overflow — 5 non-shrinking buttons used to run 77px past the
+   container, clipping "Leaderboard" and pushing the ☁ sync button off-screen entirely */
+.home-secondary { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 .w-full { width: 100%; }
 
 @media (max-width: 768px) {
@@ -580,6 +582,9 @@ function previewBullseyeSound(value: string) {
   .brand-headline { font-size: clamp(72px, 20vw, 120px); }
   .brand-title { font-size: clamp(36px, 10vw, 60px); }
   .home-actions { max-width: 100%; }
+  /* two text buttons fill row one; the three icon buttons share row two */
+  .home-secondary > .btn:not(.settings-gear-btn) { flex: 1 1 calc(50% - 6px); min-width: 0; }
+  .home-secondary > .settings-gear-btn { flex: 1 1 0; min-width: 56px; }
 }
 
 /* iPad portrait (769px–1100px) — center content vertically like landscape */

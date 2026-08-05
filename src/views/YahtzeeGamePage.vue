@@ -1714,6 +1714,24 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .sc-light .sc-check-on { color: #b8860b; }
 
 
+/* Phones: the dice row + side ROLL overflow their container (570px of content in a
+   358px box on a 390px screen), pushing ROLL entirely off-screen. Stack instead:
+   dice flex to fit any width, ROLL goes full-width beneath them and into the thumb zone.
+   Tablet/desktop keep the side-by-side layout above. */
+@media (max-width: 767px) {
+  .dice-and-ctrl { flex-wrap: wrap; gap: 10px; }
+  .dice-row {
+    flex: 1 1 100%;
+    padding-left: 0;          /* was a 48px hack to offset the side button */
+    min-width: 0;
+    gap: clamp(4px, 2.2vw, 12px);
+  }
+  .die-wrap { flex: 1 1 0; min-width: 0; max-width: 62px; }
+  .die-svg { width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: 62px; }
+  .roll-right { flex: 1 1 100%; justify-content: center; padding-right: 0; }
+  .roll-btn-side { flex: 1; min-height: 52px; font-size: 16px; }
+}
+
 @media (max-width: 380px) {
   .die-svg { width: 48px; height: 48px; }
   .dice-row { gap: 7px; }
