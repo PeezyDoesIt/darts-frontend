@@ -33,6 +33,8 @@
             <div class="slider-row">
               <span class="slider-label">Speed</span>
               <input type="range" class="voice-slider" min="0.1" max="1.2" step="0.05"
+                aria-label="Narrator speed"
+                :style="{ '--val': speedFill }"
                 :value="settingsStore.voiceRate"
                 @input="settingsStore.setVoiceRate(+($event.target as HTMLInputElement).value)"
               />
@@ -41,6 +43,8 @@
             <div class="slider-row">
               <span class="slider-label">Pitch</span>
               <input type="range" class="voice-slider" min="0.1" max="3.0" step="0.05"
+                aria-label="Narrator pitch"
+                :style="{ '--val': pitchFill }"
                 :value="settingsStore.voicePitch"
                 @input="settingsStore.setVoicePitch(+($event.target as HTMLInputElement).value)"
               />
@@ -331,6 +335,16 @@ const gameStore = useGameStore()
 const authStore = useAuthStore()
 
 // Cloud sync modal
+// The track's filled portion is driven by --val. Nothing ever set it, so the gradient fell
+// back to its 50% default and the pink fill sat mid-track no matter where the thumb was —
+// at maximum speed the control still read as half full.
+const SPEED_MIN = 0.1, SPEED_MAX = 1.2
+const PITCH_MIN = 0.1, PITCH_MAX = 3.0
+const pct = (v: number, min: number, max: number) =>
+  `${Math.min(100, Math.max(0, ((v - min) / (max - min)) * 100))}%`
+const speedFill = computed(() => pct(settingsStore.voiceRate, SPEED_MIN, SPEED_MAX))
+const pitchFill = computed(() => pct(settingsStore.voicePitch, PITCH_MIN, PITCH_MAX))
+
 const showSyncModal = ref(false)
 const syncEmail = ref('')
 const syncSent = ref(false)
@@ -675,13 +689,31 @@ function previewBullseyeSound(value: string) {
   padding: 8px 14px; border-radius: 8px;
   background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
 }
-.slider-label { font-size: 15px; font-weight: 700; color: #fff; width: 42px; flex-shrink: 0; }
+/* 42px was 5px narrower than "Speed" actually renders, so the label leaked into the
+   track. Fixed width (not auto) keeps both rows' tracks vertically aligned. */
+.slider-label { font-size: 15px; font-weight: 700; color: #fff; width: 52px; flex-shrink: 0; }
 .slider-val { font-size: 15px; font-weight: 700; color: var(--pink); width: 50px; text-align: right; flex-shrink: 0; font-family: var(--font-display); }
+/* The track is 4px, but the INPUT must not be — its box is the hit area, and a 4px-tall
+   target is effectively unusable with a thumb. The 18px thumb paints outside a 4px box,
+   so the control looked 18px and behaved as 4px: a tap inside the visible thumb but a few
+   pixels off centre landed on the row behind it and did nothing.
+   The input is now 44px tall with the track drawn as a centred background stripe, so the
+   visual is unchanged and the whole height is grabbable. */
 .voice-slider {
   flex: 1; -webkit-appearance: none; appearance: none;
-  height: 4px; border-radius: 2px; outline: none; cursor: pointer;
-  background: linear-gradient(to right, var(--pink) 0%, var(--pink) calc((var(--val, 50%) )), rgba(255,255,255,0.15) calc((var(--val, 50%))) , rgba(255,255,255,0.15) 100%);
+  height: 44px; outline: none; cursor: pointer;
+  background-color: transparent;
+  background-image: linear-gradient(to right,
+    var(--pink) 0%, var(--pink) var(--val, 50%),
+    rgba(255,255,255,0.15) var(--val, 50%), rgba(255,255,255,0.15) 100%);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 4px;
+  border-radius: 2px;
 }
+/* Firefox draws its own track unless told otherwise; keep it transparent so the
+   background stripe above is the only track on every browser. */
+.voice-slider::-moz-range-track { background: transparent; height: 4px; }
 .voice-slider::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;
   width: 18px; height: 18px; border-radius: 50%;
