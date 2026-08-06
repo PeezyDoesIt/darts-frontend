@@ -31,18 +31,18 @@
             <span class="sync-dot" />
             <span>{{ authStore.user ? 'Synced' : 'Local only' }}</span>
           </div>
-          <button v-ripple class="icon-btn" title="Flip a coin" @click="showCoinFlip = true">
+          <button v-ripple class="icon-btn" aria-label="Flip a coin" title="Flip a coin" @click="showCoinFlip = true">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
               <ellipse cx="12" cy="12" rx="6" ry="9" /><path d="M12 3v18" /><path d="M18 12h3M3 12h3" />
             </svg>
           </button>
-          <button v-ripple class="icon-btn" title="Cloud sync" @click="openSyncModal">
+          <button v-ripple class="icon-btn" aria-label="Cloud sync" title="Cloud sync" @click="openSyncModal">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 15.5a3.5 3.5 0 0 0-2.6-5.8A5.5 5.5 0 0 0 6.8 10 3.6 3.6 0 0 0 7 17h11" />
               <path d="M12 20v-6M9.5 16.5 12 14l2.5 2.5" />
             </svg>
           </button>
-          <button v-ripple class="icon-btn" title="Narrator settings" @click="openSettings">
+          <button v-ripple class="icon-btn" aria-label="Narrator settings" title="Narrator settings" @click="openSettings">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
               <path d="M4 7h16M4 12h16M4 17h16" />
               <circle cx="9" cy="7" r="2.2" fill="rgba(10,10,12,0.9)" />
@@ -248,7 +248,7 @@
         <div class="settings-panel">
           <div class="settings-header">
             <span class="settings-title display">NARRATOR SETTINGS</span>
-            <button class="settings-close" @click="showSettings = false">✕</button>
+            <button class="settings-close" aria-label="Close settings" @click="showSettings = false">✕</button>
           </div>
 
           <!-- scope gates whether personality matters, so it comes first -->
@@ -394,7 +394,7 @@
         <div class="coin-modal">
           <div class="coin-modal-header">
             <span class="coin-modal-title display">COIN FLIP</span>
-            <button class="coin-close-btn" @click="showCoinFlip = false">✕</button>
+            <button class="coin-close-btn" aria-label="Close coin flip" @click="showCoinFlip = false">✕</button>
           </div>
 
           <div class="coin-series-modes">
@@ -497,7 +497,7 @@
         <div class="settings-panel sync-panel">
           <div class="settings-header">
             <span class="settings-title display">CLOUD SYNC</span>
-            <button class="settings-close" @click="showSyncModal = false">✕</button>
+            <button class="settings-close" aria-label="Close cloud sync" @click="showSyncModal = false">✕</button>
           </div>
 
           <div v-if="authStore.user" class="sync-signed-in">
@@ -984,6 +984,11 @@ function previewBullseyeSound(value: string) {
   background: none; border: none; cursor: pointer;
   font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
   color: rgba(255,255,255,0.5); transition: color .15s;
+  /* Rendered 95x17, under the 44px touch floor. The text stays 11px — only the hit area
+     grows, with the padding pulled back by an equal margin so the header's optical
+     alignment is unchanged. */
+  min-height: 44px; display: inline-flex; align-items: center;
+  padding: 0 6px; margin: 0 -6px;
 }
 .board-link:hover { color: var(--blue); }
 .board-empty { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.55); padding: 18px 2px 6px; }
@@ -1126,7 +1131,12 @@ function previewBullseyeSound(value: string) {
 }
 .settings-header { display: flex; align-items: center; justify-content: space-between; }
 .settings-title { font-size: 20px; letter-spacing: 0.15em; color: var(--pink); }
-.settings-close { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 20px; cursor: pointer; padding: 4px 8px; }
+/* Close controls sit in a corner where a mis-tap dismisses the panel or hits nothing.
+   Padding alone left them at 32x38; min dimensions guarantee the floor without changing
+   the glyph size, and the negative margin keeps them optically in the corner. */
+.settings-close { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 20px; cursor: pointer;
+  min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
+  padding: 0; margin: -4px -8px -4px 0; }
 .settings-close:hover { color: #fff; }
 
 .settings-section { display: flex; flex-direction: column; gap: 10px; }
@@ -1245,7 +1255,9 @@ function previewBullseyeSound(value: string) {
 .coin-modal-title { font-size: 38px; letter-spacing: 0.2em; color: var(--gold); font-weight: 900; }
 .coin-close-btn {
   position: absolute; right: 0; background: none; border: none;
-  color: rgba(255,255,255,0.45); font-size: 22px; cursor: pointer; padding: 4px 8px; line-height: 1;
+  color: rgba(255,255,255,0.45); font-size: 22px; cursor: pointer; line-height: 1;
+  min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
+  padding: 0; margin-right: -8px;
 }
 .coin-close-btn:hover { color: #fff; }
 .coin-arena { display: flex; flex-direction: column; align-items: center; gap: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -1297,7 +1309,7 @@ function previewBullseyeSound(value: string) {
 
 .coin-series-modes { display: flex; gap: 8px; justify-content: center; width: 100%; }
 .coin-mode-btn {
-  flex: 1; padding: 7px 0; border-radius: 8px;
+  flex: 1; min-height: 44px; padding: 7px 0; border-radius: 8px;
   border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);
   color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 700;
   cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
@@ -1334,7 +1346,7 @@ function previewBullseyeSound(value: string) {
 .coin-question-toggle {
   background: none; border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px;
   color: rgba(255,255,255,0.35); font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
-  padding: 7px 16px; cursor: pointer; width: 100%; transition: all 0.15s;
+  padding: 7px 16px; min-height: 44px; cursor: pointer; width: 100%; transition: all 0.15s;
 }
 .coin-question-toggle:hover { border-color: rgba(255,215,0,0.4); color: rgba(255,215,0,0.6); }
 .coin-question-display {
@@ -1385,7 +1397,7 @@ function previewBullseyeSound(value: string) {
 @media (min-width: 768px) and (max-width: 1100px) {
   .coin-modal { max-width: 480px; }
   .coin-modal-title { font-size: clamp(36px, 5vw, 56px); letter-spacing: 0.25em; }
-  .coin-close-btn { font-size: 28px; padding: 6px 12px; }
+  .coin-close-btn { font-size: 28px; }
   .coin-series-modes { gap: 12px; }
   .coin-mode-btn { font-size: 17px; padding: 11px 0; border-radius: 10px; }
   .coin-arena { gap: 22px; }
