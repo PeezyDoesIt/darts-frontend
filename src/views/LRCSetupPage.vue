@@ -4,7 +4,7 @@
 
     <!-- Header -->
     <div class="setup-header">
-      <button v-ripple class="btn btn-outline header-back-btn" @click="router.back()">← Back</button>
+      <button v-ripple class="btn btn-outline header-back-btn" @click="goBack(router)">← Back</button>
       <h1 class="setup-title display">LEFT RIGHT CENTER</h1>
       <button
         v-ripple
@@ -121,6 +121,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLRCStore, type LRCDiceStyle, type LRCPlayer } from '../stores/lrc'
 import { usePlayersStore } from '../stores/players'
+import { goBack } from '../router/goBack'
 import type { Player } from '../types/index'
 
 const router = useRouter()

@@ -2,7 +2,7 @@
   <div class="page">
     <div class="drip-bar" />
     <div class="page-header">
-      <button v-ripple class="btn btn-outline btn-sm" @click="router.back()">← Back</button>
+      <button v-ripple class="btn btn-outline btn-sm" @click="goBack(router)">← Back</button>
       <h2 class="page-title display">{{ editingId ? 'EDIT PLAYER' : 'NEW PLAYER' }}</h2>
       <button v-if="editingId" v-ripple class="btn btn-outline btn-sm" @click="resetForm">+ New Player</button>
       <button v-ripple class="btn btn-spray btn-lg" :disabled="!name.trim() || saving" @click="save">{{ editingId ? 'Save Changes' : 'Save Player' }}</button>
@@ -197,6 +197,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
+import { goBack } from '../router/goBack'
 import { PRESET_AVATARS, PLAYER_THEMES, TARGET_LABEL_COLORS, DICE_THEMES, type Player, type DiceTheme } from '../types/index'
 
 const FONT_COLORS: { name: string; value: string }[] = [
@@ -381,7 +382,7 @@ function save() {
     }
   }
   resetForm()
-  router.back()
+  goBack(router)
 }
 </script>
 
