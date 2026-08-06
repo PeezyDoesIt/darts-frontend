@@ -107,6 +107,7 @@ export const usePlayersStore = defineStore('players', () => {
       wins: 0,
       gamesPlayed: 0,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
     players.value.push(player)
     persist()
@@ -121,7 +122,8 @@ export const usePlayersStore = defineStore('players', () => {
   function updatePlayer(id: string, data: Partial<Omit<Player, 'id' | 'createdAt'>>) {
     const idx = players.value.findIndex(p => p.id === id)
     if (idx !== -1) {
-      players.value[idx] = { ...players.value[idx]!, ...data }
+      // Stamped on every local edit — this is what lets sync tell which side is newer.
+      players.value[idx] = { ...players.value[idx]!, ...data, updatedAt: new Date().toISOString() }
       persist()
       const updated = players.value[idx]!
       fireWrite('updatePlayer', async () => {
@@ -194,8 +196,12 @@ export const usePlayersStore = defineStore('players', () => {
       wins: (row.wins as number) ?? 0,
       gamesPlayed: (row.games_played as number) ?? 0,
       createdAt: row.created_at as string,
+      updatedAt: (row.updated_at as string | null) ?? null,
     }
   }
+
+  /** Epoch for anything unstamped, so a record with no history never beats one with. */
+  const stamp = (p: Player) => (p.updatedAt ? Date.parse(p.updatedAt) : 0)
 
   async function syncFromCloud() {
     const { data: { session } } = await supabase.auth.getSession()
@@ -212,17 +218,31 @@ export const usePlayersStore = defineStore('players', () => {
     }
 
     const cloudPlayers = data.map(dbToPlayer)
-    const cloudIds = new Set(cloudPlayers.map(p => p.id))
+    const cloudById = new Map(cloudPlayers.map(p => [p.id, p]))
+    const localById = new Map(players.value.map(p => [p.id, p]))
 
-    // Local players not yet in the cloud
-    const localOnly = players.value.filter(p => !cloudIds.has(p.id))
+    // Cloud used to win unconditionally for any player present on both sides. Play a night
+    // on the tablet while signed in on a phone and whichever device wrote last silently
+    // erased the other's games. Compare updated_at instead and keep the newer record; only
+    // when the two are indistinguishable does cloud win, since it is the shared copy.
+    const merged: Player[] = []
+    const needPush: Player[] = []
 
-    // Cloud is authoritative; also keep any local-only players
-    players.value = [...cloudPlayers, ...localOnly]
+    for (const [id, local] of localById) {
+      const cloud = cloudById.get(id)
+      if (!cloud) { merged.push(local); needPush.push(local); continue }
+      if (stamp(local) > stamp(cloud)) { merged.push(local); needPush.push(local) }
+      else merged.push(cloud)
+    }
+    // Players that exist only in the cloud (added on another device)
+    for (const [id, cloud] of cloudById) if (!localById.has(id)) merged.push(cloud)
+
+    merged.sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt))
+    players.value = merged
     persist()
 
-    // Push local-only players up to cloud
-    for (const p of localOnly) {
+    // Push anything where local was newer, plus players the cloud has never seen
+    for (const p of needPush) {
       const { error: pushError } = await supabase.from('players').upsert(playerToDb(p, session.user.id))
       if (pushError) console.warn('[players] syncFromCloud push failed for', p.name, pushError)
     }

@@ -61,6 +61,9 @@ export type Player = {
   wins: number
   gamesPlayed: number
   createdAt: string
+  /** Last local mutation, ISO. Mirrors the DB's updated_at, which was already written on
+   *  every upsert but never read back — leaving sync with no basis to compare versions. */
+  updatedAt?: string | null
 }
 
 export const DICE_THEMES: { value: DiceTheme; label: string; icon: string; group: string }[] = [
