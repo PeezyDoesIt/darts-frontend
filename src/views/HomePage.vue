@@ -74,7 +74,15 @@
                 <span class="toggle-sub">Only announces whose turn it is — no commentary</span>
               </div>
             </div>
-            <div v-if="!settingsStore.cleanMode" class="personality-grid">
+            <!-- Previously v-if="!cleanMode", which hid all six personalities on a fresh
+                 install because cleanMode defaults on. Nothing about the toggle's copy
+                 ("Removes profanity from all narrator lines") suggests it also removes the
+                 narrator picker, so the feature was undiscoverable. Personality genuinely
+                 applies in clean mode — BetweenTurnsPage has clean variants per
+                 personality, and the round-one walk-up line is not gated at all — so
+                 there was never a reason to hide it. -->
+            <div class="personality-label">Personality</div>
+            <div class="personality-grid">
               <button
                 v-for="per in PERSONALITIES" :key="per.value"
                 class="personality-btn"
@@ -667,6 +675,9 @@ function previewBullseyeSound(value: string) {
 
 .settings-section { display: flex; flex-direction: column; gap: 10px; }
 .settings-label { font-size: 14px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #fff; }
+/* Sub-label inside a section — quieter than .settings-label so the section heading
+   ("Narrator Style") still leads, but the grid below is no longer unlabelled. */
+.personality-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; }
 .settings-muted { font-size: 15px; color: rgba(255,255,255,0.7); }
 
 
