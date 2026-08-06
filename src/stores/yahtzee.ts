@@ -133,6 +133,37 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
 
   const game = ref<YahtzeeGame | null>(loadSaved())
 
+  /**
+   * A game is over the moment every scorecard is full. This is enforced as an invariant
+   * rather than only at the two scoring call sites, because any path that fills the last
+   * category without checking leaves the game permanently unwinnable: no category is
+   * scoreable, the roll button reads DONE and is disabled, and no winner is ever declared.
+   * Reproduced with every card complete and status still 'playing' — 0 scoreable rows,
+   * roll button disabled, no finish overlay.
+   *
+   * Also runs on load, so a game already stuck in that state recovers instead of staying
+   * dead forever.
+   */
+  function finishIfComplete(): boolean {
+    const g = game.value
+    if (!g || g.status !== 'playing') return false
+    if (!g.playerStates.every(ps => isScorecardComplete(ps.scorecard))) return false
+
+    let bestScore = -1
+    let winnerId: string | null = null
+    for (const ps of g.playerStates) {
+      const total = grandTotal(ps.scorecard)
+      if (total > bestScore) { bestScore = total; winnerId = ps.player.id }
+    }
+    g.status = 'finished'
+    g.winnerId = winnerId
+    persist()
+    return true
+  }
+
+  // Recover a game that was left complete-but-unfinished by an earlier version.
+  finishIfComplete()
+
   function persist() {
     try {
       if (game.value) {
@@ -211,19 +242,7 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
       sc.yahtzee = 50
     }
     // Check if this auto-score completed the last category on the last turn
-    const allDone = game.value.playerStates.every(ps => isScorecardComplete(ps.scorecard))
-    if (allDone) {
-      let bestScore = -1
-      let winnerId: string | null = null
-      for (const ps of game.value.playerStates) {
-        const total = grandTotal(ps.scorecard)
-        if (total > bestScore) { bestScore = total; winnerId = ps.player.id }
-      }
-      game.value.status = 'finished'
-      game.value.winnerId = winnerId
-      persist()
-      return
-    }
+    if (finishIfComplete()) return
     // Give a bonus roll — reset dice without advancing the turn
     game.value.dice = [1, 1, 1, 1, 1]
     game.value.held = [false, false, false, false, false]
@@ -246,19 +265,7 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
       sc[category] = calcScore(category, dice)
     }
 
-    const allDone = game.value.playerStates.every(ps => isScorecardComplete(ps.scorecard))
-    if (allDone) {
-      let bestScore = -1
-      let winnerId: string | null = null
-      for (const ps of game.value.playerStates) {
-        const total = grandTotal(ps.scorecard)
-        if (total > bestScore) { bestScore = total; winnerId = ps.player.id }
-      }
-      game.value.status = 'finished'
-      game.value.winnerId = winnerId
-      persist()
-      return
-    }
+    if (finishIfComplete()) return
 
     game.value.currentPlayerIndex = (game.value.currentPlayerIndex + 1) % game.value.players.length
     game.value.dice = [1, 1, 1, 1, 1]
@@ -280,5 +287,5 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
     persist()
   }
 
-  return { game, startGame, rollDice, toggleHold, setDie, setPhysicalRollCount, autoScoreYahtzee, scoreCategory, addPlayerToGame, endGame }
+  return { game, startGame, rollDice, toggleHold, setDie, setPhysicalRollCount, autoScoreYahtzee, scoreCategory, addPlayerToGame, endGame, finishIfComplete }
 })
