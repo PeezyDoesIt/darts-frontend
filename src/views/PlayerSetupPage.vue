@@ -165,11 +165,26 @@
             <span v-else>{{ deleteTarget.avatarUrl ?? '🎯' }}</span>
           </div>
           <div class="confirm-name">{{ deleteTarget.name }}</div>
-          <p v-if="deleteTarget.pinned" class="confirm-msg pinned-warn">📌 This player is pinned. Unpin them first to protect them from accidental deletion.</p>
+          <p v-if="deleteTarget.pinned" class="confirm-msg pinned-warn">📌 This player is pinned. Unpin them to delete.</p>
           <p class="confirm-msg">Delete this player? Their stats will be gone forever.</p>
           <div class="confirm-btns">
             <button v-ripple class="btn btn-outline btn-lg" @click="deleteTarget = null">Cancel</button>
-            <button v-ripple class="btn btn-danger btn-lg" @click="doDelete">Delete</button>
+            <!-- While pinned, Delete is genuinely unavailable — the pin exists to stop a
+                 single mis-tap removing someone. Unpinning happens right here rather than
+                 sending the user back to the list, so the protection costs one tap, not a
+                 round trip. -->
+            <button
+              v-if="deleteTarget.pinned"
+              v-ripple
+              class="btn btn-outline btn-lg unpin-btn"
+              @click="unpinTarget"
+            >📌 Unpin</button>
+            <button
+              v-else
+              v-ripple
+              class="btn btn-danger btn-lg"
+              @click="doDelete"
+            >Delete</button>
           </div>
         </div>
       </div>
@@ -261,8 +276,22 @@ let stream: MediaStream | null = null
 function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:') || url?.startsWith('http')) }
 const deleteTarget = ref<Player | null>(null)
 function confirmDelete(p: Player) { deleteTarget.value = p }
+
+/** Unpin from inside the confirm dialog, which then reveals Delete. */
+function unpinTarget() {
+  const target = deleteTarget.value
+  if (!target) return
+  playersStore.updatePlayer(target.id, { pinned: false })
+  deleteTarget.value = { ...target, pinned: false }
+}
+
 function doDelete() {
   if (!deleteTarget.value) return
+  // Defence in depth: the dialog hides Delete while pinned, but the store is the last
+  // word. Previously the dialog promised "unpin them first to protect them from
+  // accidental deletion" and then deleted pinned players anyway — the warning rendered,
+  // the button stayed live, and the protection did not exist.
+  if (deleteTarget.value.pinned) return
   if (editingId.value === deleteTarget.value.id) resetForm()
   playersStore.deletePlayer(deleteTarget.value.id)
   deleteTarget.value = null
@@ -513,6 +542,10 @@ function save() {
 .confirm-name { font-size: 24px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; }
 .confirm-msg { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin: 0; }
 .pinned-warn { color: #f59e0b; font-size: 13px; }
+/* Amber, matching the warning it resolves — deliberately not styled as the destructive
+   action, because unpinning is the safe step that precedes it. */
+.unpin-btn { color: #f59e0b; border-color: rgba(245, 158, 11, 0.55); }
+.unpin-btn:hover { border-color: #f59e0b; }
 .confirm-btns { display: flex; gap: 12px; width: 100%; }
 .confirm-btns .btn { flex: 1; }
 
