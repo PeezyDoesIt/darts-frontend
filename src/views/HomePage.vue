@@ -9,49 +9,6 @@
     <div class="bloom bloom-purple" />
 
     <div class="home-inner">
-      <!-- ── Top bar ─────────────────────────────────────── -->
-      <header class="glass-panel topbar">
-        <div class="topbar-brand">
-          <div class="topbar-mark">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round">
-              <circle cx="12" cy="12" r="9" />
-              <circle cx="12" cy="12" r="4.6" />
-              <circle cx="12" cy="12" r="1.2" fill="#fff" stroke="none" />
-              <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
-            </svg>
-          </div>
-          <div class="topbar-names">
-            <span class="topbar-label">Scorekeeper</span>
-          </div>
-        </div>
-
-        <div class="topbar-actions">
-          <div class="sync-chip" :class="{ 'sync-chip-off': !authStore.user }">
-            <span class="sync-dot" />
-            <span>{{ authStore.user ? 'Synced' : 'Local only' }}</span>
-          </div>
-          <button v-ripple class="icon-btn" title="Flip a coin" @click="showCoinFlip = true">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
-              <ellipse cx="12" cy="12" rx="6" ry="9" /><path d="M12 3v18" /><path d="M18 12h3M3 12h3" />
-            </svg>
-          </button>
-          <button v-ripple class="icon-btn" title="Cloud sync" @click="openSyncModal">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 15.5a3.5 3.5 0 0 0-2.6-5.8A5.5 5.5 0 0 0 6.8 10 3.6 3.6 0 0 0 7 17h11" />
-              <path d="M12 20v-6M9.5 16.5 12 14l2.5 2.5" />
-            </svg>
-          </button>
-          <button v-ripple class="icon-btn" title="Narrator settings" @click="openSettings">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
-              <path d="M4 7h16M4 12h16M4 17h16" />
-              <circle cx="9" cy="7" r="2.2" fill="rgba(10,10,12,0.9)" />
-              <circle cx="15" cy="12" r="2.2" fill="rgba(10,10,12,0.9)" />
-              <circle cx="7.5" cy="17" r="2.2" fill="rgba(10,10,12,0.9)" />
-            </svg>
-          </button>
-        </div>
-      </header>
-
       <!-- ── Hero + resume / counters ─────────────────────── -->
       <section class="hero-row">
         <div class="glass-panel hero">
@@ -109,6 +66,49 @@
           </div>
         </div>
       </section>
+
+      <!-- ── Top bar ─────────────────────────────────────── -->
+      <header class="glass-panel topbar">
+        <div class="topbar-brand">
+          <div class="topbar-mark">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round">
+              <circle cx="12" cy="12" r="9" />
+              <circle cx="12" cy="12" r="4.6" />
+              <circle cx="12" cy="12" r="1.2" fill="#fff" stroke="none" />
+              <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+            </svg>
+          </div>
+          <div class="topbar-names">
+            <span class="topbar-label">Scorekeeper</span>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <div class="sync-chip" :class="{ 'sync-chip-off': !authStore.user }">
+            <span class="sync-dot" />
+            <span>{{ authStore.user ? 'Synced' : 'Local only' }}</span>
+          </div>
+          <button v-ripple class="icon-btn" title="Flip a coin" @click="showCoinFlip = true">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+              <ellipse cx="12" cy="12" rx="6" ry="9" /><path d="M12 3v18" /><path d="M18 12h3M3 12h3" />
+            </svg>
+          </button>
+          <button v-ripple class="icon-btn" title="Cloud sync" @click="openSyncModal">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 15.5a3.5 3.5 0 0 0-2.6-5.8A5.5 5.5 0 0 0 6.8 10 3.6 3.6 0 0 0 7 17h11" />
+              <path d="M12 20v-6M9.5 16.5 12 14l2.5 2.5" />
+            </svg>
+          </button>
+          <button v-ripple class="icon-btn" title="Narrator settings" @click="openSettings">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+              <circle cx="9" cy="7" r="2.2" fill="rgba(10,10,12,0.9)" />
+              <circle cx="15" cy="12" r="2.2" fill="rgba(10,10,12,0.9)" />
+              <circle cx="7.5" cy="17" r="2.2" fill="rgba(10,10,12,0.9)" />
+            </svg>
+          </button>
+        </div>
+      </header>
 
       <!-- ── Game modes ───────────────────────────────────── -->
       <section class="mode-row">
@@ -1203,10 +1203,12 @@ function previewBullseyeSound(value: string) {
   .hero-row, .board-row { grid-template-columns: 1fr; }
   .hero-wordmark { font-size: clamp(52px, 11vw, 92px); }
 
-  /* Picking a game is the reason the app exists, so it goes above the branding once
-     there is no room for both. Stacked single-column under the 593px hero, the first
-     tile started at y=775 on an 812px phone — every game was below the fold and Spades
-     was 544px past it, which reads as "the option isn't there". */
+  /* The wordmark and START NEW GAME lead the page, then the game tiles immediately after.
+     The tiles previously sat above the branding entirely, because stacked under the hero
+     the first one started at y=775 on an 812px phone and Spades was 544px past that. They
+     stay second rather than dropping back down there — everything below the hero is the
+     tile grid, so the fold costs part of that grid rather than burying it. */
+  .hero-row { order: -2; }
   .mode-row { order: -1; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 }
 @media (max-width: 700px) {
