@@ -10,8 +10,8 @@
 
     <div class="setup-body">
       <section class="ng-section">
-        <span class="label">SEAT FOUR PLAYERS</span>
-        <p class="hint">Partners sit opposite — seats 1 &amp; 3 against seats 2 &amp; 4.</p>
+        <span class="label">WHO'S PLAYING</span>
+        <p class="hint">Pick one to four people — the computer fills the rest of the table.</p>
 
         <div v-if="playersStore.players.length === 0" class="empty-players">
           No players yet.
@@ -40,29 +40,35 @@
         </div>
       </section>
 
-      <section v-if="selected.length > 0" class="ng-section">
+      <section class="ng-section">
         <span class="label">TABLE</span>
+        <p class="hint">
+          {{ botCount === 0
+            ? 'Four people, passing the device between turns.'
+            : `${selected.length} playing, ${botCount} computer ${botCount === 1 ? 'seat' : 'seats'} — no passing for those.` }}
+        </p>
         <div class="seats">
-          <div
-            v-for="(p, i) in selected"
-            :key="p.id"
-            class="seat"
-            :class="`team-${i % 2}`"
-          >
+          <div v-for="(s, i) in table" :key="s.id" class="seat" :class="[`team-${i % 2}`, { bot: s.isBot }]">
             <span class="seat-num">SEAT {{ i + 1 }}</span>
-            <div class="seat-avatar" :style="{ background: p.color }">
-              <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-              <span v-else>{{ p.avatarUrl ?? '🂡' }}</span>
+            <div class="seat-avatar" :style="{ background: s.color }">
+              <img v-if="!s.isBot && isPhoto(s.avatarUrl)" :src="s.avatarUrl!" alt="" />
+              <span v-else>{{ s.isBot ? '🤖' : (s.avatarUrl ?? '🂡') }}</span>
             </div>
-            <span class="seat-name">{{ p.name }}</span>
-            <span class="seat-team">Team {{ (i % 2) + 1 }}</span>
+            <span class="seat-name">{{ s.name }}</span>
             <div class="seat-btns">
-              <button v-ripple :disabled="i === 0" class="btn btn-sm btn-surface" aria-label="Move up" @click="move(i, -1)">↑</button>
-              <button v-ripple :disabled="i === selected.length - 1" class="btn btn-sm btn-surface" aria-label="Move down" @click="move(i, 1)">↓</button>
-              <button v-ripple class="btn btn-sm btn-surface remove-btn" aria-label="Remove" @click="remove(p.id)">✕</button>
+              <template v-if="!s.isBot">
+                <button v-ripple :disabled="i === 0" class="btn btn-sm btn-surface" aria-label="Move up" @click="move(i, -1)">↑</button>
+                <button v-ripple :disabled="i >= selected.length - 1" class="btn btn-sm btn-surface" aria-label="Move down" @click="move(i, 1)">↓</button>
+                <button v-ripple class="btn btn-sm btn-surface remove-btn" aria-label="Remove" @click="remove(s.id)">✕</button>
+              </template>
+              <span v-else class="bot-tag">COMPUTER</span>
             </div>
           </div>
         </div>
+        <p class="partner-note">
+          Partners sit opposite: <strong>{{ table[0]?.name }} &amp; {{ table[2]?.name }}</strong>
+          against <strong>{{ table[1]?.name }} &amp; {{ table[3]?.name }}</strong>.
+        </p>
       </section>
 
       <section class="ng-section">
@@ -80,8 +86,8 @@
     </div>
 
     <div class="setup-footer">
-      <button v-ripple class="btn btn-spray btn-lg start-btn" :disabled="selected.length !== 4" @click="start">
-        {{ selected.length === 4 ? 'DEAL →' : `Seat ${4 - selected.length} more` }}
+      <button v-ripple class="btn btn-spray btn-lg start-btn" :disabled="selected.length === 0" @click="start">
+        {{ selected.length === 0 ? 'Pick at least one player' : 'DEAL →' }}
       </button>
     </div>
   </div>
@@ -94,6 +100,7 @@ import PlayingCard from '../components/PlayingCard.vue'
 import { usePlayersStore } from '../stores/players'
 import { useSpadesStore } from '../stores/spades'
 import { RULES } from '../lib/spades'
+import { botName } from '../lib/spadesBot'
 import { goBack } from '../router/goBack'
 import type { Player } from '../types/index'
 
@@ -102,6 +109,29 @@ const playersStore = usePlayersStore()
 const spades = useSpadesStore()
 
 const selected = ref<Player[]>([])
+
+const BOT_COLORS = ['#9aa0b5', '#8f7bff', '#5fd0ff', '#7ee68a']
+
+/**
+ * Humans take the low seats and bots fill the rest, so seat order stays predictable as
+ * people are added and removed. Partners are seats 0/2 against 1/3, which the note under
+ * the table spells out — with two humans that means they are opponents, not partners,
+ * unless a bot is moved between them.
+ */
+const table = computed(() => {
+  const humans = selected.value.map(p => ({
+    id: p.id, name: p.name, color: p.color, avatarUrl: p.avatarUrl, isBot: false as const,
+  }))
+  const bots = Array.from({ length: 4 - humans.length }, (_, i) => {
+    const seat = humans.length + i
+    return {
+      id: `bot-${seat}`, name: botName(seat), color: BOT_COLORS[seat % BOT_COLORS.length]!,
+      avatarUrl: null, isBot: true as const,
+    }
+  })
+  return [...humans, ...bots]
+})
+const botCount = computed(() => 4 - selected.value.length)
 
 const sortedPlayers = computed(() =>
   [...playersStore.players].sort((a, b) => {
@@ -124,8 +154,13 @@ function move(i: number, dir: number) {
 }
 
 function start() {
-  if (selected.value.length !== 4) return
-  spades.startGame([...selected.value])
+  if (selected.value.length === 0) return
+  const seats = table.value.map(s =>
+    s.isBot
+      ? { id: s.id, name: s.name, color: s.color, isBot: true as const }
+      : selected.value.find(p => p.id === s.id)!
+  )
+  spades.startGame(seats)
   router.push('/spades')
 }
 </script>
@@ -179,7 +214,10 @@ function start() {
 }
 .seat-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .seat-name { font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
-.seat-team { display: none; }
+.seat.bot { opacity: 0.82; border-style: dashed; }
+.bot-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.12em; color: var(--text-muted); }
+.partner-note { font-size: 12.5px; color: var(--text-muted); margin: 4px 0 0; line-height: 1.5; }
+.partner-note strong { color: var(--text); }
 .seat-btns { display: flex; gap: 6px; grid-column: 1 / -1; justify-content: flex-end; }
 .seat-btns .btn { min-width: 44px; min-height: 44px; }
 .remove-btn { color: var(--pink); }
