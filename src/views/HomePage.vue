@@ -193,6 +193,19 @@
             <span class="mode-sub">One die · roll a 1 and lose it all</span>
           </div>
         </button>
+
+        <button v-ripple class="glass-panel mode mode-indigo" @click="router.push('/spades/setup')">
+          <div class="mode-glow" />
+          <div class="mode-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8f7bff" stroke-width="1.7" stroke-linejoin="round">
+              <path d="M12 3.5c-2.4 3-6 5.3-6 8.4a3.4 3.4 0 0 0 5.2 2.9L10.5 20h3l-.7-5.2A3.4 3.4 0 0 0 18 11.9c0-3.1-3.6-5.4-6-8.4z" />
+            </svg>
+          </div>
+          <div class="mode-copy">
+            <span class="mode-title display">SPADES</span>
+            <span class="mode-sub">4 players · house deck with both jokers</span>
+          </div>
+        </button>
       </section>
 
       <!-- ── Leaderboard + roster / narrator ──────────────── -->
@@ -1037,6 +1050,11 @@ function previewBullseyeSound(value: string) {
 .mode-pink .mode-glow { background: radial-gradient(circle, rgba(255,95,162,0.3), transparent 68%); }
 .mode-pink .mode-icon { background: rgba(255,95,162,0.18); border: 1px solid rgba(255,95,162,0.36); }
 .mode-pink:hover { border-color: rgba(255,95,162,0.62); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 40px -10px rgba(255,95,162,0.5), 0 26px 52px -24px rgba(0,0,0,0.85); }
+
+.mode-indigo { background: linear-gradient(150deg, rgba(143,123,255,0.2), rgba(255,255,255,0.03)); border-color: rgba(143,123,255,0.32); }
+.mode-indigo .mode-glow { background: radial-gradient(circle, rgba(143,123,255,0.32), transparent 68%); }
+.mode-indigo .mode-icon { background: rgba(143,123,255,0.2); border: 1px solid rgba(143,123,255,0.36); }
+.mode-indigo:hover { border-color: rgba(143,123,255,0.62); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 40px -10px rgba(143,123,255,0.5), 0 26px 52px -24px rgba(0,0,0,0.85); }
 
 /* ── Leaderboard ── */
 .board-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: 24px; align-items: start; }

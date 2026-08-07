@@ -14,6 +14,8 @@ import DiceGameSetupPage from '../views/DiceGameSetupPage.vue'
 import FarkleGamePage from '../views/FarkleGamePage.vue'
 import SCCGamePage from '../views/SCCGamePage.vue'
 import PigGamePage from '../views/PigGamePage.vue'
+import SpadesSetupPage from '../views/SpadesSetupPage.vue'
+import SpadesGamePage from '../views/SpadesGamePage.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -34,6 +36,8 @@ const router = createRouter({
     { path: '/dice/farkle',   name: 'FarkleGame',    component: FarkleGamePage },
     { path: '/dice/scc',      name: 'SCCGame',       component: SCCGamePage },
     { path: '/dice/pig',      name: 'PigGame',       component: PigGamePage },
+    { path: '/spades/setup',  name: 'SpadesSetup',   component: SpadesSetupPage },
+    { path: '/spades',        name: 'SpadesGame',    component: SpadesGamePage },
   ],
 })
 
