@@ -1,10 +1,1 @@
-# A missing build asset has to fail as a miss. Without this rule the SPA catch-all below
-# answers /assets/* with index.html and a 200, so Cloudflare caches HTML at the asset URL
-# for the full max-age (4 hours) — which turns a momentary propagation gap during a deploy
-# into hours of blank page for anyone who loaded the site in that window. Filenames under
-# /assets are content-hashed and change every build, so this is exactly where a stale
-# index.html asks for something that is no longer there.
-/assets/* /404.html 404
-
-# Everything else is a client-side route — hand it the app shell.
 /* /index.html 200
