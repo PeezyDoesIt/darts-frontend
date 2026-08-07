@@ -35,6 +35,8 @@ function fireWrite(label: string, run: () => PromiseLike<{ error: unknown }>) {
 
 export const usePlayersStore = defineStore('players', () => {
   const players = ref<Player[]>([])
+  /** True once a save has had to drop photos to fit, so the UI can tell the user. */
+  const storageDegraded = ref(false)
 
   function stripFabricatedBaseline() {
     if (localStorage.getItem(SEED_MIGRATION_KEY)) return
@@ -89,8 +91,35 @@ export const usePlayersStore = defineStore('players', () => {
     }
   }
 
+  /**
+   * Unguarded, this threw QuotaExceededError straight out of addPlayer/updatePlayer once
+   * enough inline photos accumulated — so the failure was not a lost photo but a lost
+   * roster, with everything since the last good write gone on reload.
+   *
+   * The game stores simply give up at this point, but a roster is not a single game: the
+   * fallback drops the inline images and keeps names, colours and records, which is the
+   * least-bad outcome. `storageDegraded` is exposed so the UI can say so rather than
+   * leaving the photo looking saved until the next reload.
+   */
   function persist() {
-    localStorage.setItem('darts_players', JSON.stringify(players.value))
+    try {
+      localStorage.setItem('darts_players', JSON.stringify(players.value))
+      storageDegraded.value = false
+    } catch {
+      try {
+        const withoutPhotos = players.value.map(p => ({
+          ...p,
+          avatarUrl: p.avatarUrl?.startsWith('data:') ? null : p.avatarUrl,
+          playerBackground: p.playerBackground?.startsWith('data:') ? null : p.playerBackground,
+        }))
+        localStorage.setItem('darts_players', JSON.stringify(withoutPhotos))
+        storageDegraded.value = true
+        console.warn('[players] storage full — roster saved without photos')
+      } catch {
+        storageDegraded.value = true
+        console.warn('[players] storage full — roster could not be saved')
+      }
+    }
   }
 
   function addPlayer(data: Omit<Player, 'id' | 'wins' | 'gamesPlayed' | 'createdAt'>) {
@@ -250,5 +279,5 @@ export const usePlayersStore = defineStore('players', () => {
 
   loadFromStorage()
 
-  return { players, addPlayer, updatePlayer, deletePlayer, recordWin, recordGame, syncFromCloud }
+  return { players, storageDegraded, addPlayer, updatePlayer, deletePlayer, recordWin, recordGame, syncFromCloud }
 })
