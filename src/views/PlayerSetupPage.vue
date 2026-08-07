@@ -198,7 +198,6 @@
           <button v-ripple class="btn btn-sm btn-surface" @click="cameraOpen = false">✕ Close</button>
         </q-card-section>
         <video ref="videoEl" autoplay playsinline class="camera-feed" />
-        <canvas ref="canvasEl" style="display:none" />
         <q-card-actions align="center" class="camera-footer">
           <button v-ripple class="btn btn-spray btn-xl" @click="capturePhoto">📸 Capture</button>
         </q-card-actions>
@@ -213,6 +212,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { goBack } from '../router/goBack'
+import { AVATAR_MAX_PX, BACKGROUND_MAX_PX, downscaleFile, downscaleVideoFrame } from '../lib/downscaleImage'
 import { PRESET_AVATARS, PLAYER_THEMES, TARGET_LABEL_COLORS, DICE_THEMES, type Player, type DiceTheme } from '../types/index'
 
 const FONT_COLORS: { name: string; value: string }[] = [
@@ -270,7 +270,6 @@ const avatarMode = ref<'emoji' | 'photo'>('photo')
 const photoPreview = ref<string | null>(null)
 const cameraOpen = ref(false)
 const videoEl = ref<HTMLVideoElement | null>(null)
-const canvasEl = ref<HTMLCanvasElement | null>(null)
 let stream: MediaStream | null = null
 
 function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:') || url?.startsWith('http')) }
@@ -324,23 +323,39 @@ const previewCardStyle = computed(() => {
   return { background: `linear-gradient(135deg, ${color.value}cc, ${color.value}66)`, boxShadow: `0 0 40px ${color.value}40` }
 })
 
-function onAvatarFileChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
+/**
+ * Picked files are downscaled rather than read straight to a data URL. readAsDataURL kept
+ * the original bytes, so one 5MB photo out of a phone gallery became a ~7MB string and
+ * blew the whole storage budget on its own.
+ */
+async function onAvatarFileChange(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
   if (!file) return
-  const reader = new FileReader()
-  reader.onload = ev => {
-    photoPreview.value = ev.target?.result as string
-    avatarUrl.value = ev.target?.result as string
+  try {
+    const scaled = await downscaleFile(file, AVATAR_MAX_PX)
+    photoPreview.value = scaled
+    avatarUrl.value = scaled
+  } catch {
+    alert('Could not read that image.')
+  } finally {
+    input.value = ''   // let the same file be picked again after an error
   }
-  reader.readAsDataURL(file)
 }
 
-function onBgFileChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
+async function onBgFileChange(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
   if (!file) return
-  const reader = new FileReader()
-  reader.onload = ev => { bgImagePreview.value = ev.target?.result as string; playerBackground.value = ev.target?.result as string }
-  reader.readAsDataURL(file)
+  try {
+    const scaled = await downscaleFile(file, BACKGROUND_MAX_PX)
+    bgImagePreview.value = scaled
+    playerBackground.value = scaled
+  } catch {
+    alert('Could not read that image.')
+  } finally {
+    input.value = ''
+  }
 }
 
 // Start camera when dialog opens
@@ -357,11 +372,10 @@ watch(cameraOpen, async (open) => {
 })
 
 function capturePhoto() {
-  if (!videoEl.value || !canvasEl.value) return
-  const v = videoEl.value, c = canvasEl.value
-  c.width = v.videoWidth; c.height = v.videoHeight
-  c.getContext('2d')!.drawImage(v, 0, 0)
-  photoPreview.value = c.toDataURL('image/jpeg', 0.85)
+  if (!videoEl.value) return
+  // Downscaled before it is ever held: this is stored as a data URL inside the roster,
+  // which shares a ~5MB localStorage budget, and it renders at avatar size.
+  photoPreview.value = downscaleVideoFrame(videoEl.value)
   avatarUrl.value = photoPreview.value
   cameraOpen.value = false
 }
