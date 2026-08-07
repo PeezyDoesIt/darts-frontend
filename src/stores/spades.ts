@@ -2,8 +2,8 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { v4 as uuid } from 'uuid'
 import {
-  HAND_SIZE, PLAYER_COUNT, WINNING_SCORE, applyBagPenalty, cardId, deal,
-  effectiveSuit, legalPlays, scoreSide, sortHand, trickWinner,
+  HAND_SIZE, PLAYER_COUNT, applyBagPenalty, cardId, deal,
+  effectiveSuit, legalPlays, scoreSide, sortHand, trickWinner, winnerTeamFor,
   type Card, type SpadesVariant, type Suit,
 } from '../lib/spades'
 import { chooseBid, chooseCard } from '../lib/spadesBot'
@@ -311,14 +311,9 @@ export const useSpadesStore = defineStore('spades', () => {
     }
     g.lastHandSummary = parts.join('  ·  ')
 
-    // A side only wins by reaching 500 outright and ahead — a tie plays another hand.
-    const [a, b] = g.scores
-    if ((a >= WINNING_SCORE || b >= WINNING_SCORE) && a !== b) {
-      g.winnerTeam = a > b ? 0 : 1
-      g.phase = 'game_over'
-    } else {
-      g.phase = 'hand_over'
-    }
+    const winner = winnerTeamFor(g.scores)
+    g.winnerTeam = winner
+    g.phase = winner === null ? 'hand_over' : 'game_over'
     persist()
   }
 
