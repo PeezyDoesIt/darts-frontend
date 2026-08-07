@@ -760,7 +760,14 @@ function previewBullseyeSound(value: string) {
 .home {
   position: relative;
   width: 100vw;
-  min-height: 100dvh;
+  /* MUST be `height`, not `min-height`. The app shell (#app in style.css) is
+     `position: fixed; height: 100%; overflow: hidden`, so the document itself never
+     scrolls — each page owns its own scroll container. With `min-height` this element
+     grows to fit its content instead of being constrained to the viewport, so nothing
+     ever overflows it, `overflow-y: auto` never engages, and everything below the fold
+     is clipped by the shell and unreachable. On a phone that left the dashboard showing
+     only its top and refusing to scroll at all. */
+  height: 100dvh;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;

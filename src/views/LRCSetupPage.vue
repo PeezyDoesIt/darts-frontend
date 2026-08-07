@@ -219,7 +219,11 @@ function handleStart() {
 <style scoped>
 .lrc-setup-page {
   width: 100vw;
-  min-height: 100dvh;
+  /* `height`, not `min-height` — see the note on .home in HomePage.vue. The app shell
+     clips and never scrolls, so with min-height this grew to fit its content, overflow-y
+     never engaged, and 423px of the page (dice styles, start button) was unreachable on
+     a 568px-tall phone. */
+  height: 100dvh;
   background: #0a0a12;
   display: flex;
   flex-direction: column;

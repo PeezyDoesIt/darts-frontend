@@ -97,7 +97,10 @@ function isPhoto(url: string | null | undefined): boolean {
 .btn-outline { color: #ffffff !important; font-weight: 700 !important; border: 2px solid #ffffff !important; }
 .btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
 
-.lb-body { flex: 1; display: flex; gap: 48px; padding: 36px 48px; overflow: hidden; }
+/* overflow-y: auto, not hidden. As a flex child inside a shell that never scrolls, this
+   clipped its own content with no way to reach it — on a 568px phone the lower table rows
+   were simply invisible and unreachable. */
+.lb-body { flex: 1; min-height: 0; display: flex; gap: 48px; padding: 36px 48px; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 .empty { width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 40px 24px; text-align: center; }
 .empty-title { font-size: 32px; letter-spacing: 0.06em; color: var(--text); }
 .empty-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 10px; }
@@ -131,7 +134,12 @@ function isPhoto(url: string | null | undefined): boolean {
 @media (max-width: 768px) {
   .lb-body { flex-direction: column; padding: 20px; gap: 24px; overflow: auto; }
   .lb-body { height: auto; flex: none; }
-  .page { height: auto; min-height: 100dvh; overflow: auto; }
+  /* `height: auto; min-height: 100dvh` assumes the document scrolls. It does not — the
+     app shell is position:fixed / overflow:hidden, so this grew to fit its content
+     (919px on a 568px phone), its own overflow never engaged, and the shell clipped the
+     bottom 350px with no way to reach it. The page must be viewport-height and own the
+     scroll itself. */
+  .page { height: 100dvh; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
   .lb-table-scroll { flex: none; height: auto; }
   .podium { justify-content: center; }
   .lb-table-header, .lb-table-row { grid-template-columns: 36px 1fr 60px 60px 60px; }
