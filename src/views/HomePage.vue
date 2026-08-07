@@ -21,8 +21,7 @@
             </svg>
           </div>
           <div class="topbar-names">
-            <span class="topbar-title display">PEEZY DOES IT</span>
-            <span class="topbar-kicker">EST. TONIGHT</span>
+            <span class="topbar-label">Scorekeeper</span>
           </div>
         </div>
 
@@ -31,18 +30,18 @@
             <span class="sync-dot" />
             <span>{{ authStore.user ? 'Synced' : 'Local only' }}</span>
           </div>
-          <button v-ripple class="icon-btn" aria-label="Flip a coin" title="Flip a coin" @click="showCoinFlip = true">
+          <button v-ripple class="icon-btn" title="Flip a coin" @click="showCoinFlip = true">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
               <ellipse cx="12" cy="12" rx="6" ry="9" /><path d="M12 3v18" /><path d="M18 12h3M3 12h3" />
             </svg>
           </button>
-          <button v-ripple class="icon-btn" aria-label="Cloud sync" title="Cloud sync" @click="openSyncModal">
+          <button v-ripple class="icon-btn" title="Cloud sync" @click="openSyncModal">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 15.5a3.5 3.5 0 0 0-2.6-5.8A5.5 5.5 0 0 0 6.8 10 3.6 3.6 0 0 0 7 17h11" />
               <path d="M12 20v-6M9.5 16.5 12 14l2.5 2.5" />
             </svg>
           </button>
-          <button v-ripple class="icon-btn" aria-label="Narrator settings" title="Narrator settings" @click="openSettings">
+          <button v-ripple class="icon-btn" title="Narrator settings" @click="openSettings">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
               <path d="M4 7h16M4 12h16M4 17h16" />
               <circle cx="9" cy="7" r="2.2" fill="rgba(10,10,12,0.9)" />
@@ -57,7 +56,15 @@
       <section class="hero-row">
         <div class="glass-panel hero">
           <div class="hero-glow" />
-          <h1 class="hero-title">DARTS</h1>
+          <span class="hero-eyebrow">EST. TONIGHT</span>
+          <h1 class="hero-wordmark">
+            <span class="wm-line">PEEZY</span>
+            <span class="wm-line">DOES IT</span>
+          </h1>
+          <div class="hero-strap">
+            <span class="strap-rule" />
+            <span class="strap-text">Darts · Yahtzee · Left Right Center</span>
+          </div>
           <p class="hero-sub">Who's up. Who's down. Who's next.</p>
           <button v-ripple class="cta" @click="startNewGame">
             <span class="cta-copy">
@@ -166,7 +173,7 @@
             <div class="board-cols">
               <span>#</span><span>Player</span><span>Games</span><span>Wins</span><span>Win %</span>
             </div>
-            <div class="board-rows">
+            <div class="board-rows board-scroll">
               <div
                 v-for="(p, i) in ranked" :key="p.id"
                 class="board-row-item"
@@ -248,7 +255,7 @@
         <div class="settings-panel">
           <div class="settings-header">
             <span class="settings-title display">NARRATOR SETTINGS</span>
-            <button class="settings-close" aria-label="Close settings" @click="showSettings = false">✕</button>
+            <button class="settings-close" @click="showSettings = false">✕</button>
           </div>
 
           <!-- scope gates whether personality matters, so it comes first -->
@@ -292,8 +299,6 @@
             <div class="slider-row">
               <span class="slider-label">Speed</span>
               <input type="range" class="voice-slider" min="0.1" max="1.2" step="0.05"
-                aria-label="Narrator speed"
-                :style="{ '--val': speedFill }"
                 :value="settingsStore.voiceRate"
                 @input="settingsStore.setVoiceRate(+($event.target as HTMLInputElement).value)"
               />
@@ -302,8 +307,6 @@
             <div class="slider-row">
               <span class="slider-label">Pitch</span>
               <input type="range" class="voice-slider" min="0.1" max="3.0" step="0.05"
-                aria-label="Narrator pitch"
-                :style="{ '--val': pitchFill }"
                 :value="settingsStore.voicePitch"
                 @input="settingsStore.setVoicePitch(+($event.target as HTMLInputElement).value)"
               />
@@ -328,15 +331,7 @@
             <div v-if="settingsStore.quietNarrator" class="settings-muted scope-hint">
               Personality only shapes commentary — it has no effect while “Names only” is on.
             </div>
-            <!-- Not gated on cleanMode. cleanMode defaults on, so `v-if="!cleanMode"` hid all
-                 six personalities on every fresh install, and the toggle's copy ("Removes
-                 profanity from all narrator lines") gave no hint that it also removed the
-                 picker. Personality genuinely applies in clean mode — BetweenTurnsPage has
-                 clean variants per personality and the round-one walk-up line is not gated
-                 at all. Dimming for "Names only" above is different: there, personality
-                 really does have no effect, and the hint says so. -->
-            <div class="personality-label">Personality</div>
-            <div class="personality-grid" :class="{ 'grid-dim': settingsStore.quietNarrator }">
+            <div v-if="!settingsStore.cleanMode" class="personality-grid" :class="{ 'grid-dim': settingsStore.quietNarrator }">
               <button
                 v-for="per in PERSONALITIES" :key="per.value"
                 class="personality-btn"
@@ -394,7 +389,7 @@
         <div class="coin-modal">
           <div class="coin-modal-header">
             <span class="coin-modal-title display">COIN FLIP</span>
-            <button class="coin-close-btn" aria-label="Close coin flip" @click="showCoinFlip = false">✕</button>
+            <button class="coin-close-btn" @click="showCoinFlip = false">✕</button>
           </div>
 
           <div class="coin-series-modes">
@@ -497,11 +492,16 @@
         <div class="settings-panel sync-panel">
           <div class="settings-header">
             <span class="settings-title display">CLOUD SYNC</span>
-            <button class="settings-close" aria-label="Close cloud sync" @click="showSyncModal = false">✕</button>
+            <button class="settings-close" @click="showSyncModal = false">✕</button>
           </div>
 
           <div v-if="authStore.user" class="sync-signed-in">
-            <div class="sync-status-icon">☁✓</div>
+            <div class="sync-status-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 15.5a3.5 3.5 0 0 0-2.6-5.8A5.5 5.5 0 0 0 6.8 10 3.6 3.6 0 0 0 7 17h11" />
+                <path d="M9.5 19.5 12 22l5-6" />
+              </svg>
+            </div>
             <div class="sync-email">{{ authStore.user.email }}</div>
             <div class="sync-desc">Player profiles are syncing across your devices.</div>
             <button v-ripple class="btn btn-outline btn-lg" @click="authStore.signOut(); showSyncModal = false">Sign Out</button>
@@ -523,7 +523,12 @@
               </button>
             </div>
             <div v-else class="sync-sent">
-              <div class="sync-status-icon">📧</div>
+              <div class="sync-status-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="5.5" width="18" height="13" rx="3" />
+                  <path d="m3.8 7.5 7.2 5.4a1.7 1.7 0 0 0 2 0l7.2-5.4" />
+                </svg>
+              </div>
               <div class="sync-desc">Check your email! Click the link to sign in and start syncing.</div>
             </div>
           </div>
@@ -706,15 +711,6 @@ function onCoinImagePicked(side: 'heads' | 'tails', e: Event) {
 }
 
 /* ── Narrator settings ── */
-// Drives the filled portion of each slider track. Without this the fill is a decorative
-// gradient that never moves, so the control gives no feedback about its own value.
-const SPEED_MIN = 0.1, SPEED_MAX = 1.2
-const PITCH_MIN = 0.1, PITCH_MAX = 3.0
-const pct = (v: number, min: number, max: number) =>
-  `${Math.min(100, Math.max(0, ((v - min) / (max - min)) * 100))}%`
-const speedFill = computed(() => pct(settingsStore.voiceRate, SPEED_MIN, SPEED_MAX))
-const pitchFill = computed(() => pct(settingsStore.voicePitch, PITCH_MIN, PITCH_MAX))
-
 const showSettings = ref(false)
 const availableVoices = ref<VoiceOption[]>([])
 
@@ -759,14 +755,12 @@ function previewBullseyeSound(value: string) {
 /* ── Shell ── */
 .home {
   position: relative;
-  width: 100vw;
-  /* MUST be `height`, not `min-height`. The app shell (#app in style.css) is
-     `position: fixed; height: 100%; overflow: hidden`, so the document itself never
-     scrolls — each page owns its own scroll container. With `min-height` this element
-     grows to fit its content instead of being constrained to the viewport, so nothing
-     ever overflows it, `overflow-y: auto` never engages, and everything below the fold
-     is clipped by the shell and unreachable. On a phone that left the dashboard showing
-     only its top and refusing to scroll at all. */
+  width: 100%;
+  /* MUST be a fixed height, not min-height. The app shell clips (overflow:hidden),
+     so an auto-height .home just grows past the shell and gets cut off — its own
+     overflow-y never engages because nothing constrains it. That's why the mode row
+     (Yahtzee / LRC) was unreachable on a phone. */
+  height: 100vh;
   height: 100dvh;
   overflow-y: auto;
   overflow-x: hidden;
@@ -776,6 +770,18 @@ function previewBullseyeSound(value: string) {
   background: #08080a url('/Dartbg.avif') center / cover no-repeat;
 }
 .home::-webkit-scrollbar { display: none; }
+
+/* one screen, no scroll, on anything desktop-sized and tall enough for it */
+@media (min-width: 1025px) and (min-height: 660px) {
+  .home { overflow: hidden; }
+  .home-inner { height: 100%; }
+  .board-row { flex: 1; min-height: 0; }
+  .board { max-height: 100%; }
+  .board-scroll { overflow-y: auto; scrollbar-width: none; min-height: 0; }
+  .board-scroll::-webkit-scrollbar { display: none; }
+  .board-side { max-height: 100%; overflow-y: auto; scrollbar-width: none; }
+  .board-side::-webkit-scrollbar { display: none; }
+}
 
 .home-scrim {
   position: absolute; inset: 0; pointer-events: none;
@@ -805,10 +811,11 @@ function previewBullseyeSound(value: string) {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 40px 32px 56px;
-  padding-top: calc(40px + env(safe-area-inset-top));
-  padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  /* everything breathes with the viewport height so the page fits one screen */
+  gap: clamp(10px, 1.7vh, 24px);
+  padding: clamp(16px, 2.6vh, 40px) 32px clamp(18px, 3vh, 46px);
+  padding-top: calc(clamp(16px, 2.6vh, 40px) + env(safe-area-inset-top));
+  padding-bottom: calc(clamp(18px, 3vh, 46px) + env(safe-area-inset-bottom));
 }
 
 /* ── Glass surface ── */
@@ -825,19 +832,19 @@ function previewBullseyeSound(value: string) {
 /* ── Top bar ── */
 .topbar {
   display: flex; align-items: center; justify-content: space-between; gap: 20px;
-  padding: 14px 16px 14px 22px; border-radius: 20px;
+  padding: 12px 16px 12px 20px; border-radius: 20px; flex-shrink: 0;
 }
-.topbar-brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.topbar-brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
 .topbar-mark {
-  width: 42px; height: 42px; flex-shrink: 0; border-radius: 13px;
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: 13px;
   display: flex; align-items: center; justify-content: center;
   background: linear-gradient(150deg, rgba(255,45,120,0.4), rgba(191,95,255,0.22));
   border: 1px solid rgba(255,255,255,0.2);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 22px rgba(255,45,120,0.35);
 }
-.topbar-names { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.topbar-title { font-size: 19px; letter-spacing: 0.18em; line-height: 1; color: #fff; }
-.topbar-kicker { font-size: 10px; font-weight: 800; letter-spacing: 0.22em; color: rgba(255,255,255,0.45); text-transform: uppercase; }
+.topbar-names { display: flex; flex-direction: column; min-width: 0; }
+/* the wordmark lives in the hero now — the bar just says what this screen is */
+.topbar-label { font-size: 10px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
 
 .topbar-actions { display: flex; align-items: center; gap: 10px; }
 .sync-chip {
@@ -861,32 +868,49 @@ function previewBullseyeSound(value: string) {
 .icon-btn:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.3); transform: translateY(-1px); }
 
 /* ── Hero ── */
-.hero-row { display: grid; grid-template-columns: 1.15fr 1fr; gap: 24px; align-items: stretch; }
+.hero-row { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(12px, 1.6vh, 24px); align-items: stretch; flex-shrink: 0; }
 .hero {
-  display: flex; flex-direction: column; justify-content: center; gap: 18px;
-  padding: 38px 34px; border-radius: 26px;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: clamp(8px, 1.1vh, 16px);
+  padding: clamp(20px, 3vh, 40px) clamp(22px, 2.4vw, 36px); border-radius: 26px;
 }
 .hero-glow {
   position: absolute; top: -120px; right: -80px; width: 320px; height: 320px; border-radius: 50%;
   background: radial-gradient(circle, rgba(255,45,120,0.32), transparent 68%); pointer-events: none;
 }
-.hero-title {
-  position: relative; margin: 0;
+.hero-eyebrow {
+  position: relative;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.28em; text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+}
+/* the app's name, at the size a name deserves — stacked so it can go big
+   without running out of column */
+.hero-wordmark {
+  position: relative; margin: 0; display: flex; flex-direction: column;
   font-family: var(--font-display);
-  font-size: clamp(72px, 9vw, 124px); line-height: 0.84; letter-spacing: 0.03em;
-  background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 42%, var(--blue) 84%);
+  font-size: clamp(46px, 7.4vh, 104px);
+  line-height: 0.82; letter-spacing: 0.02em;
+  background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 44%, var(--blue) 88%);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 44px rgba(255,45,120,0.35));
 }
+.wm-line { display: block; }
+.wm-line:last-child { letter-spacing: 0.055em; }
+.hero-strap { position: relative; display: flex; align-items: center; gap: 12px; }
+.strap-rule { width: 34px; height: 2px; flex-shrink: 0; background: linear-gradient(90deg, var(--pink), var(--blue)); border-radius: 2px; }
+.strap-text {
+  font-size: 11.5px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase;
+  color: rgba(255,255,255,0.8);
+}
 .hero-sub {
   position: relative; margin: 0;
-  font-size: 12px; font-weight: 800; letter-spacing: 0.26em; text-transform: uppercase;
-  color: rgba(255,255,255,0.72);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
 }
 .cta {
-  position: relative; margin-top: 8px; width: 100%;
+  position: relative; margin-top: clamp(2px, 0.8vh, 10px); width: 100%;
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  padding: 22px 26px; border-radius: 18px; cursor: pointer; text-align: left;
+  padding: clamp(15px, 2.1vh, 24px) 26px; border-radius: 18px; cursor: pointer; text-align: left;
   background: linear-gradient(120deg, rgba(255,45,120,0.9), rgba(191,95,255,0.82) 52%, rgba(0,212,255,0.85));
   border: 1px solid rgba(255,255,255,0.28);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 20px 44px -18px rgba(255,45,120,0.6);
@@ -899,7 +923,7 @@ function previewBullseyeSound(value: string) {
 .cta-sub { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: rgba(255,255,255,0.78); text-transform: uppercase; }
 .cta-arrow { font-size: 26px; color: #fff; flex-shrink: 0; }
 
-.hero-side { display: flex; flex-direction: column; gap: 16px; }
+.hero-side { display: flex; flex-direction: column; gap: clamp(10px, 1.3vh, 16px); }
 
 /* ── Resume ── */
 .resume-card {
@@ -929,8 +953,8 @@ function previewBullseyeSound(value: string) {
 /* ── Counters ── */
 .counter-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; flex: 1; }
 .counter {
-  display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
-  padding: 20px; border-radius: 20px; min-height: 132px;
+  display: flex; flex-direction: column; justify-content: space-between; gap: clamp(6px, 1.1vh, 14px);
+  padding: clamp(14px, 1.9vh, 22px); border-radius: 20px; min-height: 0;
 }
 .counter-glow {
   position: absolute; bottom: -70px; left: -40px; width: 180px; height: 180px; border-radius: 50%;
@@ -941,15 +965,15 @@ function previewBullseyeSound(value: string) {
   font-size: 10px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;
   color: rgba(255,255,255,0.42);
 }
-.counter-value { position: relative; font-size: 52px; line-height: 0.8; color: #fff; }
+.counter-value { position: relative; font-size: clamp(34px, 5vh, 52px); line-height: 0.8; color: #fff; }
 .counter-value-gold { color: var(--gold); }
 .counter-foot { position: relative; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: rgba(255,255,255,0.55); }
 
 /* ── Mode tiles ── */
-.mode-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.mode-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; flex-shrink: 0; }
 .mode {
   display: flex; align-items: center; gap: 16px;
-  padding: 20px 22px; border-radius: 20px; cursor: pointer; text-align: left;
+  padding: clamp(13px, 1.9vh, 22px) 22px; border-radius: 20px; cursor: pointer; text-align: left;
   transition: transform .16s, box-shadow .16s, border-color .16s;
 }
 .mode:hover { transform: translateY(-3px); }
@@ -979,8 +1003,8 @@ function previewBullseyeSound(value: string) {
 .mode-green:hover { border-color: rgba(85,204,102,0.62); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 40px -10px rgba(51,170,51,0.5), 0 26px 52px -24px rgba(0,0,0,0.85); }
 
 /* ── Leaderboard ── */
-.board-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: 24px; align-items: start; }
-.board { display: flex; flex-direction: column; gap: 16px; padding: 26px 26px 22px; border-radius: 24px; }
+.board-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: clamp(12px, 1.6vh, 24px); align-items: start; }
+.board { display: flex; flex-direction: column; gap: clamp(10px, 1.3vh, 16px); padding: clamp(16px, 2.2vh, 26px) 26px clamp(14px, 1.8vh, 22px); border-radius: 24px; }
 .board-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 .board-title {
   font-size: 24px; letter-spacing: 0.14em;
@@ -991,11 +1015,6 @@ function previewBullseyeSound(value: string) {
   background: none; border: none; cursor: pointer;
   font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
   color: rgba(255,255,255,0.5); transition: color .15s;
-  /* Rendered 95x17, under the 44px touch floor. The text stays 11px — only the hit area
-     grows, with the padding pulled back by an equal margin so the header's optical
-     alignment is unchanged. */
-  min-height: 44px; display: inline-flex; align-items: center;
-  padding: 0 6px; margin: 0 -6px;
 }
 .board-link:hover { color: var(--blue); }
 .board-empty { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.55); padding: 18px 2px 6px; }
@@ -1035,8 +1054,8 @@ function previewBullseyeSound(value: string) {
 .tag-pink { color: var(--pink); background: rgba(255,45,120,0.14); border: 1px solid rgba(255,45,120,0.35); }
 
 /* ── Roster / narrator ── */
-.board-side { display: flex; flex-direction: column; gap: 16px; }
-.roster { display: flex; flex-direction: column; gap: 12px; padding: 24px; border-radius: 24px; }
+.board-side { display: flex; flex-direction: column; gap: clamp(10px, 1.3vh, 16px); }
+.roster { display: flex; flex-direction: column; gap: 12px; padding: clamp(15px, 2vh, 24px); border-radius: 24px; }
 .roster-stack { display: flex; align-items: center; }
 .roster-more {
   width: 38px; height: 38px; margin-left: -12px; border-radius: 50%;
@@ -1058,7 +1077,7 @@ function previewBullseyeSound(value: string) {
 .ghost-btn:hover { background: rgba(255,45,120,0.16); border-color: rgba(255,45,120,0.55); transform: translateY(-1px); }
 
 .narrator {
-  display: flex; flex-direction: column; gap: 14px; padding: 24px; border-radius: 24px; cursor: pointer;
+  display: flex; flex-direction: column; gap: clamp(9px, 1.2vh, 14px); padding: clamp(15px, 2vh, 24px); border-radius: 24px; cursor: pointer;
   transition: border-color .18s, transform .18s;
 }
 .narrator:hover { border-color: rgba(0,212,255,0.5); transform: translateY(-2px); }
@@ -1089,16 +1108,24 @@ function previewBullseyeSound(value: string) {
 
 /* ── Responsive ── */
 @media (max-width: 1024px) {
+  /* the page scrolls here, so space by fixed px rather than viewport height */
+  .home-inner { gap: 18px; padding: 28px 24px 44px; }
+  .home-inner { padding-top: calc(28px + env(safe-area-inset-top)); }
+  .home-inner { padding-bottom: calc(44px + env(safe-area-inset-bottom)); }
   .hero-row, .board-row { grid-template-columns: 1fr; }
   .mode-row { grid-template-columns: 1fr; }
+  .hero-wordmark { font-size: clamp(52px, 11vw, 92px); }
 }
 @media (max-width: 700px) {
-  .home-inner { padding: 28px 18px 44px; gap: 18px; }
+  .home-inner { padding: 20px 16px 40px; gap: 14px; }
+  .home-inner { padding-top: calc(20px + env(safe-area-inset-top)); }
+  .home-inner { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
   .topbar { flex-wrap: wrap; padding: 14px; border-radius: 18px; }
   .topbar-actions { width: 100%; }
   .sync-chip { flex: 1; justify-content: center; }
-  .hero { padding: 28px 22px; border-radius: 22px; }
-  .hero-title { font-size: clamp(60px, 20vw, 96px); }
+  .hero { padding: 26px 22px; border-radius: 22px; }
+  .hero-wordmark { font-size: clamp(46px, 15vw, 76px); }
+  .strap-text { font-size: 10px; letter-spacing: 0.14em; }
   .counter-row { grid-template-columns: 1fr; }
   .resume-card { flex-direction: column; align-items: stretch; }
   .resume-btn { width: 100%; }
@@ -1138,19 +1165,11 @@ function previewBullseyeSound(value: string) {
 }
 .settings-header { display: flex; align-items: center; justify-content: space-between; }
 .settings-title { font-size: 20px; letter-spacing: 0.15em; color: var(--pink); }
-/* Close controls sit in a corner where a mis-tap dismisses the panel or hits nothing.
-   Padding alone left them at 32x38; min dimensions guarantee the floor without changing
-   the glyph size, and the negative margin keeps them optically in the corner. */
-.settings-close { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 20px; cursor: pointer;
-  min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
-  padding: 0; margin: -4px -8px -4px 0; }
+.settings-close { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 20px; cursor: pointer; padding: 4px 8px; }
 .settings-close:hover { color: #fff; }
 
 .settings-section { display: flex; flex-direction: column; gap: 10px; }
 .settings-label { font-size: 14px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #fff; }
-/* Sub-label within a section — quieter than .settings-label so "Narrator Style" still
-   leads, but the grid below is no longer unlabelled. */
-.personality-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-top: 4px; }
 .settings-muted { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.5; }
 
 .voice-list { display: flex; flex-direction: column; gap: 6px; }
@@ -1174,25 +1193,11 @@ function previewBullseyeSound(value: string) {
 }
 .slider-label { font-size: 15px; font-weight: 700; color: #fff; width: 42px; flex-shrink: 0; }
 .slider-val { font-size: 15px; font-weight: 700; color: var(--pink); width: 50px; text-align: right; flex-shrink: 0; font-family: var(--font-display); }
-/* The track is 4px, but the INPUT must not be — its box is the hit area, and an 18px thumb
-   painted outside a 4px box means the control looks 18px and behaves as 4px. A tap inside
-   the visible thumb but a few pixels off centre used to land on the row behind it and do
-   nothing. 44px tall with the track drawn as a centred background stripe: same visual,
-   whole height grabbable. --val drives the filled portion so it reflects the real value
-   instead of being a decorative fade. */
 .voice-slider {
   flex: 1; -webkit-appearance: none; appearance: none;
-  height: 44px; outline: none; cursor: pointer;
-  background-color: transparent;
-  background-image: linear-gradient(to right,
-    var(--pink) 0%, var(--pink) var(--val, 50%),
-    rgba(255,255,255,0.16) var(--val, 50%), rgba(255,255,255,0.16) 100%);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 4px;
-  border-radius: 2px;
+  height: 4px; border-radius: 2px; outline: none; cursor: pointer;
+  background: linear-gradient(to right, var(--pink), rgba(255,255,255,0.16));
 }
-.voice-slider::-moz-range-track { background: transparent; height: 4px; }
 .voice-slider::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;
   width: 18px; height: 18px; border-radius: 50%;
@@ -1262,9 +1267,7 @@ function previewBullseyeSound(value: string) {
 .coin-modal-title { font-size: 38px; letter-spacing: 0.2em; color: var(--gold); font-weight: 900; }
 .coin-close-btn {
   position: absolute; right: 0; background: none; border: none;
-  color: rgba(255,255,255,0.45); font-size: 22px; cursor: pointer; line-height: 1;
-  min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
-  padding: 0; margin-right: -8px;
+  color: rgba(255,255,255,0.45); font-size: 22px; cursor: pointer; padding: 4px 8px; line-height: 1;
 }
 .coin-close-btn:hover { color: #fff; }
 .coin-arena { display: flex; flex-direction: column; align-items: center; gap: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -1316,7 +1319,7 @@ function previewBullseyeSound(value: string) {
 
 .coin-series-modes { display: flex; gap: 8px; justify-content: center; width: 100%; }
 .coin-mode-btn {
-  flex: 1; min-height: 44px; padding: 7px 0; border-radius: 8px;
+  flex: 1; padding: 7px 0; border-radius: 8px;
   border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);
   color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 700;
   cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
@@ -1353,7 +1356,7 @@ function previewBullseyeSound(value: string) {
 .coin-question-toggle {
   background: none; border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px;
   color: rgba(255,255,255,0.35); font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
-  padding: 7px 16px; min-height: 44px; cursor: pointer; width: 100%; transition: all 0.15s;
+  padding: 7px 16px; cursor: pointer; width: 100%; transition: all 0.15s;
 }
 .coin-question-toggle:hover { border-color: rgba(255,215,0,0.4); color: rgba(255,215,0,0.6); }
 .coin-question-display {
@@ -1389,7 +1392,7 @@ function previewBullseyeSound(value: string) {
 .sync-panel { max-width: 420px; }
 .sync-signed-in,
 .sync-sign-in { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px 0 8px; text-align: center; }
-.sync-status-icon { font-size: 40px; }
+.sync-status-icon { display: flex; align-items: center; justify-content: center; }
 .sync-email { font-size: 14px; font-weight: 700; color: var(--pink); }
 .sync-desc { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.6; max-width: 320px; }
 .sync-email-input {
@@ -1404,7 +1407,7 @@ function previewBullseyeSound(value: string) {
 @media (min-width: 768px) and (max-width: 1100px) {
   .coin-modal { max-width: 480px; }
   .coin-modal-title { font-size: clamp(36px, 5vw, 56px); letter-spacing: 0.25em; }
-  .coin-close-btn { font-size: 28px; }
+  .coin-close-btn { font-size: 28px; padding: 6px 12px; }
   .coin-series-modes { gap: 12px; }
   .coin-mode-btn { font-size: 17px; padding: 11px 0; border-radius: 10px; }
   .coin-arena { gap: 22px; }

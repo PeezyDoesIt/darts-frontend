@@ -111,7 +111,7 @@
             :isCutThroat="game.gameType === 'cutThroat'"
             :marksToClose="game.gameType === 'speedCricket' ? 1 : 3"
             :round="game.round"
-            :closedTargetDisplay="game.closedTargetDisplay"
+            :closedTargetDisplay="effectiveClosedTargetDisplay"
             :avatarUrl="currentPlayer.avatarUrl"
             :playerColor="currentPlayer.color"
             :playerBackground="currentPlayer.playerBackground"
@@ -324,8 +324,8 @@
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
           <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'" class="ct-display-row">
             <button v-for="opt in ctDisplayOptions" :key="opt.value" v-ripple
-              class="ct-display-btn" :class="{ active: game.closedTargetDisplay === opt.value }"
-              @click="gameStore.setClosedTargetDisplay(opt.value); showAllScores = false">{{ opt.label }}</button>
+              class="ct-display-btn" :class="{ active: effectiveClosedTargetDisplay === opt.value }"
+              @click="setClosedTargetDisplay(opt.value); showAllScores = false">{{ opt.label }}</button>
           </div>
           <button v-ripple class="btn btn-sm btn-surface" @click="showAddPlayer = !showAddPlayer">+ Add</button>
           <button v-ripple class="btn btn-sm btn-surface close-scores-btn" @click="showAllScores = false">✕</button>
@@ -779,6 +779,21 @@ const currentPlayer = computed(() => {
 })
 const otherPlayers = computed(() => game.value!.players.filter(p => p.id !== currentPlayer.value.id))
 
+/** Per-player cricket target display wins over the game setting; null = follow the game.
+ *  The player field was saved and synced but never read, so a per-player Hide did nothing. */
+const effectiveClosedTargetDisplay = computed<'show' | 'hide'>(
+  () => currentPlayer.value.cricketTargetDisplay ?? game.value!.closedTargetDisplay
+)
+
+/** The in-game Normal/Hide control has to beat an override, or it silently does nothing
+ *  for whoever is throwing — so it clears that player's override as it sets the game value. */
+function setClosedTargetDisplay(val: 'show' | 'hide') {
+  gameStore.setClosedTargetDisplay(val)
+  if (currentPlayer.value.cricketTargetDisplay !== null) {
+    playersStore.updatePlayer(currentPlayer.value.id, { cricketTargetDisplay: null })
+  }
+}
+
 const upNext = computed(() => {
   if (!game.value) return []
   const { players, currentPlayerIndex } = game.value
@@ -1166,7 +1181,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 </script>
 
 <style scoped>
-.game { display: flex; flex-direction: column; width: 100vw; height: 100dvh; overflow: hidden; position: relative; }
+.game { display: flex; flex-direction: column; width: 100%; height: 100dvh; overflow: hidden; position: relative; }
 .game-body { flex: 1; display: flex; flex-direction: row; overflow: hidden; min-height: 0; }
 
 /* Entry panel */
@@ -1505,7 +1520,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .score-reveal-enter-from, .score-reveal-leave-to { opacity: 0; }
 
 /* Misc */
-.no-game { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; width: 100vw; height: 100dvh; }
+.no-game { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; width: 100%; height: 100dvh; }
 .confirm-card { background: #1a1a1a; min-width: 300px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; }
 .confirm-card .q-card-actions { padding: 12px 16px 16px; gap: 10px; }
 
