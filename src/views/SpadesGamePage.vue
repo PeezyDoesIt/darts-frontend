@@ -41,12 +41,19 @@
       <template v-else-if="game.phase === 'bidding'">
         <div class="seat-strip">
           <span class="ss-name" :style="{ color: seated.color }">{{ seated.name }}</span>
-          <span class="ss-note">how many tricks?</span>
+          <span class="ss-note">{{ seatedIsBot ? 'is bidding…' : 'how many tricks?' }}</span>
         </div>
-        <div class="hand-row">
+        <!-- A bot's hand is never rendered — showing it would hand the table its cards. -->
+        <div v-if="seatedIsBot" class="bot-thinking">
+          <div class="hand-row">
+            <PlayingCard v-for="i in 13" :key="i" :card="{ kind: 'joker', joker: 'big' }" :width="cardWidth" faceDown />
+          </div>
+          <span class="bt-note">{{ seated.name }} is looking at their hand</span>
+        </div>
+        <div v-else class="hand-row">
           <PlayingCard v-for="c in sortedHand" :key="cardId(c)" :card="c" :width="cardWidth" />
         </div>
-        <div class="bid-grid">
+        <div v-if="!seatedIsBot" class="bid-grid">
           <button
             v-for="n in 14"
             :key="n - 1"
@@ -85,9 +92,20 @@
         <template v-if="game.phase === 'playing'">
           <div class="seat-strip">
             <span class="ss-name" :style="{ color: seated.color }">{{ seated.name }}</span>
-            <span class="ss-note">{{ legalCount }} playable</span>
+            <span class="ss-note">{{ seatedIsBot ? 'is thinking…' : `${legalCount} playable` }}</span>
           </div>
-          <div class="hand-row">
+          <div v-if="seatedIsBot" class="bot-thinking">
+            <div class="hand-row">
+              <PlayingCard
+                v-for="i in (game.hands[game.turnIndex]?.length ?? 0)"
+                :key="i"
+                :card="{ kind: 'joker', joker: 'big' }"
+                :width="cardWidth"
+                faceDown
+              />
+            </div>
+          </div>
+          <div v-else class="hand-row">
             <PlayingCard
               v-for="c in sortedHand"
               :key="cardId(c)"
@@ -145,7 +163,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import PlayingCard from '../components/PlayingCard.vue'
 import { useSpadesStore, teamOf } from '../stores/spades'
@@ -232,6 +250,36 @@ function finish() {
 }
 
 function quit() { spades.endGame(); goBack(router, '/') }
+
+/**
+ * Bots decide in microseconds, which reads as cards teleporting onto the table. The delay
+ * is purely so a person can follow what happened — it is not compute time.
+ */
+const BOT_THINK_MS = 700
+let botTimer: ReturnType<typeof setTimeout> | null = null
+
+function scheduleBot() {
+  if (botTimer !== null) { clearTimeout(botTimer); botTimer = null }
+  if (!spades.isBotTurn()) return
+  botTimer = setTimeout(() => {
+    botTimer = null
+    // Re-check on fire: the player may have quit or the game ended while we waited.
+    if (spades.isBotTurn()) spades.botAct()
+  }, BOT_THINK_MS)
+}
+
+// Watch the seat and phase together — a bot bidding then playing from the same seat is two
+// separate turns, and watching the seat alone would miss the second.
+watch(
+  () => [game.value?.turnIndex, game.value?.phase] as const,
+  () => scheduleBot(),
+  { immediate: true }
+)
+
+onUnmounted(() => { if (botTimer !== null) clearTimeout(botTimer) })
+
+/** Whether the seated player is a bot, so the board can say so instead of prompting. */
+const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.isBot)
 </script>
 
 <style scoped>
@@ -285,6 +333,9 @@ function quit() { spades.endGame(); goBack(router, '/') }
   display: flex; gap: 5px; overflow-x: auto; overflow-y: hidden; padding: 12px 2px 14px;
   -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
 }
+
+.bot-thinking { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bt-note { font-size: 12px; color: var(--text-muted); }
 
 .bid-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .bid-btn {

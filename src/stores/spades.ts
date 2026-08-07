@@ -5,13 +5,23 @@ import {
   HAND_SIZE, PLAYER_COUNT, WINNING_SCORE, applyBagPenalty, cardId, deal,
   effectiveSuit, legalPlays, scoreSide, sortHand, trickWinner, type Card, type Suit,
 } from '../lib/spades'
+import { chooseBid, chooseCard } from '../lib/spadesBot'
 import type { Player } from '../types/index'
+
+/**
+ * A seat filled by the computer rather than a person. The flag is explicit rather than
+ * inferred from a missing field, so adding a field to either shape can never silently
+ * turn a bot into a human or the reverse.
+ */
+export interface BotSeat { id: string; name: string; color: string; isBot: true }
 
 export interface SpadesPlayer {
   id: string
   name: string
   avatarUrl: string | null
   color: string
+  /** Bot seats never get a privacy screen — there is nobody to hide the hand from. */
+  isBot: boolean
 }
 
 /** Seats 0 and 2 are one side, 1 and 3 the other — partners sit opposite. */
@@ -77,13 +87,22 @@ export const useSpadesStore = defineStore('spades', () => {
     } catch {}
   }
 
-  function startGame(players: Player[]) {
-    if (players.length !== PLAYER_COUNT) return
+  /**
+   * `seats` is the table in seat order. A string entry names a bot; a Player is a person.
+   * Order matters — seats 0 and 2 are partners, so mixing humans and bots changes who is
+   * playing with whom.
+   */
+  function startGame(seats: (Player | BotSeat)[]) {
+    if (seats.length !== PLAYER_COUNT) return
     game.value = {
       id: uuid(),
       startedAt: new Date().toISOString(),
-      players: players.map(p => ({
-        id: p.id, name: p.name, avatarUrl: p.avatarUrl, color: p.color,
+      players: seats.map(p => ({
+        id: p.id,
+        name: p.name,
+        avatarUrl: 'isBot' in p ? null : p.avatarUrl,
+        color: p.color,
+        isBot: 'isBot' in p,
       })),
       hands: deal(),
       dealerIndex: 0,
@@ -102,7 +121,57 @@ export const useSpadesStore = defineStore('spades', () => {
       lastTrickWinnerSeat: null,
       lastHandSummary: '',
     }
+    // Send the first seat through the same hand-off, so a bot dealt the opening bid does
+    // not sit behind a "pass the device" screen nobody can dismiss meaningfully.
+    handOffTo(1 % PLAYER_COUNT)
     persist()
+  }
+
+  /**
+   * Move the turn to `seat`. A human gets the privacy screen; a bot goes straight to its
+   * action phase, because there is nobody to hide the hand from and a "pass the device to
+   * Ada" screen would be nonsense.
+   */
+  function handOffTo(seat: number) {
+    const g = game.value
+    if (!g) return
+    g.turnIndex = seat
+    const actionPhase = g.bids.some(b => b === null) ? 'bidding' : 'playing'
+    g.phase = g.players[seat]?.isBot ? actionPhase : 'pass'
+  }
+
+  /** True when the store is waiting on a bot rather than a person. */
+  function isBotTurn(): boolean {
+    const g = game.value
+    if (!g) return false
+    if (g.phase !== 'bidding' && g.phase !== 'playing') return false
+    return !!g.players[g.turnIndex]?.isBot
+  }
+
+  /**
+   * Play one bot decision. Deliberately a single step rather than a loop, so the view can
+   * pace the seats and the player can see what happened.
+   */
+  function botAct() {
+    const g = game.value
+    if (!g || !isBotTurn()) return
+    const seat = g.turnIndex
+    const hand = g.hands[seat] ?? []
+    if (hand.length === 0 && g.phase === 'playing') return
+
+    if (g.phase === 'bidding') {
+      placeBid(chooseBid(hand))
+      return
+    }
+    const partnerSeat = (seat + 2) % PLAYER_COUNT
+    playCard(chooseCard(hand, {
+      trick: g.currentTrick,
+      seat,
+      partnerSeat,
+      spadesBroken: g.spadesBroken,
+      myBid: g.bids[seat] ?? null,
+      partnerBid: g.bids[partnerSeat] ?? null,
+    }))
   }
 
   /** Leave the privacy screen and let the seated player act. */
@@ -127,16 +196,14 @@ export const useSpadesStore = defineStore('spades', () => {
     if (bid < 0 || bid > HAND_SIZE) return
 
     g.bids[g.turnIndex] = bid
-    const next = (g.turnIndex + 1) % PLAYER_COUNT
 
     if (g.bids.some(b => b === null)) {
-      g.turnIndex = next
-      g.phase = 'pass'
+      handOffTo((g.turnIndex + 1) % PLAYER_COUNT)
     } else {
       // Everyone has bid — play starts left of the dealer.
-      g.turnIndex = (g.dealerIndex + 1) % PLAYER_COUNT
-      g.leadSeat = g.turnIndex
-      g.phase = 'pass'
+      const first = (g.dealerIndex + 1) % PLAYER_COUNT
+      g.leadSeat = first
+      handOffTo(first)
     }
     persist()
   }
@@ -167,8 +234,7 @@ export const useSpadesStore = defineStore('spades', () => {
     g.currentTrick.push({ seat: g.turnIndex, card })
 
     if (g.currentTrick.length < PLAYER_COUNT) {
-      g.turnIndex = (g.turnIndex + 1) % PLAYER_COUNT
-      g.phase = 'pass'
+      handOffTo((g.turnIndex + 1) % PLAYER_COUNT)
       persist()
       return
     }
@@ -192,9 +258,9 @@ export const useSpadesStore = defineStore('spades', () => {
     const played = g.tricksWon.reduce((a, b) => a + b, 0)
     if (played >= HAND_SIZE) { scoreHand(); return }
 
-    g.turnIndex = g.lastTrickWinnerSeat ?? g.leadSeat
-    g.leadSeat = g.turnIndex
-    g.phase = 'pass'
+    const lead = g.lastTrickWinnerSeat ?? g.leadSeat
+    g.leadSeat = lead
+    handOffTo(lead)
     persist()
   }
 
@@ -244,15 +310,16 @@ export const useSpadesStore = defineStore('spades', () => {
     if (!g || g.phase !== 'hand_over') return
     g.hands = deal()
     g.dealerIndex = (g.dealerIndex + 1) % PLAYER_COUNT
-    g.turnIndex = (g.dealerIndex + 1) % PLAYER_COUNT
-    g.leadSeat = g.turnIndex
     g.bids = Array(PLAYER_COUNT).fill(null)
     g.tricksWon = Array(PLAYER_COUNT).fill(0)
     g.currentTrick = []
     g.spadesBroken = false
     g.lastTrickWinnerSeat = null
     g.handNumber++
-    g.phase = 'pass'
+    // Bids are cleared first so handOffTo sends a bot straight into bidding, not playing.
+    const first = (g.dealerIndex + 1) % PLAYER_COUNT
+    g.leadSeat = first
+    handOffTo(first)
     persist()
   }
 
@@ -265,6 +332,6 @@ export const useSpadesStore = defineStore('spades', () => {
 
   return {
     game, startGame, reveal, conceal, placeBid, playCard, nextTrick, nextHand, endGame,
-    legalForCurrent, isLegal, sortHand,
+    legalForCurrent, isLegal, sortHand, isBotTurn, botAct,
   }
 })
