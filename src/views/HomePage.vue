@@ -389,7 +389,17 @@
             <div v-if="settingsStore.quietNarrator" class="settings-muted scope-hint">
               Personality only shapes commentary — it has no effect while “Names only” is on.
             </div>
-            <div v-if="!settingsStore.cleanMode" class="personality-grid" :class="{ 'grid-dim': settingsStore.quietNarrator }">
+            <!--
+              The grid used to be hidden whenever Clean Mode was on, and Clean Mode is on by
+              default — so out of the box there was no way to reach any of the six styles, and
+              the panel outside still named the one you were stuck with. Clean lines are
+              written per personality, so the two settings are independent.
+            -->
+            <div v-else-if="settingsStore.cleanMode" class="settings-muted scope-hint">
+              Clean mode has its own take on each style — a few share wording where no clean
+              voice has been written yet.
+            </div>
+            <div class="personality-grid" :class="{ 'grid-dim': settingsStore.quietNarrator }">
               <button
                 v-for="per in PERSONALITIES" :key="per.value"
                 class="personality-btn"
@@ -1238,7 +1248,12 @@ function previewBullseyeSound(value: string) {
 .scope-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
 .scope-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.12); }
 .scope-hint { color: rgba(255,255,255,0.5); font-size: 13px; }
-.grid-dim { opacity: 0.4; pointer-events: none; }
+/* De-emphasised while "Names only" makes personality inert, but still selectable — the
+   choice persists and takes effect the moment commentary is switched back on. It used to
+   also set pointer-events: none, which left six styles on screen that could not be tapped
+   and no indication that another setting was the reason. The hint above says so instead.
+   0.4 was also too faint to read against the panel once it stopped being a disabled state. */
+.grid-dim { opacity: 0.6; }
 
 /* ── Settings modal (unchanged from the shipped panel) ── */
 .settings-overlay {
