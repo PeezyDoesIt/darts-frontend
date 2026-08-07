@@ -1,11 +1,15 @@
-name: Deploy to Cloudflare Pages
+name: CI
 
+# Runs on pull requests as well as pushes to main, so a broken change is caught before it
+# merges rather than after. The deploy job is gated to main pushes — a pull request runs
+# every check but must never ship.
 on:
   push:
     branches: [main]
+  pull_request:
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,11 +21,24 @@ jobs:
 
       - run: npm ci
 
-      # Nothing used to gate this deploy — a red test suite still shipped. The unit tests
-      # cover scoring and bot logic; the smoke tests are the only thing that checks a game
-      # still boots and can be played in a browser, which is how UI breakage reached prod.
+      # Cheapest checks first, so a typo fails in a minute rather than after a browser
+      # download. Nothing used to gate this deploy at all — a red suite still shipped.
       - run: npm run test:unit
 
+      # `build` is `vue-tsc && vite build`, so this is the typecheck as well as the bundle.
+      #
+      # Vite inlines import.meta.env.VITE_* at BUILD time, and the build runs here — the
+      # Pages project has no Git connection, so Cloudflare only receives an already-built
+      # dist/. A variable set in the Pages dashboard would be a runtime value for Functions
+      # and would never reach this bundle. .env.production is gitignored, so without this
+      # the variable is simply undefined in every deployed build.
+      # Public config, not a secret: this host is already in the API's CORS allowlist.
+      - run: npm run build
+        env:
+          VITE_API_URL: https://api.peezydoesit.net
+
+      # The unit suite covers scoring and bot logic as pure functions. These are the only
+      # tests that check a game still boots and can be played in a browser.
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
 
@@ -33,15 +50,27 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
-      # Vite inlines import.meta.env.VITE_* at BUILD time, and the build runs here — the
-      # Pages project has no Git connection, so Cloudflare only receives an already-built
-      # dist/. A variable set in the Pages dashboard would be a runtime value for Functions
-      # and would never reach this bundle. .env.production is gitignored, so without this
-      # the variable is simply undefined in every deployed build.
-      # Public config, not a secret: this host is already in the API's CORS allowlist.
-      - run: npm run build
-        env:
-          VITE_API_URL: https://api.peezydoesit.net
+      # Hand the tested bundle to the deploy job rather than rebuilding it there, so what
+      # ships is the exact artifact these checks ran against.
+      - name: Upload built site
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 1
+
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download built site
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
