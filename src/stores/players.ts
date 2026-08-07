@@ -72,7 +72,7 @@ export const usePlayersStore = defineStore('players', () => {
           playerBackgroundSize: p.playerBackgroundSize ?? null,
           playerBackgroundPosition: p.playerBackgroundPosition ?? null,
           playerBackgroundFill: p.playerBackgroundFill ?? null,
-          cricketTargetDisplay: p.cricketTargetDisplay == null ? 'hide' : p.cricketTargetDisplay,
+          cricketTargetDisplay: p.cricketTargetDisplay ?? null,
           pinned: p.pinned ?? true,
           targetLabelColor: p.targetLabelColor ?? null,
           diceTheme: p.diceTheme ?? null,
