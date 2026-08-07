@@ -48,7 +48,14 @@ export const DIE_GRADIENTS: Record<string, string> = {
 export type Player = {
   id: string
   name: string
+  /**
+   * What to render right now: an emoji, a data URL while signed out, or a signed URL from
+   * Storage. A signed URL expires, so this is display state — `avatarPath` is the durable
+   * reference to the actual image.
+   */
   avatarUrl: string | null
+  /** Path in the private avatars bucket, once the photo has been uploaded. */
+  avatarPath?: string | null
   color: string
   playerBackground: string | null
   playerBackgroundSize: 'cover' | 'contain' | null

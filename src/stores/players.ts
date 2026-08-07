@@ -3,6 +3,9 @@ import { ref } from 'vue'
 import { v4 as uuid } from 'uuid'
 import type { Player } from '../types/index'
 import { supabase } from '../lib/supabase'
+import {
+  deleteAvatar, isDataUrl, isRemoteUrl, signAvatars, uploadAvatar,
+} from '../api/avatarStorage'
 
 // The old seed shipped 'brannon-default' with a fabricated 100 wins / 100 games.
 // Those counters sync to Postgres on the first real game, so the fake baseline has to be
@@ -143,9 +146,46 @@ export const usePlayersStore = defineStore('players', () => {
     fireWrite('addPlayer', async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) return { error: null }
-      return await supabase.from('players').upsert(playerToDb(player, session.user.id))
+      // Upload before the row is written so avatar_path is set on the first insert rather
+      // than needing a follow-up update.
+      await offloadPhoto(player.id)
+      const saved = players.value.find(p => p.id === player.id) ?? player
+      return await supabase.from('players').upsert(playerToDb(saved, session.user.id))
     })
     return player
+  }
+
+  /**
+   * Move a player's inline photo into Storage and swap the local copy for a signed URL.
+   *
+   * This is what takes the megabyte out of localStorage: once the image lives in the
+   * bucket, the roster holds a short URL and a path instead of base64. Silently does
+   * nothing when signed out or when there is no data URL to move, so an offline player
+   * keeps their picture locally and gets it uploaded the next time they sign in.
+   */
+  async function offloadPhoto(id: string): Promise<void> {
+    const player = players.value.find(p => p.id === id)
+    if (!player || !isDataUrl(player.avatarUrl)) return
+
+    const result = await uploadAvatar(player.id, player.avatarUrl!)
+    if (!result) return
+
+    const idx = players.value.findIndex(p => p.id === id)
+    if (idx === -1) return
+    players.value[idx] = {
+      ...players.value[idx]!,
+      avatarPath: result.path,
+      // Only drop the data URL once a signed URL replaces it — otherwise a signing failure
+      // would leave the player with no picture at all.
+      avatarUrl: result.signedUrl ?? players.value[idx]!.avatarUrl,
+    }
+    persist()
+  }
+
+  /** Upload any photo still held inline. Runs after sign-in, when uploads become possible. */
+  async function offloadPendingPhotos(): Promise<void> {
+    const pending = players.value.filter(p => isDataUrl(p.avatarUrl)).map(p => p.id)
+    for (const id of pending) await offloadPhoto(id)
   }
 
   function updatePlayer(id: string, data: Partial<Omit<Player, 'id' | 'createdAt'>>) {
@@ -154,10 +194,14 @@ export const usePlayersStore = defineStore('players', () => {
       // Stamped on every local edit — this is what lets sync tell which side is newer.
       players.value[idx] = { ...players.value[idx]!, ...data, updatedAt: new Date().toISOString() }
       persist()
-      const updated = players.value[idx]!
       fireWrite('updatePlayer', async () => {
         const { data: { session } } = await supabase.auth.getSession()
         if (!session) return { error: null }
+        // A newly attached photo has to reach Storage before the row is written, or
+        // avatar_path would stay null and the picture would never leave this device.
+        await offloadPhoto(id)
+        const updated = players.value.find(p => p.id === id)
+        if (!updated) return { error: null }
         return await supabase.from('players').upsert(playerToDb(updated, session.user.id))
       })
     }
@@ -177,11 +221,15 @@ export const usePlayersStore = defineStore('players', () => {
   }
 
   function deletePlayer(id: string) {
+    const removed = players.value.find(p => p.id === id)
     players.value = players.value.filter(p => p.id !== id)
     persist()
     fireWrite('deletePlayer', async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) return { error: null }
+      // Remove the image too, otherwise deleting a player leaves an orphaned object that
+      // nothing will ever reference or clean up.
+      if (removed?.avatarPath) await deleteAvatar(removed.avatarPath)
       return await supabase.from('players').delete().eq('id', id)
     })
   }
@@ -192,7 +240,10 @@ export const usePlayersStore = defineStore('players', () => {
       user_id: userId,
       name: p.name,
       color: p.color,
-      avatar_url: p.avatarUrl,
+      // A signed URL is short-lived, so never persist one — it would be dead by the time
+      // another device read it. Only stable values go to the column.
+      avatar_url: isRemoteUrl(p.avatarUrl) || isDataUrl(p.avatarUrl) ? null : p.avatarUrl,
+      avatar_path: p.avatarPath ?? null,
       player_background: p.playerBackground,
       player_background_size: p.playerBackgroundSize,
       player_background_position: p.playerBackgroundPosition,
@@ -214,6 +265,7 @@ export const usePlayersStore = defineStore('players', () => {
       name: row.name as string,
       color: row.color as string,
       avatarUrl: (row.avatar_url as string | null) ?? null,
+      avatarPath: (row.avatar_path as string | null) ?? null,
       playerBackground: (row.player_background as string | null) ?? null,
       playerBackgroundSize: (row.player_background_size as 'cover' | 'contain' | null) ?? null,
       playerBackgroundPosition: (row.player_background_position as 'top' | 'center' | 'bottom' | null) ?? null,
@@ -270,14 +322,33 @@ export const usePlayersStore = defineStore('players', () => {
     players.value = merged
     persist()
 
+    // Turn stored paths into URLs an <img> can actually render. Signed URLs expire, so this
+    // has to happen on every sync rather than relying on whatever was saved last time.
+    // Batched into one request so a table of players is not one round trip each.
+    const toSign = merged.filter(p => p.avatarPath).map(p => p.avatarPath!)
+    if (toSign.length > 0) {
+      const signed = await signAvatars(toSign)
+      players.value = players.value.map(p =>
+        p.avatarPath && signed[p.avatarPath] ? { ...p, avatarUrl: signed[p.avatarPath]! } : p
+      )
+      persist()
+    }
+
     // Push anything where local was newer, plus players the cloud has never seen
     for (const p of needPush) {
       const { error: pushError } = await supabase.from('players').upsert(playerToDb(p, session.user.id))
       if (pushError) console.warn('[players] syncFromCloud push failed for', p.name, pushError)
     }
+
+    // Anything still held inline is a photo taken while signed out — now that there is a
+    // session, move it up so it survives this device.
+    await offloadPendingPhotos()
   }
 
   loadFromStorage()
 
-  return { players, storageDegraded, addPlayer, updatePlayer, deletePlayer, recordWin, recordGame, syncFromCloud }
+  return {
+    players, storageDegraded, addPlayer, updatePlayer, deletePlayer, recordWin, recordGame,
+    syncFromCloud, offloadPendingPhotos,
+  }
 })
