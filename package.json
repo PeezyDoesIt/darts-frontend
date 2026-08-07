@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "check:routing": "node scripts/check-routing.mjs",
     "test:unit": "vitest run",
     "lint": "eslint ."
   },

@@ -59,12 +59,77 @@ jobs:
           path: dist/
           retention-days: 1
 
+  # `_redirects` is Cloudflare-specific — vite dev and vite preview both ignore it — so SPA
+  # fallback and asset serving are only real once deployed. Giving every pull request its own
+  # throwaway Pages deployment is the only way to check that layer before production sees it.
+  # Adding a root 404.html once silently overrode the SPA catch-all and 404'd every
+  # client-side route; nothing in CI could have caught it, because nothing was deployed.
+  preview:
+    needs: test
+    # Forked pull requests get no secrets, so the deploy would fail rather than be skipped.
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Download built site
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      # Any branch other than the project's production branch deploys as a preview, on its
+      # own hostname. Production is untouched.
+      - name: Deploy preview to Cloudflare Pages
+        id: preview
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: c3d520e44678d984986f2145363abe64
+          command: pages deploy dist --project-name=darts-frontend --branch=${{ github.head_ref }}
+
+      - name: Check routing on the preview
+        run: node scripts/check-routing.mjs "${{ steps.preview.outputs.deployment-url }}"
+
+      - name: Comment the preview URL on the pull request
+        uses: actions/github-script@v7
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.deployment-url }}
+        with:
+          script: |
+            const marker = '<!-- pages-preview -->'
+            const body = `${marker}\n**Preview:** ${process.env.PREVIEW_URL}\n\n`
+              + 'Routing checks passed against this deployment — SPA deep links serve the app '
+              + 'shell, and every referenced asset serves with its real content type.'
+            const { owner, repo } = context.repo
+            const issue_number = context.issue.number
+            const existing = (await github.rest.issues.listComments({ owner, repo, issue_number }))
+              .data.find(c => c.body?.includes(marker))
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body })
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body })
+            }
+
   deploy:
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
       - name: Download built site
         uses: actions/download-artifact@v4
@@ -78,3 +143,8 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: c3d520e44678d984986f2145363abe64
           command: pages deploy dist --project-name=darts-frontend --branch=main
+
+      # Production is already live by this point, so this cannot prevent a bad deploy — but a
+      # red build beats finding out from a user that every deep link 404s.
+      - name: Check routing on production
+        run: node scripts/check-routing.mjs https://peezydoesit.net
