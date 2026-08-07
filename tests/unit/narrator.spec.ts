@@ -1,0 +1,159 @@
+import { describe, expect, it } from 'vitest'
+import {
+  PERSONALITIES, isCommentary, linesFor, missingCleanVariants, type NarratorEvent,
+} from '@/lib/narrator'
+
+const ctx = { name: 'Alice', prevName: 'Bob', term: 'baby' }
+const loud = { cleanMode: false, quietNarrator: false }
+const clean = { cleanMode: true, quietNarrator: false }
+const quiet = { cleanMode: false, quietNarrator: true }
+
+const flat = (out: string[][]) => out.flat().join(' ')
+
+const ALL_EVENTS: NarratorEvent[] = [
+  'walkUp', 'bonusTurn', 'zeroRoast', 'timeout', 'hurryUp',
+  'twentySecondWalkUp', 'twentySecondThrow', 'throwNudge', 'win',
+]
+
+/**
+ * "Names only" advertises "Only announces whose turn it is — no commentary" and delivered
+ * none of that outside the walk-up screen: GamePage never consulted the setting, so nudges,
+ * warnings and roasts all played straight through it.
+ */
+describe('Names only', () => {
+  it('silences every commentary event', () => {
+    for (const event of ALL_EVENTS) {
+      if (!isCommentary(event)) continue
+      for (const p of PERSONALITIES) {
+        expect(linesFor(event, p, quiet, ctx), `${event}/${p}`).toEqual([])
+      }
+    }
+  })
+
+  it('still says whose turn it is', () => {
+    for (const p of PERSONALITIES) {
+      expect(linesFor('walkUp', p, quiet, ctx).length).toBeGreaterThan(0)
+      expect(flat(linesFor('walkUp', p, quiet, ctx))).toContain('Alice')
+    }
+  })
+
+  it('still announces a bonus throw and a win, which are not commentary', () => {
+    expect(linesFor('bonusTurn', 'hype', quiet, ctx)).not.toEqual([])
+    expect(linesFor('win', 'hype', quiet, ctx)).not.toEqual([])
+  })
+
+  it('silences the zero roast, which is commentary however the mode is read', () => {
+    // this previously fired even in quiet mode
+    expect(linesFor('zeroRoast', 'savage', quiet, ctx)).toEqual([])
+  })
+})
+
+/**
+ * Clean mode is ON by default, and savage had no clean variant, so it fell through to the
+ * bare player name — a new user choosing savage effectively got no narrator at all.
+ */
+describe('Clean mode', () => {
+  it('never reduces a personality to just the bare name', () => {
+    for (const p of PERSONALITIES) {
+      const said = flat(linesFor('walkUp', p, clean, ctx))
+
+      expect(said.trim()).not.toBe('Alice')
+      expect(said.length).toBeGreaterThan('Alice'.length + 3)
+    }
+  })
+
+  it('gives savage a real clean line rather than silence', () => {
+    const said = linesFor('walkUp', 'savage', clean, ctx)
+
+    expect(said).not.toEqual([])
+    expect(flat(said)).toContain('Alice')
+  })
+
+  it('produces something for every personality and every event', () => {
+    for (const event of ALL_EVENTS) {
+      for (const p of PERSONALITIES) {
+        expect(linesFor(event, p, clean, ctx), `${event}/${p}`).not.toEqual([])
+      }
+    }
+  })
+
+  it('keeps profanity out of the default voice', () => {
+    // the default voice is the crude one, and clean mode is what holds it back
+    const dirty = flat(linesFor('zeroRoast', 'default', loud, ctx))
+    const scrubbed = flat(linesFor('zeroRoast', 'default', clean, ctx))
+
+    expect(dirty).toMatch(/fuck|shit/i)
+    expect(scrubbed).not.toMatch(/fuck|shit/i)
+  })
+
+  it('keeps profanity out of every clean line', () => {
+    for (const event of ALL_EVENTS) {
+      for (const p of PERSONALITIES) {
+        expect(flat(linesFor(event, p, clean, ctx)), `${event}/${p}`).not.toMatch(/fuck|shit|ass\b/i)
+      }
+    }
+  })
+})
+
+describe('personality', () => {
+  it('gives each personality a distinct walk-up line', () => {
+    const said = PERSONALITIES.map(p => flat(linesFor('walkUp', p, loud, ctx)))
+
+    expect(new Set(said).size).toBe(PERSONALITIES.length)
+  })
+
+  it('names the player in every line of every event', () => {
+    for (const event of ALL_EVENTS) {
+      for (const p of PERSONALITIES) {
+        const said = flat(linesFor(event, p, loud, { ...ctx, count: 0 }))
+        // timeout talks about the player who just left, not the one arriving
+        const expected = event === 'timeout' ? 'Bob' : 'Alice'
+        if (event === 'zeroRoast') continue   // the roast is about the throw, not the name
+        expect(said, `${event}/${p}`).toContain(expected)
+      }
+    }
+  })
+
+  it('escalates a repeated timeout with an extra line', () => {
+    for (const p of PERSONALITIES) {
+      const first = linesFor('timeout', p, loud, { ...ctx, count: 0 })
+      const again = linesFor('timeout', p, loud, { ...ctx, count: 3 })
+
+      expect(again.length, p).toBeGreaterThan(first.length)
+    }
+  })
+
+  it('escalates a repeated hurry-up to different wording', () => {
+    const first = flat(linesFor('hurryUp', 'savage', loud, { ...ctx, count: 0 }))
+    const again = flat(linesFor('hurryUp', 'savage', loud, { ...ctx, count: 1 }))
+
+    expect(again).not.toBe(first)
+  })
+
+  it('falls back to the default voice for an unwritten personality', () => {
+    // throwNudge has no per-personality lines; every voice should still say something
+    for (const p of PERSONALITIES) {
+      expect(linesFor('throwNudge', p, loud, ctx)).not.toEqual([])
+    }
+  })
+})
+
+describe('missingCleanVariants', () => {
+  it('reports savage as having no clean walk-up of its own', () => {
+    const gaps = missingCleanVariants()
+
+    expect(gaps).toContainEqual({ event: 'walkUp', personality: 'savage' })
+  })
+
+  it('does not report personalities that do have one', () => {
+    const gaps = missingCleanVariants()
+
+    expect(gaps).not.toContainEqual({ event: 'walkUp', personality: 'hype' })
+  })
+
+  it('is a worklist, not an error — every gap still speaks a neutral line', () => {
+    for (const { event, personality } of missingCleanVariants()) {
+      expect(linesFor(event, personality, clean, ctx), `${event}/${personality}`).not.toEqual([])
+    }
+  })
+})

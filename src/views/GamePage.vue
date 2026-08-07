@@ -618,6 +618,8 @@ import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
 import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore, type CricketTarget } from '../types/index'
 import { speak } from '../composables/useSpeech'
+import { useNarrator } from '../composables/useNarrator'
+import type { LineContext, NarratorEvent } from '../lib/narrator'
 import { playThemedTick, playBombBeep, playGameShowBuzzer, playTurnStartTone, playTurnResultSound, unlockAudio } from '../composables/useSounds'
 
 const WHITE_LABEL_THEMES = new Set<string | null>(
@@ -646,8 +648,18 @@ const router = useRouter()
 const gameStore = useGameStore()
 const playersStore = usePlayersStore()
 const settingsStore = useSettingsStore()
+const { narrateAsync } = useNarrator()
 
 function pTerm() { return settingsStore.narratorGender === 'male' ? 'brother' : 'baby' }
+
+/**
+ * Speak one narrator event. The view no longer decides what a personality sounds like or
+ * whether an event survives "Names only" — that lives in the line module, which is what
+ * this page previously bypassed entirely.
+ */
+function narrate(event: NarratorEvent, extra: Partial<LineContext> = {}) {
+  narrateAsync(event, { name: currentPlayer.value?.name ?? '', ...extra })
+}
 
 const game = computed(() => gameStore.game)
 const confirmQuit = ref(false)
@@ -1085,30 +1097,15 @@ function startThrowTimer() {
     throwTimeLeft.value--
     if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 5) playBombBeep()
     const half = Math.floor(throwTimerDuration.value / 2)
-    if (throwTimeLeft.value === half && half > 30 && !settingsStore.cleanMode) speak(`${currentPlayer.value.name}, it's your turn`)
-    if (throwTimeLeft.value === 20 && settingsStore.announceThrowAt20 && !settingsStore.cleanMode) {
-      const p = settingsStore.narratorPersonality; const n = currentPlayer.value.name
-      const line = p === 'hype'      ? `${n}, twenty seconds! Let's MOVE!`
-                 : p === 'savage'    ? `${n}. Shoot.`
-                 : p === 'announcer' ? `${n}, twenty seconds remaining in this turn!`
-                 : p === 'sarcastic' ? `${n}, twenty seconds. Not that it seems to matter.`
-                 : p === 'smooth'    ? `${n}, about twenty seconds left, ${pTerm()}.`
-                 : `${n}, you need to shoot.`
-      speak(line)
-    }
-    if (throwTimeLeft.value <= 30 && !throwHurryUpSaid && !settingsStore.cleanMode) {
+    // These three all used to be gated on cleanMode alone and never consulted
+    // quietNarrator, which is why "Names only" silenced nothing once play started.
+    if (throwTimeLeft.value === half && half > 30) narrate('throwNudge')
+    if (throwTimeLeft.value === 20 && settingsStore.announceThrowAt20) narrate('twentySecondThrow')
+    if (throwTimeLeft.value <= 30 && !throwHurryUpSaid) {
       throwHurryUpSaid = true
       const hurryCount = gameStore.playerHurryUpCounts[currentPlayer.value.id] ?? 0
       gameStore.recordHurryUp(currentPlayer.value.id)
-      const name = currentPlayer.value.name
-      const p = settingsStore.narratorPersonality
-      const line = p === 'hype'      ? (hurryCount > 0 ? `${name}! I SAID let's GO! Move it!`                                             : `${name}! Hurry UP! We're all waiting!`)
-                 : p === 'savage'    ? (hurryCount > 0 ? `${name}. I won't ask again.`                                                    : `${name}. Hurry up.`)
-                 : p === 'announcer' ? (hurryCount > 0 ? `${name}, please step up to the line immediately!`                               : `Officials are urging ${name} to take their position!`)
-                 : p === 'sarcastic' ? (hurryCount > 0 ? `${name}. We're all just waiting here. No rush. Seriously.`                     : `${name}. Any day now.`)
-                 : p === 'smooth'    ? (hurryCount > 0 ? `${name}. Let's go, ${pTerm()}. Clock's moving.`                                : `${name}, whenever you're ready, ${pTerm()}.`)
-                 : (hurryCount > 0 ? `${name}. Hurry the fuck up. This is why nobody wants to play darts with you.` : `${name}. Hurry the fuck up. It's your turn.`)
-      speak(line)
+      narrate('hurryUp', { count: hurryCount })
     }
     if (throwTimeLeft.value <= 0) {
       clearThrowTimer()
@@ -1195,14 +1192,7 @@ onMounted(() => {
   // Announce the first player — BetweenTurnsPage handles turns 2+ but never runs for turn 1
   if (game.value && game.value.round === 1 && game.value.currentPlayerIndex === 0) {
     const name = game.value.players[0]?.name ?? ''
-    const p = settingsStore.narratorPersonality
-    const line = p === 'hype'      ? `LET'S GO! ${name}, get up here — it's your time!`
-               : p === 'savage'    ? `${name}. Get up there.`
-               : p === 'announcer' ? `Now stepping up to the oche — ${name}! The crowd falls silent.`
-               : p === 'sarcastic' ? `${name} — it's your turn. Try not to embarrass yourself.`
-               : p === 'smooth'    ? `Alright ${name}, it's your turn. Make it smooth.`
-               : `${name} — it's your turn.`
-    setTimeout(() => speak(line), 300)
+    setTimeout(() => narrate('walkUp', { name }), 300)
   }
 })
 onUnmounted(() => {

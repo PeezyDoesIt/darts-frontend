@@ -49,12 +49,13 @@ import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
-import { speak } from '../composables/useSpeech'
+import { useNarrator } from '../composables/useNarrator'
 import { recordGameResult } from '../api/gameResults'
 
 const router = useRouter()
 const gameStore = useGameStore()
 const playersStore = usePlayersStore()
+const { narrateAsync } = useNarrator()
 const game = computed(() => gameStore.game)
 const winner = computed(() => game.value?.players.find(p => p.id === game.value!.winnerId) ?? null)
 const finalPlayers = computed(() => {
@@ -79,7 +80,8 @@ onMounted(() => {
     else playersStore.recordGame(p.id)
   }
   if (winner.value) {
-    speak(`${winner.value.name} wins! Well played.`)
+    // Personality-aware now; the win line was hard-coded identically in two views.
+    narrateAsync('win', { name: winner.value.name })
   }
   // Durable record for the leaderboard and time-based stats. Deliberately not awaited:
   // the win screen must render regardless, and the call is idempotent server-side.
