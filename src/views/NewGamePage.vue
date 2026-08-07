@@ -61,6 +61,37 @@
         </div>
       </section>
 
+      <!-- Killer options -->
+      <section v-if="selectedGameType === 'killer'" class="ng-section">
+        <span class="label">Lives each</span>
+        <div class="killer-lives">
+          <button
+            v-for="n in [3, 5, 7]"
+            :key="n"
+            v-ripple
+            class="killer-life-btn"
+            :class="{ active: killerLives === n }"
+            @click="killerLives = n"
+          >{{ n }}</button>
+        </div>
+
+        <div class="toggle-row" @click="killerRequireDouble = !killerRequireDouble">
+          <div class="toggle-track" :class="{ active: killerRequireDouble }">
+            <div class="toggle-thumb" />
+          </div>
+          <div class="toggle-info">
+            <span class="toggle-label">Doubles only</span>
+            <span class="toggle-sub">
+              Harder — only doubles arm you or take a life. Leave off for your first game.
+            </span>
+          </div>
+        </div>
+
+        <ul class="killer-rules">
+          <li v-for="(r, i) in killerRules" :key="i">{{ r }}</li>
+        </ul>
+      </section>
+
       <!-- Walk-up Timer -->
       <section class="ng-section">
         <span class="label">Walk-up Timer</span>
@@ -297,6 +328,7 @@ import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
 import { GAME_TYPE_LABELS, GAME_TYPE_ORDER, PLAYER_THEMES, type GameType, type Player } from '../types/index'
+import { DEFAULT_LIVES as KILLER_DEFAULT_LIVES, rulesFor } from '../lib/killer'
 
 const GAME_TYPE_ROW1: GameType[] = ['cricket', 'speedCricket', 'aroundTheClock', 'killer', 'horse']
 const GAME_TYPE_ROW2: GameType[] = ['301', '501', '701', '1001']
@@ -315,7 +347,7 @@ const GAME_TYPE_DESCRIPTIONS: Record<string, string> = {
   cricket: "Close 15–20 and the bull. Score points on closed numbers your opponents haven't closed.",
   speedCricket: 'Cricket with a shot clock — take too long and lose your turn.',
   aroundTheClock: 'Hit every number 1–20 in sequence. First to finish wins.',
-  killer: 'Earn your number, become a Killer, then knock out other players.',
+  killer: 'Everyone owns a number. Hit yours to arm, then knock the lives off everyone else.',
   horse: "Match each player's shot or pick up a letter. Spell HORSE and you're out.",
   '301': 'Start at 301 and count down to zero. First to zero wins.',
   '501': 'Start at 501 and count down to zero. First to zero wins.',
@@ -377,6 +409,9 @@ const cricketPlayToCompletion = ref(false)
 const cricketHatTrickBonus = ref(false)
 const cricketRoundLimit = ref<number | null>(null)
 const cricketWild = ref(false)
+const killerLives = ref(KILLER_DEFAULT_LIVES)
+const killerRequireDouble = ref(false)
+const killerRules = computed(() => rulesFor(killerRequireDouble.value))
 const skipWalkup = ref(false)
 const closedTargetOptions = [
   { value: 'show'   as const, label: 'Normal',        sub: 'Closed targets stay visible' },
@@ -441,7 +476,7 @@ function startGame() {
   if (selectedPlayers.value.length < 1 || !selectedGameType.value) return
   const t = timerDuration.value
   const tt = throwTimerDuration.value
-  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, cricketRoundLimit.value, gameTheme.value, gameThemeSize.value, gameThemePosition.value, gameThemeFill.value, selectedPlayers.value, skipWalkup.value, gameDuration.value)
+  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, cricketRoundLimit.value, gameTheme.value, gameThemeSize.value, gameThemePosition.value, gameThemeFill.value, selectedPlayers.value, skipWalkup.value, gameDuration.value, killerLives.value, killerRequireDouble.value)
   if (cricketWild.value) gameStore.setWildEnabled(true)
   router.push(skipWalkup.value ? '/game' : '/between')
 }
@@ -728,6 +763,18 @@ function startGame() {
 .ng-wild-section { margin-bottom: 4px; }
 .ng-wild-row { border-color: rgba(255, 180, 0, 0.35) !important; background: rgba(255, 180, 0, 0.06) !important; }
 .ng-wild-row:hover { background: rgba(255, 180, 0, 0.12) !important; }
+
+.killer-lives { display: flex; gap: 8px; }
+.killer-life-btn {
+  flex: 1; min-height: 48px; border-radius: 10px; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12); color: var(--text); font-weight: 800;
+  font-size: 16px; cursor: pointer; font-family: var(--font-display);
+}
+.killer-life-btn.active { background: linear-gradient(135deg, var(--gold), var(--orange)); color: #000; border-color: transparent; }
+.killer-rules {
+  margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px;
+  color: var(--text-muted); font-size: 12.5px; line-height: 1.45;
+}
 .ng-wild-label { color: var(--gold) !important; font-size: 16px; }
 
 /* Advanced toggle */
