@@ -3,11 +3,25 @@ import { ref, watch } from 'vue'
 import { v4 as uuid } from 'uuid'
 import type { ActiveGame, GameType, Player, PlayerScore, CricketTarget } from '../types/index'
 import { CRICKET_TARGETS } from '../types/index'
+import {
+  DEFAULT_LIVES as KILLER_DEFAULT_LIVES, assignNumbers, resolveKillerTurn, survivors,
+  type KillerSeat,
+} from '../lib/killer'
 
 const HORSE_MAX = 5
 
-function initScore(gameType: GameType, players: Player[]): Record<string, PlayerScore> {
+function initScore(
+  gameType: GameType,
+  players: Player[],
+  killerLives: number = KILLER_DEFAULT_LIVES,
+): Record<string, PlayerScore> {
   const scores: Record<string, PlayerScore> = {}
+
+  // Killer needs every player to own a distinct number, so it is assigned for the whole
+  // table at once rather than per player in the loop below.
+  const killerNumbers = gameType === 'killer'
+    ? assignNumbers(players.map(p => p.id))
+    : null
 
   for (const p of players) {
     if (gameType === 'cricket' || gameType === 'cutThroat' || gameType === 'speedCricket') {
@@ -27,6 +41,11 @@ function initScore(gameType: GameType, players: Player[]): Record<string, Player
       scores[p.id] = { kind: 'horse', data: { letters: 0, history: [] } }
     } else if (gameType === 'suddenDeath') {
       scores[p.id] = { kind: 'suddenDeath', data: { total: 0, history: [] } }
+    } else if (gameType === 'killer' && killerNumbers) {
+      scores[p.id] = {
+        kind: 'killer',
+        data: { number: killerNumbers[p.id]!, lives: killerLives, isKiller: false, history: [] },
+      }
     } else {
       scores[p.id] = { kind: 'simple', data: { total: 0, history: [] } }
     }
@@ -48,6 +67,8 @@ export const useGameStore = defineStore('game', () => {
       if (parsed.wildEnabled === undefined) parsed.wildEnabled = false
       if (parsed.wildTargets === undefined) parsed.wildTargets = [20, 19, 18, 17, 16, 15]
       if (parsed.wildLockedNums === undefined) parsed.wildLockedNums = []
+      if (parsed.killerLives === undefined) parsed.killerLives = KILLER_DEFAULT_LIVES
+      if (parsed.killerRequireDouble === undefined) parsed.killerRequireDouble = false
       return parsed
     } catch { return null }
   }
@@ -88,7 +109,7 @@ export const useGameStore = defineStore('game', () => {
     _pendingTimeout.value = true
   }
 
-  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide', bustEliminates: boolean, cricketPlayToCompletion: boolean, cricketHatTrickBonus: boolean, cricketRoundLimit: number | null, gameTheme: string | null, gameThemeSize: 'cover' | 'contain' | null, gameThemePosition: 'top' | 'center' | 'bottom' | null, gameThemeFill: 'black' | 'blur' | null, players: Player[], skipWalkup: boolean = false, gameDuration: number | null = null) {
+  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide', bustEliminates: boolean, cricketPlayToCompletion: boolean, cricketHatTrickBonus: boolean, cricketRoundLimit: number | null, gameTheme: string | null, gameThemeSize: 'cover' | 'contain' | null, gameThemePosition: 'top' | 'center' | 'bottom' | null, gameThemeFill: 'black' | 'blur' | null, players: Player[], skipWalkup: boolean = false, gameDuration: number | null = null, killerLives: number = KILLER_DEFAULT_LIVES, killerRequireDouble: boolean = false) {
     playerTimeoutCounts.value = {}
     playerHurryUpCounts.value = {}
     lastTurnWasTimeout.value = false
@@ -112,13 +133,15 @@ export const useGameStore = defineStore('game', () => {
       players,
       currentPlayerIndex: 0,
       round: 1,
-      scores: initScore(gameType, players),
+      scores: initScore(gameType, players, killerLives),
       status: 'playing',
       winnerId: null,
       startedAt: new Date().toISOString(),
       gameDuration,
       gameStartedAt: Date.now(),
       horseSetterIndex: 0,
+      killerLives,
+      killerRequireDouble,
       wildEnabled: false,
       wildTargets: [20, 19, 18, 17, 16, 15],
       wildLockedNums: [],
@@ -233,6 +256,39 @@ export const useGameStore = defineStore('game', () => {
         game.value.status = 'finished'
         return
       }
+
+    } else if (score.kind === 'killer' && typeof value === 'object') {
+      // Read the whole table into the pure resolver, then write the result back. Doing the
+      // rules here inline is what let this mode ship with no rules at all.
+      const seats: KillerSeat[] = game.value.players.map(p => {
+        const s = game.value!.scores[p.id]
+        return s?.kind === 'killer'
+          ? { playerId: p.id, number: s.data.number, lives: s.data.lives, isKiller: s.data.isKiller }
+          : { playerId: p.id, number: -1, lives: 0, isKiller: false }
+      })
+
+      const result = resolveKillerTurn(seats, playerId, value)
+      for (const s of result.seats) {
+        const target = game.value.scores[s.playerId]
+        if (target?.kind !== 'killer') continue
+        target.data.lives = s.lives
+        target.data.isKiller = s.isKiller
+      }
+      score.data.history.push(result.livesTaken.reduce((sum, l) => sum + l.lives, 0))
+
+      // Eliminate after the write-back so the removals see final life counts.
+      for (const deadId of result.eliminated) eliminatePlayer(deadId)
+
+      const alive = survivors(result.seats)
+      if (alive.length <= 1 || game.value.players.length <= 1) {
+        game.value.winnerId = game.value.players[0]?.id ?? alive[0]?.playerId ?? null
+        game.value.status = 'finished'
+        return
+      }
+
+      advanceTurn()
+      game.value.status = 'between_turns'
+      return
 
     } else if (score.kind === 'horse' && typeof value === 'number') {
       score.data.history.push(value)
@@ -441,6 +497,21 @@ export const useGameStore = defineStore('game', () => {
       game.value.scores[player.id] = { kind: 'horse', data: { letters: 0, history: [] } }
     } else if (gameType === 'suddenDeath') {
       game.value.scores[player.id] = { kind: 'suddenDeath', data: { total: 0, history: [] } }
+    } else if (gameType === 'killer') {
+      // Pick from the numbers nobody at the table already owns, so a late joiner can never
+      // share a number — which would make two players draw from one life pool.
+      const taken = new Set(
+        Object.values(game.value.scores)
+          .filter(s => s.kind === 'killer')
+          .map(s => (s as { data: { number: number } }).data.number)
+      )
+      const free = Array.from({ length: 20 }, (_, i) => i + 1).filter(n => !taken.has(n))
+      if (free.length === 0) { game.value.players.pop(); return }
+      const number = free[Math.floor(Math.random() * free.length)]!
+      game.value.scores[player.id] = {
+        kind: 'killer',
+        data: { number, lives: game.value.killerLives, isKiller: false, history: [] },
+      }
     } else {
       game.value.scores[player.id] = { kind: 'simple', data: { total: 0, history: [] } }
     }

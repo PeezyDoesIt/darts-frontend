@@ -214,6 +214,16 @@ export type SimplePlayerScore = {
   completedNums?: number[]  // ATC any-order mode: which numbers (1-20) are done
 }
 
+export type KillerPlayerScore = {
+  /** The number this player owns, 1-20 and unique across the table. */
+  number: number
+  lives: number
+  /** Until this is true, hits on other numbers do nothing. */
+  isKiller: boolean
+  /** Lives taken by this player per turn, for the turn readout. */
+  history: number[]
+}
+
 export type HorsePlayerScore = {
   letters: number   // 0–5; at 5 the player is eliminated
   history: number[]
@@ -237,6 +247,7 @@ export type PlayerScore =
   | { kind: 'ohOne'; data: OhOnePlayerScore }
   | { kind: 'simple'; data: SimplePlayerScore }
   | { kind: 'horse'; data: HorsePlayerScore }
+  | { kind: 'killer'; data: KillerPlayerScore }
   | { kind: 'suddenDeath'; data: SuddenDeathPlayerScore }
   | { kind: 'bobs27'; data: Bobs27PlayerScore }
 
@@ -267,6 +278,8 @@ export type ActiveGame = {
   gameDuration: number | null   // minutes, null = no game timer
   gameStartedAt: number | null  // Date.now() timestamp when game was created
   horseSetterIndex: number      // index of the current setter in HORSE
+  killerLives: number           // starting lives per player in KILLER
+  killerRequireDouble: boolean  // KILLER house rule: only doubles count
   wildEnabled: boolean
   wildTargets: number[]          // current 6 non-bull numbers in wild cricket
   wildLockedNums: number[]       // numbers locked by at least one mark (never reshuffled)

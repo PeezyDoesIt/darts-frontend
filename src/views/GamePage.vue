@@ -124,6 +124,15 @@
             @submit="handleCricketSubmit"
             @toggleThrowPause="toggleThrowPause"
           />
+          <KillerEntry
+            v-else-if="game.gameType === 'killer' && killerOwn"
+            :key="currentPlayer.id + '-' + game.round"
+            :ownNumber="killerOwn.number"
+            :isKiller="killerOwn.isKiller"
+            :requireDouble="game.killerRequireDouble"
+            :opponents="killerOpponents"
+            @submit="handleKillerSubmit"
+          />
           <NumpadEntry
             v-else-if="['301','501','701','1001'].includes(game.gameType)"
             :key="currentPlayer.id"
@@ -617,6 +626,7 @@ const WHITE_LABEL_THEMES = new Set<string | null>(
     .map(t => t.value as string | null)
 )
 import CricketEntry from '../components/CricketEntry.vue'
+import KillerEntry from '../components/KillerEntry.vue'
 import NumpadEntry from '../components/NumpadEntry.vue'
 import SimpleEntry from '../components/SimpleEntry.vue'
 import AroundTheClockEntry from '../components/AroundTheClockEntry.vue'
@@ -875,6 +885,9 @@ function displayScore(playerId: string): string {
   }
   if (s.kind === 'simple') return String(s.data.total)
   if (s.kind === 'horse') return s.data.letters === 0 ? '—' : 'HORSE'.slice(0, s.data.letters)
+  // Number first, then lives — the number is what opponents aim at, so it is the thing
+  // people read off the board mid-turn.
+  if (s.kind === 'killer') return `${s.data.number}${s.data.isKiller ? '★' : ''} · ${'♥'.repeat(s.data.lives)}`
   if (s.kind === 'suddenDeath') return String(s.data.total)
   if (s.kind === 'bobs27') return s.data.busted ? 'BUST' : String(s.data.score)
   return '—'
@@ -884,6 +897,32 @@ const wildPlayerMarks = computed(() => {
   const s = game.value.scores[currentPlayer.value.id]
   return s?.kind === 'cricket' ? (s.data.wildMarks ?? {}) : undefined
 })
+/** The seated player's own killer row, or null outside a killer game. */
+const killerOwn = computed(() => {
+  if (game.value?.gameType !== 'killer') return null
+  const s = game.value.scores[currentPlayer.value.id]
+  return s?.kind === 'killer' ? s.data : null
+})
+
+/** Every other living player, with the number that takes their lives. */
+const killerOpponents = computed(() => {
+  if (game.value?.gameType !== 'killer') return []
+  return game.value.players
+    .filter(p => p.id !== currentPlayer.value.id)
+    .map(p => {
+      const s = game.value!.scores[p.id]
+      if (s?.kind !== 'killer') return null
+      return { playerId: p.id, name: p.name, number: s.data.number, lives: s.data.lives, color: p.color }
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null && x.lives > 0)
+})
+
+function handleKillerSubmit(hits: Record<string, number>) {
+  unlockAudio()
+  gameStore.submitScore(currentPlayer.value.id, hits)
+  playTurnResultSound(gameStore.lastTurnWasZero)
+}
+
 function handleCricketSubmit(marks: CricketHits) {
   unlockAudio()
   // Submit first, then sound off the store's own verdict. Playing before the submit meant
