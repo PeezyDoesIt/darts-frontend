@@ -10,6 +10,10 @@ import YahtzeeSetupPage from '../views/YahtzeeSetupPage.vue'
 import YahtzeeGamePage from '../views/YahtzeeGamePage.vue'
 import LRCSetupPage from '../views/LRCSetupPage.vue'
 import LRCGamePage from '../views/LRCGamePage.vue'
+import DiceGameSetupPage from '../views/DiceGameSetupPage.vue'
+import FarkleGamePage from '../views/FarkleGamePage.vue'
+import SCCGamePage from '../views/SCCGamePage.vue'
+import PigGamePage from '../views/PigGamePage.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -25,6 +29,11 @@ const router = createRouter({
     { path: '/yahtzee',       name: 'YahtzeeGame',   component: YahtzeeGamePage },
     { path: '/lrc/setup',     name: 'LRCSetup',      component: LRCSetupPage },
     { path: '/lrc',           name: 'LRCGame',       component: LRCGamePage },
+    // One setup page serves all three dice games; the variant selects title, target and rules.
+    { path: '/dice/:variant/setup', name: 'DiceSetup', component: DiceGameSetupPage },
+    { path: '/dice/farkle',   name: 'FarkleGame',    component: FarkleGamePage },
+    { path: '/dice/scc',      name: 'SCCGame',       component: SCCGamePage },
+    { path: '/dice/pig',      name: 'PigGame',       component: PigGamePage },
   ],
 })
 
