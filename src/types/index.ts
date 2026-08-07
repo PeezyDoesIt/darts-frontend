@@ -164,6 +164,10 @@ export type GameType =
   | 'baseball'
   | 'horse'
   | 'suddenDeath'
+  | 'farkle'
+  | 'shipCaptainCrew'
+  | 'pig'
+  | 'spades'
 
 export const GAME_TYPE_LABELS: Record<GameType, string> = {
   cricket: 'Cricket',
@@ -175,6 +179,10 @@ export const GAME_TYPE_LABELS: Record<GameType, string> = {
   baseball: 'Baseball',
   horse: 'Horse',
   suddenDeath: 'Sudden Death',
+  farkle: 'Farkle',
+  shipCaptainCrew: 'Ship Captain Crew',
+  pig: 'Pig',
+  spades: 'Spades',
   '301': '301',
   '501': '501',
   '701': '701',

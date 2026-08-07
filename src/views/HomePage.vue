@@ -155,6 +155,64 @@
             <span class="mode-sub">Fast · pure luck</span>
           </div>
         </button>
+
+        <button v-ripple class="glass-panel mode mode-gold" @click="router.push('/dice/farkle/setup')">
+          <div class="mode-glow" />
+          <div class="mode-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffc857" stroke-width="1.8" stroke-linejoin="round">
+              <rect x="3" y="8" width="12" height="12" rx="3" />
+              <rect x="9" y="3" width="12" height="12" rx="3" />
+              <circle cx="7" cy="16" r="1.3" fill="#ffc857" stroke="none" />
+              <circle cx="15" cy="7" r="1.3" fill="#ffc857" stroke="none" />
+            </svg>
+          </div>
+          <div class="mode-copy">
+            <span class="mode-title display">FARKLE</span>
+            <span class="mode-sub">Push your luck · race to 10,000</span>
+          </div>
+        </button>
+
+        <button v-ripple class="glass-panel mode mode-cyan" @click="router.push('/dice/scc/setup')">
+          <div class="mode-glow" />
+          <div class="mode-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5fd0ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 15h16l-2.2 4.2a2 2 0 0 1-1.8 1.1H8a2 2 0 0 1-1.8-1.1z" />
+              <path d="M12 15V5" /><path d="M12 6l6 3-6 3z" />
+            </svg>
+          </div>
+          <div class="mode-copy">
+            <span class="mode-title display">SHIP CAPTAIN CREW</span>
+            <span class="mode-sub">6, 5, 4 — in that order</span>
+          </div>
+        </button>
+
+        <button v-ripple class="glass-panel mode mode-pink" @click="router.push('/dice/pig/setup')">
+          <div class="mode-glow" />
+          <div class="mode-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff5fa2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="13" r="7" />
+              <ellipse cx="12" cy="14" rx="2.6" ry="2" />
+              <path d="M6.5 7.5 8 5l2.4 1.6M17.5 7.5 16 5l-2.4 1.6" />
+            </svg>
+          </div>
+          <div class="mode-copy">
+            <span class="mode-title display">PIG</span>
+            <span class="mode-sub">One die · roll a 1 and lose it all</span>
+          </div>
+        </button>
+
+        <button v-ripple class="glass-panel mode mode-indigo" @click="router.push('/spades/setup')">
+          <div class="mode-glow" />
+          <div class="mode-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8f7bff" stroke-width="1.7" stroke-linejoin="round">
+              <path d="M12 3.5c-2.4 3-6 5.3-6 8.4a3.4 3.4 0 0 0 5.2 2.9L10.5 20h3l-.7-5.2A3.4 3.4 0 0 0 18 11.9c0-3.1-3.6-5.4-6-8.4z" />
+            </svg>
+          </div>
+          <div class="mode-copy">
+            <span class="mode-title display">SPADES</span>
+            <span class="mode-sub">4 players · house deck with both jokers</span>
+          </div>
+        </button>
       </section>
 
       <!-- ── Leaderboard + roster / narrator ──────────────── -->
@@ -1001,6 +1059,26 @@ function previewBullseyeSound(value: string) {
 .mode-green .mode-glow { background: radial-gradient(circle, rgba(51,170,51,0.32), transparent 68%); }
 .mode-green .mode-icon { background: rgba(51,170,51,0.2); border: 1px solid rgba(85,204,102,0.36); }
 .mode-green:hover { border-color: rgba(85,204,102,0.62); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 40px -10px rgba(51,170,51,0.5), 0 26px 52px -24px rgba(0,0,0,0.85); }
+
+.mode-gold { background: linear-gradient(150deg, rgba(255,200,87,0.18), rgba(255,255,255,0.03)); border-color: rgba(255,200,87,0.32); }
+.mode-gold .mode-glow { background: radial-gradient(circle, rgba(255,200,87,0.3), transparent 68%); }
+.mode-gold .mode-icon { background: rgba(255,200,87,0.18); border: 1px solid rgba(255,200,87,0.36); }
+.mode-gold:hover { border-color: rgba(255,200,87,0.62); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 40px -10px rgba(255,200,87,0.5), 0 26px 52px -24px rgba(0,0,0,0.85); }
+
+.mode-cyan { background: linear-gradient(150deg, rgba(95,208,255,0.18), rgba(255,255,255,0.03)); border-color: rgba(95,208,255,0.32); }
+.mode-cyan .mode-glow { background: radial-gradient(circle, rgba(95,208,255,0.3), transparent 68%); }
+.mode-cyan .mode-icon { background: rgba(95,208,255,0.18); border: 1px solid rgba(95,208,255,0.36); }
+.mode-cyan:hover { border-color: rgba(95,208,255,0.62); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 40px -10px rgba(95,208,255,0.5), 0 26px 52px -24px rgba(0,0,0,0.85); }
+
+.mode-pink { background: linear-gradient(150deg, rgba(255,95,162,0.18), rgba(255,255,255,0.03)); border-color: rgba(255,95,162,0.32); }
+.mode-pink .mode-glow { background: radial-gradient(circle, rgba(255,95,162,0.3), transparent 68%); }
+.mode-pink .mode-icon { background: rgba(255,95,162,0.18); border: 1px solid rgba(255,95,162,0.36); }
+.mode-pink:hover { border-color: rgba(255,95,162,0.62); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 40px -10px rgba(255,95,162,0.5), 0 26px 52px -24px rgba(0,0,0,0.85); }
+
+.mode-indigo { background: linear-gradient(150deg, rgba(143,123,255,0.2), rgba(255,255,255,0.03)); border-color: rgba(143,123,255,0.32); }
+.mode-indigo .mode-glow { background: radial-gradient(circle, rgba(143,123,255,0.32), transparent 68%); }
+.mode-indigo .mode-icon { background: rgba(143,123,255,0.2); border: 1px solid rgba(143,123,255,0.36); }
+.mode-indigo:hover { border-color: rgba(143,123,255,0.62); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 40px -10px rgba(143,123,255,0.5), 0 26px 52px -24px rgba(0,0,0,0.85); }
 
 /* ── Leaderboard ── */
 .board-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: clamp(12px, 1.6vh, 24px); align-items: start; }
