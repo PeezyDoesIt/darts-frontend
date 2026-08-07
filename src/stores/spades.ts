@@ -3,7 +3,8 @@ import { defineStore } from 'pinia'
 import { v4 as uuid } from 'uuid'
 import {
   HAND_SIZE, PLAYER_COUNT, WINNING_SCORE, applyBagPenalty, cardId, deal,
-  effectiveSuit, legalPlays, scoreSide, sortHand, trickWinner, type Card, type Suit,
+  effectiveSuit, legalPlays, scoreSide, sortHand, trickWinner,
+  type Card, type SpadesVariant, type Suit,
 } from '../lib/spades'
 import { chooseBid, chooseCard } from '../lib/spadesBot'
 import type { Player } from '../types/index'
@@ -30,6 +31,8 @@ export const teamOf = (seat: number): 0 | 1 => (seat % 2 === 0 ? 0 : 1)
 export interface SpadesGame {
   id: string
   startedAt: string
+  /** Which deck this game is being played with — fixed for the whole game. */
+  variant: SpadesVariant
   players: SpadesPlayer[]
   hands: Card[][]
   dealerIndex: number
@@ -70,6 +73,8 @@ export const useSpadesStore = defineStore('spades', () => {
       if (parsed.phase === 'game_over') return
       if (!parsed.id) parsed.id = uuid()
       if (!parsed.startedAt) parsed.startedAt = new Date().toISOString()
+      // Games saved before the variant existed were all played with the joker deck.
+      if (!parsed.variant) parsed.variant = 'wild'
       game.value = parsed
     } catch {}
   }
@@ -92,7 +97,7 @@ export const useSpadesStore = defineStore('spades', () => {
    * Order matters — seats 0 and 2 are partners, so mixing humans and bots changes who is
    * playing with whom.
    */
-  function startGame(seats: (Player | BotSeat)[]) {
+  function startGame(seats: (Player | BotSeat)[], variant: SpadesVariant = 'wild') {
     if (seats.length !== PLAYER_COUNT) return
     game.value = {
       id: uuid(),
@@ -104,7 +109,8 @@ export const useSpadesStore = defineStore('spades', () => {
         color: p.color,
         isBot: 'isBot' in p,
       })),
-      hands: deal(),
+      variant,
+      hands: deal(variant),
       dealerIndex: 0,
       // Bidding and play both start left of the dealer.
       turnIndex: 1 % PLAYER_COUNT,
@@ -308,7 +314,7 @@ export const useSpadesStore = defineStore('spades', () => {
   function nextHand() {
     const g = game.value
     if (!g || g.phase !== 'hand_over') return
-    g.hands = deal()
+    g.hands = deal(g.variant)
     g.dealerIndex = (g.dealerIndex + 1) % PLAYER_COUNT
     g.bids = Array(PLAYER_COUNT).fill(null)
     g.tricksWon = Array(PLAYER_COUNT).fill(0)
