@@ -20,12 +20,24 @@ onMounted(() => {
 </script>
 
 <style>
+/* Mobile browsers report 100vh as the viewport WITHOUT the URL bar, so a
+   100vh shell with overflow:hidden pushes the bottom of every page — footers,
+   Done / Submit / Next — under the browser chrome where it can't be tapped.
+   dvh tracks the *visible* height (and shrinks when the keyboard opens);
+   the vh line stays as the fallback for anything that predates dvh.
+
+   100vw is width INCLUDING the scrollbar gutter, which overflows the body by
+   the scrollbar width and lets the whole layout drift sideways. */
 .app-shell {
   position: relative;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: #0a0a0a;
+  /* stop iOS rubber-band dragging the fixed shell away from the viewport */
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
 }
 
 .blob {
@@ -59,6 +71,14 @@ onMounted(() => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+/* On a phone the blobs are wider than the screen; without this they add
+   horizontal scroll and the layout drifts sideways under your thumb. */
+@media (max-width: 700px) {
+  .blob-pink { width: 340px; height: 340px; top: -120px; left: -80px; }
+  .blob-blue { width: 300px; height: 300px; bottom: -110px; right: -80px; }
+  .blob-purple { width: 260px; height: 260px; }
 }
 
 /* All direct children of app-shell need z-index to sit above blobs */
