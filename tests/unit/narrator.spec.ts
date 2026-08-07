@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  PERSONALITIES, isCommentary, linesFor, missingCleanVariants, type NarratorEvent,
+  ALL_EVENTS, GAME_EVENTS, PERSONALITIES, isCommentary, linesFor, missingCleanVariants,
 } from '@/lib/narrator'
 
 const ctx = { name: 'Alice', prevName: 'Bob', term: 'baby' }
@@ -10,10 +10,8 @@ const quiet = { cleanMode: false, quietNarrator: true }
 
 const flat = (out: string[][]) => out.flat().join(' ')
 
-const ALL_EVENTS: NarratorEvent[] = [
-  'walkUp', 'bonusTurn', 'zeroRoast', 'timeout', 'hurryUp',
-  'twentySecondWalkUp', 'twentySecondThrow', 'throwNudge', 'win',
-]
+// ALL_EVENTS comes from the source rather than being restated here, so a newly added event
+// is swept by every assertion below without anyone remembering to list it.
 
 /**
  * "Names only" advertises "Only announces whose turn it is — no commentary" and delivered
@@ -109,6 +107,7 @@ describe('personality', () => {
         // timeout talks about the player who just left, not the one arriving
         const expected = event === 'timeout' ? 'Bob' : 'Alice'
         if (event === 'zeroRoast') continue   // the roast is about the throw, not the name
+        if (GAME_EVENTS.includes(event)) continue  // the game clock is about the match
         expect(said, `${event}/${p}`).toContain(expected)
       }
     }
@@ -154,6 +153,47 @@ describe('missingCleanVariants', () => {
   it('is a worklist, not an error — every gap still speaks a neutral line', () => {
     for (const { event, personality } of missingCleanVariants()) {
       expect(linesFor(event, personality, clean, ctx), `${event}/${personality}`).not.toEqual([])
+    }
+  })
+})
+
+/**
+ * The game clock was the last corner the settings did not reach. GamePage spoke these three
+ * announcements with a bare speak(), so "Names only" never silenced them and the chosen
+ * personality never applied to them.
+ */
+describe('the game clock', () => {
+  const gameCtx = { ...ctx, count: 10 }
+
+  it('silences the time warning under Names only, like every other nudge', () => {
+    for (const p of PERSONALITIES) {
+      expect(linesFor('gameTimeWarning', p, quiet, gameCtx), p).toEqual([])
+    }
+  })
+
+  it('still announces the game ending, which is a state change rather than commentary', () => {
+    for (const p of PERSONALITIES) {
+      expect(linesFor('gameOver', p, quiet, gameCtx).length, p).toBeGreaterThan(0)
+    }
+  })
+
+  it('speaks the minutes remaining it was handed', () => {
+    for (const p of PERSONALITIES) {
+      expect(flat(linesFor('gameTimeWarning', p, loud, { ...ctx, count: 5 })), p).toContain('5')
+      expect(flat(linesFor('gameTimeWarning', p, loud, { ...ctx, count: 10 })), p).toContain('10')
+    }
+  })
+
+  it('gives the time warning a distinct voice per personality', () => {
+    const said = PERSONALITIES.map(p => flat(linesFor('gameTimeWarning', p, loud, gameCtx)))
+    expect(new Set(said).size).toBeGreaterThan(1)
+  })
+
+  it('names no player, because the clock belongs to the match', () => {
+    for (const event of GAME_EVENTS) {
+      for (const p of PERSONALITIES) {
+        expect(flat(linesFor(event, p, loud, gameCtx)), `${event}/${p}`).not.toContain('Alice')
+      }
     }
   })
 })

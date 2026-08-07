@@ -618,7 +618,6 @@ import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
 import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore, type CricketTarget } from '../types/index'
-import { speak } from '../composables/useSpeech'
 import { useNarrator } from '../composables/useNarrator'
 import type { LineContext, NarratorEvent } from '../lib/narrator'
 import { playThemedTick, playBombBeep, playGameShowBuzzer, playTurnStartTone, playTurnResultSound, unlockAudio } from '../composables/useSounds'
@@ -1050,18 +1049,18 @@ function startGameTimer() {
     if (left <= 600 && left > 598 && !gameTenMinAnnounced) {
       gameTenMinAnnounced = true
       showGameAnnounce('10 minutes remaining!')
-      speak('Ten minutes remaining in the game!')
+      narrate('gameTimeWarning', { count: 10 })
     }
     if (left <= 300 && left > 298 && !gameFiveMinAnnounced) {
       gameFiveMinAnnounced = true
       showGameAnnounce('5 minutes remaining!')
-      speak('Five minutes remaining! Wrap it up!')
+      narrate('gameTimeWarning', { count: 5 })
     }
     if (left <= 0) {
       if (gameTimerInterval) { clearInterval(gameTimerInterval); gameTimerInterval = null }
       gameTimeLeft.value = 0
       showGameAnnounce("Time's up! Game over!")
-      speak("Time is up! Game over!")
+      narrate('gameOver')
       setTimeout(() => { gameStore.forceEndByTime() }, 1500)
     }
   }, 1000)

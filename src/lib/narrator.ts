@@ -22,8 +22,16 @@ export type NarratorEvent =
   | 'twentySecondThrow'
   | 'throwNudge'
   | 'win'
+  | 'gameTimeWarning'
+  | 'gameOver'
 
 export { NARRATOR_PERSONALITIES as PERSONALITIES }
+
+/**
+ * Events about the match rather than any one player, so nothing should expect a name in the
+ * line. Everything else addresses whoever is up.
+ */
+export const GAME_EVENTS: NarratorEvent[] = ['gameTimeWarning', 'gameOver']
 
 export interface LineContext {
   /** The player being addressed. */
@@ -222,7 +230,55 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
     fallback: c => [[`${c.name} wins! Well played.`]],
     cleanFallback: c => [[`${c.name} wins! Well played.`]],
   },
+
+  // ── The game clock. About the match, not any one player. ─────────────────────
+  //
+  // These were spoken with a bare speak() straight from GamePage, so they were the last
+  // corner the narrator settings did not reach: "Names only" never silenced them and the
+  // chosen personality never applied. `count` is the minutes remaining.
+  gameTimeWarning: {
+    commentary: true,
+    byPersonality: {
+      hype: c => [[`${c.count} minutes left! Let's GO!`]],
+      savage: c => [[`${c.count} minutes. Move it along.`]],
+      announcer: c => [[`${c.count} minutes remaining in this match!`]],
+      sarcastic: c => [[`${c.count} minutes left. No rush, obviously.`]],
+      smooth: c => [[`${c.count} minutes on the clock, ${term(c)}.`]],
+    },
+    fallback: c => [[`${c.count} minutes remaining in the game!`]],
+    clean: {
+      hype: c => [[`${c.count} minutes left! Let's go!`]],
+      announcer: c => [[`${c.count} minutes remaining in this match.`]],
+      sarcastic: c => [[`${c.count} minutes left. No rush.`]],
+    },
+    cleanFallback: c => [[`${c.count} minutes remaining.`]],
+  },
+
+  // Not commentary: the match ending is a state change, the same call as a win.
+  gameOver: {
+    commentary: false,
+    byPersonality: {
+      hype: () => [[`TIME! That's the game!`]],
+      savage: () => [[`Time. Game over.`]],
+      announcer: () => [[`And that is time! The match is over!`]],
+      sarcastic: () => [[`Time's up. Riveting stuff.`]],
+      smooth: c => [[`That's time, ${term(c)}. Game over.`]],
+    },
+    fallback: () => [[`Time is up! Game over!`]],
+    clean: {
+      hype: () => [[`Time! That's the game!`]],
+      announcer: () => [[`And that is time. The match is over.`]],
+    },
+    cleanFallback: () => [[`Time's up. Game over.`]],
+  },
 }
+
+/**
+ * Every event, derived from the definitions rather than restated. Tests sweep this, so a new
+ * event is covered by every existing assertion the moment it is added — a hand-kept list
+ * silently leaves new events untested, which is how the game clock stayed unexamined.
+ */
+export const ALL_EVENTS = Object.keys(EVENTS) as NarratorEvent[]
 
 /** A hurry-up escalates the second time it happens to the same player. */
 function repeat(c: LineContext): boolean {
