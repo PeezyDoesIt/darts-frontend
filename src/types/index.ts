@@ -157,6 +157,18 @@ export const PLAYER_THEMES = [
   { label: 'Coffee',       value: 'linear-gradient(160deg, #050200 0%, #1c0a00 40%, #4a2200 70%, #8b5a2b 100%)' },
 ] as const
 
+/**
+ * Narrator voice. Declared here rather than inside the settings store so the line module
+ * and anything else can reference it — it was previously a local type, which is part of
+ * why the narrator lines ended up duplicated across views instead of shared.
+ */
+export type NarratorPersonality =
+  | 'default' | 'hype' | 'savage' | 'announcer' | 'sarcastic' | 'smooth'
+
+export const NARRATOR_PERSONALITIES: NarratorPersonality[] = [
+  'default', 'hype', 'savage', 'announcer', 'sarcastic', 'smooth',
+]
+
 export type GameType =
   | 'cricket'
   | 'cutThroat'

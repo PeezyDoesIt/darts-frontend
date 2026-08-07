@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { NARRATOR_PERSONALITIES, type NarratorPersonality } from '../types/index'
 
 export const useSettingsStore = defineStore('settings', () => {
   // voiceName stores the exact SpeechSynthesisVoice.name, or a special accent key
@@ -96,11 +97,9 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('narratorGender', val)
   }
 
-  type NarratorPersonality = 'default' | 'hype' | 'savage' | 'announcer' | 'sarcastic' | 'smooth'
-  const VALID_PERSONALITIES: NarratorPersonality[] = ['default', 'hype', 'savage', 'announcer', 'sarcastic', 'smooth']
   const _savedPersonality = localStorage.getItem('narratorPersonality') as NarratorPersonality | null
   const narratorPersonality = ref<NarratorPersonality>(
-    _savedPersonality && VALID_PERSONALITIES.includes(_savedPersonality) ? _savedPersonality : 'default'
+    _savedPersonality && NARRATOR_PERSONALITIES.includes(_savedPersonality) ? _savedPersonality : 'default'
   )
   function setNarratorPersonality(val: NarratorPersonality) {
     narratorPersonality.value = val

@@ -557,10 +557,11 @@ import { useYahtzeeStore, grandTotal, upperTotal, upperBonus, lowerTotal, calcSc
 import { usePlayersStore } from '../stores/players'
 import type { YahtzeeCategory, YahtzeeScorecard } from '../stores/yahtzee'
 import { DICE_THEMES, DIE_GRADIENTS, GRADIENT_DIE_THEMES, type DiceTheme } from '../types/index'
-import { speak } from '../composables/useSpeech'
+import { useNarrator } from '../composables/useNarrator'
 import { recordGameResult } from '../api/gameResults'
 
 const router = useRouter()
+const { narrateAsync } = useNarrator()
 const yahtzeeStore = useYahtzeeStore()
 const playersStore = usePlayersStore()
 const game = computed(() => yahtzeeStore.game)
@@ -651,7 +652,8 @@ function recordResults() {
     else playersStore.recordGame(ps.player.id)
   }
   if (winner.value) {
-    speak(`${winner.value.name} wins! Well played.`)
+    // Personality-aware now; this line was hard-coded identically here and in WinPage.
+    narrateAsync('win', { name: winner.value.name })
   }
   // `resultsRecorded` above is a per-mount flag, so it cannot survive a refresh —
   // this game's stable id is what actually makes the server-side record idempotent.
