@@ -72,9 +72,23 @@
       </section>
 
       <section class="ng-section">
-        <span class="label">HOUSE RULES</span>
-        <ul class="rules-list"><li v-for="(r, i) in RULES" :key="i">{{ r }}</li></ul>
-        <div class="joker-preview">
+        <span class="label">STYLE</span>
+        <div class="variant-btns">
+          <button
+            v-for="v in (['classic', 'wild'] as const)"
+            :key="v"
+            v-ripple
+            class="variant-btn"
+            :class="{ active: variant === v }"
+            @click="variant = v"
+          >
+            <span class="vb-name">{{ VARIANT_LABELS[v] }}</span>
+            <span class="vb-deck">{{ v === 'wild' ? '50 cards + 2 jokers' : 'standard 52' }}</span>
+          </button>
+        </div>
+        <p class="variant-blurb">{{ VARIANT_BLURBS[variant] }}</p>
+
+        <div v-if="variant === 'wild'" class="joker-preview">
           <PlayingCard :card="{ kind: 'joker', joker: 'big' }" :width="58" />
           <PlayingCard :card="{ kind: 'joker', joker: 'little' }" :width="58" />
           <p class="jp-note">
@@ -82,6 +96,11 @@
             (black &amp; white). Both play as spades and beat the ace.
           </p>
         </div>
+      </section>
+
+      <section class="ng-section">
+        <span class="label">HOW TO PLAY</span>
+        <ul class="rules-list"><li v-for="(r, i) in rules" :key="i">{{ r }}</li></ul>
       </section>
     </div>
 
@@ -99,7 +118,7 @@ import { useRouter } from 'vue-router'
 import PlayingCard from '../components/PlayingCard.vue'
 import { usePlayersStore } from '../stores/players'
 import { useSpadesStore } from '../stores/spades'
-import { RULES } from '../lib/spades'
+import { VARIANT_BLURBS, VARIANT_LABELS, rulesFor, type SpadesVariant } from '../lib/spades'
 import { botName } from '../lib/spadesBot'
 import { goBack } from '../router/goBack'
 import type { Player } from '../types/index'
@@ -109,6 +128,8 @@ const playersStore = usePlayersStore()
 const spades = useSpadesStore()
 
 const selected = ref<Player[]>([])
+const variant = ref<SpadesVariant>('wild')
+const rules = computed(() => rulesFor(variant.value))
 
 const BOT_COLORS = ['#9aa0b5', '#8f7bff', '#5fd0ff', '#7ee68a']
 
@@ -160,7 +181,7 @@ function start() {
       ? { id: s.id, name: s.name, color: s.color, isBot: true as const }
       : selected.value.find(p => p.id === s.id)!
   )
-  spades.startGame(seats)
+  spades.startGame(seats, variant.value)
   router.push('/spades')
 }
 </script>
@@ -226,6 +247,18 @@ function start() {
   margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px;
   color: var(--text-muted); font-size: 13px; line-height: 1.45;
 }
+.variant-btns { display: flex; gap: 10px; }
+.variant-btn {
+  flex: 1; min-height: 62px; border-radius: 10px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px; padding: 8px;
+  background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.12);
+  color: var(--text); cursor: pointer;
+}
+.variant-btn.active { border-color: var(--gold); background: rgba(255,200,87,0.14); }
+.vb-name { font-size: 14px; font-weight: 800; font-family: var(--font-display); letter-spacing: 0.06em; }
+.vb-deck { font-size: 10.5px; color: var(--text-muted); }
+.variant-blurb { font-size: 12.5px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+
 .joker-preview {
   display: flex; align-items: center; gap: 12px; padding: 12px;
   background: rgba(255,255,255,0.04); border-radius: 10px; flex-wrap: wrap;

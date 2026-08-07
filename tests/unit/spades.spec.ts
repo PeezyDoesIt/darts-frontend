@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
-  applyBagPenalty, cardId, cardLabel, deal, effectiveSuit, legalPlays, makeDeck,
-  scoreSide, sortHand, strength, trickWinner, type Card,
+  applyBagPenalty, cardId, cardLabel, deal, effectiveSuit, isTrump, legalPlays, makeDeck,
+  rulesFor, scoreSide, sortHand, strength, trickWinner, type Card,
 } from '@/lib/spades'
 
 const pip = (suit: 'spades' | 'hearts' | 'diamonds' | 'clubs', rank: number): Card =>
@@ -15,8 +15,8 @@ function seeded(seed: number) {
   return () => { s = (s * 1103515245 + 12345) % 2147483648; return s / 2147483648 }
 }
 
-describe('the house deck', () => {
-  const deck = makeDeck()
+describe('the Wild Style deck', () => {
+  const deck = makeDeck('wild')
 
   it('is 52 cards — 50 pips plus two jokers', () => {
     expect(deck).toHaveLength(52)
@@ -40,11 +40,63 @@ describe('the house deck', () => {
   })
 
   it('deals four even hands of thirteen using every card', () => {
-    const hands = deal(seeded(7))
+    const hands = deal('wild', seeded(7))
 
     expect(hands).toHaveLength(4)
     for (const h of hands) expect(h).toHaveLength(13)
     expect(new Set(hands.flat().map(cardId)).size).toBe(52)
+  })
+})
+
+describe('the Classic deck', () => {
+  const deck = makeDeck('classic')
+
+  it('is an ordinary 52-card pack with no jokers', () => {
+    expect(deck).toHaveLength(52)
+    expect(deck.filter(c => c.kind === 'joker')).toHaveLength(0)
+  })
+
+  it('keeps both red twos, which only come out to make room for jokers', () => {
+    expect(deck.some(c => cardId(c) === 'hearts-2')).toBe(true)
+    expect(deck.some(c => cardId(c) === 'diamonds-2')).toBe(true)
+  })
+
+  it('has thirteen of every suit', () => {
+    for (const suit of ['spades', 'hearts', 'diamonds', 'clubs'] as const) {
+      expect(deck.filter(c => c.kind === 'pip' && c.suit === suit)).toHaveLength(13)
+    }
+  })
+
+  it('deals four even hands of thirteen', () => {
+    const hands = deal('classic', seeded(3))
+
+    for (const h of hands) expect(h).toHaveLength(13)
+    expect(new Set(hands.flat().map(cardId)).size).toBe(52)
+  })
+
+  it('makes the ace of spades the highest card in the deck', () => {
+    const best = deck.reduce((a, b) => (isTrump(b) && strength(b) > strength(a) ? b : a), deck[0]!)
+
+    expect(cardId(best)).toBe('spades-14')
+  })
+
+  it('is the same size as Wild Style — which is why both deal evenly', () => {
+    expect(makeDeck('classic')).toHaveLength(makeDeck('wild').length)
+  })
+})
+
+describe('rulesFor', () => {
+  it('describes the joker deck only for Wild Style', () => {
+    expect(rulesFor('wild').join(' ')).toContain('jokers')
+    expect(rulesFor('classic').join(' ')).toContain('no jokers')
+    expect(rulesFor('classic').join(' ')).toContain('ace of spades is the highest')
+  })
+
+  it('carries the shared scoring rules in both', () => {
+    for (const v of ['classic', 'wild'] as const) {
+      expect(rulesFor(v).join(' ')).toContain('First side to 500')
+      expect(rulesFor(v).join(' ')).toContain('bags')
+    }
   })
 })
 

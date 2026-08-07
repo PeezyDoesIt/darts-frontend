@@ -6,7 +6,7 @@
       <button v-ripple class="btn btn-outline btn-sm" @click="quit">← Quit</button>
       <div class="sp-title-wrap">
         <h1 class="sp-title display">SPADES</h1>
-        <span class="sp-sub">hand {{ game.handNumber }} · to {{ WINNING_SCORE }}</span>
+        <span class="sp-sub">{{ VARIANT_LABELS[game.variant] }} · hand {{ game.handNumber }} · to {{ WINNING_SCORE }}</span>
       </div>
       <button v-ripple class="btn btn-outline btn-sm" @click="showRules = true">Rules</button>
     </header>
@@ -145,9 +145,9 @@
 
     <div v-if="showRules" class="overlay" @click.self="showRules = false">
       <div class="rules-card glass-panel">
-        <h2 class="rules-title display">SPADES — HOUSE RULES</h2>
-        <ul class="rules-list"><li v-for="(r, i) in RULES" :key="i">{{ r }}</li></ul>
-        <div class="joker-row">
+        <h2 class="rules-title display">SPADES — {{ VARIANT_LABELS[game.variant].toUpperCase() }}</h2>
+        <ul class="rules-list"><li v-for="(r, i) in rules" :key="i">{{ r }}</li></ul>
+        <div v-if="game.variant === 'wild'" class="joker-row">
           <PlayingCard :card="{ kind: 'joker', joker: 'big' }" :width="52" />
           <PlayingCard :card="{ kind: 'joker', joker: 'little' }" :width="52" />
         </div>
@@ -168,7 +168,9 @@ import { useRouter } from 'vue-router'
 import PlayingCard from '../components/PlayingCard.vue'
 import { useSpadesStore, teamOf } from '../stores/spades'
 import { usePlayersStore } from '../stores/players'
-import { HAND_SIZE, RULES, WINNING_SCORE, cardId, sortHand, type Card } from '../lib/spades'
+import {
+  HAND_SIZE, VARIANT_LABELS, WINNING_SCORE, cardId, rulesFor, sortHand, type Card,
+} from '../lib/spades'
 import { recordGameResult } from '../api/gameResults'
 import { playTurnResultSound, playStartChime, unlockAudio } from '../composables/useSounds'
 import { goBack } from '../router/goBack'
@@ -180,6 +182,7 @@ const game = computed(() => spades.game)
 const showRules = ref(false)
 
 const seated = computed(() => game.value!.players[game.value!.turnIndex]!)
+const rules = computed(() => rulesFor(game.value?.variant ?? 'wild'))
 const needsBid = computed(() => game.value?.bids.some(b => b === null) ?? false)
 const sortedHand = computed(() => sortHand(game.value?.hands[game.value.turnIndex] ?? []))
 const legalCount = computed(() => spades.legalForCurrent().length)

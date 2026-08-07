@@ -29,22 +29,52 @@ export const WINNING_SCORE = 500
 export const BAG_PENALTY_AT = 10
 export const BAG_PENALTY = 100
 
-/** Cards deliberately absent from the house deck, so four hands of 13 come out even. */
+/**
+ * Which deck is in play.
+ *
+ * 'classic' is an ordinary 52-card pack, no jokers, highest trump is the ace of spades.
+ * 'wild' is the house deck: the two red twos come out and two jokers go in, which is what
+ * keeps the count at 52 so four hands of thirteen still come out even.
+ */
+export type SpadesVariant = 'classic' | 'wild'
+
+export const VARIANT_LABELS: Record<SpadesVariant, string> = {
+  classic: 'Classic',
+  wild: 'Wild Style',
+}
+
+export const VARIANT_BLURBS: Record<SpadesVariant, string> = {
+  classic: 'Standard 52-card deck. No jokers — the ace of spades is the highest card.',
+  wild: 'The 2 of hearts and 2 of diamonds come out, both jokers go in. The jokers are the two highest cards and count as spades.',
+}
+
+/** Cards absent from the wild deck, so four hands of 13 come out even once jokers are in. */
 export const REMOVED_CARDS: { suit: Suit; rank: number }[] = [
   { suit: 'hearts', rank: 2 },
   { suit: 'diamonds', rank: 2 },
 ]
 
-export const RULES: string[] = [
-  'House deck: the 2 of hearts and 2 of diamonds are removed, two jokers added',
-  'Big Joker (H, colored) is the highest card; Little Joker (L, black and white) is next',
-  'Both jokers count as spades',
+const COMMON_RULES: string[] = [
   'Bid the number of tricks you expect to take, then play them out',
   'Make your bid for 10 points a trick; miss it and you lose 10 a trick',
   'Extra tricks are bags — worth 1 each, but 10 bags costs you 100',
   'Nil is worth 100 if you take no tricks at all, and -100 if you take one',
   'First side to 500 wins',
 ]
+
+export function rulesFor(variant: SpadesVariant): string[] {
+  const deckRules = variant === 'wild'
+    ? [
+        'Wild Style deck: the 2 of hearts and 2 of diamonds are removed, two jokers added',
+        'Big Joker (H, colored) is the highest card; Little Joker (L, black and white) is next',
+        'Both jokers count as spades',
+      ]
+    : [
+        'Classic deck: an ordinary 52-card pack, no jokers',
+        'The ace of spades is the highest card',
+      ]
+  return [...deckRules, ...COMMON_RULES]
+}
 
 export function rankLabel(rank: number): string {
   if (rank === 14) return 'A'
@@ -81,17 +111,21 @@ export function strength(c: Card): number {
   return c.rank
 }
 
-/** The 52-card house deck. */
-export function makeDeck(): Card[] {
+/** 52 cards either way — that equality is what keeps the deal even across both variants. */
+export function makeDeck(variant: SpadesVariant = 'wild'): Card[] {
   const deck: Card[] = []
+  const wild = variant === 'wild'
   for (const suit of SUITS) {
     for (let rank = 2; rank <= 14; rank++) {
-      if (REMOVED_CARDS.some(r => r.suit === suit && r.rank === rank)) continue
+      // The red twos are only removed to make room for the jokers, so classic keeps them.
+      if (wild && REMOVED_CARDS.some(r => r.suit === suit && r.rank === rank)) continue
       deck.push({ kind: 'pip', suit, rank })
     }
   }
-  deck.push({ kind: 'joker', joker: 'big' })
-  deck.push({ kind: 'joker', joker: 'little' })
+  if (wild) {
+    deck.push({ kind: 'joker', joker: 'big' })
+    deck.push({ kind: 'joker', joker: 'little' })
+  }
   return deck
 }
 
@@ -106,8 +140,8 @@ export function shuffle<T>(items: T[], rng: () => number = Math.random): T[] {
 }
 
 /** Deal 13 each to four hands, sorted for display. */
-export function deal(rng: () => number = Math.random): Card[][] {
-  const deck = shuffle(makeDeck(), rng)
+export function deal(variant: SpadesVariant = 'wild', rng: () => number = Math.random): Card[][] {
+  const deck = shuffle(makeDeck(variant), rng)
   const hands: Card[][] = [[], [], [], []]
   for (let i = 0; i < deck.length; i++) hands[i % PLAYER_COUNT]!.push(deck[i]!)
   return hands.map(sortHand)

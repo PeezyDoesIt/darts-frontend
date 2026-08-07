@@ -210,7 +210,7 @@
           </div>
           <div class="mode-copy">
             <span class="mode-title display">SPADES</span>
-            <span class="mode-sub">4 players · house deck with both jokers</span>
+            <span class="mode-sub">Classic or Wild Style · vs computer or friends</span>
           </div>
         </button>
       </section>
