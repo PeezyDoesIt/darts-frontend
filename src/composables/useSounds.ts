@@ -1083,7 +1083,11 @@ export function playTurnStartTone(): void {
   ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
 }
 
-// Short falling 2-note thud — plays when NEXT is tapped to end a turn
+/**
+ * Short falling 2-note thud. This is the *scoreless* turn sound — it plays only when a
+ * player submits a turn having hit nothing. It used to fire on every submit, so a good
+ * turn was rewarded with a downbeat thud; see playTurnResultSound.
+ */
 export function playTurnEndBeep(): void {
   const ctx = getBeepCtx()
   if (!ctx) return
@@ -1107,4 +1111,41 @@ export function playTurnEndBeep(): void {
     })
   }
   ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+}
+
+// Rising 3-note major triad — plays when a player submits a turn having scored something.
+// Deliberately shorter than playTurnStartTone so it clears before the narrator speaks.
+export function playTurnScoreChime(): void {
+  const ctx = getBeepCtx()
+  if (!ctx) return
+  const go = () => {
+    const now = ctx.currentTime
+    // C5 → E5 → G5 — bright, affirming, "you got points" feel
+    const notes = [523.25, 659.25, 783.99]
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'triangle'
+      osc.frequency.value = freq
+      const t = now + i * 0.075
+      gain.gain.setValueAtTime(0, t)
+      gain.gain.linearRampToValueAtTime(0.4, t + 0.012)
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(t)
+      osc.stop(t + 0.32)
+    })
+  }
+  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+}
+
+/**
+ * Single entry point for the turn-submit sound, so the scored/scoreless split can never
+ * drift between call sites. Callers pass the game store's own `lastTurnWasZero` verdict
+ * rather than re-deriving "did they hit anything", which differs per game type (a number
+ * for oh-one/ATC, a map of marks for cricket).
+ */
+export function playTurnResultSound(scoredNothing: boolean): void {
+  scoredNothing ? playTurnEndBeep() : playTurnScoreChime()
 }

@@ -609,7 +609,7 @@ import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
 import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore, type CricketTarget } from '../types/index'
 import { speak } from '../composables/useSpeech'
-import { playThemedTick, playBombBeep, playGameShowBuzzer, playTurnStartTone, playTurnEndBeep, unlockAudio } from '../composables/useSounds'
+import { playThemedTick, playBombBeep, playGameShowBuzzer, playTurnStartTone, playTurnResultSound, unlockAudio } from '../composables/useSounds'
 
 const WHITE_LABEL_THEMES = new Set<string | null>(
   PLAYER_THEMES
@@ -869,7 +869,15 @@ const wildPlayerMarks = computed(() => {
   const s = game.value.scores[currentPlayer.value.id]
   return s?.kind === 'cricket' ? (s.data.wildMarks ?? {}) : undefined
 })
-function handleCricketSubmit(marks: CricketHits) { unlockAudio(); playTurnEndBeep(); gameStore.submitScore(currentPlayer.value.id, marks) }
+function handleCricketSubmit(marks: CricketHits) {
+  unlockAudio()
+  // Submit first, then sound off the store's own verdict. Playing before the submit meant
+  // the sound could not know whether the turn scored, so every turn — good or bad — got
+  // the downbeat thud. Audio is fire-and-forget, so this still lands before the walk-up
+  // navigation and therefore before any commentary.
+  gameStore.submitScore(currentPlayer.value.id, marks)
+  playTurnResultSound(gameStore.lastTurnWasZero)
+}
 function handleAtcSubmit(delta: number, completedNums?: number[]) {
   unlockAudio()
   gameStore.submitScore(currentPlayer.value.id, delta)
