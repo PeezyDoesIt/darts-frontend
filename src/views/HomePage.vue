@@ -1191,8 +1191,13 @@ function previewBullseyeSound(value: string) {
   .home-inner { padding-top: calc(28px + env(safe-area-inset-top)); }
   .home-inner { padding-bottom: calc(44px + env(safe-area-inset-bottom)); }
   .hero-row, .board-row { grid-template-columns: 1fr; }
-  .mode-row { grid-template-columns: 1fr; }
   .hero-wordmark { font-size: clamp(52px, 11vw, 92px); }
+
+  /* Picking a game is the reason the app exists, so it goes above the branding once
+     there is no room for both. Stacked single-column under the 593px hero, the first
+     tile started at y=775 on an 812px phone — every game was below the fold and Spades
+     was 544px past it, which reads as "the option isn't there". */
+  .mode-row { order: -1; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 }
 @media (max-width: 700px) {
   .home-inner { padding: 20px 16px 40px; gap: 14px; }
@@ -1210,6 +1215,16 @@ function previewBullseyeSound(value: string) {
   .board { padding: 20px 18px; }
   .board-cols, .board-row-item { grid-template-columns: 28px 1fr 50px 44px 56px; font-size: 13px; }
   .board-cols { font-size: 9px; letter-spacing: 0.1em; }
+
+  /* Two to a row leaves roughly 165px per tile, so the icon-beside-text layout has about
+     55px for a title like SHIP CAPTAIN CREW. Stack it instead, which is also what lets the
+     list keep growing as games are added. */
+  .mode { flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px 13px; border-radius: 16px; }
+  .mode-icon { width: 36px; height: 36px; border-radius: 12px; }
+  .mode-icon svg { width: 20px; height: 20px; }
+  .mode-title { font-size: 15px; letter-spacing: 0.04em; line-height: 1.05; }
+  .mode-sub { font-size: 9px; letter-spacing: 0.04em; line-height: 1.35; text-transform: none; }
+  .mode-glow { top: -70px; right: -50px; width: 140px; height: 140px; }
 }
 
 /* ── Narrator scope segmented control ── */
