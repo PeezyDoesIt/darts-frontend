@@ -25,7 +25,7 @@
               <span class="rank-place display" :style="rank === 0 ? { color: ps.player.color } : {}">{{ rank + 1 }}</span>
               <div class="rank-avatar" :style="{ background: ps.player.color }">
                 <img v-if="isPhoto(ps.player.avatarUrl)" :src="ps.player.avatarUrl!" alt="" />
-                <span v-else>{{ ps.player.avatarUrl ?? '🎯' }}</span>
+                <span v-else>{{ avatarGlyph(ps.player) }}</span>
               </div>
               <span class="rank-name">{{ ps.player.name }}</span>
               <span class="rank-score" :style="ps.player.id === game.winnerId ? { color: ps.player.color } : {}">
@@ -46,6 +46,9 @@
     <template v-if="game && game.status === 'playing'">
       <!-- TURN HEADER: controls only -->
       <div class="turn-header" :style="{ borderBottomColor: currentPlayer?.color }">
+        <!-- Every other game puts quit in the header. Yahtzee had it two taps deep inside the
+             ⚙ panel — and on iPad portrait that ⚙ is itself hidden from this bar. -->
+        <button v-ripple class="btn btn-outline btn-sm header-quit-btn" @click="quitGame">← Quit</button>
         <span class="turn-header-title display">YAHTZEE</span>
         <button v-ripple class="header-sc-btn header-bets-btn" :class="{ 'header-sc-btn-active': showSettings }" @click="showSettings = !showSettings" title="Bets & Settings">BETS</button>
         <button v-ripple class="header-sc-btn" :class="{ 'header-sc-btn-active': showDicePicker }" @click="showDicePicker = !showDicePicker" title="Dice style">🎲</button>
@@ -63,7 +66,7 @@
           :style="{ background: currentPlayer?.color, boxShadow: `0 0 20px ${currentPlayer?.color}90` }"
         >
           <img v-if="isPhoto(currentPlayer?.avatarUrl)" :src="currentPlayer!.avatarUrl!" alt="" />
-          <span v-else>{{ currentPlayer?.avatarUrl ?? '🎯' }}</span>
+          <span v-else>{{ avatarGlyph(currentPlayer) }}</span>
         </div>
         <span class="banner-name display" :style="{ color: currentPlayer?.color, '--pcolor': currentPlayer?.color }">{{ currentPlayer?.name }}</span>
         <div class="banner-score">
@@ -85,7 +88,7 @@
         >
           <div class="tab-avatar" :style="{ background: ps.player.color }">
             <img v-if="isPhoto(ps.player.avatarUrl)" :src="ps.player.avatarUrl!" alt="" />
-            <span v-else style="font-size:10px">{{ ps.player.avatarUrl ?? '🎯' }}</span>
+            <span v-else style="font-size:10px">{{ avatarGlyph(ps.player) }}</span>
           </div>
           <span class="tab-name">{{ ps.player.name }}</span>
           <span class="tab-score">{{ grandTotal(ps.scorecard) }}</span>
@@ -429,7 +432,7 @@
               >
                 <div class="sc-add-avatar" :style="{ background: p.color }">
                   <img v-if="p.avatarUrl?.startsWith('data:') || p.avatarUrl?.startsWith('http')" :src="p.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
-                  <span v-else style="font-size:14px">{{ p.avatarUrl ?? '🎯' }}</span>
+                  <span v-else style="font-size:14px">{{ avatarGlyph(p) }}</span>
                 </div>
                 <span class="sc-add-name">{{ p.name }}</span>
                 <span class="sc-add-stats">{{ p.wins }}W / {{ p.gamesPlayed }}G</span>
@@ -553,7 +556,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { useYahtzeeStore, grandTotal, upperTotal, upperBonus, lowerTotal, calcScore, isScorecardComplete } from '../stores/yahtzee'
+import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
+import { useYahtzeeStore, grandTotal, upperTotal, upperBonus, lowerTotal, calcScore, isScorecardComplete, YAHTZEE_CATEGORIES } from '../stores/yahtzee'
 import { usePlayersStore } from '../stores/players'
 import type { YahtzeeCategory, YahtzeeScorecard } from '../stores/yahtzee'
 import { DICE_THEMES, DIE_GRADIENTS, GRADIENT_DIE_THEMES, type DiceTheme } from '../types/index'
@@ -685,7 +689,10 @@ const canScore = computed(() => (game.value?.rollCount ?? 0) >= 1)
 const currentRound = computed(() => {
   const sc = game.value?.playerStates[game.value.currentPlayerIndex]?.scorecard
   if (!sc) return 1
-  return Math.min(Object.values(sc).filter(v => v !== null).length + 1, 13)
+  // Only the 13 scoring categories count as rounds. `yahtzeeBonusCount` also lives on the
+  // scorecard and starts at 0, not null — counting raw non-null values opened the game on
+  // "RD 2/13" and left the last round showing 13 a round early.
+  return Math.min(YAHTZEE_CATEGORIES.filter(c => sc[c] !== null).length + 1, 13)
 })
 
 const winner = computed(() => {
@@ -992,7 +999,6 @@ function tryScore(category: YahtzeeCategory) {
 // Clear pending selection if the player rolls again
 watch(() => game.value?.rollCount, () => { pendingCategory.value = null })
 
-function isPhoto(url: string | null | undefined) { return url?.startsWith('data:') || url?.startsWith('http') }
 
 function playAgain() { stopScoresheetTimer(); if (walkupInterval) clearInterval(walkupInterval); yahtzeeStore.endGame(); router.push('/yahtzee/setup') }
 function goHome() { stopScoresheetTimer(); if (walkupInterval) clearInterval(walkupInterval); yahtzeeStore.endGame(); router.push('/') }
@@ -1523,6 +1529,11 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   padding-bottom: env(safe-area-inset-bottom);
   background: #0a0a0a;
 }
+
+/* The header is justify-content: flex-end, so this pushes quit to the left edge where the
+   other games keep it. Deliberately not a .header-sc-btn — those get hidden on iPad
+   portrait, which is exactly where an unreachable quit would hurt most. */
+.header-quit-btn { margin-right: auto; flex-shrink: 0; }
 
 .header-sc-btn {
   background: rgba(255,255,255,0.08);

@@ -18,7 +18,7 @@
         <div v-if="sorted[1]" class="podium-slot second">
           <div class="pod-avatar" :style="{ background: sorted[1].color, boxShadow: `0 0 20px ${sorted[1].color}80` }">
             <img v-if="isPhoto(sorted[1].avatarUrl)" :src="sorted[1].avatarUrl!" alt="" />
-            <span v-else>{{ sorted[1].avatarUrl ?? '🎯' }}</span>
+            <span v-else>{{ avatarGlyph(sorted[1]) }}</span>
           </div>
           <div class="pod-name">{{ sorted[1].name }}</div>
           <div class="pod-wins display" :style="{ color: sorted[1].color }">{{ sorted[1].wins }}W</div>
@@ -28,7 +28,7 @@
           <div class="pod-crown">👑</div>
           <div class="pod-avatar large" :style="{ background: sorted[0].color, boxShadow: `0 0 30px ${sorted[0].color}` }">
             <img v-if="isPhoto(sorted[0].avatarUrl)" :src="sorted[0].avatarUrl!" alt="" />
-            <span v-else>{{ sorted[0].avatarUrl ?? '🎯' }}</span>
+            <span v-else>{{ avatarGlyph(sorted[0]) }}</span>
           </div>
           <div class="pod-name">{{ sorted[0].name }}</div>
           <div class="pod-wins display" :style="{ color: sorted[0].color }">{{ sorted[0].wins }}W</div>
@@ -37,7 +37,7 @@
         <div v-if="sorted[2]" class="podium-slot third">
           <div class="pod-avatar" :style="{ background: sorted[2].color, boxShadow: `0 0 16px ${sorted[2].color}60` }">
             <img v-if="isPhoto(sorted[2].avatarUrl)" :src="sorted[2].avatarUrl!" alt="" />
-            <span v-else>{{ sorted[2].avatarUrl ?? '🎯' }}</span>
+            <span v-else>{{ avatarGlyph(sorted[2]) }}</span>
           </div>
           <div class="pod-name">{{ sorted[2].name }}</div>
           <div class="pod-wins display" :style="{ color: sorted[2].color }">{{ sorted[2].wins }}W</div>
@@ -55,7 +55,7 @@
           <div class="player-cell">
             <div class="cell-avatar" :style="{ background: p.color, boxShadow: `0 0 10px ${p.color}60` }">
               <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+              <span v-else>{{ avatarGlyph(p) }}</span>
             </div>
             <span>{{ p.name }}</span>
           </div>
@@ -73,16 +73,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { usePlayersStore } from '../stores/players'
 
 const router = useRouter()
 const playersStore = usePlayersStore()
 const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !== a.wins ? b.wins - a.wins : b.gamesPlayed - a.gamesPlayed))
-
-function isPhoto(url: string | null | undefined): boolean {
-  if (!url) return false
-  return url.startsWith('data:') || url.startsWith('http') || url.startsWith('/')
-}
 </script>
 
 <style scoped>

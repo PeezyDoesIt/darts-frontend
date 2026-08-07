@@ -138,7 +138,7 @@
               <div v-for="p in sortedPlayers" :key="p.id" class="existing-row" :class="{ pinned: p.pinned, editing: editingId === p.id }">
                 <div class="roster-avatar" :style="{ background: p.color, boxShadow: `0 0 8px ${p.color}60` }">
                   <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
-                  <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+                  <span v-else>{{ avatarGlyph(p) }}</span>
                 </div>
                 <div class="existing-info">
                   <span>{{ p.name }}</span>
@@ -162,7 +162,7 @@
         <div class="confirm-panel">
           <div class="confirm-avatar" :style="{ background: deleteTarget.color }">
             <img v-if="isPhoto(deleteTarget.avatarUrl)" :src="deleteTarget.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover" />
-            <span v-else>{{ deleteTarget.avatarUrl ?? '🎯' }}</span>
+            <span v-else>{{ avatarGlyph(deleteTarget) }}</span>
           </div>
           <div class="confirm-name">{{ deleteTarget.name }}</div>
           <p v-if="deleteTarget.pinned" class="confirm-msg pinned-warn">📌 This player is pinned. Unpin them to delete.</p>
@@ -209,6 +209,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { goBack } from '../router/goBack'
@@ -272,7 +273,6 @@ const cameraOpen = ref(false)
 const videoEl = ref<HTMLVideoElement | null>(null)
 let stream: MediaStream | null = null
 
-function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:') || url?.startsWith('http')) }
 const deleteTarget = ref<Player | null>(null)
 function confirmDelete(p: Player) { deleteTarget.value = p }
 

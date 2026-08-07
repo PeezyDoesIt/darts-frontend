@@ -22,31 +22,14 @@
       <div class="panel panel-left">
         <div class="panel-label-row">
           <div class="panel-label">SELECT PLAYERS</div>
-          <button v-ripple class="new-player-btn" @click="router.push('/player-setup')">+ New Player</button>
         </div>
 
-        <div class="player-list">
-          <div
-            v-for="p in sortedPlayers"
-            :key="p.id"
-            class="player-row"
-            :class="{ selected: isSelected(p.id) }"
-          >
-            <div class="player-avatar" :style="{ background: isPhoto(p.avatarUrl) ? 'transparent' : p.color }">
-              <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" class="avatar-img" />
-              <span v-else class="avatar-emoji">{{ p.avatarUrl ?? '?' }}</span>
-            </div>
-            <span class="player-name">{{ p.name }}</span>
-            <button
-              v-ripple
-              class="add-btn"
-              :class="{ added: isSelected(p.id) }"
-              @click="togglePlayer(p)"
-            >
-              {{ isSelected(p.id) ? '✓' : '+' }}
-            </button>
-          </div>
-        </div>
+        <PlayerPicker
+          :roster="playersStore.players"
+          :selected-ids="selectedPlayers.map(p => p.id)"
+          :full="selectedPlayers.length >= 8"
+          @pick="togglePlayer"
+        />
 
         <!-- Add Guest -->
         <div class="guest-section">
@@ -81,7 +64,7 @@
             <span class="seat-num">{{ i + 1 }}</span>
             <div class="player-avatar sm" :style="{ background: isPhoto(p.avatarUrl) ? 'transparent' : p.color }">
               <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" class="avatar-img" />
-              <span v-else class="avatar-emoji">{{ p.avatarUrl ?? '?' }}</span>
+              <span v-else class="avatar-emoji">{{ avatarGlyph(p) }}</span>
             </div>
             <span class="roster-name">{{ p.name }}</span>
             <div class="roster-actions">
@@ -119,6 +102,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import PlayerPicker from '../components/PlayerPicker.vue'
+import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { useLRCStore, type LRCDiceStyle, type LRCPlayer } from '../stores/lrc'
 import { usePlayersStore } from '../stores/players'
 import { goBack } from '../router/goBack'
@@ -137,19 +122,6 @@ const selectedPlayers = ref<LRCPlayer[]>([])
 const guestName = ref('')
 const guestEmojiIdx = ref(0)
 const guestEmoji = computed(() => GUEST_EMOJIS[guestEmojiIdx.value]!)
-
-const sortedPlayers = computed(() => {
-  const all = playersStore.players as Player[]
-  return [...all].sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1
-    if (!a.pinned && b.pinned) return 1
-    return 0
-  })
-})
-
-function isPhoto(url: string | null | undefined): boolean {
-  return !!(url?.startsWith('data:') || url?.startsWith('http'))
-}
 
 function isSelected(id: string): boolean {
   return selectedPlayers.value.some(p => p.id === id)
@@ -325,47 +297,6 @@ function handleStart() {
   gap: 8px;
   margin-bottom: 4px;
 }
-.new-player-btn {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 5px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.75);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s;
-  position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-.new-player-btn:hover {
-  border-color: rgba(255,255,255,0.35);
-  color: #fff;
-  background: rgba(255,255,255,0.1);
-}
-
-/* Player list */
-.player-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.player-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.07);
-  background: rgba(255,255,255,0.03);
-  transition: background 0.15s, border-color 0.15s;
-}
-.player-row.selected {
-  background: rgba(255,45,120,0.08);
-  border-color: rgba(255,45,120,0.3);
-}
 .player-avatar {
   width: 38px;
   height: 38px;
@@ -391,42 +322,6 @@ function handleStart() {
 }
 .player-avatar.sm .avatar-emoji {
   font-size: 14px;
-}
-.player-name {
-  flex: 1;
-  font-size: 15px;
-  font-weight: 700;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.add-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.25);
-  background: rgba(255,255,255,0.05);
-  color: rgba(255,255,255,0.7);
-  font-size: 18px;
-  font-weight: 900;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
-  flex-shrink: 0;
-  position: relative;
-  overflow: hidden;
-}
-.add-btn.added {
-  border-color: var(--pink, #ff2d78);
-  background: rgba(255,45,120,0.2);
-  color: var(--pink, #ff2d78);
-}
-.add-btn:hover {
-  border-color: #fff;
-  color: #fff;
 }
 
 /* Guest section */

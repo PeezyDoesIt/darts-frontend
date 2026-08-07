@@ -26,7 +26,7 @@
         <span class="pass-label">PASS THE DEVICE TO</span>
         <div class="pass-avatar" :style="{ background: seated.color }">
           <img v-if="isPhoto(seated.avatarUrl)" :src="seated.avatarUrl!" alt="" />
-          <span v-else>🂡</span>
+          <span v-else>{{ avatarGlyph(seated) }}</span>
         </div>
         <h2 class="pass-name display" :style="{ color: seated.color }">{{ seated.name }}</h2>
         <p class="pass-note">
@@ -165,6 +165,7 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import PlayingCard from '../components/PlayingCard.vue'
 import { useSpadesStore, teamOf } from '../stores/spades'
 import { usePlayersStore } from '../stores/players'
@@ -195,7 +196,6 @@ const showFooter = computed(() =>
 // hands are visible without scrolling at all.
 const cardWidth = computed(() => (sortedHand.value.length > 9 ? 50 : 62))
 
-function isPhoto(url: string | null) { return !!url && (url.startsWith('data:') || url.startsWith('http')) }
 function teamNames(t: 0 | 1) {
   const g = game.value
   if (!g) return ''

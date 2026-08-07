@@ -31,6 +31,12 @@ npm-debug.log*
 /plugins
 /www
 
+# Playwright smoke-test output — traces and screenshots are per-run debugging artifacts
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
+
 # Environment files — commit .env.example only, never .env.local or secrets
 .env
 .env.*

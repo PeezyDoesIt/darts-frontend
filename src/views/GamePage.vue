@@ -11,7 +11,7 @@
             <button class="header-avatar-btn" @click="router.push({ path: '/player-setup', query: { edit: currentPlayer.id } })" title="Edit player">
               <div class="header-avatar" :style="{ background: currentPlayer.color, boxShadow: `0 0 8px ${currentPlayer.color}80` }">
                 <img v-if="isPhoto(currentPlayer.avatarUrl)" :src="currentPlayer.avatarUrl!" alt="" />
-                <span v-else>{{ currentPlayer.avatarUrl ?? '🎯' }}</span>
+                <span v-else>{{ avatarGlyph(currentPlayer) }}</span>
               </div>
             </button>
             <span class="turn-round-pill display">ROUND {{ game.round }}<template v-if="game.cricketRoundLimit !== null"> / {{ game.cricketRoundLimit }}</template></span>
@@ -200,7 +200,7 @@
           >
             <div class="ws-avatar" :style="{ background: p.color }">
               <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+              <span v-else>{{ avatarGlyph(p) }}</span>
             </div>
             <div class="ws-player-info">
               <span class="ws-player-name" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">
@@ -412,7 +412,7 @@
         >
           <div class="add-player-avatar" :style="{ background: p.color }">
             <img v-if="p.avatarUrl?.startsWith('data:') || p.avatarUrl?.startsWith('http')" :src="p.avatarUrl" alt="" />
-            <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+            <span v-else>{{ avatarGlyph(p) }}</span>
           </div>
           <span class="add-player-name">{{ p.name }}</span>
           <span class="add-player-cta">Add →</span>
@@ -433,7 +433,7 @@
             <div class="active-dot" :style="{ background: p.color, opacity: p.id === currentPlayer.id ? 1 : 0 }" />
             <div class="lb-avatar" :style="{ background: p.color, boxShadow: p.id === currentPlayer.id ? `0 0 14px ${p.color}99` : '0 0 0 transparent' }">
               <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+              <span v-else>{{ avatarGlyph(p) }}</span>
             </div>
             <div class="lb-player-info">
               <span class="lb-player-name" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">
@@ -613,6 +613,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
+import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
@@ -873,7 +874,6 @@ const horseHint = computed((): string | null => {
   return target !== undefined ? `Target to beat: ${target}` : null
 })
 
-function isPhoto(url: string | null) { return url?.startsWith('data:') || url?.startsWith('http') }
 function getCricketMarks(playerId: string) {
   const s = game.value?.scores[playerId]
   return s?.kind === 'cricket' ? s.data.marks : null
