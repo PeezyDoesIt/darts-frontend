@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   applyBagPenalty, cardId, cardLabel, deal, effectiveSuit, isTrump, legalPlays, makeDeck,
-  rulesFor, scoreSide, sortHand, strength, trickWinner, type Card,
+  rulesFor, scoreSide, sortHand, strength, trickWinner, winnerTeamFor, type Card,
 } from '@/lib/spades'
 
 const pip = (suit: 'spades' | 'hearts' | 'diamonds' | 'clubs', rank: number): Card =>
@@ -210,5 +210,34 @@ describe('sortHand', () => {
     const sorted = sortHand([pip('hearts', 5), pip('spades', 3), LITTLE, BIG, pip('clubs', 9)])
 
     expect(sorted.slice(0, 3).map(cardLabel)).toEqual(['H', 'L', '3'])
+  })
+})
+
+describe('winning the game', () => {
+  it('keeps playing while both sides are under 500', () => {
+    expect(winnerTeamFor([499, 210])).toBeNull()
+    expect(winnerTeamFor([0, 0])).toBeNull()
+  })
+
+  it('is won at exactly 500, not 501', () => {
+    expect(winnerTeamFor([500, 210])).toBe(0)
+  })
+
+  it('gives it to whichever side crossed, either seat pairing', () => {
+    expect(winnerTeamFor([512, 340])).toBe(0)
+    expect(winnerTeamFor([340, 512])).toBe(1)
+  })
+
+  it('gives it to the higher side when both cross in the same hand', () => {
+    // Nils and bag penalties move both totals, so both crossing at once is ordinary.
+    expect(winnerTeamFor([505, 530])).toBe(1)
+  })
+
+  it('plays another hand when both cross level, rather than picking a winner', () => {
+    expect(winnerTeamFor([510, 510])).toBeNull()
+  })
+
+  it('does not hand it to a side sitting on a negative score', () => {
+    expect(winnerTeamFor([-40, 220])).toBeNull()
   })
 })

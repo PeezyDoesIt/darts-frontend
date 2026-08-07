@@ -12,31 +12,11 @@
       <section class="ng-section">
         <span class="label">SELECT PLAYERS</span>
 
-        <div v-if="playersStore.players.length === 0" class="empty-players">
-          No players yet.
-          <button v-ripple class="link-btn" @click="router.push('/player-setup')">Add one →</button>
-        </div>
-
-        <div v-else class="player-bubble-grid">
-          <div v-ripple class="player-bubble add-player-bubble" @click="router.push('/player-setup')">
-            <div class="bubble-avatar add-bubble-avatar"><span>+</span></div>
-            <span class="bubble-name">New Player</span>
-          </div>
-          <div
-            v-for="p in sortedPlayers.filter(p => !isSelected(p.id))"
-            :key="p.id"
-            v-ripple
-            class="player-bubble"
-            @click="togglePlayer(p)"
-          >
-            <div class="bubble-avatar" :style="{ background: p.color }">
-              <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-              <span v-else>{{ p.avatarUrl ?? '🎲' }}</span>
-            </div>
-            <span class="bubble-name">{{ p.name }}</span>
-            <span v-if="p.pinned" class="bubble-pin">📌</span>
-          </div>
-        </div>
+        <PlayerPicker
+          :roster="playersStore.players"
+          :selected-ids="selectedPlayers.map(p => p.id)"
+          @pick="togglePlayer"
+        />
       </section>
 
       <section v-if="selectedPlayers.length > 0" class="ng-section">
@@ -46,7 +26,7 @@
             <span class="order-num display" :style="{ color: p.color }">{{ i + 1 }}</span>
             <div class="order-avatar" :style="{ background: p.color }">
               <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-              <span v-else>{{ p.avatarUrl ?? '🎲' }}</span>
+              <span v-else>{{ avatarGlyph(p) }}</span>
             </div>
             <span class="order-name">{{ p.name }}</span>
             <div class="order-btns">
@@ -98,6 +78,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import PlayerPicker from '../components/PlayerPicker.vue'
+import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { usePlayersStore } from '../stores/players'
 import { useFarkleStore } from '../stores/farkle'
 import { useSCCStore } from '../stores/shipCaptainCrew'
@@ -170,16 +152,7 @@ const config = computed(() => CONFIG[variant.value])
 const selectedPlayers = ref<Player[]>([])
 const target = ref<number>(CONFIG[variant.value].defaultTarget)
 
-const sortedPlayers = computed(() =>
-  [...playersStore.players].sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1
-    if (!a.pinned && b.pinned) return 1
-    return b.gamesPlayed - a.gamesPlayed
-  })
-)
-
 function isSelected(id: string) { return selectedPlayers.value.some(p => p.id === id) }
-function isPhoto(url: string | null) { return !!url && (url.startsWith('data:') || url.startsWith('http')) }
 function togglePlayer(p: Player) { if (!isSelected(p.id)) selectedPlayers.value.push(p) }
 function removePlayer(id: string) { selectedPlayers.value = selectedPlayers.value.filter(p => p.id !== id) }
 function moveUp(i: number) {
@@ -234,21 +207,6 @@ function start() {
 }
 .empty-players { color: var(--text-muted); font-size: 14px; display: flex; align-items: center; gap: 8px; }
 .link-btn { background: none; border: none; color: var(--pink); font-weight: 700; cursor: pointer; min-height: 44px; }
-
-.player-bubble-grid { display: flex; flex-wrap: wrap; gap: 12px; }
-.player-bubble {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  width: 78px; cursor: pointer; position: relative; padding: 6px 0;
-}
-.bubble-avatar {
-  width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; font-size: 26px; overflow: hidden;
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.08);
-}
-.bubble-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.add-bubble-avatar { background: rgba(255,255,255,0.06); border: 2px dashed rgba(255,255,255,0.25); color: var(--text-muted); }
-.bubble-name { font-size: 11px; font-weight: 600; text-align: center; overflow-wrap: anywhere; }
-.bubble-pin { position: absolute; top: 0; right: 10px; font-size: 12px; }
 
 .order-list { display: flex; flex-direction: column; gap: 8px; }
 .order-row {

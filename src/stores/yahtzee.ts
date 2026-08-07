@@ -10,6 +10,17 @@ export type YahtzeeCategory =
 
 export type YahtzeeScorecard = { [K in YahtzeeCategory]: number | null } & { yahtzeeBonusCount: number }
 
+/**
+ * The 13 scoring categories, in scorecard order. A scorecard also carries
+ * `yahtzeeBonusCount`, which is a running tally rather than a category — anything counting
+ * "how much of the card is filled" has to iterate this list, not `Object.keys(scorecard)`.
+ */
+export const YAHTZEE_CATEGORIES: YahtzeeCategory[] = [
+  'aces', 'twos', 'threes', 'fours', 'fives', 'sixes',
+  'threeOfAKind', 'fourOfAKind', 'fullHouse',
+  'smallStraight', 'largeStraight', 'yahtzee', 'chance',
+]
+
 export interface YahtzeePlayerState {
   player: Player
   scorecard: YahtzeeScorecard
@@ -103,12 +114,7 @@ export function grandTotal(sc: YahtzeeScorecard): number {
 }
 
 export function isScorecardComplete(sc: YahtzeeScorecard): boolean {
-  const cats: YahtzeeCategory[] = [
-    'aces','twos','threes','fours','fives','sixes',
-    'threeOfAKind','fourOfAKind','fullHouse',
-    'smallStraight','largeStraight','yahtzee','chance',
-  ]
-  return cats.every(c => sc[c] !== null)
+  return YAHTZEE_CATEGORIES.every(c => sc[c] !== null)
 }
 
 const SAVE_KEY = 'yahtzee_active_game'

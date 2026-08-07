@@ -12,37 +12,11 @@
       <section class="ng-section">
         <span class="label">SELECT PLAYERS</span>
 
-        <div v-if="playersStore.players.length === 0" class="empty-players">
-          No players yet.
-          <button v-ripple class="link-btn" @click="router.push('/player-setup')">Add one →</button>
-        </div>
-
-        <div v-else class="player-bubble-grid">
-          <!-- Add new player bubble -->
-          <div v-ripple class="player-bubble add-player-bubble" @click="router.push('/player-setup')">
-            <div class="bubble-avatar add-bubble-avatar">
-              <span>+</span>
-            </div>
-            <span class="bubble-name">New Player</span>
-          </div>
-          <div
-            v-for="p in sortedPlayers.filter(p => !isSelected(p.id))"
-            :key="p.id"
-            v-ripple
-            class="player-bubble"
-            @click="togglePlayer(p)"
-          >
-            <div
-              class="bubble-avatar"
-              :style="{ background: p.color, boxShadow: `0 0 0 2px rgba(255,255,255,0.08)` }"
-            >
-              <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
-            </div>
-            <span class="bubble-name">{{ p.name }}</span>
-            <span v-if="p.pinned" class="bubble-pin">📌</span>
-          </div>
-        </div>
+        <PlayerPicker
+          :roster="playersStore.players"
+          :selected-ids="selectedPlayers.map(p => p.id)"
+          @pick="togglePlayer"
+        />
       </section>
 
       <section v-if="selectedPlayers.length > 0" class="ng-section order-section">
@@ -52,7 +26,7 @@
             <span class="order-num display" :style="{ color: p.color }">{{ i + 1 }}</span>
             <div class="order-avatar" :style="{ background: p.color }">
               <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+              <span v-else>{{ avatarGlyph(p) }}</span>
             </div>
             <span class="order-name">{{ p.name }}</span>
             <div class="order-btns">
@@ -106,8 +80,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import PlayerPicker from '../components/PlayerPicker.vue'
+import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { usePlayersStore } from '../stores/players'
 import { useYahtzeeStore } from '../stores/yahtzee'
 import type { Player } from '../types/index'
@@ -119,16 +95,7 @@ const yahtzeeStore = useYahtzeeStore()
 const selectedPlayers = ref<Player[]>([])
 const diceMode = ref<'electronic' | 'physical'>('electronic')
 
-const sortedPlayers = computed(() =>
-  [...playersStore.players].sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1
-    if (!a.pinned && b.pinned) return 1
-    return b.gamesPlayed - a.gamesPlayed
-  })
-)
-
 function isSelected(id: string) { return selectedPlayers.value.some(p => p.id === id) }
-function isPhoto(url: string | null) { return url?.startsWith('data:') || url?.startsWith('http') }
 
 function togglePlayer(p: Player) {
   if (!isSelected(p.id)) selectedPlayers.value.push(p)
@@ -204,63 +171,6 @@ function startGame() {
 
 .ng-section { display: flex; flex-direction: column; gap: 12px; }
 .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); }
-
-.empty-players { color: rgba(255,255,255,0.4); font-size: 14px; display: flex; gap: 8px; align-items: center; }
-.link-btn { background: none; border: none; color: var(--pink); cursor: pointer; font-size: 14px; font-weight: 700; }
-
-.player-bubble-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px 12px;
-}
-.player-bubble {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  position: relative;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.15s;
-}
-.player-bubble:hover { transform: scale(1.05); }
-.bubble-avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
-  overflow: hidden;
-  flex-shrink: 0;
-  transition: box-shadow 0.2s;
-}
-.bubble-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.bubble-name {
-  font-size: 12px;
-  font-weight: 800;
-  font-family: var(--font-display);
-  letter-spacing: 0.04em;
-  text-align: center;
-  color: rgba(255,255,255,0.55);
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.bubble-pin { position: absolute; top: -2px; right: 4px; font-size: 10px; }
-
-.add-bubble-avatar {
-  background: rgba(255,255,255,0.06) !important;
-  border: 2px dashed rgba(255,255,255,0.2) !important;
-  box-shadow: none !important;
-  font-size: 28px !important;
-  color: rgba(255,255,255,0.4);
-}
-.add-player-bubble .bubble-name { color: rgba(255,255,255,0.3); }
-.add-player-bubble:hover .add-bubble-avatar { border-color: var(--pink) !important; color: var(--pink); }
-.add-player-bubble:hover .bubble-name { color: var(--pink); }
 
 .order-section { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 4px; }
 .order-list { display: flex; flex-direction: column; gap: 8px; }

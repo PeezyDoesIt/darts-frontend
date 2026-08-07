@@ -77,6 +77,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, type CSSProperties } from 'vue'
 import { useRouter } from 'vue-router'
+import { isPhoto } from '../lib/playerDisplay'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
 import { cancelPendingSpeak } from '../composables/useSpeech'
@@ -222,7 +223,6 @@ onUnmounted(() => {
 })
 
 function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/game') }
-function isPhoto(url: string | null): boolean { return !!(url?.startsWith('data:') || url?.startsWith('http')) }
 </script>
 
 <style scoped>

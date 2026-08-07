@@ -8,7 +8,7 @@
 
         <div class="winner-avatar" :style="{ background: winner?.color, boxShadow: `0 0 60px ${winner?.color}` }">
           <img v-if="isPhoto(winner?.avatarUrl)" :src="winner!.avatarUrl!" alt="" />
-          <span v-else>{{ winner?.avatarUrl ?? '🎯' }}</span>
+          <span v-else>{{ avatarGlyph(winner) }}</span>
         </div>
 
         <div class="winner-name display" :style="{ color: winner?.color, filter: `drop-shadow(0 0 20px ${winner?.color})` }">
@@ -28,7 +28,7 @@
             <span v-if="game?.cricketPlayToCompletion" class="final-place" :style="i === 0 ? { color: p.color } : {}">{{ ordinal(i + 1) }}</span>
             <div class="final-avatar" :style="{ background: p.color, boxShadow: `0 0 10px ${p.color}80` }">
               <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
-              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+              <span v-else>{{ avatarGlyph(p) }}</span>
             </div>
             <span class="final-name">{{ p.name }}</span>
             <span v-if="!game?.cricketPlayToCompletion" class="final-score" :style="p.id === winner?.id ? { color: p.color } : {}">{{ displayScore(p.id) }}</span>
@@ -47,6 +47,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
 import { useNarrator } from '../composables/useNarrator'
@@ -107,7 +108,6 @@ function displayScore(playerId: string) {
   if (s.kind === 'bobs27') return s.data.busted ? 'BUST' : `${s.data.score} pts`
   return '—'
 }
-function isPhoto(url: string | null | undefined) { return url?.startsWith('data:') || url?.startsWith('http') }
 function playAgain() { gameStore.endGame(); router.push('/new-game') }
 function goHome() { gameStore.endGame(); router.push('/') }
 </script>

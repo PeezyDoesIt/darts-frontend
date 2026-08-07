@@ -13,31 +13,12 @@
         <span class="label">WHO'S PLAYING</span>
         <p class="hint">Pick one to four people — the computer fills the rest of the table.</p>
 
-        <div v-if="playersStore.players.length === 0" class="empty-players">
-          No players yet.
-          <button v-ripple class="link-btn" @click="router.push('/player-setup')">Add one →</button>
-        </div>
-
-        <div v-else class="player-bubble-grid">
-          <div v-ripple class="player-bubble add-player-bubble" @click="router.push('/player-setup')">
-            <div class="bubble-avatar add-bubble-avatar"><span>+</span></div>
-            <span class="bubble-name">New Player</span>
-          </div>
-          <div
-            v-for="p in sortedPlayers.filter(p => !isSelected(p.id))"
-            :key="p.id"
-            v-ripple
-            class="player-bubble"
-            :class="{ disabled: selected.length >= 4 }"
-            @click="add(p)"
-          >
-            <div class="bubble-avatar" :style="{ background: p.color }">
-              <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-              <span v-else>{{ p.avatarUrl ?? '🂡' }}</span>
-            </div>
-            <span class="bubble-name">{{ p.name }}</span>
-          </div>
-        </div>
+        <PlayerPicker
+          :roster="playersStore.players"
+          :selected-ids="selected.map(p => p.id)"
+          :full="selected.length >= 4"
+          @pick="add"
+        />
       </section>
 
       <section class="ng-section">
@@ -52,7 +33,7 @@
             <span class="seat-num">SEAT {{ i + 1 }}</span>
             <div class="seat-avatar" :style="{ background: s.color }">
               <img v-if="!s.isBot && isPhoto(s.avatarUrl)" :src="s.avatarUrl!" alt="" />
-              <span v-else>{{ s.isBot ? '🤖' : (s.avatarUrl ?? '🂡') }}</span>
+              <span v-else>{{ s.isBot ? '🤖' : avatarGlyph(s) }}</span>
             </div>
             <span class="seat-name">{{ s.name }}</span>
             <div class="seat-btns">
@@ -116,6 +97,8 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import PlayingCard from '../components/PlayingCard.vue'
+import PlayerPicker from '../components/PlayerPicker.vue'
+import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { usePlayersStore } from '../stores/players'
 import { useSpadesStore } from '../stores/spades'
 import { VARIANT_BLURBS, VARIANT_LABELS, rulesFor, type SpadesVariant } from '../lib/spades'
@@ -154,16 +137,7 @@ const table = computed(() => {
 })
 const botCount = computed(() => 4 - selected.value.length)
 
-const sortedPlayers = computed(() =>
-  [...playersStore.players].sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1
-    if (!a.pinned && b.pinned) return 1
-    return b.gamesPlayed - a.gamesPlayed
-  })
-)
-
 function isSelected(id: string) { return selected.value.some(p => p.id === id) }
-function isPhoto(url: string | null) { return !!url && (url.startsWith('data:') || url.startsWith('http')) }
 function add(p: Player) { if (selected.value.length < 4 && !isSelected(p.id)) selected.value.push(p) }
 function remove(id: string) { selected.value = selected.value.filter(p => p.id !== id) }
 function move(i: number, dir: number) {
@@ -207,19 +181,6 @@ function start() {
 .label { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); }
 .hint { font-size: 12.5px; color: var(--text-muted); margin: 0; }
 .empty-players { color: var(--text-muted); font-size: 14px; display: flex; align-items: center; gap: 8px; }
-.link-btn { background: none; border: none; color: var(--pink); font-weight: 700; cursor: pointer; min-height: 44px; }
-
-.player-bubble-grid { display: flex; flex-wrap: wrap; gap: 12px; }
-.player-bubble { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 78px; cursor: pointer; padding: 6px 0; }
-.player-bubble.disabled { opacity: 0.35; pointer-events: none; }
-.bubble-avatar {
-  width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; font-size: 26px; overflow: hidden; box-shadow: 0 0 0 2px rgba(255,255,255,0.08);
-}
-.bubble-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.add-bubble-avatar { background: rgba(255,255,255,0.06); border: 2px dashed rgba(255,255,255,0.25); color: var(--text-muted); }
-.bubble-name { font-size: 11px; font-weight: 600; text-align: center; overflow-wrap: anywhere; }
-
 .seats { display: flex; flex-direction: column; gap: 8px; }
 .seat {
   display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 10px;

@@ -51,7 +51,7 @@
             }"
           >
             <img v-if="isPhoto(player.avatarUrl)" :src="player.avatarUrl!" class="seat-avatar-img" />
-            <span v-else class="seat-avatar-emoji" style="font-size: 22px">{{ player.avatarUrl ?? '?' }}</span>
+            <span v-else class="seat-avatar-emoji" style="font-size: 22px">{{ avatarGlyph(player) }}</span>
           </div>
           <div class="seat-name">{{ player.name }}</div>
           <div v-if="player.chips === 0" class="seat-out-label">OUT</div>
@@ -95,7 +95,7 @@
           }"
         >
           <img v-if="isPhoto(currentPlayer?.avatarUrl)" :src="currentPlayer!.avatarUrl!" class="bar-avatar-img" />
-          <span v-else class="bar-avatar-emoji">{{ currentPlayer?.avatarUrl ?? '?' }}</span>
+          <span v-else class="bar-avatar-emoji">{{ avatarGlyph(currentPlayer) }}</span>
         </div>
         <div class="bar-info">
           <div class="bar-name" :style="{ color: currentPlayer?.color ?? '#fff' }">{{ currentPlayer?.name }}</div>
@@ -129,7 +129,7 @@
             }"
           >
             <img v-if="isPhoto(winner?.avatarUrl)" :src="winner!.avatarUrl!" class="winner-avatar-img" />
-            <span v-else class="winner-avatar-emoji">{{ winner?.avatarUrl ?? '?' }}</span>
+            <span v-else class="winner-avatar-emoji">{{ avatarGlyph(winner) }}</span>
           </div>
           <div class="winner-label">WINNER!</div>
           <div class="winner-name">{{ winner?.name }}</div>
@@ -147,6 +147,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { useLRCStore } from '../stores/lrc'
 import { usePlayersStore } from '../stores/players'
 import { recordGameResult } from '../api/gameResults'
@@ -193,10 +194,6 @@ const winner = computed(() => {
   if (!lrcStore.game?.winnerId) return null
   return lrcStore.game.players.find(p => p.id === lrcStore.game!.winnerId) ?? null
 })
-
-function isPhoto(url: string | null | undefined): boolean {
-  return !!(url?.startsWith('data:') || url?.startsWith('http'))
-}
 
 function handleQuit() {
   if (confirm('Quit game?')) {

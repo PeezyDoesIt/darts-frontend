@@ -231,3 +231,17 @@ export function applyBagPenalty(totalBags: number): { score: number; bags: numbe
   // Subtract from zero rather than negating: `-0 * 100` is -0, which renders as "-0".
   return { score: 0 - penalties * BAG_PENALTY, bags: totalBags % BAG_PENALTY_AT }
 }
+
+/**
+ * Which side has won, or null if the game continues.
+ *
+ * Reaching 500 is not enough on its own — a side has to be ahead. Both crossing in the same
+ * hand is normal (bags and nils move both totals), and if that leaves them level the game
+ * plays on rather than declaring an arbitrary winner.
+ */
+export function winnerTeamFor(scores: [number, number]): 0 | 1 | null {
+  const [a, b] = scores
+  if (a < WINNING_SCORE && b < WINNING_SCORE) return null
+  if (a === b) return null
+  return a > b ? 0 : 1
+}

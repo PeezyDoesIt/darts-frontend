@@ -229,41 +229,20 @@
     <!-- STEP 2: PLAYERS -->
     <div v-if="currentStep === 2" class="step-pane">
       <h1 class="step-title display" style="text-align:center;font-size:38px">ADD PLAYERS</h1>
-      <button v-ripple class="btn btn-spray btn-lg add-player-btn" @click="router.push('/player-setup?from=new-game')">+ Add New Player</button>
 
       <div class="player-count-indicator">
         <span class="count-num" :class="{ 'count-ready': selectedPlayers.length >= 1 }">{{ selectedPlayers.length }}</span>
         <span class="count-label">of 8 selected</span>
       </div>
 
-      <div v-if="playersStore.players.length === 0" class="empty-players">
-        No players yet.
-        <button v-ripple class="link-btn" @click="router.push('/player-setup')">Add one →</button>
-      </div>
-
-      <div v-else class="player-bubble-grid">
-        <div
-          v-for="p in sortedPlayers.filter(p => !isSelected(p.id))" :key="p.id"
-          v-ripple
-          class="player-bubble"
-          @click="togglePlayer(p)"
-        >
-          <div
-            class="bubble-avatar"
-            :style="{
-              background: p.color,
-              boxShadow: isSelected(p.id)
-                ? `0 0 0 3px ${p.color}, 0 0 20px ${p.color}80`
-                : `0 0 0 2px rgba(255,255,255,0.08)`
-            }"
-          >
-            <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-            <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
-          </div>
-          <span class="bubble-name" :style="isSelected(p.id) ? { color: p.color } : {}">{{ p.name }}</span>
-          <span v-if="p.pinned" class="bubble-pin">📌</span>
-        </div>
-      </div>
+      <!-- The picker carries its own "New Player" bubble, so the separate button that used
+           to sit above the grid would now be the second way to do the same thing. -->
+      <PlayerPicker
+        :roster="playersStore.players"
+        :selected-ids="selectedPlayers.map(p => p.id)"
+        new-player-route="/player-setup?from=new-game"
+        @pick="togglePlayer"
+      />
 
       <section v-if="selectedPlayers.length > 0" class="order-section">
         <span class="label">Play Order</span>
@@ -272,7 +251,7 @@
             <span class="order-num display" :style="{ color: p.color }">{{ i + 1 }}</span>
             <div class="order-avatar" :style="{ background: p.color }">
               <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-              <span v-else>{{ p.avatarUrl ?? '🎯' }}</span>
+              <span v-else>{{ avatarGlyph(p) }}</span>
             </div>
             <span class="order-name">{{ p.name }}</span>
             <div class="order-btns">
@@ -294,7 +273,7 @@
           :style="{ background: p.color, boxShadow: `0 0 8px ${p.color}80` }"
         >
           <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
-          <span v-else style="font-size:14px">{{ p.avatarUrl ?? '🎯' }}</span>
+          <span v-else style="font-size:14px">{{ avatarGlyph(p) }}</span>
         </div>
         <span v-if="selectedPlayers.length > 6" class="footer-avatar-overflow">+{{ selectedPlayers.length - 6 }}</span>
       </div>
@@ -324,6 +303,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import PlayerPicker from '../components/PlayerPicker.vue'
+import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
@@ -426,14 +407,6 @@ const gameThemePosition = ref<'top' | 'center' | 'bottom' | null>(null)
 const gameThemeFill = ref<'black' | 'blur' | null>(null)
 const selectedPlayers = ref<Player[]>([])
 
-const sortedPlayers = computed(() =>
-  [...playersStore.players].sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1
-    if (!a.pinned && b.pinned) return 1
-    return b.gamesPlayed - a.gamesPlayed
-  })
-)
-
 function selectGameTheme(val: string) { gameTheme.value = val; gameThemeImage.value = null }
 
 function onGameThemeFileChange(e: Event) {
@@ -457,7 +430,6 @@ const gameThemePreviewStyle = computed(() => {
 })
 
 function isSelected(id: string) { return selectedPlayers.value.some(p => p.id === id) }
-function isPhoto(url: string | null) { return url?.startsWith('data:') || url?.startsWith('http') }
 function togglePlayer(p: Player) {
   if (isSelected(p.id)) selectedPlayers.value = selectedPlayers.value.filter(x => x.id !== p.id)
   else selectedPlayers.value.push(p)
@@ -638,56 +610,6 @@ function startGame() {
   color: rgba(255,255,255,0.4);
   font-weight: 600;
 }
-
-.empty-players { color: var(--text-muted); font-size: 14px; display: flex; gap: 8px; align-items: center; }
-.link-btn { background: none; border: none; color: var(--pink); cursor: pointer; font-size: 14px; font-weight: 700; }
-
-/* ===== PLAYER BUBBLES ===== */
-.player-bubble-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px 12px;
-}
-.player-bubble {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  position: relative;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.15s;
-}
-.player-bubble:hover { transform: scale(1.05); }
-.player-bubble.selected { transform: scale(1.08); }
-.bubble-avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
-  overflow: hidden;
-  flex-shrink: 0;
-  transition: box-shadow 0.2s;
-}
-.bubble-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.bubble-name {
-  font-size: 12px;
-  font-weight: 800;
-  font-family: var(--font-display);
-  letter-spacing: 0.04em;
-  text-align: center;
-  color: rgba(255,255,255,0.55);
-  transition: color 0.2s;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.player-bubble.selected .bubble-name { color: inherit; }
-.bubble-pin { position: absolute; top: -2px; right: 4px; font-size: 10px; }
 
 /* Play order */
 .order-section { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; }

@@ -2,8 +2,8 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { v4 as uuid } from 'uuid'
 import {
-  HAND_SIZE, PLAYER_COUNT, WINNING_SCORE, applyBagPenalty, cardId, deal,
-  effectiveSuit, legalPlays, scoreSide, sortHand, trickWinner,
+  HAND_SIZE, PLAYER_COUNT, applyBagPenalty, cardId, deal,
+  effectiveSuit, legalPlays, scoreSide, sortHand, trickWinner, winnerTeamFor,
   type Card, type SpadesVariant, type Suit,
 } from '../lib/spades'
 import { chooseBid, chooseCard } from '../lib/spadesBot'
@@ -134,16 +134,28 @@ export const useSpadesStore = defineStore('spades', () => {
   }
 
   /**
-   * Move the turn to `seat`. A human gets the privacy screen; a bot goes straight to its
-   * action phase, because there is nobody to hide the hand from and a "pass the device to
-   * Ada" screen would be nonsense.
+   * The privacy screen only earns its tap when there is somebody to hide the hand from.
+   * One human against bots would otherwise be told to "pass the device" to themselves
+   * before every bid and every one of the 13 tricks in a hand.
+   */
+  function needsPrivacyScreen(): boolean {
+    const g = game.value
+    if (!g) return false
+    return g.players.filter(p => !p.isBot).length > 1
+  }
+
+  /**
+   * Move the turn to `seat`. A human at a shared table gets the privacy screen; a bot goes
+   * straight to its action phase, because there is nobody to hide the hand from and a "pass
+   * the device to Ada" screen would be nonsense. A lone human skips it for the same reason.
    */
   function handOffTo(seat: number) {
     const g = game.value
     if (!g) return
     g.turnIndex = seat
     const actionPhase = g.bids.some(b => b === null) ? 'bidding' : 'playing'
-    g.phase = g.players[seat]?.isBot ? actionPhase : 'pass'
+    const hide = !g.players[seat]?.isBot && needsPrivacyScreen()
+    g.phase = hide ? 'pass' : actionPhase
   }
 
   /** True when the store is waiting on a bot rather than a person. */
@@ -299,14 +311,9 @@ export const useSpadesStore = defineStore('spades', () => {
     }
     g.lastHandSummary = parts.join('  ·  ')
 
-    // A side only wins by reaching 500 outright and ahead — a tie plays another hand.
-    const [a, b] = g.scores
-    if ((a >= WINNING_SCORE || b >= WINNING_SCORE) && a !== b) {
-      g.winnerTeam = a > b ? 0 : 1
-      g.phase = 'game_over'
-    } else {
-      g.phase = 'hand_over'
-    }
+    const winner = winnerTeamFor(g.scores)
+    g.winnerTeam = winner
+    g.phase = winner === null ? 'hand_over' : 'game_over'
     persist()
   }
 
