@@ -127,6 +127,7 @@ export const useGameStore = defineStore('game', () => {
       gameThemePosition,
       gameThemeFill,
       bonusTurnActive: false,
+      turnSeq: 0,
       skipWalkup,
       cricketFinishOrder: [],
       gameTheme,
@@ -469,12 +470,19 @@ export const useGameStore = defineStore('game', () => {
       game.value.round++
     }
     game.value.currentPlayerIndex = nextIndex
+    // Solo play goes straight back to throwing without a hand-off, so it never reaches
+    // startNextTurn — count the turn here instead.
+    if (players.length === 1) game.value.turnSeq = (game.value.turnSeq ?? 0) + 1
     game.value.status = players.length === 1 ? 'playing' : 'between_turns'
   }
 
   function startNextTurn() {
     if (!game.value) return
     game.value.bonusTurnActive = false
+    // A turn is starting, whoever's it is. Entry components key off this to get a fresh
+    // instance — on a bonus turn the player and round are unchanged, so without it Vue
+    // reuses the old one and its submitted latch leaves NEXT dead.
+    game.value.turnSeq = (game.value.turnSeq ?? 0) + 1
     game.value.status = 'playing'
   }
 
