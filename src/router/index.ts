@@ -41,29 +41,26 @@ const router = createRouter({
   ],
 })
 
-// On hard refresh, restore the correct page based on saved game state
+/**
+ * Opening the app lands on the main menu, always.
+ *
+ * A game in progress used to hijack that: the home page redirected straight into darts or
+ * Left Right Center, so on an iPad the app never showed its own menu. The home screen now
+ * offers every unfinished game back explicitly — see lib/resumable — which covers the five
+ * games the redirect never knew about as well.
+ *
+ * The one exception is a darts game that has finished but never reached the win screen,
+ * because that screen is where the result is recorded: it credits the win, counts the game
+ * for each player and posts the result to the API. Landing on the menu instead would drop
+ * that silently, so a finished game is still sent to collect it.
+ */
 router.beforeEach((to) => {
-  // LRC active game redirect
-  if (to.path === '/') {
-    try {
-      const lrcRaw = localStorage.getItem('lrc_active_game')
-      if (lrcRaw) {
-        const lrcGame = JSON.parse(lrcRaw)
-        if (lrcGame.phase && lrcGame.phase !== 'game_over') return '/lrc'
-      }
-    } catch {}
-  }
-
-  const raw = localStorage.getItem('darts_active_game')
-  if (!raw) return
-  const game = JSON.parse(raw)
-  const statusRoutes: Record<string, string> = {
-    playing: '/game',
-    between_turns: '/game', // reset between_turns to /game on refresh so timer restarts cleanly
-    finished: '/win',
-  }
-  const target = statusRoutes[game.status]
-  if (target && to.path === '/') return target
+  if (to.path !== '/') return
+  try {
+    const raw = localStorage.getItem('darts_active_game')
+    if (!raw) return
+    if (JSON.parse(raw).status === 'finished') return '/win'
+  } catch { /* a corrupt save must not block the menu */ }
 })
 
 export default router

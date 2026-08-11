@@ -66,20 +66,23 @@
         </div>
 
         <div class="hero-side">
-          <div v-if="hasActiveGame" class="glass-panel resume-card">
+          <!--
+            One card per unfinished game. The app no longer redirects into a game on open, so
+            this is the way back in — and it has to cover all seven, not just darts, or a
+            game the old redirect never knew about becomes unreachable.
+          -->
+          <div v-for="g in resumable" :key="g.key" class="glass-panel resume-card">
             <div class="resume-info">
               <div class="resume-head">
                 <span class="live-dot live-dot-pink" />
-                <span class="resume-label display">GAME IN PROGRESS</span>
+                <span class="resume-label display">{{ g.title.toUpperCase() }}</span>
               </div>
-              <span class="resume-sub">
-                {{ GAME_TYPE_LABELS[gameStore.game!.gameType] }} ·
-                {{ gameStore.game!.players.length }} players ·
-                Round {{ gameStore.game!.round }}
+              <span class="resume-sub">{{ g.detail }}</span>
+              <span v-if="g.key === 'darts_active_game' && currentPlayerName" class="resume-meta">
+                {{ currentPlayerName }} is up
               </span>
-              <span v-if="currentPlayerName" class="resume-meta">{{ currentPlayerName }} is up</span>
             </div>
-            <button v-ripple class="resume-btn display" @click="router.push('/game')">RESUME →</button>
+            <button v-ripple class="resume-btn display" @click="router.push(g.route)">RESUME →</button>
           </div>
 
           <div class="counter-row">
@@ -622,7 +625,8 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { resumableGames } from '../lib/resumable'
 import { useSettingsStore } from '../stores/settings'
 import { useGameStore } from '../stores/game'
 import { useAuthStore } from '../stores/auth'
@@ -633,6 +637,7 @@ import { playShotgun, playBuzzer, playStartChime, unlockAudio } from '../composa
 import PlayerAvatar from '../components/PlayerAvatar.vue'
 
 const router = useRouter()
+const route = useRoute()
 const settingsStore = useSettingsStore()
 const gameStore = useGameStore()
 const authStore = useAuthStore()
@@ -643,6 +648,18 @@ const hasActiveGame = computed(() => {
   const g = gameStore.game
   return g !== null && (g.status === 'playing' || g.status === 'between_turns')
 })
+
+/**
+ * Every unfinished game, read straight from storage rather than by mounting seven stores.
+ * Recomputed when the route changes, which is when it can have changed — quitting a game and
+ * returning to the menu is a navigation.
+ */
+const resumeTick = ref(0)
+const resumable = computed(() => {
+  void resumeTick.value
+  return resumableGames(k => localStorage.getItem(k))
+})
+watch(() => route.fullPath, () => { resumeTick.value++ })
 const currentPlayerName = computed(() => {
   const g = gameStore.game
   return g ? (g.players[g.currentPlayerIndex]?.name ?? '') : ''
