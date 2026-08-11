@@ -111,20 +111,24 @@ async function checkReferencedAssets() {
  * This is enforced by a Pages Function at functions/assets/[[path]].js. It cannot be done in
  * _redirects — a `/assets/* ... 404` rule there is silently ignored, verified twice on real
  * preview deployments while the `/*` rule beneath it kept working.
+ *
+ * Retried like the others. This was written as a single attempt on the reasoning that it is
+ * configuration rather than timing, which is wrong immediately after a deploy: the Function
+ * takes a few seconds to become active at the edge, and checking one second later reported a
+ * failure on a deploy that was fine.
  */
 async function checkMissingAssetIs404() {
   const url = `${base}/assets/definitely-not-a-real-file-${Date.now()}.js`
-  const res = await fetch(url, { cache: 'no-store' })
-  const type = (res.headers.get('content-type') ?? '').toLowerCase()
+  const r = await getWithRetry(url, x => x.status === 404)
 
-  if (res.status === 404) {
-    notes.push('ok  missing /assets/* → 404')
+  if (!r.failed) {
+    notes.push(`ok  missing /assets/* → 404${r.attempts > 1 ? ` (after ${r.attempts} tries)` : ''}`)
     return
   }
-  const why = type.includes('text/html')
+  const why = r.type.includes('text/html')
     ? 'the SPA catch-all answered, so this HTML is now cacheable at an asset URL'
     : 'expected 404'
-  failures.push(`a missing asset returned ${res.status} ${type} (${why})`)
+  failures.push(`a missing asset returned ${r.status} ${r.type || r.error || ''} (${why})`)
 }
 
 await checkSpaRoutes()
