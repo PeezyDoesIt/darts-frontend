@@ -67,9 +67,15 @@ async function checkSpaRoutes() {
 /**
  * The assets index.html actually references. Reading them out of the served HTML rather than
  * hardcoding names means this keeps working as content hashes change every build.
+ *
+ * The index is fetched with a unique query so it misses Cloudflare's edge cache and comes
+ * from the deployment. `cache: 'no-store'` only governs this process's own cache and does
+ * nothing about the edge — without the query, a stale index left over from the previous
+ * deploy gets read, its old hashes are gone, and the check reports a failure for a
+ * deployment that is in fact correct.
  */
 async function checkReferencedAssets() {
-  const res = await fetch(base + '/', { cache: 'no-store' })
+  const res = await fetch(`${base}/?_cachebust=${Date.now()}`, { cache: 'no-store' })
   const html = await res.text()
   const refs = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)].map(m => m[1])
 
@@ -93,6 +99,18 @@ async function checkReferencedAssets() {
     }
   }
 }
+
+/**
+ * Not asserted: that a missing /assets/* path returns 404 rather than the SPA catch-all.
+ *
+ * It should — HTML answered at an asset URL gets cached there under the asset cache-control,
+ * which is what turns a deploy's propagation gap into hours of blank page. But a
+ * `/assets/* /asset-missing 404` rule in _redirects is silently ignored by Cloudflare Pages:
+ * verified twice on real preview deployments, with both the .html and extensionless
+ * destination, while the `/* /index.html 200` rule directly beneath it works. Pages appears
+ * not to accept 404 as a status there, so the rule never applies. Fixing it properly needs a
+ * Pages Function in front of /assets, which is a bigger change than this file.
+ */
 
 await checkSpaRoutes()
 await checkReferencedAssets()
