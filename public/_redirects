@@ -9,7 +9,9 @@
 # 404.html as its own built-in not-found page and serves it for every unmatched path, which
 # overrides the SPA catch-all below and 404s every client-side route. That is what took the
 # site down the first time this was attempted.
-/assets/* /asset-missing.html 404
+# Destination is extensionless: Pages 308-redirects /asset-missing.html to /asset-missing,
+# and a rule pointing at the redirecting form is ignored.
+/assets/* /asset-missing 404
 
 # Everything else is a client-side route — hand it the app shell.
 /* /index.html 200
