@@ -30,6 +30,81 @@ export const BAG_PENALTY_AT = 10
 export const BAG_PENALTY = 100
 
 /**
+ * Wild Style house rules. Classic is left as ordinary spades, where being set costs points
+ * and nothing else, and only 500 ends the game.
+ */
+/** A side set on the opening hand hands the game to the other side. */
+export const WILD_FIRST_HAND_SET_LOSES = true
+/** Being set on two hands in a row loses, however the score stands. */
+export const WILD_MAX_CONSECUTIVE_SETS = 2
+/** Being set three times in a game loses, consecutive or not. */
+export const WILD_MAX_SETS = 3
+
+/** One side's running state between hands. */
+export interface SideStanding {
+  score: number
+  bags: number
+  setCount: number
+  setStreak: number
+}
+
+/**
+ * Fold one hand's result into a side's standing: points, bags and the sandbagging penalty,
+ * plus the set bookkeeping the Wild Style loss rules read.
+ *
+ * Kept here rather than inline in the store so the floor and the set counters can be tested
+ * without playing thirteen tricks through a browser to reach them.
+ */
+export function applyHandToSide(
+  prev: SideStanding,
+  result: SideResult,
+  wasSet: boolean,
+  variant: SpadesVariant,
+): SideStanding {
+  const bagsBefore = prev.bags + result.bags
+  const penalty = applyBagPenalty(bagsBefore)
+  let score = prev.score + result.points + penalty.score
+
+  // Wild Style keeps a side off the floor: being set still costs the points it would have
+  // won, but the total stops at zero instead of going negative. Classic keeps ordinary
+  // spades arithmetic, where a missed bid can put a side below nothing.
+  if (variant === 'wild') score = Math.max(0, score)
+
+  return {
+    score,
+    bags: penalty.bags,
+    setCount: prev.setCount + (wasSet ? 1 : 0),
+    setStreak: wasSet ? prev.setStreak + 1 : 0,
+  }
+}
+
+/**
+ * Which side, if either, has lost outright under the Wild Style rules.
+ *
+ * Returns the LOSING side — the winner is its opposite — or null while the game continues.
+ * Both sides can trigger on the same hand, since both can miss their bid at once; the lower
+ * score loses, and a tie leaves the game running rather than ending it arbitrarily.
+ */
+export function wildLossTeam(
+  handNumber: number,
+  wasSet: readonly [boolean, boolean],
+  setStreak: readonly [number, number],
+  setCount: readonly [number, number],
+  scores: readonly [number, number],
+): 0 | 1 | null {
+  const lost = ([0, 1] as const).filter(t =>
+    (WILD_FIRST_HAND_SET_LOSES && handNumber === 1 && wasSet[t]) ||
+    setStreak[t] >= WILD_MAX_CONSECUTIVE_SETS ||
+    setCount[t] >= WILD_MAX_SETS
+  )
+
+  if (lost.length === 0) return null
+  if (lost.length === 1) return lost[0]!
+  if (scores[0] === scores[1]) return null
+  return scores[0] < scores[1] ? 0 : 1
+}
+
+/**
  * Which deck is in play.
  *
  * 'classic' is an ordinary 52-card pack, no jokers, highest trump is the ace of spades.
@@ -63,17 +138,24 @@ const COMMON_RULES: string[] = [
 ]
 
 export function rulesFor(variant: SpadesVariant): string[] {
-  const deckRules = variant === 'wild'
-    ? [
-        'Wild Style deck: the 2 of hearts and 2 of diamonds are removed, two jokers added',
-        'Big Joker (H, colored) is the highest card; Little Joker (L, black and white) is next',
-        'Both jokers count as spades',
-      ]
-    : [
-        'Classic deck: an ordinary 52-card pack, no jokers',
-        'The ace of spades is the highest card',
-      ]
-  return [...deckRules, ...COMMON_RULES]
+  if (variant === 'wild') {
+    return [
+      'Wild Style deck: the 2 of hearts and 2 of diamonds are removed, two jokers added',
+      'Big Joker (H, colored) is the highest card; Little Joker (L, black and white) is next',
+      'Both jokers count as spades',
+      'The first hand bids itself — every seat is bid from its own cards',
+      ...COMMON_RULES,
+      // Stated up front: a side can lose on hand one, so it cannot be a surprise.
+      'Get set on the first hand and the other side takes the game',
+      'Get set two hands running, or three times in all, and you lose',
+      'A side never drops below zero',
+    ]
+  }
+  return [
+    'Classic deck: an ordinary 52-card pack, no jokers',
+    'The ace of spades is the highest card',
+    ...COMMON_RULES,
+  ]
 }
 
 export function rankLabel(rank: number): string {

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
-  applyBagPenalty, cardId, cardLabel, deal, effectiveSuit, isTrump, legalPlays, makeDeck,
-  rulesFor, scoreSide, sortHand, strength, trickWinner, winnerTeamFor, type Card,
+  applyBagPenalty, applyHandToSide, cardId, cardLabel, deal, effectiveSuit, isTrump,
+  legalPlays, makeDeck, rulesFor, scoreSide, sortHand, strength, trickWinner, wildLossTeam,
+  winnerTeamFor, type Card,
 } from '@/lib/spades'
 
 const pip = (suit: 'spades' | 'hearts' | 'diamonds' | 'clubs', rank: number): Card =>
@@ -239,5 +240,120 @@ describe('winning the game', () => {
 
   it('does not hand it to a side sitting on a negative score', () => {
     expect(winnerTeamFor([-40, 220])).toBeNull()
+  })
+})
+
+/**
+ * Wild Style house rules. Classic is deliberately left as ordinary spades — being set costs
+ * points and nothing else, and only 500 ends the game.
+ */
+describe('Wild Style loss conditions', () => {
+  const none: [number, number] = [0, 0]
+  const level: [number, number] = [100, 100]
+
+  it('hands the game to the other side when a side is set on the first hand', () => {
+    expect(wildLossTeam(1, [true, false], [1, 0], [1, 0], level)).toBe(0)
+    expect(wildLossTeam(1, [false, true], [0, 1], [0, 1], level)).toBe(1)
+  })
+
+  it('lets a first-hand set pass on any later hand', () => {
+    expect(wildLossTeam(2, [true, false], [1, 0], [1, 0], level)).toBeNull()
+  })
+
+  it('loses on two sets in a row', () => {
+    expect(wildLossTeam(5, [true, false], [2, 0], [2, 0], level)).toBe(0)
+    expect(wildLossTeam(5, [true, false], [1, 0], [1, 0], level)).toBeNull()
+  })
+
+  it('loses on three sets however they are spread', () => {
+    // Streak of one, so it is the running total that ends it.
+    expect(wildLossTeam(9, [true, false], [1, 0], [3, 0], level)).toBe(0)
+    expect(wildLossTeam(9, [true, false], [1, 0], [2, 0], level)).toBeNull()
+  })
+
+  it('gives it to the higher score when both sides go out together', () => {
+    // Both sides can miss their bid on the same hand.
+    expect(wildLossTeam(1, [true, true], [1, 1], [1, 1], [80, 120])).toBe(0)
+    expect(wildLossTeam(1, [true, true], [1, 1], [1, 1], [120, 80])).toBe(1)
+  })
+
+  it('keeps playing when both go out level, rather than ending it arbitrarily', () => {
+    expect(wildLossTeam(1, [true, true], [1, 1], [1, 1], level)).toBeNull()
+  })
+
+  it('says nothing while neither side has been set', () => {
+    expect(wildLossTeam(1, [false, false], none, none, level)).toBeNull()
+  })
+})
+
+describe('Wild Style rules text', () => {
+  it('states the ways a side can lose outright', () => {
+    const rules = rulesFor('wild').join(' ')
+
+    expect(rules).toMatch(/first hand/i)
+    expect(rules).toMatch(/two hands running|three times/i)
+    expect(rules).toMatch(/never drops below zero/i)
+  })
+
+  it('leaves classic as ordinary spades', () => {
+    const rules = rulesFor('classic').join(' ')
+
+    expect(rules).not.toMatch(/never drops below zero/i)
+    expect(rules).not.toMatch(/two hands running/i)
+  })
+})
+
+describe('applyHandToSide', () => {
+  const start = { score: 0, bags: 0, setCount: 0, setStreak: 0 }
+
+  it('never takes a Wild Style side below zero', () => {
+    // Bid 6 and set is -60 in ordinary spades, which is where the -60 on hand one came from.
+    const next = applyHandToSide(start, { points: -60, bags: 0 }, true, 'wild')
+
+    expect(next.score).toBe(0)
+  })
+
+  it('still lets classic go negative, because that is ordinary spades', () => {
+    const next = applyHandToSide(start, { points: -60, bags: 0 }, true, 'classic')
+
+    expect(next.score).toBe(-60)
+  })
+
+  it('floors a side that was already low rather than letting it sink', () => {
+    const low = { ...start, score: 20 }
+
+    expect(applyHandToSide(low, { points: -60, bags: 0 }, true, 'wild').score).toBe(0)
+  })
+
+  it('leaves a winning hand alone', () => {
+    const next = applyHandToSide(start, { points: 52, bags: 2 }, false, 'wild')
+
+    expect(next.score).toBe(52)
+    expect(next.bags).toBe(2)
+  })
+
+  it('counts a set and extends the streak', () => {
+    const once = applyHandToSide(start, { points: -40, bags: 0 }, true, 'wild')
+    const twice = applyHandToSide(once, { points: -40, bags: 0 }, true, 'wild')
+
+    expect(twice.setCount).toBe(2)
+    expect(twice.setStreak).toBe(2)
+  })
+
+  it('breaks the streak on a made bid but keeps the running total', () => {
+    const set = applyHandToSide(start, { points: -40, bags: 0 }, true, 'wild')
+    const made = applyHandToSide(set, { points: 40, bags: 0 }, false, 'wild')
+
+    expect(made.setCount).toBe(1)
+    expect(made.setStreak).toBe(0)
+  })
+
+  it('applies the bag penalty through the floor as well', () => {
+    // 9 bags plus 2 more crosses 10: +100 for the hand, -100 penalty, 1 bag carried over.
+    const heavy = { score: 200, bags: 9, setCount: 0, setStreak: 0 }
+    const next = applyHandToSide(heavy, { points: 102, bags: 2 }, false, 'wild')
+
+    expect(next.bags).toBe(1)
+    expect(next.score).toBe(202)
   })
 })

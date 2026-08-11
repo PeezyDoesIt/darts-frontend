@@ -89,15 +89,44 @@ test('spades: solo vs bots skips the pass-the-device screen', async ({ page }) =
 
   // With one human there is nobody to hide the hand from. The privacy screen used to fire
   // on every bid and all 13 tricks, asking the only player to pass the device to themselves.
-  await expect(page.locator('.bid-grid')).toBeVisible({ timeout: 15_000 })
   await expect(page.locator('.pass-screen')).toHaveCount(0)
 
-  // Bidding and playing a card both have to work, not just render.
-  await page.locator('.bid-btn', { hasText: /^3$/ }).click()
+  // Wild Style — the default here — bids the opening hand itself, so the board goes straight
+  // to play and there is no bid grid to answer.
+  await expect(page.locator('.bid-grid')).toHaveCount(0)
+
+  // Playing a card has to work, not just render.
   const card = page.locator('.hand-row .card.playable').first()
   await expect(card).toBeEnabled({ timeout: 15_000 })
   await card.click()
   await expect(page.locator('.trick-card')).not.toHaveCount(0)
+})
+
+test('spades: wild style bids the opening hand itself', async ({ page }) => {
+  await page.goto('/spades/setup')
+  await pickBubble(page, 'Peezy')
+  await page.getByRole('button', { name: /DEAL/ }).click()
+  await expect(page).toHaveURL(/\/spades$/)
+
+  // Every seat carries a bid before anyone has tapped one, and the chips show it.
+  await expect(page.locator('.bid-chip')).toHaveCount(4)
+  await expect(page.locator('.bid-grid')).toHaveCount(0)
+
+  const bids = await page.evaluate(
+    () => JSON.parse(localStorage.getItem('spades_active_game') || 'null')?.bids,
+  )
+  expect(bids, 'every seat should be auto-bid on hand 1').toHaveLength(4)
+  expect(bids.every((b: number | null) => b !== null), `got ${JSON.stringify(bids)}`).toBe(true)
+})
+
+test('spades: classic still asks you to bid', async ({ page }) => {
+  await page.goto('/spades/setup')
+  await pickBubble(page, 'Peezy')
+  await page.locator('.variant-btn', { hasText: 'Classic' }).click()
+  await page.getByRole('button', { name: /DEAL/ }).click()
+
+  // Auto-bid is a Wild Style house rule; classic is ordinary spades.
+  await expect(page.locator('.bid-grid')).toBeVisible({ timeout: 15_000 })
 })
 
 test('spades: a shared table still gets the pass-the-device screen', async ({ page }) => {
