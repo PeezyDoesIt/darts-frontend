@@ -138,23 +138,35 @@ describe('personality', () => {
 })
 
 describe('missingCleanVariants', () => {
-  it('reports savage as having no clean walk-up of its own', () => {
-    const gaps = missingCleanVariants()
-
-    expect(gaps).toContainEqual({ event: 'walkUp', personality: 'savage' })
+  it('reports nothing — every personality now has a clean voice for every event', () => {
+    // It used to report 53 of 66 pairs, savage 0 of 11. Clean mode ships on, so choosing
+    // savage got you the neutral fallback and nothing savage at all.
+    expect(missingCleanVariants()).toEqual([])
   })
 
-  it('does not report personalities that do have one', () => {
-    const gaps = missingCleanVariants()
-
-    expect(gaps).not.toContainEqual({ event: 'walkUp', personality: 'hype' })
-  })
-
-  it('is a worklist, not an error — every gap still speaks a neutral line', () => {
+  it('is a worklist, not an error — any future gap still speaks a neutral line', () => {
     for (const { event, personality } of missingCleanVariants()) {
       expect(linesFor(event, personality, clean, ctx), `${event}/${personality}`).not.toEqual([])
     }
   })
+})
+
+/**
+ * The point of choosing a personality is hearing it. Coverage alone does not deliver that —
+ * six entries that happen to say the same sentence read exactly like having no choice at
+ * all, which is what clean mode did for seven of the eleven events.
+ */
+describe('every personality actually sounds different', () => {
+  for (const mode of [{ name: 'clean', opts: clean }, { name: 'unfiltered', opts: loud }]) {
+    it(`in ${mode.name} mode, on every event`, () => {
+      for (const event of ALL_EVENTS) {
+        const said = PERSONALITIES.map(p => flat(linesFor(event, p, mode.opts, { ...ctx, count: 0 })))
+
+        expect(new Set(said).size, `${event} — ${said.length - new Set(said).size} personalities share wording`)
+          .toBe(PERSONALITIES.length)
+      }
+    })
+  }
 })
 
 /**
