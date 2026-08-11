@@ -22,12 +22,6 @@
             exist on a touch screen, so these read as three unlabelled glyphs on a tablet.
           -->
           <div class="hero-actions">
-            <button v-ripple class="hero-action" title="Flip a coin" @click="showCoinFlip = true">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
-                <ellipse cx="12" cy="12" rx="6" ry="9" /><path d="M12 3v18" /><path d="M18 12h3M3 12h3" />
-              </svg>
-              <span>Coin flip</span>
-            </button>
             <button v-ripple class="hero-action" title="Cloud sync" @click="openSyncModal">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 15.5a3.5 3.5 0 0 0-2.6-5.8A5.5 5.5 0 0 0 6.8 10 3.6 3.6 0 0 0 7 17h11" />
@@ -228,6 +222,21 @@
           <div class="mode-copy">
             <span class="mode-title display">SPADES</span>
             <span class="mode-sub">Classic or Wild Style · vs computer or friends</span>
+          </div>
+        </button>
+
+        <!-- Not a game, but it belongs with them: it is the thing you reach for before one
+             starts, and as a header glyph it was three unlabelled pixels on a tablet. -->
+        <button v-ripple class="glass-panel mode mode-silver" @click="showCoinFlip = true">
+          <div class="mode-glow" />
+          <div class="mode-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d8dde6" stroke-width="1.8" stroke-linecap="round">
+              <ellipse cx="12" cy="12" rx="6" ry="9" /><path d="M12 3v18" /><path d="M18 12h3M3 12h3" />
+            </svg>
+          </div>
+          <div class="mode-copy">
+            <span class="mode-title display">COIN FLIP</span>
+            <span class="mode-sub">Who throws first · best of 3 or 5</span>
           </div>
         </button>
       </section>
@@ -1151,6 +1160,12 @@ function previewBullseyeSound(value: string) {
 .mode-indigo .mode-glow { background: radial-gradient(circle, rgba(143,123,255,0.32), transparent 68%); }
 .mode-indigo .mode-icon { background: rgba(143,123,255,0.2); border: 1px solid rgba(143,123,255,0.36); }
 .mode-indigo:hover { border-color: rgba(143,123,255,0.62); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 40px -10px rgba(143,123,255,0.5), 0 26px 52px -24px rgba(0,0,0,0.85); }
+
+/* Silver rather than a sixth colour — it reads as the odd one out, which it is. */
+.mode-silver { background: linear-gradient(150deg, rgba(216,221,230,0.16), rgba(255,255,255,0.03)); border-color: rgba(216,221,230,0.3); }
+.mode-silver .mode-glow { background: radial-gradient(circle, rgba(216,221,230,0.26), transparent 68%); }
+.mode-silver .mode-icon { background: rgba(216,221,230,0.16); border: 1px solid rgba(216,221,230,0.34); }
+.mode-silver:hover { border-color: rgba(216,221,230,0.6); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 40px -10px rgba(216,221,230,0.45), 0 26px 52px -24px rgba(0,0,0,0.85); }
 
 /* ── Leaderboard ── */
 .board-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: clamp(12px, 1.6vh, 24px); align-items: start; }
