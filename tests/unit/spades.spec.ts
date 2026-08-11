@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
-  applyBagPenalty, applyHandToSide, bookInsight, cardId, cardLabel, couldNotFollow, deal,
-  effectiveSuit, isTrump, legalPlays, makeDeck, rulesFor, scoreSide, sortHand, strength,
-  trickWinner, wildLossTeam, winnerTeamFor, type Card, type PlayedBook,
+  BOARD, applyBagPenalty, applyHandToSide, cardId, cardLabel, deal, effectiveSuit, isTrump,
+  legalPlays, makeDeck, minBidFor, nilAllowedFor, rulesFor, scoreSide, sideCount, sideOf,
+  sortHand, strength, targetFor, trickWinner, wildLossTeam, winnerTeamFor, type Card,
 } from '@/lib/spades'
 
 const pip = (suit: 'spades' | 'hearts' | 'diamonds' | 'clubs', rank: number): Card =>
@@ -99,6 +99,29 @@ describe('rulesFor', () => {
       expect(rulesFor(v).join(' ')).toContain('bags')
     }
   })
+
+  it('calls a taken trick a book, which is what the table calls it', () => {
+    for (const v of ['classic', 'wild'] as const) {
+      expect(rulesFor(v).join(' ')).toMatch(/books/i)
+      expect(rulesFor(v).join(' ')).not.toMatch(/tricks/i)
+    }
+  })
+
+  it('says a set costs nothing rather than points', () => {
+    const rules = rulesFor('wild').join(' ')
+
+    expect(rules).toMatch(/SET/)
+    expect(rules).toMatch(/nothing is taken away/i)
+  })
+
+  it('states board only for partnerships, since solo has no board', () => {
+    expect(rulesFor('classic', 'partners').join(' ')).toContain(`Board is ${BOARD}`)
+    expect(rulesFor('classic', 'solo').join(' ')).not.toContain('Board is')
+  })
+
+  it('names the solo target, which is lower than the partnership one', () => {
+    expect(rulesFor('classic', 'solo').join(' ')).toContain('First to 300')
+  })
 })
 
 describe('the jokers', () => {
@@ -176,19 +199,28 @@ describe('legalPlays', () => {
   })
 })
 
+/**
+ * House scoring. A set is worth nothing at all rather than costing the bid, and the bag
+ * penalty is the only thing anywhere in the game that can take points off a side.
+ */
 describe('scoring', () => {
-  it('pays ten a trick for a made bid, plus a bag for each extra', () => {
+  it('pays ten a book for a made bid, plus a bag for each extra', () => {
     expect(scoreSide(4, 4)).toEqual({ points: 40, bags: 0 })
     expect(scoreSide(4, 6)).toEqual({ points: 42, bags: 2 })
   })
 
-  it('takes ten a trick for a missed bid, with no bags', () => {
-    expect(scoreSide(5, 3)).toEqual({ points: -50, bags: 0 })
+  it('scores a set as nothing, without charging the bid back', () => {
+    expect(scoreSide(5, 3)).toEqual({ points: 0, bags: 0 })
+    expect(scoreSide(13, 0)).toEqual({ points: 0, bags: 0 })
   })
 
-  it('pays 100 for a made nil and takes 100 for a broken one', () => {
+  it('gives a set no bags either — those only come from books over the bid', () => {
+    expect(scoreSide(6, 2).bags).toBe(0)
+  })
+
+  it('pays 100 for a made nil and nothing for a broken one', () => {
     expect(scoreSide(0, 0, [{ nil: true, tricks: 0 }]).points).toBe(100)
-    expect(scoreSide(0, 1, [{ nil: true, tricks: 1 }]).points).toBe(-100)
+    expect(scoreSide(0, 1, [{ nil: true, tricks: 1 }]).points).toBe(0)
   })
 
   it('scores a nil independently of the partner contract', () => {
@@ -196,6 +228,25 @@ describe('scoring', () => {
     const r = scoreSide(4, 4, [{ nil: true, tricks: 0 }])
 
     expect(r.points).toBe(140)
+  })
+
+  it('still pays a made nil when the partner was set, since the two are scored apart', () => {
+    // This is why the end-of-hand verdict cannot say "no points" on every set.
+    const r = scoreSide(5, 3, [{ nil: true, tricks: 0 }])
+
+    expect(r.points).toBe(100)
+  })
+
+  it('never returns a negative number from any combination', () => {
+    const cases: [number, number, { nil: boolean; tricks: number }[]][] = [
+      [5, 0, []],
+      [0, 3, [{ nil: true, tricks: 3 }]],
+      [7, 1, [{ nil: true, tricks: 2 }]],
+      [13, 12, []],
+    ]
+    for (const [bid, books, nils] of cases) {
+      expect(scoreSide(bid, books, nils).points).toBeGreaterThanOrEqual(0)
+    }
   })
 
   it('costs 100 at ten bags and rolls the remainder over', () => {
@@ -206,11 +257,137 @@ describe('scoring', () => {
   })
 })
 
+/** Board: a side's contract is either 0 — both partners nil — or at least BOARD. */
+describe('board', () => {
+  it('lets the first partner to bid go as low as one', () => {
+    expect(minBidFor(null)).toBe(1)
+  })
+
+  it('holds the second partner to whatever reaches board', () => {
+    expect(minBidFor(1)).toBe(3)
+    expect(minBidFor(3)).toBe(1)
+    expect(minBidFor(4)).toBe(1)
+    expect(minBidFor(9)).toBe(1)
+  })
+
+  it('makes a nil partner cover board alone', () => {
+    expect(minBidFor(0)).toBe(BOARD)
+  })
+
+  it('does not apply to solo, where four sides share the same thirteen books', () => {
+    expect(minBidFor(1, 'solo')).toBe(1)
+    expect(minBidFor(0, 'solo')).toBe(1)
+  })
+
+  it('opens nil to the first bidder', () => {
+    expect(nilAllowedFor(null)).toBe(true)
+  })
+
+  it('keeps double nil legal, because two nils are no contract rather than a short one', () => {
+    expect(nilAllowedFor(0)).toBe(true)
+  })
+
+  it('closes nil when the partner bid short of board', () => {
+    // Otherwise bid ORDER would decide legality: 1 then nil would stand at a contract of 1,
+    // while nil then 1 is correctly refused.
+    expect(nilAllowedFor(1)).toBe(false)
+    expect(nilAllowedFor(3)).toBe(false)
+  })
+
+  it('reopens nil once the partner has made board alone', () => {
+    expect(nilAllowedFor(BOARD)).toBe(true)
+    expect(nilAllowedFor(7)).toBe(true)
+  })
+
+  it('never lets a legal pair of bids land a side under board', () => {
+    // The first bidder is unconstrained: nil, or anything from 1 up.
+    for (let first = 0; first <= 13; first++) {
+      for (let second = 0; second <= 13; second++) {
+        const secondLegal = second === 0 ? nilAllowedFor(first) : second >= minBidFor(first)
+        if (!secondLegal) continue
+        const contract = first + second
+        // Either nobody took a contract, or the contract makes board.
+        expect(contract === 0 || contract >= BOARD).toBe(true)
+      }
+    }
+  })
+})
+
+describe('sides', () => {
+  it('pairs opposite seats in a partnership game', () => {
+    expect([0, 1, 2, 3].map(s => sideOf(s, 'partners'))).toEqual([0, 1, 0, 1])
+    expect(sideCount('partners')).toBe(2)
+  })
+
+  it('gives every seat its own side in solo', () => {
+    expect([0, 1, 2, 3].map(s => sideOf(s, 'solo'))).toEqual([0, 1, 2, 3])
+    expect(sideCount('solo')).toBe(4)
+  })
+
+  it('sets a lower target for solo, since four sides split the same books', () => {
+    expect(targetFor('partners')).toBe(500)
+    expect(targetFor('solo')).toBe(300)
+    expect(targetFor('solo')).toBeLessThan(targetFor('partners'))
+  })
+})
+
 describe('sortHand', () => {
-  it('puts trump first, strongest first, with the jokers at the very top', () => {
+  it('lays the hand out in the default order: hearts, clubs, diamonds, spades', () => {
+    const sorted = sortHand([
+      pip('spades', 3), pip('diamonds', 7), pip('clubs', 9), pip('hearts', 5),
+    ])
+
+    expect(sorted.map(effectiveSuit)).toEqual(['hearts', 'clubs', 'diamonds', 'spades'])
+  })
+
+  it('runs low to high inside a suit by default', () => {
+    const sorted = sortHand([pip('hearts', 9), pip('hearts', 3), pip('hearts', 14)])
+
+    expect(sorted.map(cardLabel)).toEqual(['3', '9', 'A'])
+  })
+
+  it('gathers the jokers at the far right, past the spades', () => {
     const sorted = sortHand([pip('hearts', 5), pip('spades', 3), LITTLE, BIG, pip('clubs', 9)])
 
-    expect(sorted.slice(0, 3).map(cardLabel)).toEqual(['H', 'L', '3'])
+    expect(sorted.slice(-2).map(cardLabel)).toEqual(['L', 'H'])
+  })
+
+  it('follows the player\'s own suit order', () => {
+    const sorted = sortHand(
+      [pip('hearts', 5), pip('spades', 3), pip('clubs', 9), pip('diamonds', 7)],
+      { suitOrder: ['spades', 'diamonds', 'clubs', 'hearts'], ascending: true, jokersLast: true },
+    )
+
+    expect(sorted.map(effectiveSuit)).toEqual(['spades', 'diamonds', 'clubs', 'hearts'])
+  })
+
+  it('can run high to low instead', () => {
+    const sorted = sortHand(
+      [pip('hearts', 3), pip('hearts', 14), pip('hearts', 9)],
+      { suitOrder: ['hearts', 'clubs', 'diamonds', 'spades'], ascending: false, jokersLast: true },
+    )
+
+    expect(sorted.map(cardLabel)).toEqual(['A', '9', '3'])
+  })
+
+  it('leaves the jokers among the spades when asked to', () => {
+    const sorted = sortHand(
+      [BIG, pip('spades', 3), pip('hearts', 5)],
+      { suitOrder: ['hearts', 'clubs', 'diamonds', 'spades'], ascending: true, jokersLast: false },
+    )
+
+    expect(sorted.map(cardLabel)).toEqual(['5', '3', 'H'])
+  })
+
+  it('falls back to the default order rather than dropping a suit from a short one', () => {
+    // A stored preference from an older build could be missing a suit; losing cards off the
+    // end of somebody's hand is the one outcome that must not happen.
+    const hand = [pip('hearts', 5), pip('spades', 3), pip('clubs', 9), pip('diamonds', 7)]
+    const sorted = sortHand(hand, {
+      suitOrder: ['hearts', 'clubs'], ascending: true, jokersLast: true,
+    })
+
+    expect(sorted).toHaveLength(hand.length)
   })
 })
 
@@ -241,11 +418,21 @@ describe('winning the game', () => {
   it('does not hand it to a side sitting on a negative score', () => {
     expect(winnerTeamFor([-40, 220])).toBeNull()
   })
+
+  it('reads four sides against the solo target', () => {
+    expect(winnerTeamFor([120, 90, 305, 60], targetFor('solo'))).toBe(2)
+    expect(winnerTeamFor([120, 90, 299, 60], targetFor('solo'))).toBeNull()
+  })
+
+  it('plays on when two solo sides tie at the top', () => {
+    expect(winnerTeamFor([310, 90, 310, 60], targetFor('solo'))).toBeNull()
+  })
 })
 
 /**
- * Wild Style house rules. Classic is deliberately left as ordinary spades — being set costs
- * points and nothing else, and only 500 ends the game.
+ * Wild Style loss conditions. Since a set costs no points, these ARE what a set costs —
+ * they apply to partnership games only, because four solo sides get set often enough that a
+ * first-hand set would end most games on the spot.
  */
 describe('Wild Style loss conditions', () => {
   const none: [number, number] = [0, 0]
@@ -284,6 +471,12 @@ describe('Wild Style loss conditions', () => {
   it('says nothing while neither side has been set', () => {
     expect(wildLossTeam(1, [false, false], none, none, level)).toBeNull()
   })
+
+  it('reads more than two sides, and drops the lowest of those that went out', () => {
+    // Sides 1 and 3 are out on their streaks; side 3 is the lower of the two.
+    expect(wildLossTeam(4, [false, true, false, true], [0, 2, 0, 2], [0, 2, 0, 2], [10, 40, 90, 20]))
+      .toBe(3)
+  })
 })
 
 describe('Wild Style rules text', () => {
@@ -292,13 +485,22 @@ describe('Wild Style rules text', () => {
 
     expect(rules).toMatch(/first hand/i)
     expect(rules).toMatch(/two hands running|three times/i)
-    expect(rules).toMatch(/never drops below zero/i)
   })
 
-  it('leaves classic as ordinary spades', () => {
+  it('no longer promises a floor, now that bags are allowed to take a side negative', () => {
+    expect(rulesFor('wild').join(' ')).not.toMatch(/never drops below zero/i)
+  })
+
+  it('leaves classic without the outright-loss rules', () => {
     const rules = rulesFor('classic').join(' ')
 
-    expect(rules).not.toMatch(/never drops below zero/i)
+    expect(rules).not.toMatch(/two hands running/i)
+  })
+
+  it('drops the loss rules in solo, where they would end games on hand one', () => {
+    const rules = rulesFor('wild', 'solo').join(' ')
+
+    expect(rules).not.toMatch(/first hand and the other side/i)
     expect(rules).not.toMatch(/two hands running/i)
   })
 })
@@ -306,182 +508,58 @@ describe('Wild Style rules text', () => {
 describe('applyHandToSide', () => {
   const start = { score: 0, bags: 0, setCount: 0, setStreak: 0 }
 
-  it('never takes a Wild Style side below zero', () => {
-    // Bid 6 and set is -60 in ordinary spades, which is where the -60 on hand one came from.
-    const next = applyHandToSide(start, { points: -60, bags: 0 }, true, 'wild')
+  it('adds nothing for a set, because a set is worth nothing', () => {
+    // scoreSide already returns 0 for a missed contract, so there is nothing to floor.
+    const next = applyHandToSide(start, { points: 0, bags: 0 }, true)
 
     expect(next.score).toBe(0)
   })
 
-  it('still lets classic go negative, because that is ordinary spades', () => {
-    const next = applyHandToSide(start, { points: -60, bags: 0 }, true, 'classic')
-
-    expect(next.score).toBe(-60)
-  })
-
-  it('floors a side that was already low rather than letting it sink', () => {
-    const low = { ...start, score: 20 }
-
-    expect(applyHandToSide(low, { points: -60, bags: 0 }, true, 'wild').score).toBe(0)
-  })
-
   it('leaves a winning hand alone', () => {
-    const next = applyHandToSide(start, { points: 52, bags: 2 }, false, 'wild')
+    const next = applyHandToSide(start, { points: 52, bags: 2 }, false)
 
     expect(next.score).toBe(52)
     expect(next.bags).toBe(2)
   })
 
+  it('lets the bag penalty take a side below zero, which is the only route there', () => {
+    // 9 bags plus 1 crosses 10: a 1-point hand against a 100-point penalty.
+    const low = { score: 20, bags: 9, setCount: 0, setStreak: 0 }
+    const next = applyHandToSide(low, { points: 11, bags: 1 }, false)
+
+    expect(next.score).toBe(-69)
+    expect(next.bags).toBe(0)
+  })
+
+  it('treats both variants the same, now that nothing is floored', () => {
+    const wild = applyHandToSide(start, { points: 40, bags: 0 }, false, 'wild')
+    const classic = applyHandToSide(start, { points: 40, bags: 0 }, false, 'classic')
+
+    expect(wild).toEqual(classic)
+  })
+
   it('counts a set and extends the streak', () => {
-    const once = applyHandToSide(start, { points: -40, bags: 0 }, true, 'wild')
-    const twice = applyHandToSide(once, { points: -40, bags: 0 }, true, 'wild')
+    const once = applyHandToSide(start, { points: 0, bags: 0 }, true)
+    const twice = applyHandToSide(once, { points: 0, bags: 0 }, true)
 
     expect(twice.setCount).toBe(2)
     expect(twice.setStreak).toBe(2)
   })
 
   it('breaks the streak on a made bid but keeps the running total', () => {
-    const set = applyHandToSide(start, { points: -40, bags: 0 }, true, 'wild')
-    const made = applyHandToSide(set, { points: 40, bags: 0 }, false, 'wild')
+    const set = applyHandToSide(start, { points: 0, bags: 0 }, true)
+    const made = applyHandToSide(set, { points: 40, bags: 0 }, false)
 
     expect(made.setCount).toBe(1)
     expect(made.setStreak).toBe(0)
   })
 
-  it('applies the bag penalty through the floor as well', () => {
-    // 9 bags plus 2 more crosses 10: +100 for the hand, -100 penalty, 1 bag carried over.
+  it('applies the bag penalty and carries the remainder', () => {
+    // 9 bags plus 2 more crosses 10: +102 for the hand, -100 penalty, 1 bag carried over.
     const heavy = { score: 200, bags: 9, setCount: 0, setStreak: 0 }
-    const next = applyHandToSide(heavy, { points: 102, bags: 2 }, false, 'wild')
+    const next = applyHandToSide(heavy, { points: 102, bags: 2 }, false)
 
     expect(next.bags).toBe(1)
     expect(next.score).toBe(202)
-  })
-})
-
-/**
- * Reading a hand back. Books used to be discarded the moment the next one led, so once a
- * hand was scored there was no way to see how it got there.
- */
-describe('reading a book back', () => {
-  const book = (over: Partial<PlayedBook> = {}): PlayedBook => ({
-    number: 1,
-    ledSuit: 'hearts',
-    cards: [
-      { seat: 0, card: pip('hearts', 7) },
-      { seat: 1, card: pip('hearts', 5) },
-      { seat: 2, card: pip('hearts', 4) },
-      { seat: 3, card: pip('hearts', 9) },
-    ],
-    winnerSeat: 3,
-    ...over,
-  })
-
-  it('names the plain case: everyone followed and the highest took it', () => {
-    expect(bookInsight(book())).toBe('Highest of the suit led')
-  })
-
-  it('calls out a single spade taking a side suit', () => {
-    const b = book({
-      cards: [
-        { seat: 0, card: pip('hearts', 7) },
-        { seat: 1, card: pip('hearts', 5) },
-        { seat: 2, card: pip('hearts', 4) },
-        { seat: 3, card: pip('spades', 2) },
-      ],
-      winnerSeat: 3,
-    })
-
-    expect(bookInsight(b)).toBe('Trumped in')
-  })
-
-  it('distinguishes a trump fight from a single trump', () => {
-    // Two spades on a heart lead: the second one took it off the first.
-    const b = book({
-      cards: [
-        { seat: 0, card: pip('hearts', 7) },
-        { seat: 1, card: pip('spades', 3) },
-        { seat: 2, card: pip('hearts', 4) },
-        { seat: 3, card: pip('spades', 9) },
-      ],
-      winnerSeat: 3,
-    })
-
-    expect(bookInsight(b)).toBe('Overtrumped')
-  })
-
-  it('counts a joker as a spade when reading the book', () => {
-    const b = book({
-      cards: [
-        { seat: 0, card: pip('hearts', 7) },
-        { seat: 1, card: pip('hearts', 5) },
-        { seat: 2, card: pip('hearts', 4) },
-        { seat: 3, card: BIG },
-      ],
-      winnerSeat: 3,
-    })
-
-    expect(bookInsight(b)).toBe('Trumped in')
-  })
-
-  it('says highest spade when spades were led', () => {
-    const b = book({
-      ledSuit: 'spades',
-      cards: [
-        { seat: 0, card: pip('spades', 7) },
-        { seat: 1, card: pip('spades', 5) },
-        { seat: 2, card: pip('spades', 4) },
-        { seat: 3, card: pip('spades', 13) },
-      ],
-      winnerSeat: 3,
-    })
-
-    expect(bookInsight(b)).toBe('Highest spade')
-  })
-
-  it('notes when someone sloughed off but nobody trumped', () => {
-    const b = book({
-      cards: [
-        { seat: 0, card: pip('hearts', 7) },
-        { seat: 1, card: pip('hearts', 5) },
-        { seat: 2, card: pip('clubs', 14) },   // void in hearts, threw a club away
-        { seat: 3, card: pip('hearts', 9) },
-      ],
-      winnerSeat: 3,
-    })
-
-    expect(bookInsight(b)).toBe('Held up, nobody trumped')
-  })
-
-  it('says nothing rather than guessing when the winner is not in the book', () => {
-    expect(bookInsight(book({ winnerSeat: 9 }))).toBe('')
-  })
-})
-
-describe('couldNotFollow', () => {
-  const led: PlayedBook = {
-    number: 1,
-    ledSuit: 'hearts',
-    cards: [
-      { seat: 0, card: pip('hearts', 7) },
-      { seat: 1, card: pip('clubs', 5) },
-      { seat: 2, card: BIG },
-    ],
-    winnerSeat: 2,
-  }
-
-  it('spots the seat that discarded off-suit', () => {
-    expect(couldNotFollow(led, 1)).toBe(true)
-  })
-
-  it('does not flag a seat that followed', () => {
-    expect(couldNotFollow(led, 0)).toBe(false)
-  })
-
-  it('flags a joker on a side suit, since it plays as a spade', () => {
-    expect(couldNotFollow(led, 2)).toBe(true)
-  })
-
-  it('is false for a seat that never played', () => {
-    expect(couldNotFollow(led, 3)).toBe(false)
   })
 })

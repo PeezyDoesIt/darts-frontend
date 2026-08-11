@@ -22,6 +22,24 @@
       </section>
 
       <section class="ng-section">
+        <span class="label">TEAMS</span>
+        <div class="mode-btns">
+          <button
+            v-for="m in (['partners', 'solo'] as const)"
+            :key="m"
+            v-ripple
+            class="mode-btn"
+            :class="{ active: mode === m }"
+            @click="mode = m"
+          >
+            <span class="mb-name">{{ m === 'partners' ? 'PARTNERS' : 'EVERY PLAYER FOR THEMSELVES' }}</span>
+            <span class="mb-sub">{{ m === 'partners' ? 'two against two' : 'four sides, no partners' }}</span>
+          </button>
+        </div>
+        <p class="variant-blurb">{{ MODE_BLURBS[mode] }}</p>
+      </section>
+
+      <section class="ng-section">
         <span class="label">TABLE</span>
         <p class="hint">
           {{ botCount === 0
@@ -29,23 +47,18 @@
             : `${selected.length} playing, ${botCount} computer ${botCount === 1 ? 'seat' : 'seats'} — no passing for those.` }}
         </p>
         <div class="seats">
-          <div v-for="(s, i) in table" :key="s.id" class="seat" :class="[`team-${i % 2}`, { bot: s.isBot }]">
+          <div
+            v-for="(s, i) in table"
+            :key="s.id"
+            class="seat"
+            :class="[mode === 'partners' ? `team-${i % 2}` : 'team-solo', { bot: s.isBot }]"
+          >
             <span class="seat-num">SEAT {{ i + 1 }}</span>
             <div class="seat-avatar" :style="{ background: s.color }">
               <img v-if="!s.isBot && isPhoto(s.avatarUrl)" :src="s.avatarUrl!" alt="" />
               <span v-else>{{ s.isBot ? '🤖' : avatarGlyph(s) }}</span>
             </div>
-            <!-- A computer seat is named in place: it is the only screen these appear on,
-                 and it is the screen you are already on when you decide to rename one. -->
-            <input
-              v-if="s.isBot"
-              class="seat-name seat-name-input"
-              :value="s.name"
-              :maxlength="MAX_BOT_NAME"
-              :aria-label="`Name for seat ${i + 1}`"
-              @change="renameBot(i, $event)"
-            />
-            <span v-else class="seat-name">{{ s.name }}</span>
+            <span class="seat-name">{{ s.name }}</span>
             <div class="seat-btns">
               <template v-if="!s.isBot">
                 <button v-ripple :disabled="i === 0" class="btn btn-sm btn-surface" aria-label="Move up" @click="move(i, -1)">↑</button>
@@ -56,9 +69,12 @@
             </div>
           </div>
         </div>
-        <p class="partner-note">
+        <p v-if="mode === 'partners'" class="partner-note">
           Partners sit opposite: <strong>{{ table[0]?.name }} &amp; {{ table[2]?.name }}</strong>
           against <strong>{{ table[1]?.name }} &amp; {{ table[3]?.name }}</strong>.
+        </p>
+        <p v-else class="partner-note">
+          Four sides. Seat order only sets who plays next — nobody is anybody's partner.
         </p>
       </section>
 
@@ -110,34 +126,31 @@ import PlayingCard from '../components/PlayingCard.vue'
 import PlayerPicker from '../components/PlayerPicker.vue'
 import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { usePlayersStore } from '../stores/players'
-import { useSettingsStore } from '../stores/settings'
 import { useSpadesStore } from '../stores/spades'
-import { VARIANT_BLURBS, VARIANT_LABELS, rulesFor, type SpadesVariant } from '../lib/spades'
-import { MAX_BOT_NAME, botName } from '../lib/spadesBot'
+import {
+  MODE_BLURBS, VARIANT_BLURBS, VARIANT_LABELS, rulesFor,
+  type SpadesMode, type SpadesVariant,
+} from '../lib/spades'
+import { botName } from '../lib/spadesBot'
 import { goBack } from '../router/goBack'
 import type { Player } from '../types/index'
 
 const router = useRouter()
 const playersStore = usePlayersStore()
-const settingsStore = useSettingsStore()
 const spades = useSpadesStore()
-
-/** Seat index is the source of truth for which name is being edited, not list position. */
-function renameBot(seat: number, event: Event) {
-  settingsStore.setBotName(seat, (event.target as HTMLInputElement).value)
-}
 
 const selected = ref<Player[]>([])
 const variant = ref<SpadesVariant>('wild')
-const rules = computed(() => rulesFor(variant.value))
+const mode = ref<SpadesMode>('partners')
+const rules = computed(() => rulesFor(variant.value, mode.value))
 
 const BOT_COLORS = ['#9aa0b5', '#8f7bff', '#5fd0ff', '#7ee68a']
 
 /**
  * Humans take the low seats and bots fill the rest, so seat order stays predictable as
- * people are added and removed. Partners are seats 0/2 against 1/3, which the note under
- * the table spells out — with two humans that means they are opponents, not partners,
- * unless a bot is moved between them.
+ * people are added and removed. In a partnership game seats 0/2 play 1/3, which the note
+ * under the table spells out — with two humans that means they are opponents, not partners,
+ * unless a bot is moved between them. In solo, seat order is only the turn rotation.
  */
 const table = computed(() => {
   const humans = selected.value.map(p => ({
@@ -146,9 +159,7 @@ const table = computed(() => {
   const bots = Array.from({ length: 4 - humans.length }, (_, i) => {
     const seat = humans.length + i
     return {
-      id: `bot-${seat}`,
-      name: settingsStore.botNames[seat] ?? botName(seat),
-      color: BOT_COLORS[seat % BOT_COLORS.length]!,
+      id: `bot-${seat}`, name: botName(seat), color: BOT_COLORS[seat % BOT_COLORS.length]!,
       avatarUrl: null, isBot: true as const,
     }
   })
@@ -174,7 +185,7 @@ function start() {
       ? { id: s.id, name: s.name, color: s.color, isBot: true as const }
       : selected.value.find(p => p.id === s.id)!
   )
-  spades.startGame(seats, variant.value)
+  spades.startGame(seats, variant.value, mode.value)
   router.push('/spades')
 }
 </script>
@@ -208,6 +219,7 @@ function start() {
 }
 .seat.team-0 { border-left-color: #7ee68a; }
 .seat.team-1 { border-left-color: #5fd0ff; }
+.seat.team-solo { border-left-color: rgba(255,255,255,0.22); }
 .seat-num { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; color: var(--text-muted); }
 .seat-avatar {
   width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center;
@@ -215,17 +227,6 @@ function start() {
 }
 .seat-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .seat-name { font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
-/* Looks like the label it replaces until you touch it, so the row still reads as a seat
-   rather than a form. */
-.seat-name-input {
-  width: 100%; min-width: 0; min-height: 44px; padding: 4px 8px;
-  background: transparent; border: 1px solid transparent; border-radius: 8px;
-  color: var(--text); font-family: inherit; text-align: center;
-}
-.seat-name-input:hover { border-color: rgba(255,255,255,0.18); }
-.seat-name-input:focus {
-  outline: none; background: rgba(255,255,255,0.07); border-color: var(--gold);
-}
 .seat.bot { opacity: 0.82; border-style: dashed; }
 .bot-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.12em; color: var(--text-muted); }
 .partner-note { font-size: 12.5px; color: var(--text-muted); margin: 4px 0 0; line-height: 1.5; }
@@ -249,6 +250,19 @@ function start() {
 .vb-name { font-size: 14px; font-weight: 800; font-family: var(--font-display); letter-spacing: 0.06em; }
 .vb-deck { font-size: 10.5px; color: var(--text-muted); }
 .variant-blurb { font-size: 12.5px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+/* The teams choice gates everything else about the hand, so it reads as its own decision
+   rather than a variation on the deck picker below it. */
+.mode-btns { display: flex; flex-direction: column; gap: 10px; }
+.mode-btn {
+  min-height: 62px; border-radius: 10px; display: flex; flex-direction: column;
+  align-items: flex-start; justify-content: center; gap: 3px; padding: 12px 14px;
+  background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.12);
+  color: var(--text); cursor: pointer; text-align: left;
+}
+.mode-btn.active { border-color: var(--gold); background: rgba(255,200,87,0.14); }
+.mb-name { font-size: 15px; font-weight: 800; font-family: var(--font-display); letter-spacing: 0.08em; }
+.mb-sub { font-size: 11px; color: var(--text-muted); }
 
 .joker-preview {
   display: flex; align-items: center; gap: 12px; padding: 12px;
