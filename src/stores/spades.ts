@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { v4 as uuid } from 'uuid'
 import {
   HAND_SIZE, PLAYER_COUNT, WILD_MAX_CONSECUTIVE_SETS, applyHandToSide, cardId, deal,
-  effectiveSuit, legalPlays, scoreSide, sortHand, trickWinner, wildLossTeam, winnerTeamFor,
+  effectiveSuit, legalPlays, scoreSide, sortHand, bookWinner, wildLossTeam, winnerTeamFor,
   type Card, type PlayedBook, type SpadesVariant, type Suit,
 } from '../lib/spades'
 import { chooseBid, chooseCard } from '../lib/spadesBot'
@@ -42,13 +42,13 @@ export interface SpadesGame {
    * 'pass'      — privacy screen; the device is being handed over
    * 'bidding'   — the seat at turnIndex is entering a bid
    * 'playing'   — the seat at turnIndex is choosing a card
-   * 'trick_end' — trick complete, showing who took it
-   * 'hand_over' — 13 tricks played, showing the score
+   * 'book_end' — book complete, showing who took it
+   * 'hand_over' — 13 books played, showing the score
    */
-  phase: 'pass' | 'bidding' | 'playing' | 'trick_end' | 'hand_over' | 'game_over'
+  phase: 'pass' | 'bidding' | 'playing' | 'book_end' | 'hand_over' | 'game_over'
   bids: (number | null)[]
-  tricksWon: number[]
-  currentTrick: { seat: number; card: Card }[]
+  booksWon: number[]
+  currentBook: { seat: number; card: Card }[]
   leadSeat: number
   spadesBroken: boolean
   /** Every book played this hand, in order, so the hand can be read back once it is scored. */
@@ -62,7 +62,7 @@ export interface SpadesGame {
   setStreak: [number, number]
   handNumber: number
   winnerTeam: 0 | 1 | null
-  lastTrickWinnerSeat: number | null
+  lastBookWinnerSeat: number | null
   lastHandSummary: string
 }
 
@@ -81,8 +81,43 @@ export const useSpadesStore = defineStore('spades', () => {
       if (!parsed.startedAt) parsed.startedAt = new Date().toISOString()
       // Games saved before the variant existed were all played with the joker deck.
       if (!parsed.variant) parsed.variant = 'wild'
+      migrateTricksToBooks(parsed)
       game.value = parsed
     } catch {}
+  }
+
+  /**
+   * A hand in progress when the rename shipped is still on disk under the old field names.
+   * Without this it comes back with no books won, no cards on the table and a phase nothing
+   * matches — a game that looks resumable and is not.
+   *
+   * Kept as a named step rather than folded into load so it is obvious what it is for, and
+   * so it can be dropped once no save can plausibly predate it.
+   */
+  function migrateTricksToBooks(parsed: SpadesGame) {
+    const old = parsed as unknown as Record<string, unknown>
+
+    if (parsed.booksWon === undefined && Array.isArray(old.tricksWon)) {
+      parsed.booksWon = old.tricksWon as number[]
+    }
+    if (parsed.currentBook === undefined && Array.isArray(old.currentTrick)) {
+      parsed.currentBook = old.currentTrick as SpadesGame['currentBook']
+    }
+    if (parsed.lastBookWinnerSeat === undefined && old.lastTrickWinnerSeat !== undefined) {
+      parsed.lastBookWinnerSeat = old.lastTrickWinnerSeat as number | null
+    }
+    // The phase is a persisted string, so an old save can be sitting in the renamed one.
+    if ((parsed.phase as string) === 'trick_end') parsed.phase = 'book_end'
+    // Saves from before the review screen have no log; an empty one reads correctly as
+    // "nothing to read back" rather than crashing the review.
+    if (!Array.isArray(parsed.bookLog)) parsed.bookLog = []
+
+    // Drop the old keys once their values are across. persist() spreads the whole object, so
+    // leaving them would write both names back on every save — two fields claiming the same
+    // truth, and a later reader with no way to tell which one is current.
+    delete old.tricksWon
+    delete old.currentTrick
+    delete old.lastTrickWinnerSeat
   }
 
   function persist() {
@@ -122,8 +157,8 @@ export const useSpadesStore = defineStore('spades', () => {
       turnIndex: 1 % PLAYER_COUNT,
       phase: 'pass',
       bids: Array(PLAYER_COUNT).fill(null),
-      tricksWon: Array(PLAYER_COUNT).fill(0),
-      currentTrick: [],
+      booksWon: Array(PLAYER_COUNT).fill(0),
+      currentBook: [],
       leadSeat: 1 % PLAYER_COUNT,
       spadesBroken: false,
       bookLog: [],
@@ -133,7 +168,7 @@ export const useSpadesStore = defineStore('spades', () => {
       setStreak: [0, 0],
       handNumber: 1,
       winnerTeam: null,
-      lastTrickWinnerSeat: null,
+      lastBookWinnerSeat: null,
       lastHandSummary: '',
     }
     // Wild Style opens on an auto-bid: every seat is bid from its own hand by the same
@@ -152,7 +187,7 @@ export const useSpadesStore = defineStore('spades', () => {
   /**
    * The privacy screen only earns its tap when there is somebody to hide the hand from.
    * One human against bots would otherwise be told to "pass the device" to themselves
-   * before every bid and every one of the 13 tricks in a hand.
+   * before every bid and every one of the 13 books in a hand.
    */
   function needsPrivacyScreen(): boolean {
     const g = game.value
@@ -199,7 +234,7 @@ export const useSpadesStore = defineStore('spades', () => {
     }
     const partnerSeat = (seat + 2) % PLAYER_COUNT
     playCard(chooseCard(hand, {
-      trick: g.currentTrick,
+      book: g.currentBook,
       seat,
       partnerSeat,
       spadesBroken: g.spadesBroken,
@@ -246,7 +281,7 @@ export const useSpadesStore = defineStore('spades', () => {
   function legalForCurrent(): Card[] {
     const g = game.value
     if (!g) return []
-    const led = g.currentTrick.length > 0 ? effectiveSuit(g.currentTrick[0]!.card) : null
+    const led = g.currentBook.length > 0 ? effectiveSuit(g.currentBook[0]!.card) : null
     return legalPlays(g.hands[g.turnIndex] ?? [], led, g.spadesBroken)
   }
 
@@ -265,44 +300,44 @@ export const useSpadesStore = defineStore('spades', () => {
     hand.splice(idx, 1)
 
     if (effectiveSuit(card) === 'spades') g.spadesBroken = true
-    g.currentTrick.push({ seat: g.turnIndex, card })
+    g.currentBook.push({ seat: g.turnIndex, card })
 
-    if (g.currentTrick.length < PLAYER_COUNT) {
+    if (g.currentBook.length < PLAYER_COUNT) {
       handOffTo((g.turnIndex + 1) % PLAYER_COUNT)
       persist()
       return
     }
 
     // Book complete. Resolve against the suit that was actually led.
-    const led = effectiveSuit(g.currentTrick[0]!.card) as Suit
-    const winIdx = trickWinner(g.currentTrick.map(t => t.card), led)
-    const winSeat = g.currentTrick[winIdx]!.seat
-    g.tricksWon[winSeat]!++
-    g.lastTrickWinnerSeat = winSeat
+    const led = effectiveSuit(g.currentBook[0]!.card) as Suit
+    const winIdx = bookWinner(g.currentBook.map(t => t.card), led)
+    const winSeat = g.currentBook[winIdx]!.seat
+    g.booksWon[winSeat]!++
+    g.lastBookWinnerSeat = winSeat
 
     // Recorded here rather than when the next book leads, so a hand quit mid-way still has
     // everything that was played rather than losing its last book.
     g.bookLog.push({
       number: g.bookLog.length + 1,
       ledSuit: led,
-      cards: g.currentTrick.map(t => ({ seat: t.seat, card: t.card })),
+      cards: g.currentBook.map(t => ({ seat: t.seat, card: t.card })),
       winnerSeat: winSeat,
     })
 
-    g.phase = 'trick_end'
+    g.phase = 'book_end'
     persist()
   }
 
-  /** Clear the finished trick and lead the next one, or score the hand. */
-  function nextTrick() {
+  /** Clear the finished book and lead the next one, or score the hand. */
+  function nextBook() {
     const g = game.value
-    if (!g || g.phase !== 'trick_end') return
-    g.currentTrick = []
+    if (!g || g.phase !== 'book_end') return
+    g.currentBook = []
 
-    const played = g.tricksWon.reduce((a, b) => a + b, 0)
+    const played = g.booksWon.reduce((a, b) => a + b, 0)
     if (played >= HAND_SIZE) { scoreHand(); return }
 
-    const lead = g.lastTrickWinnerSeat ?? g.leadSeat
+    const lead = g.lastBookWinnerSeat ?? g.leadSeat
     g.leadSeat = lead
     handOffTo(lead)
     persist()
@@ -319,11 +354,11 @@ export const useSpadesStore = defineStore('spades', () => {
       // A nil bid contributes nothing to the partnership contract, so it is excluded from
       // the combined bid and scored on its own.
       const contract = seats.reduce((sum, s) => sum + (g.bids[s] === 0 ? 0 : g.bids[s] ?? 0), 0)
-      const tricks = seats.reduce((sum, s) => sum + (g.tricksWon[s] ?? 0), 0)
+      const books = seats.reduce((sum, s) => sum + (g.booksWon[s] ?? 0), 0)
       const nilSeats = seats.filter(s => g.bids[s] === 0)
-      const nilBids = nilSeats.map(s => ({ nil: true, tricks: g.tricksWon[s] ?? 0 }))
-      // Tricks taken by a nil bidder do not count toward the partner's contract.
-      const contractTricks = tricks - nilBids.reduce((sum, n) => sum + n.tricks, 0)
+      const nilBids = nilSeats.map(s => ({ nil: true, books: g.booksWon[s] ?? 0 }))
+      // Books taken by a nil bidder do not count toward the partner's contract.
+      const contractTricks = books - nilBids.reduce((sum, n) => sum + n.books, 0)
 
       // Being set is missing the partnership contract. A side bidding nothing but nil has no
       // contract to miss, so it cannot be set however its nils land.
@@ -382,10 +417,10 @@ export const useSpadesStore = defineStore('spades', () => {
     g.hands = deal(g.variant)
     g.dealerIndex = (g.dealerIndex + 1) % PLAYER_COUNT
     g.bids = Array(PLAYER_COUNT).fill(null)
-    g.tricksWon = Array(PLAYER_COUNT).fill(0)
-    g.currentTrick = []
+    g.booksWon = Array(PLAYER_COUNT).fill(0)
+    g.currentBook = []
     g.spadesBroken = false
-    g.lastTrickWinnerSeat = null
+    g.lastBookWinnerSeat = null
     // The log covers one hand — the review screen reads the hand you just finished.
     g.bookLog = []
     g.handNumber++
@@ -404,7 +439,7 @@ export const useSpadesStore = defineStore('spades', () => {
   load()
 
   return {
-    game, startGame, reveal, conceal, placeBid, playCard, nextTrick, nextHand, endGame,
+    game, startGame, reveal, conceal, placeBid, playCard, nextBook, nextHand, endGame,
     legalForCurrent, isLegal, sortHand, isBotTurn, botAct,
   }
 })

@@ -99,7 +99,7 @@ test('spades: solo vs bots skips the pass-the-device screen', async ({ page }) =
   const card = page.locator('.hand-row .card.playable').first()
   await expect(card).toBeEnabled({ timeout: 15_000 })
   await card.click()
-  await expect(page.locator('.trick-card')).not.toHaveCount(0)
+  await expect(page.locator('.book-card')).not.toHaveCount(0)
 })
 
 test('spades: wild style bids the opening hand itself', async ({ page }) => {

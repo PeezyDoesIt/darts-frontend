@@ -66,26 +66,26 @@
       </template>
 
       <!-- ── Playing ────────────────────────────────────── -->
-      <template v-else-if="game.phase === 'playing' || game.phase === 'trick_end'">
+      <template v-else-if="game.phase === 'playing' || game.phase === 'book_end'">
         <div class="bids-row">
           <div v-for="(p, i) in game.players" :key="p.id" class="bid-chip" :class="{ turn: i === game.turnIndex }">
             <span class="bc-name">{{ p.name }}</span>
-            <span class="bc-val">{{ game.tricksWon[i] }}/{{ game.bids[i] === 0 ? 'nil' : game.bids[i] }}</span>
+            <span class="bc-val">{{ game.booksWon[i] }}/{{ game.bids[i] === 0 ? 'nil' : game.bids[i] }}</span>
           </div>
         </div>
 
-        <div class="trick-area">
-          <p v-if="game.currentTrick.length === 0" class="trick-hint">
+        <div class="book-area">
+          <p v-if="game.currentBook.length === 0" class="book-hint">
             {{ seated.name }} leads{{ game.spadesBroken ? '' : ' — spades not broken' }}
           </p>
-          <div class="trick-cards">
-            <div v-for="t in game.currentTrick" :key="t.seat" class="trick-card">
+          <div class="book-cards">
+            <div v-for="t in game.currentBook" :key="t.seat" class="book-card">
               <PlayingCard :card="t.card" :width="52" />
               <span class="tc-name">{{ game.players[t.seat]?.name }}</span>
             </div>
           </div>
-          <p v-if="game.phase === 'trick_end'" class="trick-won">
-            {{ game.players[game.lastTrickWinnerSeat!]?.name }} takes it
+          <p v-if="game.phase === 'book_end'" class="book-won">
+            {{ game.players[game.lastBookWinnerSeat!]?.name }} takes it
           </p>
         </div>
 
@@ -132,8 +132,8 @@
     </div>
 
     <footer v-if="showFooter" class="sp-footer">
-      <button v-if="game.phase === 'trick_end'" v-ripple class="btn btn-spray btn-lg wide" @click="spades.nextTrick()">
-        {{ tricksPlayed >= HAND_SIZE ? 'Score the hand →' : 'Next book →' }}
+      <button v-if="game.phase === 'book_end'" v-ripple class="btn btn-spray btn-lg wide" @click="spades.nextBook()">
+        {{ booksPlayed >= HAND_SIZE ? 'Score the hand →' : 'Next book →' }}
       </button>
       <template v-else-if="game.phase === 'hand_over'">
         <button v-ripple class="btn btn-outline btn-lg review-btn" @click="showReview = true">Review books</button>
@@ -238,9 +238,9 @@ const rules = computed(() => rulesFor(game.value?.variant ?? 'wild'))
 const needsBid = computed(() => game.value?.bids.some(b => b === null) ?? false)
 const sortedHand = computed(() => sortHand(game.value?.hands[game.value.turnIndex] ?? []))
 const legalCount = computed(() => spades.legalForCurrent().length)
-const tricksPlayed = computed(() => game.value?.tricksWon.reduce((a, b) => a + b, 0) ?? 0)
+const booksPlayed = computed(() => game.value?.booksWon.reduce((a, b) => a + b, 0) ?? 0)
 const showFooter = computed(() =>
-  ['trick_end', 'hand_over', 'game_over'].includes(game.value?.phase ?? '')
+  ['book_end', 'hand_over', 'game_over'].includes(game.value?.phase ?? '')
 )
 
 // Thirteen cards have to fit a phone. The row scrolls, but starting narrow means most
@@ -415,12 +415,12 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .bc-name { font-size: 10px; color: var(--text-muted); overflow-wrap: anywhere; }
 .bc-val { font-size: 15px; font-weight: 800; }
 
-.trick-area { display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 108px; justify-content: center; }
-.trick-cards { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-.trick-card { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.book-area { display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 108px; justify-content: center; }
+.book-cards { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.book-card { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .tc-name { font-size: 10px; color: var(--text-muted); overflow-wrap: anywhere; max-width: 56px; text-align: center; }
-.trick-hint { font-size: 13px; color: var(--text-muted); margin: 0; text-align: center; }
-.trick-won { font-size: 14px; font-weight: 800; color: var(--gold); margin: 0; }
+.book-hint { font-size: 13px; color: var(--text-muted); margin: 0; text-align: center; }
+.book-won { font-size: 14px; font-weight: 800; color: var(--gold); margin: 0; }
 
 .hand-over { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; }
 .ho-title { font-size: 28px; margin: 0; color: var(--gold); }

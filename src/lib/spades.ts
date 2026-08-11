@@ -103,7 +103,7 @@ export interface SideStanding {
  * plus the set bookkeeping the Wild Style loss rules read.
  *
  * Kept here rather than inline in the store so the floor and the set counters can be tested
- * without playing thirteen tricks through a browser to reach them.
+ * without playing thirteen books through a browser to reach them.
  */
 export function applyHandToSide(
   prev: SideStanding,
@@ -179,7 +179,7 @@ export const REMOVED_CARDS: { suit: Suit; rank: number }[] = [
   { suit: 'diamonds', rank: 2 },
 ]
 
-// "Book" throughout, which is what the table calls a trick.
+// "Book" throughout, which is what the table calls a book.
 const COMMON_RULES: string[] = [
   'Bid the number of books you expect to take, then play them out',
   'Make your bid for 10 points a book; miss it and you lose 10 a book',
@@ -308,13 +308,13 @@ export function legalPlays(hand: Card[], led: Suit | null, spadesBroken: boolean
 }
 
 /**
- * Index of the winning card in a completed trick. Any trump beats any non-trump; otherwise
+ * Index of the winning card in a completed book. Any trump beats any non-trump; otherwise
  * only cards following the led suit can win.
  */
-export function trickWinner(trick: Card[], led: Suit): number {
+export function bookWinner(book: Card[], led: Suit): number {
   let bestIdx = -1
   let bestKey = -1
-  trick.forEach((c, i) => {
+  book.forEach((c, i) => {
     const trumped = isTrump(c) && led !== 'spades'
     const follows = effectiveSuit(c) === led
     if (!trumped && !follows) return
@@ -339,17 +339,17 @@ export interface SideResult {
  */
 export function scoreSide(
   bid: number,
-  tricks: number,
-  nilBids: { nil: boolean; tricks: number }[] = [],
+  books: number,
+  nilBids: { nil: boolean; books: number }[] = [],
 ): SideResult {
   let points = 0
   for (const n of nilBids) {
-    if (n.nil) points += n.tricks === 0 ? 100 : -100
+    if (n.nil) points += n.books === 0 ? 100 : -100
   }
   if (bid === 0) return { points, bags: 0 }
 
-  if (tricks >= bid) {
-    const bags = tricks - bid
+  if (books >= bid) {
+    const bags = books - bid
     return { points: points + bid * 10 + bags, bags }
   }
   return { points: points - bid * 10, bags: 0 }
