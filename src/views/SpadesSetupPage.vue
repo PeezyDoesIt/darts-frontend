@@ -35,7 +35,17 @@
               <img v-if="!s.isBot && isPhoto(s.avatarUrl)" :src="s.avatarUrl!" alt="" />
               <span v-else>{{ s.isBot ? '🤖' : avatarGlyph(s) }}</span>
             </div>
-            <span class="seat-name">{{ s.name }}</span>
+            <!-- A computer seat is named in place: it is the only screen these appear on,
+                 and it is the screen you are already on when you decide to rename one. -->
+            <input
+              v-if="s.isBot"
+              class="seat-name seat-name-input"
+              :value="s.name"
+              :maxlength="MAX_BOT_NAME"
+              :aria-label="`Name for seat ${i + 1}`"
+              @change="renameBot(i, $event)"
+            />
+            <span v-else class="seat-name">{{ s.name }}</span>
             <div class="seat-btns">
               <template v-if="!s.isBot">
                 <button v-ripple :disabled="i === 0" class="btn btn-sm btn-surface" aria-label="Move up" @click="move(i, -1)">↑</button>
@@ -100,15 +110,22 @@ import PlayingCard from '../components/PlayingCard.vue'
 import PlayerPicker from '../components/PlayerPicker.vue'
 import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { usePlayersStore } from '../stores/players'
+import { useSettingsStore } from '../stores/settings'
 import { useSpadesStore } from '../stores/spades'
 import { VARIANT_BLURBS, VARIANT_LABELS, rulesFor, type SpadesVariant } from '../lib/spades'
-import { botName } from '../lib/spadesBot'
+import { MAX_BOT_NAME, botName } from '../lib/spadesBot'
 import { goBack } from '../router/goBack'
 import type { Player } from '../types/index'
 
 const router = useRouter()
 const playersStore = usePlayersStore()
+const settingsStore = useSettingsStore()
 const spades = useSpadesStore()
+
+/** Seat index is the source of truth for which name is being edited, not list position. */
+function renameBot(seat: number, event: Event) {
+  settingsStore.setBotName(seat, (event.target as HTMLInputElement).value)
+}
 
 const selected = ref<Player[]>([])
 const variant = ref<SpadesVariant>('wild')
@@ -129,7 +146,9 @@ const table = computed(() => {
   const bots = Array.from({ length: 4 - humans.length }, (_, i) => {
     const seat = humans.length + i
     return {
-      id: `bot-${seat}`, name: botName(seat), color: BOT_COLORS[seat % BOT_COLORS.length]!,
+      id: `bot-${seat}`,
+      name: settingsStore.botNames[seat] ?? botName(seat),
+      color: BOT_COLORS[seat % BOT_COLORS.length]!,
       avatarUrl: null, isBot: true as const,
     }
   })
@@ -196,6 +215,17 @@ function start() {
 }
 .seat-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .seat-name { font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+/* Looks like the label it replaces until you touch it, so the row still reads as a seat
+   rather than a form. */
+.seat-name-input {
+  width: 100%; min-width: 0; min-height: 44px; padding: 4px 8px;
+  background: transparent; border: 1px solid transparent; border-radius: 8px;
+  color: var(--text); font-family: inherit; text-align: center;
+}
+.seat-name-input:hover { border-color: rgba(255,255,255,0.18); }
+.seat-name-input:focus {
+  outline: none; background: rgba(255,255,255,0.07); border-color: var(--gold);
+}
 .seat.bot { opacity: 0.82; border-style: dashed; }
 .bot-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.12em; color: var(--text-muted); }
 .partner-note { font-size: 12.5px; color: var(--text-muted); margin: 4px 0 0; line-height: 1.5; }

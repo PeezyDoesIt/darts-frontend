@@ -295,6 +295,11 @@ function finish() {
           { players: [g.players[1]!.id, g.players[3]!.id], score: g.scores[1], bags: g.bags[1] },
         ],
         winningTeam: g.winnerTeam,
+        // Who each seat was at the time. Computer seats are not on the roster and a person
+        // can be deleted later, so without this a reader has no way to name them — and a
+        // game the computers won read exactly like one the human won, because the winner
+        // simply vanished from the line.
+        names: Object.fromEntries(g.players.map(p => [p.id, p.name])),
       },
     })
     playStartChime()
