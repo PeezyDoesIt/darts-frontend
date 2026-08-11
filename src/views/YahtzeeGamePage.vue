@@ -554,9 +554,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
+import { chooseCategory, chooseKeeps } from '../lib/yahtzeeBot'
 import { useYahtzeeStore, grandTotal, upperTotal, upperBonus, lowerTotal, calcScore, isScorecardComplete, YAHTZEE_CATEGORIES } from '../stores/yahtzee'
 import { usePlayersStore } from '../stores/players'
 import type { YahtzeeCategory, YahtzeeScorecard } from '../stores/yahtzee'
@@ -966,6 +967,62 @@ function afterScore(category: YahtzeeCategory) {
   // Explicit fallback: ensure winner screen shows even if the status watch fires late
   if (game.value?.status === 'finished') recordResults()
 }
+
+/**
+ * A computer turn, one visible step at a time.
+ *
+ * The decisions themselves are instant, so without a pause between them the dice would land
+ * on a scored category with nothing to watch. Each step is one thing a person would do —
+ * roll, pick up what you are keeping, roll again — so the turn can be followed and argued
+ * with. Rolling goes through doRoll so the animation and the yahtzee flash still happen, and
+ * scoring goes through afterScore so timers and the finished check behave as they do for a
+ * person.
+ */
+const BOT_STEP_MS = 900
+
+const currentIsBot = computed(() =>
+  !!game.value?.playerStates[game.value.currentPlayerIndex]?.isBot)
+
+let botTimer: ReturnType<typeof setTimeout> | null = null
+
+function botStep() {
+  const g = game.value
+  if (!g || g.status !== 'playing') return
+  const sc = g.playerStates[g.currentPlayerIndex]?.scorecard
+  if (!sc) return
+
+  if (g.rollCount === 0) { doRoll(); return }
+  if (g.rollCount >= 3) { afterScore(chooseCategory(g.dice, sc)); return }
+
+  const want = chooseKeeps(g.dice, sc, 3 - g.rollCount)
+  const alreadyHeld = want.every((w, i) => w === g.held[i])
+  if (!alreadyHeld) { yahtzeeStore.setHolds(want); return }
+
+  doRoll()
+}
+
+function scheduleBot() {
+  if (botTimer !== null) { clearTimeout(botTimer); botTimer = null }
+  if (!currentIsBot.value || game.value?.status !== 'playing') return
+  // Not while the walk-up overlay is up — it is covering the board being played on.
+  if (showWalkupOverlay.value) return
+
+  botTimer = setTimeout(() => {
+    botTimer = null
+    botStep()
+    scheduleBot()
+  }, BOT_STEP_MS)
+}
+
+// Every one of these changes what the computer should do next: whose turn it is, how many
+// rolls are left, and whether the board is visible yet.
+watch(
+  () => [game.value?.currentPlayerIndex, game.value?.rollCount, showWalkupOverlay.value] as const,
+  () => scheduleBot(),
+  { immediate: true },
+)
+
+onUnmounted(() => { if (botTimer !== null) clearTimeout(botTimer) })
 
 // Show walk-up overlay when turn advances
 watch(() => game.value?.currentPlayerIndex, () => {

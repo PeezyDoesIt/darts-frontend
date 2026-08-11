@@ -24,6 +24,12 @@ export const YAHTZEE_CATEGORIES: YahtzeeCategory[] = [
 export interface YahtzeePlayerState {
   player: Player
   scorecard: YahtzeeScorecard
+  /**
+   * Whether this seat is played by the computer. Stored explicitly rather than inferred from
+   * the id, so a roster player whose id happens to look like a bot's can never be mistaken
+   * for one, and vice versa.
+   */
+  isBot?: boolean
 }
 
 export interface YahtzeeGame {
@@ -191,12 +197,18 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
     }
   }
 
-  function startGame(players: Player[], diceMode: 'electronic' | 'physical') {
+  function startGame(
+    players: Player[],
+    diceMode: 'electronic' | 'physical',
+    botIds: string[] = [],
+  ) {
     game.value = {
       id: uuid(),
       startedAt: new Date().toISOString(),
       players,
-      playerStates: players.map(p => ({ player: p, scorecard: emptyScorecard() })),
+      playerStates: players.map(p => ({
+        player: p, scorecard: emptyScorecard(), isBot: botIds.includes(p.id),
+      })),
       currentPlayerIndex: 0,
       dice: [1, 1, 1, 1, 1],
       held: [false, false, false, false, false],
@@ -214,6 +226,13 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
       game.value!.held[i] ? d : Math.ceil(Math.random() * 6)
     )
     game.value.rollCount++
+    persist()
+  }
+
+  /** Set every hold at once — the computer decides the whole set, not one die at a time. */
+  function setHolds(next: boolean[]) {
+    if (!game.value || game.value.rollCount === 0) return
+    game.value.held = game.value.held.map((h, i) => next[i] ?? h)
     persist()
   }
 
@@ -293,5 +312,5 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
     persist()
   }
 
-  return { game, startGame, rollDice, toggleHold, setDie, setPhysicalRollCount, autoScoreYahtzee, scoreCategory, addPlayerToGame, endGame, finishIfComplete }
+  return { game, startGame, rollDice, toggleHold, setHolds, setDie, setPhysicalRollCount, autoScoreYahtzee, scoreCategory, addPlayerToGame, endGame, finishIfComplete }
 })
