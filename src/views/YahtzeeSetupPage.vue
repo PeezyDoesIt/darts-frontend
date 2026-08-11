@@ -39,6 +39,23 @@
       </section>
 
       <section class="ng-section">
+        <span class="label">COMPUTER PLAYERS</span>
+        <p class="ng-hint">They roll and score themselves. Add up to three.</p>
+        <div class="bot-row">
+          <button v-ripple class="btn btn-outline bot-btn" :disabled="botCount === 0" @click="removeBot">−</button>
+          <span class="bot-count display">{{ botCount }}</span>
+          <button v-ripple class="btn btn-outline bot-btn" :disabled="botCount >= MAX_BOTS" @click="addBot">+</button>
+        </div>
+        <!--
+          A computer seat cannot pick up real dice, so the two settings genuinely conflict.
+          Said plainly here rather than silently switching the mode underneath you.
+        -->
+        <p v-if="botCount > 0 && diceMode === 'physical'" class="bot-warn">
+          Computer players need the app to roll. Choosing them switches the dice to electronic.
+        </p>
+      </section>
+
+      <section class="ng-section">
         <span class="label">DICE MODE</span>
         <div class="dice-mode-btns">
           <button
@@ -80,9 +97,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import PlayerPicker from '../components/PlayerPicker.vue'
+import { botName } from '../lib/spadesBot'
 import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { usePlayersStore } from '../stores/players'
 import { useYahtzeeStore } from '../stores/yahtzee'
@@ -94,6 +112,37 @@ const yahtzeeStore = useYahtzeeStore()
 
 const selectedPlayers = ref<Player[]>([])
 const diceMode = ref<'electronic' | 'physical'>('electronic')
+
+/** Three, so there is always a seat left for a person. */
+const MAX_BOTS = 3
+const BOT_COLORS = ['#9aa0b5', '#8f7bff', '#5fd0ff']
+const botCount = ref(0)
+
+function addBot() { if (botCount.value < MAX_BOTS) botCount.value++ }
+function removeBot() { if (botCount.value > 0) botCount.value-- }
+
+/** Synthetic roster entries. Never saved to the roster — they exist for one game. */
+const botPlayers = computed<Player[]>(() =>
+  Array.from({ length: botCount.value }, (_, i) => ({
+    id: `bot-${i + 1}`,
+    name: botName(i),
+    avatarUrl: '🤖',
+    avatarPath: null,
+    color: BOT_COLORS[i % BOT_COLORS.length]!,
+    playerBackground: null,
+    playerBackgroundSize: null,
+    playerBackgroundPosition: null,
+    playerBackgroundFill: null,
+    targetLabelColor: null,
+    cricketTargetDisplay: null,
+    diceTheme: null,
+    pinned: false,
+    wins: 0,
+    gamesPlayed: 0,
+    createdAt: new Date(0).toISOString(),
+    updatedAt: null,
+  })),
+)
 
 function isSelected(id: string) { return selectedPlayers.value.some(p => p.id === id) }
 
@@ -115,8 +164,15 @@ function moveDown(i: number) {
 }
 function startGame() {
   if (selectedPlayers.value.length < 1) return
+  const bots = botPlayers.value
+  // A computer seat cannot pick up real dice. The warning above says this will happen.
+  const mode = bots.length > 0 ? 'electronic' : diceMode.value
   try {
-    yahtzeeStore.startGame([...selectedPlayers.value], diceMode.value)
+    yahtzeeStore.startGame(
+      [...selectedPlayers.value, ...bots],
+      mode,
+      bots.map(b => b.id),
+    )
   } catch (e) {
     console.error('Yahtzee startGame error:', e)
   }
@@ -243,6 +299,14 @@ function startGame() {
 @media (max-width: 480px) {
   .player-bubble-grid { grid-template-columns: repeat(3, 1fr); gap: 16px 8px; }
   .bubble-avatar { width: 60px; height: 60px; font-size: 28px; }
+}
+
+/* ── Computer players ── */
+.bot-row { display: flex; align-items: center; gap: 18px; }
+.bot-btn { min-width: 56px; min-height: 48px; font-size: 24px; font-weight: 800; }
+.bot-count { font-size: 30px; min-width: 32px; text-align: center; }
+.bot-warn {
+  margin: 6px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--gold);
 }
 
 @media (min-width: 1101px) {
