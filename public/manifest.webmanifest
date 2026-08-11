@@ -1,0 +1,19 @@
+{
+  "name": "Peezy Does It",
+  "short_name": "Peezy",
+  "description": "Darts, Yahtzee, Left Right Center, Farkle, Ship Captain Crew, Pig and Spades.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "64x64",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

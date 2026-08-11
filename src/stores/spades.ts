@@ -2,8 +2,8 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { v4 as uuid } from 'uuid'
 import {
-  HAND_SIZE, PLAYER_COUNT, applyBagPenalty, cardId, deal,
-  effectiveSuit, legalPlays, scoreSide, sortHand, trickWinner, winnerTeamFor,
+  HAND_SIZE, PLAYER_COUNT, WILD_MAX_CONSECUTIVE_SETS, applyHandToSide, cardId, deal,
+  effectiveSuit, legalPlays, scoreSide, sortHand, trickWinner, wildLossTeam, winnerTeamFor,
   type Card, type SpadesVariant, type Suit,
 } from '../lib/spades'
 import { chooseBid, chooseCard } from '../lib/spadesBot'
@@ -54,6 +54,10 @@ export interface SpadesGame {
   /** Team totals — index 0 is seats 0 and 2. */
   scores: [number, number]
   bags: [number, number]
+  /** Hands each side has been set. Wild Style loses the game at three. */
+  setCount: [number, number]
+  /** Hands each side has been set in a row. Wild Style loses the game at two. */
+  setStreak: [number, number]
   handNumber: number
   winnerTeam: 0 | 1 | null
   lastTrickWinnerSeat: number | null
@@ -122,10 +126,19 @@ export const useSpadesStore = defineStore('spades', () => {
       spadesBroken: false,
       scores: [0, 0],
       bags: [0, 0],
+      setCount: [0, 0],
+      setStreak: [0, 0],
       handNumber: 1,
       winnerTeam: null,
       lastTrickWinnerSeat: null,
       lastHandSummary: '',
+    }
+    // Wild Style opens on an auto-bid: every seat is bid from its own hand by the same
+    // evaluation the computer players use, so nobody chooses a contract they can be
+    // instantly lost by. With no bids left outstanding, handOffTo sends the first seat
+    // straight into play rather than bidding.
+    if (variant === 'wild') {
+      game.value.bids = game.value.hands.map(hand => chooseBid(hand))
     }
     // Send the first seat through the same hand-off, so a bot dealt the opening bid does
     // not sit behind a "pass the device" screen nobody can dismiss meaningfully.
@@ -287,6 +300,7 @@ export const useSpadesStore = defineStore('spades', () => {
     if (!g) return
 
     const parts: string[] = []
+    const wasSet: [boolean, boolean] = [false, false]
     for (const team of [0, 1] as const) {
       const seats = [0, 1, 2, 3].filter(s => teamOf(s) === team)
       // A nil bid contributes nothing to the partnership contract, so it is excluded from
@@ -298,23 +312,54 @@ export const useSpadesStore = defineStore('spades', () => {
       // Tricks taken by a nil bidder do not count toward the partner's contract.
       const contractTricks = tricks - nilBids.reduce((sum, n) => sum + n.tricks, 0)
 
-      const result = scoreSide(contract, contractTricks, nilBids)
-      g.scores[team] += result.points
-      g.bags[team] += result.bags
+      // Being set is missing the partnership contract. A side bidding nothing but nil has no
+      // contract to miss, so it cannot be set however its nils land.
+      wasSet[team] = contract > 0 && contractTricks < contract
 
-      const penalty = applyBagPenalty(g.bags[team])
-      g.scores[team] += penalty.score
-      g.bags[team] = penalty.bags
+      const result = scoreSide(contract, contractTricks, nilBids)
+      const next = applyHandToSide(
+        { score: g.scores[team], bags: g.bags[team], setCount: g.setCount[team], setStreak: g.setStreak[team] },
+        result,
+        wasSet[team],
+        g.variant,
+      )
+      g.scores[team] = next.score
+      g.bags[team] = next.bags
+      g.setCount[team] = next.setCount
+      g.setStreak[team] = next.setStreak
 
       const names = seats.map(s => g.players[s]?.name ?? '').join(' & ')
       parts.push(`${names}: bid ${contract}${nilSeats.length ? ' + nil' : ''}, made ${contractTricks} (${result.points >= 0 ? '+' : ''}${result.points})`)
     }
     g.lastHandSummary = parts.join('  ·  ')
 
+    // A Wild Style loss outranks the score: a side can be sitting on more points and still
+    // hand the game over by being set on the opening hand, twice running, or three times.
+    const loser = g.variant === 'wild'
+      ? wildLossTeam(g.handNumber, wasSet, g.setStreak, g.setCount, g.scores)
+      : null
+    if (loser !== null) {
+      const winner = (loser === 0 ? 1 : 0) as 0 | 1
+      g.winnerTeam = winner
+      g.phase = 'game_over'
+      g.lastHandSummary += `  ·  ${lossReason(g, loser)}`
+      persist()
+      return
+    }
+
     const winner = winnerTeamFor(g.scores)
     g.winnerTeam = winner
     g.phase = winner === null ? 'hand_over' : 'game_over'
     persist()
+  }
+
+  /** Why a side lost outright, so the hand-over screen can say so rather than just ending. */
+  function lossReason(g: SpadesGame, loser: 0 | 1): string {
+    const names = [0, 1, 2, 3].filter(s => teamOf(s) === loser)
+      .map(s => g.players[s]?.name ?? '').join(' & ')
+    if (g.handNumber === 1) return `${names} were set on the first hand`
+    if (g.setStreak[loser] >= WILD_MAX_CONSECUTIVE_SETS) return `${names} were set two hands running`
+    return `${names} were set three times`
   }
 
   /** Deal the next hand. */

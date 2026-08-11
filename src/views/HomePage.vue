@@ -13,6 +13,39 @@
       <section class="hero-row">
         <div class="glass-panel hero">
           <div class="hero-glow" />
+
+          <!--
+            These live in the hero because the top bar sits below it, and the home screen is
+            sized to one viewport with no scroll — on a 1024px iPad the bar landed at y=1029,
+            putting the coin flip five pixels past an edge that could not be scrolled to.
+            They carry visible text as well: `title` is a tooltip, and a tooltip does not
+            exist on a touch screen, so these read as three unlabelled glyphs on a tablet.
+          -->
+          <div class="hero-actions">
+            <button v-ripple class="hero-action" title="Flip a coin" @click="showCoinFlip = true">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+                <ellipse cx="12" cy="12" rx="6" ry="9" /><path d="M12 3v18" /><path d="M18 12h3M3 12h3" />
+              </svg>
+              <span>Coin flip</span>
+            </button>
+            <button v-ripple class="hero-action" title="Cloud sync" @click="openSyncModal">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 15.5a3.5 3.5 0 0 0-2.6-5.8A5.5 5.5 0 0 0 6.8 10 3.6 3.6 0 0 0 7 17h11" />
+                <path d="M12 20v-6M9.5 16.5 12 14l2.5 2.5" />
+              </svg>
+              <span>Sync</span>
+            </button>
+            <button v-ripple class="hero-action" title="Narrator settings" @click="openSettings">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+                <path d="M4 7h16M4 12h16M4 17h16" />
+                <circle cx="9" cy="7" r="2.2" fill="rgba(10,10,12,0.9)" />
+                <circle cx="15" cy="12" r="2.2" fill="rgba(10,10,12,0.9)" />
+                <circle cx="7.5" cy="17" r="2.2" fill="rgba(10,10,12,0.9)" />
+              </svg>
+              <span>Narrator</span>
+            </button>
+          </div>
+
           <span class="hero-eyebrow">EST. TONIGHT</span>
           <h1 class="hero-wordmark">
             <span class="wm-line">PEEZY</span>
@@ -33,20 +66,23 @@
         </div>
 
         <div class="hero-side">
-          <div v-if="hasActiveGame" class="glass-panel resume-card">
+          <!--
+            One card per unfinished game. The app no longer redirects into a game on open, so
+            this is the way back in — and it has to cover all seven, not just darts, or a
+            game the old redirect never knew about becomes unreachable.
+          -->
+          <div v-for="g in resumable" :key="g.key" class="glass-panel resume-card">
             <div class="resume-info">
               <div class="resume-head">
                 <span class="live-dot live-dot-pink" />
-                <span class="resume-label display">GAME IN PROGRESS</span>
+                <span class="resume-label display">{{ g.title.toUpperCase() }}</span>
               </div>
-              <span class="resume-sub">
-                {{ GAME_TYPE_LABELS[gameStore.game!.gameType] }} ·
-                {{ gameStore.game!.players.length }} players ·
-                Round {{ gameStore.game!.round }}
+              <span class="resume-sub">{{ g.detail }}</span>
+              <span v-if="g.key === 'darts_active_game' && currentPlayerName" class="resume-meta">
+                {{ currentPlayerName }} is up
               </span>
-              <span v-if="currentPlayerName" class="resume-meta">{{ currentPlayerName }} is up</span>
             </div>
-            <button v-ripple class="resume-btn display" @click="router.push('/game')">RESUME →</button>
+            <button v-ripple class="resume-btn display" @click="router.push(g.route)">RESUME →</button>
           </div>
 
           <div class="counter-row">
@@ -88,25 +124,6 @@
             <span class="sync-dot" />
             <span>{{ authStore.user ? 'Synced' : 'Local only' }}</span>
           </div>
-          <button v-ripple class="icon-btn" title="Flip a coin" @click="showCoinFlip = true">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
-              <ellipse cx="12" cy="12" rx="6" ry="9" /><path d="M12 3v18" /><path d="M18 12h3M3 12h3" />
-            </svg>
-          </button>
-          <button v-ripple class="icon-btn" title="Cloud sync" @click="openSyncModal">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 15.5a3.5 3.5 0 0 0-2.6-5.8A5.5 5.5 0 0 0 6.8 10 3.6 3.6 0 0 0 7 17h11" />
-              <path d="M12 20v-6M9.5 16.5 12 14l2.5 2.5" />
-            </svg>
-          </button>
-          <button v-ripple class="icon-btn" title="Narrator settings" @click="openSettings">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
-              <path d="M4 7h16M4 12h16M4 17h16" />
-              <circle cx="9" cy="7" r="2.2" fill="rgba(10,10,12,0.9)" />
-              <circle cx="15" cy="12" r="2.2" fill="rgba(10,10,12,0.9)" />
-              <circle cx="7.5" cy="17" r="2.2" fill="rgba(10,10,12,0.9)" />
-            </svg>
-          </button>
         </div>
       </header>
 
@@ -608,7 +625,8 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { resumableGames } from '../lib/resumable'
 import { useSettingsStore } from '../stores/settings'
 import { useGameStore } from '../stores/game'
 import { useAuthStore } from '../stores/auth'
@@ -619,6 +637,7 @@ import { playShotgun, playBuzzer, playStartChime, unlockAudio } from '../composa
 import PlayerAvatar from '../components/PlayerAvatar.vue'
 
 const router = useRouter()
+const route = useRoute()
 const settingsStore = useSettingsStore()
 const gameStore = useGameStore()
 const authStore = useAuthStore()
@@ -629,6 +648,18 @@ const hasActiveGame = computed(() => {
   const g = gameStore.game
   return g !== null && (g.status === 'playing' || g.status === 'between_turns')
 })
+
+/**
+ * Every unfinished game, read straight from storage rather than by mounting seven stores.
+ * Recomputed when the route changes, which is when it can have changed — quitting a game and
+ * returning to the menu is a navigation.
+ */
+const resumeTick = ref(0)
+const resumable = computed(() => {
+  void resumeTick.value
+  return resumableGames(k => localStorage.getItem(k))
+})
+watch(() => route.fullPath, () => { resumeTick.value++ })
 const currentPlayerName = computed(() => {
   const g = gameStore.game
   return g ? (g.players[g.currentPlayerIndex]?.name ?? '') : ''
@@ -942,6 +973,29 @@ function previewBullseyeSound(value: string) {
   gap: clamp(8px, 1.1vh, 16px);
   padding: clamp(20px, 3vh, 40px) clamp(22px, 2.4vw, 36px); border-radius: 26px;
 }
+/* Wraps rather than overflowing, so three labelled controls still fit a narrow phone. */
+.hero-actions {
+  position: relative; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2px;
+}
+.hero-action {
+  display: flex; align-items: center; gap: 7px;
+  min-height: 44px; padding: 0 14px; border-radius: 13px; cursor: pointer; flex-shrink: 0;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.16);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  color: #fff; font-size: 12px; font-weight: 800; letter-spacing: 0.06em;
+  transition: background .18s, border-color .18s, transform .18s;
+  position: relative; overflow: hidden;
+}
+.hero-action:hover { background: rgba(255,255,255,0.13); border-color: rgba(255,255,255,0.3); }
+.hero-action:active { transform: scale(0.97); }
+
+/* Tightened so all three hold one row on a phone. Wrapping to a second row pushed the game
+   tiles down by the height of that row and cost two of them their place above the fold. */
+@media (max-width: 700px) {
+  .hero-actions { gap: 6px; }
+  .hero-action { padding: 0 10px; gap: 6px; font-size: 11px; letter-spacing: 0.02em; }
+}
+
 .hero-glow {
   position: absolute; top: -120px; right: -80px; width: 320px; height: 320px; border-radius: 50%;
   background: radial-gradient(circle, rgba(255,45,120,0.32), transparent 68%); pointer-events: none;

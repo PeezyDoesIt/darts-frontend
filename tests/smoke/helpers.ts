@@ -9,7 +9,15 @@ export const ROSTER = ['Peezy', 'Sam', 'Jo', 'Rex'] as const
 
 const COLORS = ['#ff4d6d', '#5fd0ff', '#7ee68a', '#ffd166']
 
-export async function seedRoster(page: Page) {
+/**
+ * `keepGames` leaves saved games alone.
+ *
+ * The clear below runs on every navigation, not just the first, so a test that starts a game
+ * and then reopens the home page has that game wiped out from under it — and any assertion
+ * about resuming passes for the wrong reason. Tests that care about a game surviving a
+ * reload have to opt out.
+ */
+export async function seedRoster(page: Page, opts: { keepGames?: boolean } = {}) {
   const players = ROSTER.map((name, i) => ({
     id: `smoke-${i + 1}`,
     name,
@@ -32,14 +40,15 @@ export async function seedRoster(page: Page) {
 
   // addInitScript runs before any app code on every navigation, so the store never sees an
   // empty roster — seeding after load would race the store's own read.
-  await page.addInitScript(seed => {
+  await page.addInitScript(({ seed, keepGames }) => {
     localStorage.setItem('darts_players', JSON.stringify(seed))
-    // Any leftover game would redirect the router away from the page under test.
+    if (keepGames) return
+    // Any leftover game would put the home screen in a state the test did not ask for.
     for (const key of [
-      'darts_active_game', 'lrc_active_game', 'yahtzee_active_game',
-      'spades_active_game', 'dice_active_game',
+      'darts_active_game', 'lrc_active_game', 'yahtzee_active_game', 'spades_active_game',
+      'farkle_active_game', 'scc_active_game', 'pig_active_game',
     ]) localStorage.removeItem(key)
-  }, players)
+  }, { seed: players, keepGames: opts.keepGames ?? false })
 }
 
 /**
