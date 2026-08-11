@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   BOARD, applyBagPenalty, applyHandToSide, cardId, cardLabel, deal, effectiveSuit, isTrump,
   legalPlays, makeDeck, minBidFor, nilAllowedFor, rulesFor, scoreSide, sideCount, sideOf,
-  sortHand, strength, targetFor, trickWinner, wildLossTeam, winnerTeamFor, type Card,
+  sortHand, strength, targetFor, bookWinner, wildLossTeam, winnerTeamFor,
+  bookInsight, couldNotFollow, type Card, type PlayedBook,
 } from '@/lib/spades'
 
 const pip = (suit: 'spades' | 'hearts' | 'diamonds' | 'clubs', rank: number): Card =>
@@ -141,12 +142,12 @@ describe('the jokers', () => {
   })
 
   it('beats the ace of spades in an actual trick', () => {
-    expect(trickWinner([pip('spades', 14), LITTLE, pip('spades', 13), pip('hearts', 14)], 'spades')).toBe(1)
-    expect(trickWinner([LITTLE, BIG], 'spades')).toBe(1)
+    expect(bookWinner([pip('spades', 14), LITTLE, pip('spades', 13), pip('hearts', 14)], 'spades')).toBe(1)
+    expect(bookWinner([LITTLE, BIG], 'spades')).toBe(1)
   })
 
   it('lets a joker trump a side suit', () => {
-    expect(trickWinner([pip('hearts', 14), pip('hearts', 3), BIG, pip('hearts', 13)], 'hearts')).toBe(2)
+    expect(bookWinner([pip('hearts', 14), pip('hearts', 3), BIG, pip('hearts', 13)], 'hearts')).toBe(2)
   })
 
   it('cannot be played on a side suit while the hand can still follow', () => {
@@ -156,22 +157,22 @@ describe('the jokers', () => {
   })
 })
 
-describe('trickWinner', () => {
+describe('bookWinner', () => {
   it('gives the trick to the highest card of the led suit', () => {
-    expect(trickWinner([pip('clubs', 9), pip('clubs', 14), pip('clubs', 3)], 'clubs')).toBe(1)
+    expect(bookWinner([pip('clubs', 9), pip('clubs', 14), pip('clubs', 3)], 'clubs')).toBe(1)
   })
 
   it('ignores high cards in suits nobody led', () => {
     // the ace of diamonds is worthless here — it neither follows nor trumps
-    expect(trickWinner([pip('clubs', 4), pip('diamonds', 14), pip('clubs', 5)], 'clubs')).toBe(2)
+    expect(bookWinner([pip('clubs', 4), pip('diamonds', 14), pip('clubs', 5)], 'clubs')).toBe(2)
   })
 
   it('lets any trump beat any non-trump', () => {
-    expect(trickWinner([pip('hearts', 14), pip('spades', 2)], 'hearts')).toBe(1)
+    expect(bookWinner([pip('hearts', 14), pip('spades', 2)], 'hearts')).toBe(1)
   })
 
   it('takes the highest trump when several are played', () => {
-    expect(trickWinner([pip('hearts', 14), pip('spades', 2), pip('spades', 11)], 'hearts')).toBe(2)
+    expect(bookWinner([pip('hearts', 14), pip('spades', 2), pip('spades', 11)], 'hearts')).toBe(2)
   })
 })
 
@@ -219,20 +220,20 @@ describe('scoring', () => {
   })
 
   it('pays 100 for a made nil and nothing for a broken one', () => {
-    expect(scoreSide(0, 0, [{ nil: true, tricks: 0 }]).points).toBe(100)
-    expect(scoreSide(0, 1, [{ nil: true, tricks: 1 }]).points).toBe(0)
+    expect(scoreSide(0, 0, [{ nil: true, books: 0 }]).points).toBe(100)
+    expect(scoreSide(0, 1, [{ nil: true, books: 1 }]).points).toBe(0)
   })
 
   it('scores a nil independently of the partner contract', () => {
     // partner bid 4 and made it; the nil succeeded alongside
-    const r = scoreSide(4, 4, [{ nil: true, tricks: 0 }])
+    const r = scoreSide(4, 4, [{ nil: true, books: 0 }])
 
     expect(r.points).toBe(140)
   })
 
   it('still pays a made nil when the partner was set, since the two are scored apart', () => {
     // This is why the end-of-hand verdict cannot say "no points" on every set.
-    const r = scoreSide(5, 3, [{ nil: true, tricks: 0 }])
+    const r = scoreSide(5, 3, [{ nil: true, books: 0 }])
 
     expect(r.points).toBe(100)
   })
@@ -240,8 +241,8 @@ describe('scoring', () => {
   it('never returns a negative number from any combination', () => {
     const cases: [number, number, { nil: boolean; tricks: number }[]][] = [
       [5, 0, []],
-      [0, 3, [{ nil: true, tricks: 3 }]],
-      [7, 1, [{ nil: true, tricks: 2 }]],
+      [0, 3, [{ nil: true, books: 3 }]],
+      [7, 1, [{ nil: true, books: 2 }]],
       [13, 12, []],
     ]
     for (const [bid, books, nils] of cases) {
@@ -561,5 +562,94 @@ describe('applyHandToSide', () => {
 
     expect(next.bags).toBe(1)
     expect(next.score).toBe(202)
+  })
+})
+
+/**
+ * Reading a hand back. Books are otherwise discarded the moment the next one leads, so once
+ * a hand is scored there is no way to see how it got there.
+ */
+describe('reading a book back', () => {
+  const book = (over: Partial<PlayedBook> = {}): PlayedBook => ({
+    number: 1,
+    ledSuit: 'hearts',
+    cards: [
+      { seat: 0, card: pip('hearts', 7) },
+      { seat: 1, card: pip('hearts', 5) },
+      { seat: 2, card: pip('hearts', 4) },
+      { seat: 3, card: pip('hearts', 9) },
+    ],
+    winnerSeat: 3,
+    ...over,
+  })
+
+  it('names the plain case: everyone followed and the highest took it', () => {
+    expect(bookInsight(book())).toBe('Highest of the suit led')
+  })
+
+  it('calls out a single spade taking a side suit', () => {
+    expect(bookInsight(book({
+      cards: [
+        { seat: 0, card: pip('hearts', 7) }, { seat: 1, card: pip('hearts', 5) },
+        { seat: 2, card: pip('hearts', 4) }, { seat: 3, card: pip('spades', 2) },
+      ],
+    }))).toBe('Trumped in')
+  })
+
+  it('distinguishes a trump fight from a single trump', () => {
+    expect(bookInsight(book({
+      cards: [
+        { seat: 0, card: pip('hearts', 7) }, { seat: 1, card: pip('spades', 3) },
+        { seat: 2, card: pip('hearts', 4) }, { seat: 3, card: pip('spades', 9) },
+      ],
+    }))).toBe('Overtrumped')
+  })
+
+  it('counts a joker as a spade when reading the book', () => {
+    expect(bookInsight(book({
+      cards: [
+        { seat: 0, card: pip('hearts', 7) }, { seat: 1, card: pip('hearts', 5) },
+        { seat: 2, card: pip('hearts', 4) }, { seat: 3, card: BIG },
+      ],
+    }))).toBe('Trumped in')
+  })
+
+  it('says highest spade when spades were led', () => {
+    expect(bookInsight(book({
+      ledSuit: 'spades',
+      cards: [
+        { seat: 0, card: pip('spades', 7) }, { seat: 1, card: pip('spades', 5) },
+        { seat: 2, card: pip('spades', 4) }, { seat: 3, card: pip('spades', 13) },
+      ],
+    }))).toBe('Highest spade')
+  })
+
+  it('notes when someone sloughed off but nobody trumped', () => {
+    expect(bookInsight(book({
+      cards: [
+        { seat: 0, card: pip('hearts', 7) }, { seat: 1, card: pip('hearts', 5) },
+        { seat: 2, card: pip('clubs', 14) }, { seat: 3, card: pip('hearts', 9) },
+      ],
+    }))).toBe('Held up, nobody trumped')
+  })
+
+  it('says nothing rather than guessing when the winner is not in the book', () => {
+    expect(bookInsight(book({ winnerSeat: 9 }))).toBe('')
+  })
+
+  it('spots the seat that could not follow, including a joker on a side suit', () => {
+    const b = book({
+      cards: [
+        { seat: 0, card: pip('hearts', 7) },
+        { seat: 1, card: pip('clubs', 5) },
+        { seat: 2, card: BIG },
+      ],
+      winnerSeat: 2,
+    })
+
+    expect(couldNotFollow(b, 0)).toBe(false)
+    expect(couldNotFollow(b, 1)).toBe(true)
+    expect(couldNotFollow(b, 2)).toBe(true)
+    expect(couldNotFollow(b, 3)).toBe(false)   // never played
   })
 })

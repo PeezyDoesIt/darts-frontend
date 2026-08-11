@@ -99,7 +99,7 @@ test('spades: solo vs bots skips the pass-the-device screen', async ({ page }) =
   const card = page.locator('.hand-row .card.playable').first()
   await expect(card).toBeEnabled({ timeout: 15_000 })
   await card.click()
-  await expect(page.locator('.trick-card')).not.toHaveCount(0)
+  await expect(page.locator('.book-card')).not.toHaveCount(0)
 })
 
 test('spades: wild style bids the opening hand itself', async ({ page }) => {
@@ -108,8 +108,8 @@ test('spades: wild style bids the opening hand itself', async ({ page }) => {
   await page.getByRole('button', { name: /DEAL/ }).click()
   await expect(page).toHaveURL(/\/spades$/)
 
-  // Every seat carries a bid before anyone has tapped one, and the chips show it.
-  await expect(page.locator('.bid-chip')).toHaveCount(4)
+  // Bid chips are per side, not per seat — two in a partnership game, four in solo.
+  await expect(page.locator('.bid-chip').first()).toBeVisible()
   await expect(page.locator('.bid-grid')).toHaveCount(0)
 
   const bids = await page.evaluate(
@@ -181,8 +181,8 @@ test('spades: a finished hand can be read back book by book', async ({ page }) =
   await expect(page.locator('.review-book').first()).toContainText('BOOK 1')
   await expect(page.locator('.review-book').first()).toContainText('takes it')
 
-  // Both the ✕ and the footer button are named "Close" — this is the footer one.
-  await page.locator('.review-card .btn-spray').click()
+  // The ✕ in the header, not the button under thirteen books — that one needs scrolling to.
+  await page.locator('.review-close').click()
   await expect(page.locator('.review-card')).toHaveCount(0)
 })
 

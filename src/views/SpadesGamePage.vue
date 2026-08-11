@@ -79,7 +79,7 @@
       </template>
 
       <!-- ── Playing ────────────────────────────────────── -->
-      <template v-else-if="game.phase === 'playing' || game.phase === 'trick_end'">
+      <template v-else-if="game.phase === 'playing' || game.phase === 'book_end'">
         <!-- The bid on show during play is the SIDE's contract, not the individual bids —
              those stay private until the hand is scored. -->
         <div class="bids-row">
@@ -91,21 +91,21 @@
           </div>
         </div>
 
-        <div class="trick-area">
-          <p v-if="game.currentTrick.length === 0" class="trick-hint">
+        <div class="book-area">
+          <p v-if="game.currentBook.length === 0" class="book-hint">
             {{ seated.name }} leads{{ game.spadesBroken ? '' : ' — spades not broken' }}
           </p>
-          <div class="trick-cards">
-            <div v-for="(t, i) in game.currentTrick" :key="t.seat" class="trick-card">
-              <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :card="t.card" :width="trickCardWidth" />
+          <div class="book-cards">
+            <div v-for="(t, i) in game.currentBook" :key="t.seat" class="book-card">
+              <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :card="t.card" :width="bookCardWidth" />
               <span class="tc-name">{{ game.players[t.seat]?.name }}</span>
               <!-- Following suit is enforced, so an off-suit card can only mean a void.
                    Saying so stops it reading as the game letting someone cheat. -->
               <span v-if="offSuit(t, i)" class="tc-void">void in {{ ledSymbol }}</span>
             </div>
           </div>
-          <p v-if="game.phase === 'trick_end'" class="trick-won">
-            {{ game.players[game.lastTrickWinnerSeat!]?.name }} takes it
+          <p v-if="game.phase === 'book_end'" class="book-won">
+            {{ game.players[game.lastBookWinnerSeat!]?.name }} takes it
           </p>
         </div>
 
@@ -180,15 +180,19 @@
     </div>
 
     <footer v-if="showFooter" class="sp-footer">
-      <button v-if="game.phase === 'trick_end'" v-ripple class="btn btn-spray btn-lg wide" @click="spades.nextTrick()">
-        {{ tricksPlayed >= HAND_SIZE ? 'Score the hand →' : 'Next book →' }}
+      <button v-if="game.phase === 'book_end'" v-ripple class="btn btn-spray btn-lg wide" @click="spades.nextBook()">
+        {{ booksPlayed >= HAND_SIZE ? 'Score the hand →' : 'Next book →' }}
       </button>
-      <button v-else-if="game.phase === 'hand_over'" v-ripple class="btn btn-spray btn-lg wide" @click="spades.nextHand()">
-        Deal hand {{ game.handNumber + 1 }} →
-      </button>
-      <button v-else-if="game.phase === 'game_over'" v-ripple class="btn btn-spray btn-lg wide" @click="finish">
-        Done
-      </button>
+      <template v-else-if="game.phase === 'hand_over'">
+        <button v-ripple class="btn btn-outline btn-lg review-btn" @click="showReview = true">Review books</button>
+        <button v-ripple class="btn btn-spray btn-lg" @click="spades.nextHand()">
+          Deal hand {{ game.handNumber + 1 }} →
+        </button>
+      </template>
+      <template v-else-if="game.phase === 'game_over'">
+        <button v-ripple class="btn btn-outline btn-lg review-btn" @click="showReview = true">Review books</button>
+        <button v-ripple class="btn btn-spray btn-lg" @click="finish">Done</button>
+      </template>
     </footer>
 
     <div v-if="showDeck" class="overlay" @click.self="showDeck = false">
@@ -270,6 +274,50 @@
       </div>
     </div>
 
+    <!--
+      Reading the hand back. Books are otherwise discarded the moment the next one leads, so
+      once a hand is scored there is no way to see how it got there — which card gave a book
+      away, or where a side stopped making its bid.
+    -->
+    <div v-if="showReview" class="overlay" @click.self="showReview = false">
+      <div class="review-card glass-panel">
+        <div class="review-head">
+          <h2 class="review-title display">HAND {{ game.handNumber }}</h2>
+          <button class="review-close" aria-label="Close" @click="showReview = false">✕</button>
+        </div>
+
+        <div v-if="game.bookLog.length === 0" class="review-empty">
+          No books were played in this hand.
+        </div>
+
+        <div v-for="b in game.bookLog" :key="b.number" class="review-book">
+          <div class="rb-head">
+            <span class="rb-num display">BOOK {{ b.number }}</span>
+            <span class="rb-note">{{ bookInsight(b) }}</span>
+          </div>
+          <div class="rb-cards">
+            <div
+              v-for="(c, i) in b.cards"
+              :key="c.seat"
+              class="rb-card"
+              :class="{ won: c.seat === b.winnerSeat }"
+            >
+              <PlayingCard :card="c.card" :width="42" />
+              <span class="rb-name" :style="{ color: game.players[c.seat]?.color }">
+                {{ game.players[c.seat]?.name }}
+              </span>
+              <!-- The two facts a learner needs: who led, and who was out of the suit. -->
+              <span v-if="i === 0" class="rb-tag">led</span>
+              <span v-else-if="couldNotFollow(b, c.seat)" class="rb-tag rb-tag-void">void</span>
+            </div>
+          </div>
+          <span class="rb-winner">{{ game.players[b.winnerSeat]?.name }} takes it</span>
+        </div>
+
+        <button v-ripple class="btn btn-spray wide" @click="showReview = false">Close</button>
+      </div>
+    </div>
+
     <div v-if="showRules" class="overlay" @click.self="showRules = false">
       <div class="rules-card glass-panel">
         <h2 class="rules-title display">SPADES — {{ VARIANT_LABELS[game.variant].toUpperCase() }}</h2>
@@ -298,7 +346,7 @@ import { useSpadesStore } from '../stores/spades'
 import { usePlayersStore } from '../stores/players'
 import {
   DEFAULT_HAND_SORT, BOARD, HAND_SIZE, SUIT_SYMBOL, VARIANT_LABELS, cardId,
-  effectiveSuit, rulesFor, sideCount, sideOf, sortHand, targetFor,
+  bookInsight, couldNotFollow, effectiveSuit, rulesFor, sideCount, sideOf, sortHand, targetFor,
   type Card, type HandSortPrefs,
 } from '../lib/spades'
 import { recordGameResult } from '../api/gameResults'
@@ -310,6 +358,7 @@ const spades = useSpadesStore()
 const playersStore = usePlayersStore()
 const game = computed(() => spades.game)
 const showRules = ref(false)
+const showReview = ref(false)
 const showSort = ref(false)
 const showDeck = ref(false)
 
@@ -410,7 +459,7 @@ const sides = computed(() => {
       bags: g.bags[side] ?? 0,
       bid: allIn ? seats.reduce((sum, s) => sum + (g.bids[s] === 0 ? 0 : g.bids[s] ?? 0), 0) : null,
       nils: seats.filter(s => g.bids[s] === 0).length,
-      books: seats.reduce((sum, s) => sum + (g.tricksWon[s] ?? 0), 0),
+      books: seats.reduce((sum, s) => sum + (g.booksWon[s] ?? 0), 0),
       isTurn: seats.includes(g.turnIndex),
       setLabel: setStreak > 0 && rulesBite
         ? 'SET LAST HAND'
@@ -466,9 +515,9 @@ const sortedHand = computed(() =>
   sortHand(game.value?.hands[game.value.turnIndex] ?? [], sortPrefs.value)
 )
 const legalCount = computed(() => spades.legalForCurrent().length)
-const tricksPlayed = computed(() => game.value?.tricksWon.reduce((a, b) => a + b, 0) ?? 0)
+const booksPlayed = computed(() => game.value?.booksWon.reduce((a, b) => a + b, 0) ?? 0)
 const showFooter = computed(() =>
-  ['trick_end', 'hand_over', 'game_over'].includes(game.value?.phase ?? '')
+  ['book_end', 'hand_over', 'game_over'].includes(game.value?.phase ?? '')
 )
 
 /**
@@ -496,13 +545,13 @@ const cardWidth = computed(() => {
 })
 
 /** The four cards on the table have no crowding problem, so they simply scale up. */
-const trickCardWidth = computed(() =>
+const bookCardWidth = computed(() =>
   sizeTier.value === 'desktop' ? 148 : sizeTier.value === 'tablet' ? 124 : 94
 )
 
-/** The suit that was actually led this trick, for the void tag. */
+/** The suit that was actually led this book, for the void tag. */
 const ledSuit = computed(() => {
-  const t = game.value?.currentTrick
+  const t = game.value?.currentBook
   return t && t.length > 0 ? effectiveSuit(t[0]!.card) : null
 })
 const ledSymbol = computed(() => (ledSuit.value ? SUIT_SYMBOL[ledSuit.value] : ''))
@@ -698,17 +747,17 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .bc-name { font-size: 10px; color: var(--text-muted); overflow-wrap: anywhere; }
 .bc-val { font-size: 15px; font-weight: 800; }
 
-.trick-area { display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 182px; justify-content: center; }
-.trick-cards { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-.trick-card { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.book-area { display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 182px; justify-content: center; }
+.book-cards { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.book-card { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .tc-name { font-size: 11px; color: var(--text-muted); overflow-wrap: anywhere; max-width: 94px; text-align: center; }
 .tc-void {
   font-size: 9px; font-weight: 800; letter-spacing: 0.06em; color: var(--gold);
   background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.3);
   border-radius: 5px; padding: 1px 5px; white-space: nowrap;
 }
-.trick-hint { font-size: 13px; color: var(--text-muted); margin: 0; text-align: center; }
-.trick-won { font-size: 14px; font-weight: 800; color: var(--gold); margin: 0; }
+.book-hint { font-size: 13px; color: var(--text-muted); margin: 0; text-align: center; }
+.book-won { font-size: 14px; font-weight: 800; color: var(--gold); margin: 0; }
 
 .hand-over { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; }
 .ho-title { font-size: 28px; margin: 0; color: var(--gold); }
@@ -722,12 +771,57 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
 }
 .wide { width: 100%; min-height: 56px; }
+/* Two buttons share the footer once a hand is over: review keeps its natural width so the
+   label never truncates, and the primary action takes what is left. */
+.review-btn { flex-shrink: 0; min-height: 56px; padding: 0 16px; }
+.sp-footer .btn-spray { flex: 1; min-height: 56px; }
 
 .overlay {
   position: fixed; inset: 0; z-index: 50; display: flex; align-items: center;
   justify-content: center; padding: 24px; background: rgba(0,0,0,0.82);
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
 }
+/* ── Reading the hand back ── */
+/* Bounded and scrollable: thirteen books do not fit a phone, and an unbounded card grows
+   past the viewport and takes its own close button off screen with it. */
+.review-card {
+  width: 100%; max-width: 460px; max-height: 86dvh; overflow-y: auto;
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 20px 18px; border-radius: 16px;
+}
+.review-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.review-title { font-size: 20px; margin: 0; color: var(--gold); letter-spacing: 0.1em; }
+.review-close {
+  background: none; border: none; color: var(--text-muted); font-size: 20px;
+  cursor: pointer; padding: 4px 8px; min-height: 44px; min-width: 44px; flex-shrink: 0;
+}
+.review-empty { font-size: 13px; color: var(--text-muted); text-align: center; padding: 20px 0; }
+
+.review-book {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 10px 12px; border-radius: 12px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+}
+.rb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.rb-num { font-size: 13px; letter-spacing: 0.12em; color: rgba(255,255,255,0.75); }
+.rb-note { font-size: 10.5px; font-weight: 700; color: var(--text-muted); text-align: right; }
+
+/* Scrolls rather than wrapping, so four cards stay on one line on a narrow phone. */
+.rb-cards { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.rb-card {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  flex-shrink: 0; padding: 4px; border-radius: 8px; border: 2px solid transparent;
+}
+.rb-card.won { border-color: var(--gold); background: rgba(255,200,87,0.1); }
+.rb-name { font-size: 9.5px; font-weight: 700; max-width: 52px; text-align: center; overflow-wrap: anywhere; }
+.rb-tag {
+  font-size: 8px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+}
+.rb-tag-void { color: var(--pink); }
+.rb-winner { font-size: 11px; font-weight: 700; color: var(--gold); }
+
 .rules-card {
   width: 100%; max-width: 420px; max-height: 82dvh; overflow-y: auto;
   display: flex; flex-direction: column; align-items: center; gap: 12px;
@@ -848,8 +942,8 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 /* iPad and desktop have the room for larger cards, so the rows that hold them grow too. */
 @media (min-width: 700px) {
   .hand-row { gap: 8px; padding: 16px 4px 18px; }
-  .trick-area { min-height: 240px; }
-  .trick-cards { gap: 12px; }
+  .book-area { min-height: 240px; }
+  .book-cards { gap: 12px; }
   .tc-name { font-size: 13px; max-width: 124px; }
   .team-score { font-size: 30px; }
   .team-names { font-size: 13px; }
@@ -858,7 +952,7 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 }
 @media (min-width: 1100px) {
   .hand-row { gap: 10px; justify-content: center; }
-  .trick-area { min-height: 290px; }
+  .book-area { min-height: 290px; }
   .tc-name { font-size: 14px; max-width: 148px; }
   .team-score { font-size: 36px; }
 }
