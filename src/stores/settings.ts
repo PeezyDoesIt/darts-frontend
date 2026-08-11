@@ -8,11 +8,16 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.getItem('voiceName') ?? ''
   )
 
-  // quietNarrator: only announce whose turn it is, skip commentary
+  // quietNarrator: only announce whose turn it is, skip commentary.
+  //
+  // Off by default, so a new table hears the narrator it picked. This shipped on, which
+  // silenced nine of the eleven events — the personality only ever reached the walk-up line,
+  // so choosing a tone changed almost nothing until you found this setting and turned it off.
+  // Anyone who has already set it either way keeps their choice; only a fresh install changes.
   const quietNarrator = ref<boolean>(
     localStorage.getItem('quietNarrator') !== null
       ? localStorage.getItem('quietNarrator') === 'true'
-      : true  // default on
+      : false
   )
 
   // per-timer overrides
