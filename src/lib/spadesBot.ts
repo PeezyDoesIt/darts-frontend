@@ -172,8 +172,25 @@ export function chooseCard(hand: Card[], ctx: PlayContext): Card {
 }
 
 /** Stable label so two bots at one table are never both "Computer". */
+/** The names a computer seat carries until someone renames it. */
+export const DEFAULT_BOT_NAMES = ['Ada', 'Bishop', 'Cleo', 'Dex'] as const
+
+/** Long enough to be a name, short enough to sit in a seat tile without truncating. */
+export const MAX_BOT_NAME = 14
+
 export function botName(seat: number): string {
-  return ['Ada', 'Bishop', 'Cleo', 'Dex'][seat] ?? `Bot ${seat + 1}`
+  return DEFAULT_BOT_NAMES[seat] ?? `Bot ${seat + 1}`
+}
+
+/**
+ * A name a seat can actually wear. Blank falls back to the default rather than leaving a
+ * nameless seat, since the board addresses these by name — "Ada is thinking…" with nothing
+ * in it reads as a bug.
+ */
+export function normaliseBotName(raw: string, seat: number): string {
+  const trimmed = raw.replace(/\s+/g, ' ').trim()
+  if (!trimmed) return botName(seat)
+  return trimmed.slice(0, MAX_BOT_NAME)
 }
 
 export { cardId }

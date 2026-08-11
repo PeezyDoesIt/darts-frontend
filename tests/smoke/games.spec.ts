@@ -193,3 +193,32 @@ test('spades: the rules talk about books, not tricks', async ({ page }) => {
   await expect(rules).toContainText('books')
   await expect(rules).not.toContainText('trick')
 })
+
+test('spades: computer seats can be renamed, and the name carries into the game', async ({ page }) => {
+  await page.goto('/spades/setup')
+  await pickBubble(page, 'Peezy')
+
+  // One person picked, so seats 2-4 are computers and the first input is seat 2.
+  const seat = page.locator('.seat-name-input').first()
+  await expect(seat).toHaveValue('Bishop')
+  await seat.fill('Big Mike')
+  await seat.blur()
+
+  await page.getByRole('button', { name: /DEAL/ }).click()
+  await expect(page).toHaveURL(/\/spades$/)
+
+  await expect(page.locator('.teams')).toContainText('Big Mike')
+  await expect(page.locator('.bids-row')).toContainText('Big Mike')
+})
+
+test('spades: a blank computer name falls back rather than leaving the seat nameless', async ({ page }) => {
+  await page.goto('/spades/setup')
+  await pickBubble(page, 'Peezy')
+
+  const seat = page.locator('.seat-name-input').first()
+  await seat.fill('   ')
+  await seat.blur()
+
+  // The board addresses these by name, so an empty one reads as a bug.
+  await expect(seat).toHaveValue('Bishop')
+})

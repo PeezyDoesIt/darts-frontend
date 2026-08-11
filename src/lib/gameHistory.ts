@@ -13,6 +13,29 @@ export interface HistoryGame {
   playerIds: string[]
   finishedAt: string
   roundCount: number | null
+  /** Per-game blob. Carries `names` for games recorded after that was added. */
+  finalScores?: unknown
+}
+
+/**
+ * Who each id was when the game was recorded.
+ *
+ * The roster cannot answer this on its own: computer seats are never on it, and a person can
+ * be deleted long after the game they played. Reading the names off the row keeps a finished
+ * game readable however the roster changes afterwards.
+ */
+export function recordedNames(game: HistoryGame): Record<string, string> {
+  const scores = game.finalScores
+  if (!scores || typeof scores !== 'object') return {}
+
+  const names = (scores as { names?: unknown }).names
+  if (!names || typeof names !== 'object') return {}
+
+  const out: Record<string, string> = {}
+  for (const [id, name] of Object.entries(names as Record<string, unknown>)) {
+    if (typeof name === 'string' && name.trim()) out[id] = name
+  }
+  return out
 }
 
 export interface HistoryDay {
@@ -74,7 +97,12 @@ export function playerLine(
     .map(nameOf)
     .filter((n): n is string => !!n)
 
-  if (!winner) return others.join(', ')
-  if (others.length === 0) return winner
-  return `${winner} beat ${others.join(', ')}`
+  if (winner) return others.length === 0 ? winner : `${winner} beat ${others.join(', ')}`
+  if (others.length === 0) return ''
+
+  // The winner cannot be named — every game recorded before names were kept, and every one
+  // the computer seats won, since those are not on the roster. Listing the losers on their
+  // own read exactly like a win for them: a solo victory and a defeat by the computer both
+  // came out as the bare name, so a loss was indistinguishable from a win.
+  return `Someone beat ${others.join(', ')}`
 }

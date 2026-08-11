@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { dayLabel, groupByDay, playerLine, type HistoryGame } from '@/lib/gameHistory'
+import {
+  dayLabel, groupByDay, playerLine, recordedNames, type HistoryGame,
+} from '@/lib/gameHistory'
 
 /** Fixed "now" — relative labels are exactly what breaks when the clock is real. */
 const NOW = new Date('2026-08-11T21:00:00')
@@ -115,7 +117,88 @@ describe('playerLine', () => {
     expect(playerLine(game({ playerIds: ['p1', 'ghost'] }), nameOf)).toBe('Peezy')
   })
 
-  it('still lists the others when the winner is gone', () => {
-    expect(playerLine(game({ winnerId: 'ghost', playerIds: ['ghost', 'p2'] }), nameOf)).toBe('Sam')
+  it('does not credit the losers when the winner cannot be named', () => {
+    // This asserted 'Sam' — the losers alone, which is exactly what a solo win by Sam looks
+    // like. Every game the computer seats won rendered that way, so a loss read as a win.
+    expect(playerLine(game({ winnerId: 'ghost', playerIds: ['ghost', 'p2'] }), nameOf))
+      .toBe('Someone beat Sam')
+  })
+})
+
+/**
+ * A computer seat is never on the roster, so its id could not be named — and playerLine
+ * dropped what it could not name. A game the computers won came out as the bare name of the
+ * human who lost, which is exactly what a solo win looks like. A loss read as a win.
+ */
+describe('games the computer won', () => {
+  const botGame = (over: Partial<HistoryGame> = {}): HistoryGame => game({
+    gameType: 'spades',
+    winnerId: 'bot-1',
+    playerIds: ['p1', 'bot-1', 'bot-2', 'bot-3'],
+    ...over,
+  })
+
+  it('no longer reads identically to a win', () => {
+    const lost = playerLine(botGame(), nameOf)
+    const won = playerLine(game({ winnerId: 'p1', playerIds: ['p1'] }), nameOf)
+
+    expect(lost).not.toBe(won)
+  })
+
+  it('names the computer when the game recorded who was playing', () => {
+    const withNames = botGame({
+      finalScores: { names: { p1: 'Peezy', 'bot-1': 'Ada', 'bot-2': 'Bishop', 'bot-3': 'Cleo' } },
+    })
+    const resolve = (id: string) => NAMES[id] ?? recordedNames(withNames)[id] ?? null
+
+    expect(playerLine(withNames, resolve)).toBe('Ada beat Peezy, Bishop, Cleo')
+  })
+
+  it('says someone won rather than crediting the loser, on games recorded before names', () => {
+    // Rows written before finalScores carried names have nothing to resolve a bot id with.
+    expect(playerLine(botGame(), nameOf)).toBe('Someone beat Peezy')
+  })
+
+  it('prefers the roster, so renaming a player shows through in old games', () => {
+    const withNames = game({
+      finalScores: { names: { p1: 'Old Name', p2: 'Sam' } },
+    })
+    const resolve = (id: string) => NAMES[id] ?? recordedNames(withNames)[id] ?? null
+
+    expect(playerLine(withNames, resolve)).toBe('Peezy beat Sam')
+  })
+
+  it('falls back to recorded names for a player since deleted', () => {
+    const withNames = game({
+      winnerId: 'p1',
+      playerIds: ['p1', 'gone'],
+      finalScores: { names: { p1: 'Peezy', gone: 'Departed' } },
+    })
+    const resolve = (id: string) => NAMES[id] ?? recordedNames(withNames)[id] ?? null
+
+    expect(playerLine(withNames, resolve)).toBe('Peezy beat Departed')
+  })
+})
+
+describe('recordedNames', () => {
+  it('reads the names a game was recorded with', () => {
+    expect(recordedNames(game({ finalScores: { names: { a: 'Ada' } } }))).toEqual({ a: 'Ada' })
+  })
+
+  it('is empty for a game recorded before names were kept', () => {
+    expect(recordedNames(game({ finalScores: { teams: [] } }))).toEqual({})
+    expect(recordedNames(game())).toEqual({})
+  })
+
+  it('ignores a blob of the wrong shape rather than throwing', () => {
+    expect(recordedNames(game({ finalScores: 'nonsense' }))).toEqual({})
+    expect(recordedNames(game({ finalScores: { names: 'nonsense' } }))).toEqual({})
+    expect(recordedNames(game({ finalScores: null }))).toEqual({})
+  })
+
+  it('drops entries that are not usable names', () => {
+    const names = recordedNames(game({ finalScores: { names: { a: 'Ada', b: 42, c: '', d: '  ' } } }))
+
+    expect(names).toEqual({ a: 'Ada' })
   })
 })

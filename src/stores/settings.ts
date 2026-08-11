@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { NARRATOR_PERSONALITIES, type NarratorPersonality } from '../types/index'
+import { DEFAULT_BOT_NAMES, botName, normaliseBotName } from '../lib/spadesBot'
 
 export const useSettingsStore = defineStore('settings', () => {
   // voiceName stores the exact SpeechSynthesisVoice.name, or a special accent key
@@ -19,6 +20,30 @@ export const useSettingsStore = defineStore('settings', () => {
       ? localStorage.getItem('quietNarrator') === 'true'
       : false
   )
+
+  /**
+   * What the computer seats in Spades are called. Persisted like every other preference, so
+   * a table that renames them keeps those names.
+   */
+  const botNames = ref<string[]>(loadBotNames())
+  function loadBotNames(): string[] {
+    try {
+      const raw = localStorage.getItem('spadesBotNames')
+      const parsed = raw ? JSON.parse(raw) : null
+      if (!Array.isArray(parsed)) return DEFAULT_BOT_NAMES.map((_, i) => botName(i))
+      // Normalised on read as well as write: this comes back off disk, where anything could
+      // have been put in it.
+      return DEFAULT_BOT_NAMES.map((_, i) =>
+        normaliseBotName(typeof parsed[i] === 'string' ? parsed[i] : '', i))
+    } catch { return DEFAULT_BOT_NAMES.map((_, i) => botName(i)) }
+  }
+  function setBotName(seat: number, value: string) {
+    if (seat < 0 || seat >= DEFAULT_BOT_NAMES.length) return
+    const next = [...botNames.value]
+    next[seat] = normaliseBotName(value, seat)
+    botNames.value = next
+    localStorage.setItem('spadesBotNames', JSON.stringify(next))
+  }
 
   // per-timer overrides
   const disableWalkUpTimer = ref<boolean>(
@@ -140,5 +165,5 @@ export const useSettingsStore = defineStore('settings', () => {
     else localStorage.removeItem('coinTailsImage')
   }
 
-  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme, narratorGender, setNarratorGender, narratorPersonality, setNarratorPersonality, announceThrowAt20, setAnnounceThrowAt20, announceWalkupAt20, setAnnounceWalkupAt20, coinHeadsImage, coinTailsImage, setCoinHeadsImage, setCoinTailsImage }
+  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme, narratorGender, setNarratorGender, narratorPersonality, setNarratorPersonality, announceThrowAt20, setAnnounceThrowAt20, announceWalkupAt20, setAnnounceWalkupAt20, coinHeadsImage, coinTailsImage, setCoinHeadsImage, setCoinTailsImage, botNames, setBotName }
 })

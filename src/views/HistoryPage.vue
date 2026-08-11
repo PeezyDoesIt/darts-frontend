@@ -37,7 +37,7 @@
         <div v-for="g in day.games" :key="g.id" class="glass-panel hist-row">
           <div class="hist-row-main">
             <span class="hist-game display">{{ label(g.gameType) }}</span>
-            <span class="hist-players">{{ playerLine(g, nameOf) }}</span>
+            <span class="hist-players">{{ playerLine(g, nameOf(g)) }}</span>
           </div>
           <div class="hist-row-meta">
             <span class="hist-time">{{ time(g.finishedAt) }}</span>
@@ -53,7 +53,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { fetchGameHistory } from '../api/gameHistory'
-import { groupByDay, playerLine, type HistoryGame } from '../lib/gameHistory'
+import { groupByDay, playerLine, recordedNames, type HistoryGame } from '../lib/gameHistory'
 import { usePlayersStore } from '../stores/players'
 import { GAME_TYPE_LABELS } from '../types/index'
 import { goBack } from '../router/goBack'
@@ -72,9 +72,15 @@ function label(type: string): string {
   return (GAME_TYPE_LABELS as Record<string, string>)[type] ?? type
 }
 
-/** Players can be deleted after a game; a missing one is skipped rather than shown as an id. */
-function nameOf(id: string): string | null {
-  return playersStore.players.find(p => p.id === id)?.name ?? null
+/**
+ * Names for one game's ids: the roster first, so a rename shows through, then the names the
+ * game was recorded with. That second source is what lets a computer seat be named at all —
+ * it is never on the roster — and it keeps a deleted person readable in the games they
+ * played. An id neither can answer is skipped rather than shown raw.
+ */
+function nameOf(game: HistoryGame): (id: string) => string | null {
+  const recorded = recordedNames(game)
+  return id => playersStore.players.find(p => p.id === id)?.name ?? recorded[id] ?? null
 }
 
 function time(iso: string): string {
