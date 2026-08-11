@@ -222,3 +222,60 @@ test('spades: a blank computer name falls back rather than leaving the seat name
   // The board addresses these by name, so an empty one reads as a bug.
   await expect(seat).toHaveValue('Bishop')
 })
+
+/**
+ * Four sides do not fit one row on a phone. Wrapping a flex row left the fourth chip
+ * stretched across the full width on its own — three narrow chips and one enormous — so the
+ * bid row switches to a grid in solo, matching the score panels above it.
+ */
+for (const [mode, label, expected] of [
+  ['partners', 'PARTNERS', 2],
+  ['solo', 'EVERY PLAYER FOR THEMSELVES', 4],
+] as const) {
+  test(`spades: the ${mode} bid chips are evenly sized on a phone`, async ({ page }) => {
+    test.setTimeout(90_000)
+
+    // 375px, not the project's 393. The row only wraps on the narrower phones — an iPhone
+    // SE or mini — and at 393 the chips happen to fit one row, so the defect is invisible.
+    await page.setViewportSize({ width: 375, height: 812 })
+
+    await page.goto('/spades/setup')
+    // hasText is case-insensitive and the solo blurb says "no partners", so it matches both
+    // buttons. Match the name element exactly instead.
+    await page.locator(`.mode-btn:has(.mb-name:text-is("${label}"))`).click()
+    await pickBubble(page, 'Peezy')
+
+    // A long name is what forces the row to wrap, and wrapping is where the defect lives.
+    // With the stock four-letter names the chips happen to fit one row, so a test that did
+    // not do this passed whether the fix was present or not.
+    const seat = page.locator('.seat-name-input').first()
+    await seat.fill('Bartholomew')
+    await seat.blur()
+    await page.getByRole('button', { name: /DEAL/ }).click()
+    await expect(page).toHaveURL(/\/spades$/)
+
+    // Auto-bid is partnerships only, so a solo game asks this seat for a number first.
+    // Chips only appear once bidding is done and play starts.
+    for (let i = 0; i < 40 && await page.locator('.bids-row').count() === 0; i++) {
+      const bid = page.locator('.bid-btn:not([disabled])').nth(3)
+      if (await bid.count() > 0) { await bid.click({ timeout: 5_000 }).catch(() => {}) }
+      else await page.waitForTimeout(250)   // a computer seat is bidding
+    }
+    await expect(page.locator('.bids-row')).toBeVisible({ timeout: 30_000 })
+    await expect(page.locator('.bid-chip')).toHaveCount(expected)
+
+    const widths = await page.locator('.bid-chip').evaluateAll(
+      els => els.map(e => Math.round(e.getBoundingClientRect().width)),
+    )
+    // Every side has to read with the same weight. Comparing the widest against the narrowest
+    // rather than demanding they be identical: the defect was one chip three times the rest,
+    // and a rounding difference of a pixel is not a bug.
+    const ratio = Math.max(...widths) / Math.min(...widths)
+    expect(ratio, `chip widths were ${widths.join(', ')}`).toBeLessThan(1.5)
+
+    const overflows = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    )
+    expect(overflows).toBe(false)
+  })
+}

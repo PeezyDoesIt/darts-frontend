@@ -82,7 +82,7 @@
       <template v-else-if="game.phase === 'playing' || game.phase === 'book_end'">
         <!-- The bid on show during play is the SIDE's contract, not the individual bids —
              those stay private until the hand is scored. -->
-        <div class="bids-row">
+        <div class="bids-row" :class="{ solo: game.mode === 'solo' }">
           <div v-for="s in sides" :key="s.side" class="bid-chip" :class="{ turn: s.isTurn }">
             <span class="bc-name">{{ s.names }}</span>
             <span class="bc-val">{{ s.books }}<span class="bc-sep">of</span>{{ s.bid === null ? '—' : s.bid }}</span>
@@ -884,6 +884,10 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 
 /* Four sides do not fit the two-column strip, so solo wraps into a grid instead. */
 .teams.solo { display: grid; grid-template-columns: repeat(2, 1fr); }
+/* Four chips do not fit one row on a phone, and wrapping a flex row leaves the last one
+   stretched across the full width on its own — three narrow chips and one enormous. A grid
+   keeps all four the same size, matching the score panels above them. */
+.bids-row.solo { display: grid; grid-template-columns: repeat(2, 1fr); }
 .team.t2 { border-left-color: #ffd700; }
 .team.t3 { border-left-color: #ff5fa2; }
 
