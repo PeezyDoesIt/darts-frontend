@@ -49,16 +49,28 @@ test('choosing a personality sticks, and does not require turning Clean Mode off
   await expect(page.locator('.personality-btn.active .per-label')).toHaveText('Sarcastic')
 })
 
-test('the panel says which style is active and whether commentary is on', async ({ page }) => {
+test('commentary is on by default, so the chosen style is actually audible', async ({ page }) => {
   await page.goto('/')
 
-  // "Names only" also ships on, so the grid is shown but dimmed with an explanation rather
-  // than hidden — the setting that makes personality inert should say so.
-  await expect(page.locator('.narrator-scope')).toHaveText('Names only')
+  // This shipped as "Names only", which silences nine of the eleven events — the personality
+  // only ever reached the walk-up line, so choosing a tone changed almost nothing.
+  await expect(page.locator('.narrator-scope')).toHaveText('Full commentary')
 
   await page.locator('.narrator').click()
+  await expect(page.locator('.personality-grid')).not.toHaveClass(/grid-dim/)
+})
+
+test('switching to Names only says why the style stops mattering', async ({ page }) => {
+  await page.goto('/')
+  await page.locator('.narrator').click()
+
+  await page.locator('.scope-btn', { hasText: 'Names only' }).click()
+
+  // Dimmed and explained rather than hidden — the setting that makes personality inert
+  // should say so, and the styles stay selectable for when commentary goes back on.
   await expect(page.locator('.scope-hint')).toContainText('no effect')
   await expect(page.locator('.personality-grid')).toHaveClass(/grid-dim/)
+  await expect(page.locator('.personality-btn', { hasText: 'Savage' })).toBeEnabled()
 
   await page.locator('.scope-btn', { hasText: 'Full commentary' }).click()
   await expect(page.locator('.personality-grid')).not.toHaveClass(/grid-dim/)
