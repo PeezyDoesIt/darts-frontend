@@ -6,6 +6,7 @@ import GamePage from '../views/GamePage.vue'
 import BetweenTurnsPage from '../views/BetweenTurnsPage.vue'
 import WinPage from '../views/WinPage.vue'
 import LeaderboardPage from '../views/LeaderboardPage.vue'
+import HistoryPage from '../views/HistoryPage.vue'
 import YahtzeeSetupPage from '../views/YahtzeeSetupPage.vue'
 import YahtzeeGamePage from '../views/YahtzeeGamePage.vue'
 import LRCSetupPage from '../views/LRCSetupPage.vue'
@@ -27,6 +28,7 @@ const router = createRouter({
     { path: '/between',       name: 'BetweenTurns',  component: BetweenTurnsPage },
     { path: '/win',           name: 'Win',           component: WinPage },
     { path: '/leaderboard',   name: 'Leaderboard',   component: LeaderboardPage },
+    { path: '/history',       name: 'History',       component: HistoryPage },
     { path: '/yahtzee/setup', name: 'YahtzeeSetup',  component: YahtzeeSetupPage },
     { path: '/yahtzee',       name: 'YahtzeeGame',   component: YahtzeeGamePage },
     { path: '/lrc/setup',     name: 'LRCSetup',      component: LRCSetupPage },

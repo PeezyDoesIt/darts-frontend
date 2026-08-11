@@ -237,7 +237,15 @@
         <div class="glass-panel board">
           <div class="board-head">
             <span class="board-title display">LEADERBOARD</span>
-            <button class="board-link" @click="router.push('/leaderboard')">Full table →</button>
+            <div class="board-links">
+              <!--
+                The leaderboard shows lifetime counters. History is the games behind them —
+                every finished game has been recorded to the account since that table
+                shipped, and until now there was no way to see any of it.
+              -->
+              <button class="board-link" @click="router.push('/history')">History →</button>
+              <button class="board-link" @click="router.push('/leaderboard')">Full table →</button>
+            </div>
           </div>
 
           <div v-if="ranked.length === 0" class="board-empty">
@@ -1148,6 +1156,7 @@ function previewBullseyeSound(value: string) {
 .board-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: clamp(12px, 1.6vh, 24px); align-items: start; }
 .board { display: flex; flex-direction: column; gap: clamp(10px, 1.3vh, 16px); padding: clamp(16px, 2.2vh, 26px) 26px clamp(14px, 1.8vh, 22px); border-radius: 24px; }
 .board-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.board-links { display: flex; align-items: baseline; gap: 14px; flex-shrink: 0; }
 .board-title {
   font-size: 24px; letter-spacing: 0.14em;
   background: linear-gradient(135deg, var(--gold), var(--orange));
