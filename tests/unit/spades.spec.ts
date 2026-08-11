@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
-  applyBagPenalty, applyHandToSide, cardId, cardLabel, deal, effectiveSuit, isTrump,
-  legalPlays, makeDeck, rulesFor, scoreSide, sortHand, strength, trickWinner, wildLossTeam,
-  winnerTeamFor, type Card,
+  applyBagPenalty, applyHandToSide, bookInsight, cardId, cardLabel, couldNotFollow, deal,
+  effectiveSuit, isTrump, legalPlays, makeDeck, rulesFor, scoreSide, sortHand, strength,
+  trickWinner, wildLossTeam, winnerTeamFor, type Card, type PlayedBook,
 } from '@/lib/spades'
 
 const pip = (suit: 'spades' | 'hearts' | 'diamonds' | 'clubs', rank: number): Card =>
@@ -355,5 +355,133 @@ describe('applyHandToSide', () => {
 
     expect(next.bags).toBe(1)
     expect(next.score).toBe(202)
+  })
+})
+
+/**
+ * Reading a hand back. Books used to be discarded the moment the next one led, so once a
+ * hand was scored there was no way to see how it got there.
+ */
+describe('reading a book back', () => {
+  const book = (over: Partial<PlayedBook> = {}): PlayedBook => ({
+    number: 1,
+    ledSuit: 'hearts',
+    cards: [
+      { seat: 0, card: pip('hearts', 7) },
+      { seat: 1, card: pip('hearts', 5) },
+      { seat: 2, card: pip('hearts', 4) },
+      { seat: 3, card: pip('hearts', 9) },
+    ],
+    winnerSeat: 3,
+    ...over,
+  })
+
+  it('names the plain case: everyone followed and the highest took it', () => {
+    expect(bookInsight(book())).toBe('Highest of the suit led')
+  })
+
+  it('calls out a single spade taking a side suit', () => {
+    const b = book({
+      cards: [
+        { seat: 0, card: pip('hearts', 7) },
+        { seat: 1, card: pip('hearts', 5) },
+        { seat: 2, card: pip('hearts', 4) },
+        { seat: 3, card: pip('spades', 2) },
+      ],
+      winnerSeat: 3,
+    })
+
+    expect(bookInsight(b)).toBe('Trumped in')
+  })
+
+  it('distinguishes a trump fight from a single trump', () => {
+    // Two spades on a heart lead: the second one took it off the first.
+    const b = book({
+      cards: [
+        { seat: 0, card: pip('hearts', 7) },
+        { seat: 1, card: pip('spades', 3) },
+        { seat: 2, card: pip('hearts', 4) },
+        { seat: 3, card: pip('spades', 9) },
+      ],
+      winnerSeat: 3,
+    })
+
+    expect(bookInsight(b)).toBe('Overtrumped')
+  })
+
+  it('counts a joker as a spade when reading the book', () => {
+    const b = book({
+      cards: [
+        { seat: 0, card: pip('hearts', 7) },
+        { seat: 1, card: pip('hearts', 5) },
+        { seat: 2, card: pip('hearts', 4) },
+        { seat: 3, card: BIG },
+      ],
+      winnerSeat: 3,
+    })
+
+    expect(bookInsight(b)).toBe('Trumped in')
+  })
+
+  it('says highest spade when spades were led', () => {
+    const b = book({
+      ledSuit: 'spades',
+      cards: [
+        { seat: 0, card: pip('spades', 7) },
+        { seat: 1, card: pip('spades', 5) },
+        { seat: 2, card: pip('spades', 4) },
+        { seat: 3, card: pip('spades', 13) },
+      ],
+      winnerSeat: 3,
+    })
+
+    expect(bookInsight(b)).toBe('Highest spade')
+  })
+
+  it('notes when someone sloughed off but nobody trumped', () => {
+    const b = book({
+      cards: [
+        { seat: 0, card: pip('hearts', 7) },
+        { seat: 1, card: pip('hearts', 5) },
+        { seat: 2, card: pip('clubs', 14) },   // void in hearts, threw a club away
+        { seat: 3, card: pip('hearts', 9) },
+      ],
+      winnerSeat: 3,
+    })
+
+    expect(bookInsight(b)).toBe('Held up, nobody trumped')
+  })
+
+  it('says nothing rather than guessing when the winner is not in the book', () => {
+    expect(bookInsight(book({ winnerSeat: 9 }))).toBe('')
+  })
+})
+
+describe('couldNotFollow', () => {
+  const led: PlayedBook = {
+    number: 1,
+    ledSuit: 'hearts',
+    cards: [
+      { seat: 0, card: pip('hearts', 7) },
+      { seat: 1, card: pip('clubs', 5) },
+      { seat: 2, card: BIG },
+    ],
+    winnerSeat: 2,
+  }
+
+  it('spots the seat that discarded off-suit', () => {
+    expect(couldNotFollow(led, 1)).toBe(true)
+  })
+
+  it('does not flag a seat that followed', () => {
+    expect(couldNotFollow(led, 0)).toBe(false)
+  })
+
+  it('flags a joker on a side suit, since it plays as a spade', () => {
+    expect(couldNotFollow(led, 2)).toBe(true)
+  })
+
+  it('is false for a seat that never played', () => {
+    expect(couldNotFollow(led, 3)).toBe(false)
   })
 })

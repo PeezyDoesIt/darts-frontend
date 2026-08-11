@@ -138,3 +138,58 @@ test('spades: a shared table still gets the pass-the-device screen', async ({ pa
   await expect(page).toHaveURL(/\/spades$/)
   await expect(page.locator('.pass-screen')).toBeVisible({ timeout: 15_000 })
 })
+
+/**
+ * Reading a hand back. Books were discarded the moment the next one led, so once a hand was
+ * scored there was no way to see how it got there.
+ */
+// Thirteen books against three bots that each pause 700ms to be followable, so the hand
+// takes well over the default timeout to play out.
+test('spades: a finished hand can be read back book by book', async ({ page }) => {
+  test.setTimeout(150_000)
+
+  await page.goto('/spades/setup')
+  await pickBubble(page, 'Peezy')
+  await page.getByRole('button', { name: /DEAL/ }).click()
+  await expect(page).toHaveURL(/\/spades$/)
+
+  const phase = async () => await page.evaluate(
+    () => JSON.parse(localStorage.getItem('spades_active_game') || 'null')?.phase,
+  )
+
+  // Play the hand out: take whatever card is legal, and keep clicking through.
+  for (let i = 0; i < 400; i++) {
+    const p = await phase()
+    if (p === 'hand_over' || p === 'game_over') break
+
+    const card = page.locator('.hand-row .card.playable:not([disabled])').first()
+    if (await card.count() > 0) { await card.click({ timeout: 5_000 }).catch(() => {}); continue }
+
+    const next = page.locator('.sp-footer button', { hasText: /Next book|Score the hand/ })
+    if (await next.count() > 0) { await next.click({ timeout: 5_000 }).catch(() => {}); continue }
+
+    await page.waitForTimeout(150)  // a bot is thinking
+  }
+
+  expect(await phase(), 'the hand never finished').toMatch(/hand_over|game_over/)
+
+  await page.getByRole('button', { name: /Review books/ }).click()
+
+  // Thirteen books, each naming who took it and how.
+  await expect(page.locator('.review-book')).toHaveCount(13)
+  await expect(page.locator('.rb-card.won')).toHaveCount(13)
+  await expect(page.locator('.review-book').first()).toContainText('BOOK 1')
+  await expect(page.locator('.review-book').first()).toContainText('takes it')
+
+  // Both the ✕ and the footer button are named "Close" — this is the footer one.
+  await page.locator('.review-card .btn-spray').click()
+  await expect(page.locator('.review-card')).toHaveCount(0)
+})
+
+test('spades: the rules talk about books, not tricks', async ({ page }) => {
+  await page.goto('/spades/setup')
+
+  const rules = page.locator('.rules-list')
+  await expect(rules).toContainText('books')
+  await expect(rules).not.toContainText('trick')
+})

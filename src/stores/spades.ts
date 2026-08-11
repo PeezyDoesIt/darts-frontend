@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid'
 import {
   HAND_SIZE, PLAYER_COUNT, WILD_MAX_CONSECUTIVE_SETS, applyHandToSide, cardId, deal,
   effectiveSuit, legalPlays, scoreSide, sortHand, trickWinner, wildLossTeam, winnerTeamFor,
-  type Card, type SpadesVariant, type Suit,
+  type Card, type PlayedBook, type SpadesVariant, type Suit,
 } from '../lib/spades'
 import { chooseBid, chooseCard } from '../lib/spadesBot'
 import type { Player } from '../types/index'
@@ -51,6 +51,8 @@ export interface SpadesGame {
   currentTrick: { seat: number; card: Card }[]
   leadSeat: number
   spadesBroken: boolean
+  /** Every book played this hand, in order, so the hand can be read back once it is scored. */
+  bookLog: PlayedBook[]
   /** Team totals — index 0 is seats 0 and 2. */
   scores: [number, number]
   bags: [number, number]
@@ -124,6 +126,7 @@ export const useSpadesStore = defineStore('spades', () => {
       currentTrick: [],
       leadSeat: 1 % PLAYER_COUNT,
       spadesBroken: false,
+      bookLog: [],
       scores: [0, 0],
       bags: [0, 0],
       setCount: [0, 0],
@@ -270,12 +273,22 @@ export const useSpadesStore = defineStore('spades', () => {
       return
     }
 
-    // Trick complete. Resolve against the suit that was actually led.
+    // Book complete. Resolve against the suit that was actually led.
     const led = effectiveSuit(g.currentTrick[0]!.card) as Suit
     const winIdx = trickWinner(g.currentTrick.map(t => t.card), led)
     const winSeat = g.currentTrick[winIdx]!.seat
     g.tricksWon[winSeat]!++
     g.lastTrickWinnerSeat = winSeat
+
+    // Recorded here rather than when the next book leads, so a hand quit mid-way still has
+    // everything that was played rather than losing its last book.
+    g.bookLog.push({
+      number: g.bookLog.length + 1,
+      ledSuit: led,
+      cards: g.currentTrick.map(t => ({ seat: t.seat, card: t.card })),
+      winnerSeat: winSeat,
+    })
+
     g.phase = 'trick_end'
     persist()
   }
@@ -373,6 +386,8 @@ export const useSpadesStore = defineStore('spades', () => {
     g.currentTrick = []
     g.spadesBroken = false
     g.lastTrickWinnerSeat = null
+    // The log covers one hand — the review screen reads the hand you just finished.
+    g.bookLog = []
     g.handNumber++
     // Bids are cleared first so handOffTo sends a bot straight into bidding, not playing.
     const first = (g.dealerIndex + 1) % PLAYER_COUNT

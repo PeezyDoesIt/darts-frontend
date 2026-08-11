@@ -40,6 +40,56 @@ export const WILD_MAX_CONSECUTIVE_SETS = 2
 /** Being set three times in a game loses, consecutive or not. */
 export const WILD_MAX_SETS = 3
 
+/**
+ * A book as it was actually played, kept so a hand can be read back afterwards.
+ *
+ * Books used to be thrown away the moment the next one led, so once a hand was scored there
+ * was no way to see how it got there — which card gave a book away, or where a side stopped
+ * making its bid.
+ */
+export interface PlayedBook {
+  /** 1-based within the hand. */
+  number: number
+  /** The suit that was actually led, jokers counting as spades. */
+  ledSuit: Suit
+  /** In the order they were played, starting with the lead. */
+  cards: { seat: number; card: Card }[]
+  winnerSeat: number
+}
+
+/** Whether a seat had none of the led suit — the tell that a discard was forced. */
+export function couldNotFollow(book: PlayedBook, seat: number): boolean {
+  const played = book.cards.find(c => c.seat === seat)
+  if (!played) return false
+  return effectiveSuit(played.card) !== book.ledSuit
+}
+
+/**
+ * One line on how a book was won, for reading a hand back.
+ *
+ * Deliberately about the mechanism rather than the merit: "trumped in" is a fact, "should
+ * have held the ace" is a judgement, and the app is in no position to make it.
+ */
+export function bookInsight(book: PlayedBook): string {
+  const winning = book.cards.find(c => c.seat === book.winnerSeat)
+  if (!winning) return ''
+
+  const wonOnTrump = effectiveSuit(winning.card) === 'spades'
+  const spadesLed = book.ledSuit === 'spades'
+
+  if (wonOnTrump && !spadesLed) {
+    // More than one spade means the trump fight itself decided it.
+    const trumps = book.cards.filter(c => effectiveSuit(c.card) === 'spades').length
+    return trumps > 1 ? 'Overtrumped' : 'Trumped in'
+  }
+  if (spadesLed) return 'Highest spade'
+
+  const followers = book.cards.filter(c => effectiveSuit(c.card) === book.ledSuit).length
+  // Everyone followed, so nobody had a chance to take it any other way.
+  if (followers === book.cards.length) return 'Highest of the suit led'
+  return 'Held up, nobody trumped'
+}
+
 /** One side's running state between hands. */
 export interface SideStanding {
   score: number
@@ -129,11 +179,12 @@ export const REMOVED_CARDS: { suit: Suit; rank: number }[] = [
   { suit: 'diamonds', rank: 2 },
 ]
 
+// "Book" throughout, which is what the table calls a trick.
 const COMMON_RULES: string[] = [
-  'Bid the number of tricks you expect to take, then play them out',
-  'Make your bid for 10 points a trick; miss it and you lose 10 a trick',
-  'Extra tricks are bags — worth 1 each, but 10 bags costs you 100',
-  'Nil is worth 100 if you take no tricks at all, and -100 if you take one',
+  'Bid the number of books you expect to take, then play them out',
+  'Make your bid for 10 points a book; miss it and you lose 10 a book',
+  'Extra books are bags — worth 1 each, but 10 bags costs you 100',
+  'Nil is worth 100 if you take no books at all, and -100 if you take one',
   'First side to 500 wins',
 ]
 
