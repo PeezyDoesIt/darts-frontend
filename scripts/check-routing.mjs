@@ -67,9 +67,15 @@ async function checkSpaRoutes() {
 /**
  * The assets index.html actually references. Reading them out of the served HTML rather than
  * hardcoding names means this keeps working as content hashes change every build.
+ *
+ * The index is fetched with a unique query so it misses Cloudflare's edge cache and comes
+ * from the deployment. `cache: 'no-store'` only governs this process's own cache and does
+ * nothing about the edge — without the query, a stale index left over from the previous
+ * deploy gets read, its old hashes are gone, and the check reports a failure for a
+ * deployment that is in fact correct.
  */
 async function checkReferencedAssets() {
-  const res = await fetch(base + '/', { cache: 'no-store' })
+  const res = await fetch(`${base}/?_cachebust=${Date.now()}`, { cache: 'no-store' })
   const html = await res.text()
   const refs = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)].map(m => m[1])
 
@@ -94,8 +100,32 @@ async function checkReferencedAssets() {
   }
 }
 
+/**
+ * A file that does not exist under /assets must fail as a miss.
+ *
+ * If the SPA catch-all answers it instead, the response is HTML with a 200, and Cloudflare
+ * caches that at the asset URL under the asset cache-control — four hours of blank page for
+ * anyone who loaded the site during a deploy's propagation gap, long after the deploy itself
+ * is healthy. A single attempt is enough: this is configuration, not timing.
+ */
+async function checkMissingAssetIs404() {
+  const url = `${base}/assets/definitely-not-a-real-file-${Date.now()}.js`
+  const res = await fetch(url, { cache: 'no-store' })
+  const type = (res.headers.get('content-type') ?? '').toLowerCase()
+
+  if (res.status === 404) {
+    notes.push('ok  missing /assets/* → 404')
+    return
+  }
+  const why = type.includes('text/html')
+    ? 'the SPA catch-all answered, so this HTML is now cacheable at an asset URL'
+    : 'expected 404'
+  failures.push(`a missing asset returned ${res.status} ${type} (${why})`)
+}
+
 await checkSpaRoutes()
 await checkReferencedAssets()
+await checkMissingAssetIs404()
 
 console.log(`routing check — ${base}\n`)
 for (const n of notes) console.log('  ' + n)
