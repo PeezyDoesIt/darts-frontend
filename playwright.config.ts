@@ -21,6 +21,23 @@ export default defineConfig({
   projects: [
     // The app is phone-first, and every game page is laid out for a phone viewport.
     { name: 'mobile', use: { ...devices['Pixel 5'] } },
+
+    /**
+     * The same suite on a narrow phone.
+     *
+     * Pixel 5 is 393px, and layout defects between 320 and 392 are invisible there. The
+     * Spades bid chips were exactly that: at 393 the four sides fit one row and the suite
+     * was green, while at 375 the fourth wrapped and stretched to triple the width of the
+     * others. 375 is what an iPhone SE, 12 mini or 13 mini gives you, so it is a real
+     * width rather than a contrived one.
+     *
+     * Height is held at 812 so this varies width alone — a shorter viewport changes what
+     * sits above the fold, which is a different question and would muddy this one.
+     */
+    {
+      name: 'narrow',
+      use: { ...devices['Pixel 5'], viewport: { width: 375, height: 812 } },
+    },
   ],
   webServer: {
     command: 'npm run dev',
