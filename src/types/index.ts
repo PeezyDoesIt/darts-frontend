@@ -284,6 +284,12 @@ export type ActiveGame = {
   gameThemePosition: 'top' | 'center' | 'bottom' | null
   gameThemeFill: 'black' | 'blur' | null
   bonusTurnActive: boolean
+  /**
+   * Increments every time a turn begins. Entry components key off this to get a clean
+   * instance per turn — player and round alone do not identify a turn, because a hat-trick
+   * bonus sends the same player again in the same round.
+   */
+  turnSeq: number
   skipWalkup: boolean
   cricketFinishOrder: string[]
   gameTheme: string | null

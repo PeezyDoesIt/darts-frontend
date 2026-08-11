@@ -105,7 +105,7 @@
           <CricketEntry
             v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'"
             ref="cricketEntryRef"
-            :key="currentPlayer.id + '-' + game.round"
+            :key="currentPlayer.id + '-' + game.round + '-' + (game.turnSeq ?? 0)"
             :playerId="currentPlayer.id"
             :scores="game.scores"
             :isCutThroat="game.gameType === 'cutThroat'"
@@ -126,7 +126,7 @@
           />
           <KillerEntry
             v-else-if="game.gameType === 'killer' && killerOwn"
-            :key="currentPlayer.id + '-' + game.round"
+            :key="currentPlayer.id + '-' + game.round + '-' + (game.turnSeq ?? 0)"
             :ownNumber="killerOwn.number"
             :isKiller="killerOwn.isKiller"
             :requireDouble="game.killerRequireDouble"
