@@ -15,14 +15,15 @@
           <div class="hero-glow" />
 
           <!--
-            These live in the hero because the top bar sits below it, and the home screen is
-            sized to one viewport with no scroll — on a 1024px iPad the bar landed at y=1029,
-            putting the coin flip five pixels past an edge that could not be scrolled to.
+            These live in the hero because the top bar that used to hold them is gone: it
+            carried no tap target of its own, only a wordmark that had already moved into
+            this panel and a sync chip that duplicated this button's state.
             They carry visible text as well: `title` is a tooltip, and a tooltip does not
-            exist on a touch screen, so these read as three unlabelled glyphs on a tablet.
+            exist on a touch screen, so these read as unlabelled glyphs on a tablet.
           -->
           <div class="hero-actions">
             <button v-ripple class="hero-action" title="Cloud sync" @click="openSyncModal">
+              <span class="sync-dot" :class="{ 'sync-dot-off': !authStore.user }" />
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 15.5a3.5 3.5 0 0 0-2.6-5.8A5.5 5.5 0 0 0 6.8 10 3.6 3.6 0 0 0 7 17h11" />
                 <path d="M12 20v-6M9.5 16.5 12 14l2.5 2.5" />
@@ -96,30 +97,6 @@
           </div>
         </div>
       </section>
-
-      <!-- ── Top bar ─────────────────────────────────────── -->
-      <header class="glass-panel topbar">
-        <div class="topbar-brand">
-          <div class="topbar-mark">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round">
-              <circle cx="12" cy="12" r="9" />
-              <circle cx="12" cy="12" r="4.6" />
-              <circle cx="12" cy="12" r="1.2" fill="#fff" stroke="none" />
-              <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
-            </svg>
-          </div>
-          <div class="topbar-names">
-            <span class="topbar-label">Scorekeeper</span>
-          </div>
-        </div>
-
-        <div class="topbar-actions">
-          <div class="sync-chip" :class="{ 'sync-chip-off': !authStore.user }">
-            <span class="sync-dot" />
-            <span>{{ authStore.user ? 'Synced' : 'Local only' }}</span>
-          </div>
-        </div>
-      </header>
 
       <!-- ── Game modes ───────────────────────────────────── -->
       <section class="mode-row">
@@ -945,33 +922,10 @@ function previewBullseyeSound(value: string) {
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 24px 56px -26px rgba(0,0,0,0.82);
 }
 
-/* ── Top bar ── */
-.topbar {
-  display: flex; align-items: center; justify-content: space-between; gap: 20px;
-  padding: 12px 16px 12px 20px; border-radius: 20px; flex-shrink: 0;
-}
-.topbar-brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
-.topbar-mark {
-  width: 40px; height: 40px; flex-shrink: 0; border-radius: 13px;
-  display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(150deg, rgba(255,45,120,0.4), rgba(191,95,255,0.22));
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 22px rgba(255,45,120,0.35);
-}
-.topbar-names { display: flex; flex-direction: column; min-width: 0; }
-/* the wordmark lives in the hero now — the bar just says what this screen is */
-.topbar-label { font-size: 10px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
-
-.topbar-actions { display: flex; align-items: center; gap: 10px; }
-.sync-chip {
-  display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 14px;
-  background: rgba(170,255,0,0.1); border: 1px solid rgba(170,255,0,0.3);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  font-size: 11px; font-weight: 800; letter-spacing: 0.14em; color: var(--lime); text-transform: uppercase;
-}
-.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 10px var(--lime); animation: livePulse 1.8s ease-in-out infinite; }
-.sync-chip-off { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.16); color: rgba(255,255,255,0.55); }
-.sync-chip-off .sync-dot { background: rgba(255,255,255,0.45); box-shadow: none; animation: none; }
+/* Sync state rides the Sync button now — the bar that used to carry it held no tap
+   target of its own, so it read as a dead row across the page. */
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: var(--lime); box-shadow: 0 0 10px var(--lime); animation: livePulse 1.8s ease-in-out infinite; }
+.sync-dot-off { background: rgba(255,255,255,0.4); box-shadow: none; animation: none; }
 
 .icon-btn {
   width: 44px; height: 44px; border-radius: 14px; flex-shrink: 0;
@@ -1293,9 +1247,6 @@ function previewBullseyeSound(value: string) {
   .home-inner { padding: 20px 16px 40px; gap: 14px; }
   .home-inner { padding-top: calc(20px + env(safe-area-inset-top)); }
   .home-inner { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
-  .topbar { flex-wrap: wrap; padding: 14px; border-radius: 18px; }
-  .topbar-actions { width: 100%; }
-  .sync-chip { flex: 1; justify-content: center; }
   .hero { padding: 26px 22px; border-radius: 22px; }
   .hero-wordmark { font-size: clamp(46px, 15vw, 76px); }
   .strap-text { font-size: 10px; letter-spacing: 0.14em; }
