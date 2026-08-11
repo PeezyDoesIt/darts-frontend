@@ -41,7 +41,7 @@
       <template v-else-if="game.phase === 'bidding'">
         <div class="seat-strip">
           <span class="ss-name" :style="{ color: seated.color }">{{ seated.name }}</span>
-          <span class="ss-note">{{ seatedIsBot ? 'is bidding…' : 'how many tricks?' }}</span>
+          <span class="ss-note">{{ seatedIsBot ? 'is bidding…' : 'how many books?' }}</span>
         </div>
         <!-- A bot's hand is never rendered — showing it would hand the table its cards. -->
         <div v-if="seatedIsBot" class="bot-thinking">
@@ -133,15 +133,64 @@
 
     <footer v-if="showFooter" class="sp-footer">
       <button v-if="game.phase === 'trick_end'" v-ripple class="btn btn-spray btn-lg wide" @click="spades.nextTrick()">
-        {{ tricksPlayed >= HAND_SIZE ? 'Score the hand →' : 'Next trick →' }}
+        {{ tricksPlayed >= HAND_SIZE ? 'Score the hand →' : 'Next book →' }}
       </button>
-      <button v-else-if="game.phase === 'hand_over'" v-ripple class="btn btn-spray btn-lg wide" @click="spades.nextHand()">
-        Deal hand {{ game.handNumber + 1 }} →
-      </button>
-      <button v-else-if="game.phase === 'game_over'" v-ripple class="btn btn-spray btn-lg wide" @click="finish">
-        Done
-      </button>
+      <template v-else-if="game.phase === 'hand_over'">
+        <button v-ripple class="btn btn-outline btn-lg review-btn" @click="showReview = true">Review books</button>
+        <button v-ripple class="btn btn-spray btn-lg" @click="spades.nextHand()">
+          Deal hand {{ game.handNumber + 1 }} →
+        </button>
+      </template>
+      <template v-else-if="game.phase === 'game_over'">
+        <button v-ripple class="btn btn-outline btn-lg review-btn" @click="showReview = true">Review books</button>
+        <button v-ripple class="btn btn-spray btn-lg" @click="finish">Done</button>
+      </template>
     </footer>
+
+    <!--
+      Reading the hand back. Books used to be discarded the moment the next one led, so once
+      a hand was scored there was no way to see how it got there — which card gave a book
+      away, or where a side stopped making its bid.
+    -->
+    <div v-if="showReview" class="overlay" @click.self="showReview = false">
+      <div class="review-card glass-panel">
+        <div class="review-head">
+          <h2 class="review-title display">HAND {{ game.handNumber }}</h2>
+          <button class="review-close" aria-label="Close" @click="showReview = false">✕</button>
+        </div>
+        <p class="review-sub">{{ game.lastHandSummary }}</p>
+
+        <div v-if="game.bookLog.length === 0" class="review-empty">
+          No books were played in this hand.
+        </div>
+
+        <div v-for="b in game.bookLog" :key="b.number" class="review-book">
+          <div class="rb-head">
+            <span class="rb-num display">BOOK {{ b.number }}</span>
+            <span class="rb-note">{{ bookInsight(b) }}</span>
+          </div>
+          <div class="rb-cards">
+            <div
+              v-for="(c, i) in b.cards"
+              :key="c.seat"
+              class="rb-card"
+              :class="{ won: c.seat === b.winnerSeat }"
+            >
+              <PlayingCard :card="c.card" :width="42" />
+              <span class="rb-name" :style="{ color: game.players[c.seat]?.color }">
+                {{ game.players[c.seat]?.name }}
+              </span>
+              <!-- The two facts a learner needs: who led, and who was out of the suit. -->
+              <span v-if="i === 0" class="rb-tag">led</span>
+              <span v-else-if="couldNotFollow(b, c.seat)" class="rb-tag rb-tag-void">void</span>
+            </div>
+          </div>
+          <span class="rb-winner">{{ game.players[b.winnerSeat]?.name }} takes it</span>
+        </div>
+
+        <button v-ripple class="btn btn-spray wide" @click="showReview = false">Close</button>
+      </div>
+    </div>
 
     <div v-if="showRules" class="overlay" @click.self="showRules = false">
       <div class="rules-card glass-panel">
@@ -170,7 +219,8 @@ import PlayingCard from '../components/PlayingCard.vue'
 import { useSpadesStore, teamOf } from '../stores/spades'
 import { usePlayersStore } from '../stores/players'
 import {
-  HAND_SIZE, VARIANT_LABELS, WINNING_SCORE, cardId, rulesFor, sortHand, type Card,
+  HAND_SIZE, VARIANT_LABELS, WINNING_SCORE, bookInsight, cardId, couldNotFollow, rulesFor,
+  sortHand, type Card,
 } from '../lib/spades'
 import { recordGameResult } from '../api/gameResults'
 import { playTurnResultSound, playStartChime, unlockAudio } from '../composables/useSounds'
@@ -181,6 +231,7 @@ const spades = useSpadesStore()
 const playersStore = usePlayersStore()
 const game = computed(() => spades.game)
 const showRules = ref(false)
+const showReview = ref(false)
 
 const seated = computed(() => game.value!.players[game.value!.turnIndex]!)
 const rules = computed(() => rulesFor(game.value?.variant ?? 'wild'))
@@ -378,12 +429,56 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
 }
 .wide { width: 100%; min-height: 56px; }
+/* Two buttons share the footer once a hand is over: review keeps its natural width so the
+   label never truncates, and the primary action takes what is left. */
+.review-btn { flex-shrink: 0; min-height: 56px; padding: 0 16px; }
+.sp-footer .btn-spray { flex: 1; min-height: 56px; }
 
 .overlay {
   position: fixed; inset: 0; z-index: 50; display: flex; align-items: center;
   justify-content: center; padding: 24px; background: rgba(0,0,0,0.82);
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
 }
+/* ── Reading the hand back ── */
+.review-card {
+  width: 100%; max-width: 460px; max-height: 86dvh; overflow-y: auto;
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 20px 18px; border-radius: 16px;
+}
+.review-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.review-title { font-size: 20px; margin: 0; color: var(--gold); letter-spacing: 0.1em; }
+.review-close {
+  background: none; border: none; color: var(--text-muted); font-size: 20px;
+  cursor: pointer; padding: 4px 8px; min-height: 44px; min-width: 44px;
+}
+.review-sub { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+.review-empty { font-size: 13px; color: var(--text-muted); text-align: center; padding: 20px 0; }
+
+.review-book {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 10px 12px; border-radius: 12px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+}
+.rb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.rb-num { font-size: 13px; letter-spacing: 0.12em; color: rgba(255,255,255,0.75); }
+.rb-note { font-size: 10.5px; font-weight: 700; color: var(--text-muted); text-align: right; }
+
+/* Scrolls rather than wrapping, so four cards stay on one line on a narrow phone. */
+.rb-cards { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.rb-card {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  flex-shrink: 0; padding: 4px; border-radius: 8px; border: 2px solid transparent;
+}
+.rb-card.won { border-color: var(--gold); background: rgba(255,200,87,0.1); }
+.rb-name { font-size: 9.5px; font-weight: 700; max-width: 52px; text-align: center; overflow-wrap: anywhere; }
+.rb-tag {
+  font-size: 8px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+}
+.rb-tag-void { color: var(--pink); }
+.rb-winner { font-size: 11px; font-weight: 700; color: var(--gold); }
+
 .rules-card {
   width: 100%; max-width: 420px; max-height: 82dvh; overflow-y: auto;
   display: flex; flex-direction: column; align-items: center; gap: 12px;
