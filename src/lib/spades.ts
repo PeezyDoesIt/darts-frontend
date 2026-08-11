@@ -88,6 +88,56 @@ export const WILD_MAX_CONSECUTIVE_SETS = 2
 export const WILD_MAX_SETS = 3
 
 /** One side's running state between hands. */
+/**
+ * A book as it was actually played, kept so a hand can be read back afterwards.
+ *
+ * Books are otherwise thrown away the moment the next one leads, so once a hand is scored
+ * there is no way to see how it got there — which card gave a book away, or where a side
+ * stopped making its bid.
+ */
+export interface PlayedBook {
+  /** 1-based within the hand. */
+  number: number
+  /** The suit that was actually led, jokers counting as spades. */
+  ledSuit: Suit
+  /** In the order they were played, starting with the lead. */
+  cards: { seat: number; card: Card }[]
+  winnerSeat: number
+}
+
+/** Whether a seat had none of the led suit — the tell that a discard was forced. */
+export function couldNotFollow(book: PlayedBook, seat: number): boolean {
+  const played = book.cards.find(c => c.seat === seat)
+  if (!played) return false
+  return effectiveSuit(played.card) !== book.ledSuit
+}
+
+/**
+ * One line on how a book was won, for reading a hand back.
+ *
+ * Deliberately about the mechanism rather than the merit: "trumped in" is a fact, "should
+ * have held the ace" is a judgement, and the app is in no position to make it.
+ */
+export function bookInsight(book: PlayedBook): string {
+  const winning = book.cards.find(c => c.seat === book.winnerSeat)
+  if (!winning) return ''
+
+  const wonOnTrump = effectiveSuit(winning.card) === 'spades'
+  const spadesLed = book.ledSuit === 'spades'
+
+  if (wonOnTrump && !spadesLed) {
+    // More than one spade means the trump fight itself decided it.
+    const trumps = book.cards.filter(c => effectiveSuit(c.card) === 'spades').length
+    return trumps > 1 ? 'Overtrumped' : 'Trumped in'
+  }
+  if (spadesLed) return 'Highest spade'
+
+  const followers = book.cards.filter(c => effectiveSuit(c.card) === book.ledSuit).length
+  // Everyone followed, so nobody had a chance to take it any other way.
+  if (followers === book.cards.length) return 'Highest of the suit led'
+  return 'Held up, nobody trumped'
+}
+
 export interface SideStanding {
   score: number
   bags: number
@@ -213,8 +263,8 @@ export const REMOVED_CARDS: { suit: Suit; rank: number }[] = [
 ]
 
 /**
- * A taken trick is a BOOK at this table, which is what the rules text says throughout.
- * The code still calls them tricks internally — renaming the stored fields would strand
+ * A taken book is a BOOK at this table, which is what the rules text says throughout.
+ * The code still calls them books internally — renaming the stored fields would strand
  * every saved game — so this is the one place the two words are deliberately different.
  */
 function commonRules(mode: SpadesMode): string[] {
@@ -383,13 +433,13 @@ export function legalPlays(hand: Card[], led: Suit | null, spadesBroken: boolean
 }
 
 /**
- * Index of the winning card in a completed trick. Any trump beats any non-trump; otherwise
+ * Index of the winning card in a completed book. Any trump beats any non-trump; otherwise
  * only cards following the led suit can win.
  */
-export function trickWinner(trick: Card[], led: Suit): number {
+export function bookWinner(book: Card[], led: Suit): number {
   let bestIdx = -1
   let bestKey = -1
-  trick.forEach((c, i) => {
+  book.forEach((c, i) => {
     const trumped = isTrump(c) && led !== 'spades'
     const follows = effectiveSuit(c) === led
     if (!trumped && !follows) return
@@ -422,18 +472,18 @@ export interface SideResult {
  */
 export function scoreSide(
   bid: number,
-  tricks: number,
-  nilBids: { nil: boolean; tricks: number }[] = [],
+  books: number,
+  nilBids: { nil: boolean; books: number }[] = [],
 ): SideResult {
   let points = 0
   // A nil is scored on its own, so a partner's blown contract cannot cancel a made nil.
   for (const n of nilBids) {
-    if (n.nil && n.tricks === 0) points += 100
+    if (n.nil && n.books === 0) points += 100
   }
   if (bid === 0) return { points, bags: 0 }
 
-  if (tricks >= bid) {
-    const bags = tricks - bid
+  if (books >= bid) {
+    const bags = books - bid
     return { points: points + bid * 10 + bags, bags }
   }
   // Set. The hand simply scores nothing — no bid is ever charged back.
