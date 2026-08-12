@@ -27,6 +27,25 @@ async function signIn(page: import('@playwright/test').Page) {
   }, { key: SUPABASE_KEY, exp: FAR_FUTURE })
 }
 
+/**
+ * Noon on the previous calendar day, local time.
+ *
+ * This used to seed `Date.now() - 26 * 3600_000`, and an elapsed-hours offset is not a
+ * calendar day: `dayLabel` buckets by local calendar date, so 26 hours back only reads as
+ * "Yesterday" once the clock is past 02:00. Before that it lands two days back and falls
+ * through to the weekday branch — the suite went green at 22:33 and red at 01:11 on the
+ * same commit, labelling the row "Monday".
+ *
+ * Noon is the furthest point from either midnight, and `setDate`/`setHours` are local like
+ * `dayKey` is, so this survives DST too.
+ */
+function yesterdayNoon(): Date {
+  const d = new Date()
+  d.setDate(d.getDate() - 1)
+  d.setHours(12, 0, 0, 0)
+  return d
+}
+
 const GAMES = [
   {
     id: 'g1', clientGameId: 'c1', gameType: 'cricket', winnerId: 'smoke-1',
@@ -37,7 +56,7 @@ const GAMES = [
   {
     id: 'g2', clientGameId: 'c2', gameType: 'spades', winnerId: 'smoke-2',
     playerIds: ['smoke-1', 'smoke-2'], startedAt: null,
-    finishedAt: new Date(Date.now() - 26 * 3600_000).toISOString(),
+    finishedAt: yesterdayNoon().toISOString(),
     roundCount: null, finalScores: null, createdAt: new Date().toISOString(),
   },
 ]
