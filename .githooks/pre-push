@@ -8,10 +8,19 @@
 # caught it until a PR ran the suite afterwards.
 #
 # This is no longer the thing enforcing that. main is protected on GitHub — a pull request is
-# required, `test` and `preview` must pass, the branch must be current, and it applies to
-# admins too, so nobody has a way around it. This hook was written when the repo was private
-# on the free plan and protection could not be switched on at all; making it public is what
-# changed that.
+# required, `test` must pass, the branch must be current, and it applies to admins too, so
+# nobody has a way around it. This hook was written when the repo was private on the free
+# plan and protection could not be switched on at all; making it public is what changed that.
+#
+# `preview` is deliberately not a required check. It still runs on every pull request from
+# this repo and still deploys a real preview to check routing against — it is the check that
+# caught Wrangler dropping Node 20 — but it cannot run on a pull request from a fork, so
+# requiring it would leave outside contributions permanently unmergeable, and it would make a
+# Cloudflare outage a merge freeze. The cost of that choice is that a change which breaks
+# `pages deploy` can now merge on a green `test`, and main's deploy job is where it surfaces.
+# Production keeps serving the last good deployment when that happens, so the damage is a red
+# main and a release that did not ship, not an outage. Read the preview job's result rather
+# than waiting to be stopped by it.
 #
 # It is kept because it fails in the moment you type the command, with the commands to run
 # next, rather than after a round trip to a rejection that explains less. Treat it as a
