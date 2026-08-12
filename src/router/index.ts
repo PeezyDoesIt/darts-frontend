@@ -17,6 +17,8 @@ import SCCGamePage from '../views/SCCGamePage.vue'
 import PigGamePage from '../views/PigGamePage.vue'
 import SpadesSetupPage from '../views/SpadesSetupPage.vue'
 import SpadesGamePage from '../views/SpadesGamePage.vue'
+import BlackjackSetupPage from '../views/BlackjackSetupPage.vue'
+import BlackjackGamePage from '../views/BlackjackGamePage.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -40,6 +42,8 @@ const router = createRouter({
     { path: '/dice/pig',      name: 'PigGame',       component: PigGamePage },
     { path: '/spades/setup',  name: 'SpadesSetup',   component: SpadesSetupPage },
     { path: '/spades',        name: 'SpadesGame',    component: SpadesGamePage },
+    { path: '/blackjack/setup', name: 'BlackjackSetup', component: BlackjackSetupPage },
+    { path: '/blackjack',     name: 'BlackjackGame', component: BlackjackGamePage },
   ],
 })
 
