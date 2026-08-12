@@ -51,219 +51,109 @@
             <span class="strap-text">Darts · Yahtzee · Left Right Center</span>
           </div>
           <p class="hero-sub">Who's up. Who's down. Who's next.</p>
-          <button v-ripple class="cta" @click="startNewGame">
-            <span class="cta-copy">
-              <span class="cta-title display">START NEW GAME</span>
-              <span class="cta-sub">{{ modeSummary }}</span>
+        </div>
+
+      </section>
+
+      <!-- ── Resume ───────────────────────────────────────── -->
+      <section v-if="resumable.length" class="resume-row">
+        <div v-for="g in resumable" :key="g.key" class="glass-panel resume-card">
+          <div class="resume-info">
+            <div class="resume-head">
+              <span class="live-dot live-dot-pink" />
+              <span class="resume-label display">{{ g.title.toUpperCase() }}</span>
+            </div>
+            <span class="resume-sub">{{ g.detail }}</span>
+            <span v-if="g.key === 'darts_active_game' && currentPlayerName" class="resume-meta">
+              {{ currentPlayerName }} is up
             </span>
-            <span class="cta-arrow">→</span>
-          </button>
+          </div>
+          <button v-ripple class="resume-btn display" @click="router.push(g.route)">RESUME →</button>
         </div>
+      </section>
 
-        <div class="hero-side">
-          <!--
-            One card per unfinished game. The app no longer redirects into a game on open, so
-            this is the way back in — and it has to cover all seven, not just darts, or a
-            game the old redirect never knew about becomes unreachable.
-          -->
-          <div v-for="g in resumable" :key="g.key" class="glass-panel resume-card">
-            <div class="resume-info">
-              <div class="resume-head">
-                <span class="live-dot live-dot-pink" />
-                <span class="resume-label display">{{ g.title.toUpperCase() }}</span>
+      <div class="pick-rule">
+        <span class="pick-label display">PICK A CATEGORY</span>
+        <span class="pick-line" />
+      </div>
+
+      <!--
+        Categories, not nine flat tiles. Each door lists its own games, so the grouping is
+        visible without costing a tap — the door is a container, not a gate. Two independent
+        columns rather than a grid: a grid row stretches its short panel to the tall one's
+        height, which left a hole under a two-game category.
+      -->
+      <section class="door-cols">
+        <div class="door-col">
+          <div class="glass-panel door door-blue">
+            <div class="mode-glow" style="background: radial-gradient(circle, rgba(0,212,255,0.28), transparent 68%)" />
+            <div class="door-head">
+              <div class="mode-icon door-icon-blue">
+                <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round">
+                  <path d="M5.5 6.5h13M5.5 12h13M5.5 17.5h13" />
+                  <path d="M8 4.2 11 8.8M16 4.2 13 8.8M8 9.7l3 4.6M16 9.7l-3 4.6M8 15.2l3 4.6M16 15.2l-3 4.6" />
+                </svg>
               </div>
-              <span class="resume-sub">{{ g.detail }}</span>
-              <span v-if="g.key === 'darts_active_game' && currentPlayerName" class="resume-meta">
-                {{ currentPlayerName }} is up
-              </span>
+              <div class="door-copy">
+                <span class="door-name display door-name-blue">DARTS</span>
+                <span class="door-count">{{ dartsCount }} games</span>
+              </div>
             </div>
-            <button v-ripple class="resume-btn display" @click="router.push(g.route)">RESUME →</button>
-          </div>
-
-          <div class="counter-row">
-            <div class="glass-panel counter">
-              <span class="counter-label">Games logged</span>
-              <span class="counter-value display">{{ totalGames }}</span>
-              <span class="counter-foot">Across {{ playersStore.players.length }} players</span>
-            </div>
-            <div class="glass-panel counter">
-              <div class="counter-glow" />
-              <span class="counter-label">Best win rate</span>
-              <span class="counter-value counter-value-gold display">
-                {{ bestRate ? bestRate.pct + '%' : '—' }}
-              </span>
-              <span class="counter-foot">{{ bestRate ? bestRate.name : 'Needs 3+ games' }}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ── Game modes ───────────────────────────────────── -->
-      <section class="mode-row">
-        <button v-ripple class="glass-panel mode mode-blue" @click="router.push('/new-game')">
-          <div class="mode-glow" />
-          <div class="mode-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round">
-              <path d="M5.5 6.5h13M5.5 12h13M5.5 17.5h13" />
-              <path d="M8 4.2 11 8.8M16 4.2 13 8.8M8 9.7l3 4.6M16 9.7l-3 4.6M8 15.2l3 4.6M16 15.2l-3 4.6" />
-            </svg>
-          </div>
-          <div class="mode-copy">
-            <span class="mode-title display">DARTS</span>
-            <span class="mode-sub">Cricket · 501 · Killer · 9 more</span>
-          </div>
-        </button>
-
-        <button v-ripple class="glass-panel mode mode-purple" @click="router.push('/yahtzee/setup')">
-          <div class="mode-glow" />
-          <div class="mode-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bf5fff" stroke-width="1.8" stroke-linejoin="round">
-              <rect x="4" y="4" width="16" height="16" rx="4" />
-              <circle cx="9" cy="9" r="1.4" fill="#bf5fff" stroke="none" />
-              <circle cx="15" cy="15" r="1.4" fill="#bf5fff" stroke="none" />
-              <circle cx="12" cy="12" r="1.4" fill="#bf5fff" stroke="none" />
-            </svg>
-          </div>
-          <div class="mode-copy">
-            <span class="mode-title display">YAHTZEE</span>
-            <span class="mode-sub">Dice night · 2–8 players</span>
-          </div>
-        </button>
-
-        <button v-ripple class="glass-panel mode mode-green" @click="router.push('/lrc/setup')">
-          <div class="mode-glow" />
-          <div class="mode-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7ee68a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 8 5.5 12 9 16" /><path d="M15 8l3.5 4L15 16" />
-              <circle cx="12" cy="12" r="2" fill="#7ee68a" stroke="none" />
-            </svg>
-          </div>
-          <div class="mode-copy">
-            <span class="mode-title display">LEFT RIGHT CENTER</span>
-            <span class="mode-sub">Fast · pure luck</span>
-          </div>
-        </button>
-
-        <button v-ripple class="glass-panel mode mode-gold" @click="router.push('/dice/farkle/setup')">
-          <div class="mode-glow" />
-          <div class="mode-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffc857" stroke-width="1.8" stroke-linejoin="round">
-              <rect x="3" y="8" width="12" height="12" rx="3" />
-              <rect x="9" y="3" width="12" height="12" rx="3" />
-              <circle cx="7" cy="16" r="1.3" fill="#ffc857" stroke="none" />
-              <circle cx="15" cy="7" r="1.3" fill="#ffc857" stroke="none" />
-            </svg>
-          </div>
-          <div class="mode-copy">
-            <span class="mode-title display">FARKLE</span>
-            <span class="mode-sub">Push your luck · race to 10,000</span>
-          </div>
-        </button>
-
-        <button v-ripple class="glass-panel mode mode-cyan" @click="router.push('/dice/scc/setup')">
-          <div class="mode-glow" />
-          <div class="mode-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5fd0ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 15h16l-2.2 4.2a2 2 0 0 1-1.8 1.1H8a2 2 0 0 1-1.8-1.1z" />
-              <path d="M12 15V5" /><path d="M12 6l6 3-6 3z" />
-            </svg>
-          </div>
-          <div class="mode-copy">
-            <span class="mode-title display">SHIP CAPTAIN CREW</span>
-            <span class="mode-sub">6, 5, 4 — in that order</span>
-          </div>
-        </button>
-
-        <button v-ripple class="glass-panel mode mode-pink" @click="router.push('/dice/pig/setup')">
-          <div class="mode-glow" />
-          <div class="mode-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff5fa2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="13" r="7" />
-              <ellipse cx="12" cy="14" rx="2.6" ry="2" />
-              <path d="M6.5 7.5 8 5l2.4 1.6M17.5 7.5 16 5l-2.4 1.6" />
-            </svg>
-          </div>
-          <div class="mode-copy">
-            <span class="mode-title display">PIG</span>
-            <span class="mode-sub">One die · roll a 1 and lose it all</span>
-          </div>
-        </button>
-
-        <button v-ripple class="glass-panel mode mode-indigo" @click="router.push('/spades/setup')">
-          <div class="mode-glow" />
-          <div class="mode-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8f7bff" stroke-width="1.7" stroke-linejoin="round">
-              <path d="M12 3.5c-2.4 3-6 5.3-6 8.4a3.4 3.4 0 0 0 5.2 2.9L10.5 20h3l-.7-5.2A3.4 3.4 0 0 0 18 11.9c0-3.1-3.6-5.4-6-8.4z" />
-            </svg>
-          </div>
-          <div class="mode-copy">
-            <span class="mode-title display">SPADES</span>
-            <span class="mode-sub">Classic or Wild Style · vs computer or friends</span>
-          </div>
-        </button>
-
-        <!-- Not a game, but it belongs with them: it is the thing you reach for before one
-             starts, and as a header glyph it was three unlabelled pixels on a tablet. -->
-        <button v-ripple class="glass-panel mode mode-silver" @click="showCoinFlip = true">
-          <div class="mode-glow" />
-          <div class="mode-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d8dde6" stroke-width="1.8" stroke-linecap="round">
-              <ellipse cx="12" cy="12" rx="6" ry="9" /><path d="M12 3v18" /><path d="M18 12h3M3 12h3" />
-            </svg>
-          </div>
-          <div class="mode-copy">
-            <span class="mode-title display">COIN FLIP</span>
-            <span class="mode-sub">Who throws first · best of 3 or 5</span>
-          </div>
-        </button>
-      </section>
-
-      <!-- ── Leaderboard + roster / narrator ──────────────── -->
-      <section class="board-row">
-        <div class="glass-panel board">
-          <div class="board-head">
-            <span class="board-title display">LEADERBOARD</span>
-            <div class="board-links">
-              <!--
-                The leaderboard shows lifetime counters. History is the games behind them —
-                every finished game has been recorded to the account since that table
-                shipped, and until now there was no way to see any of it.
-              -->
-              <button class="board-link" @click="router.push('/history')">History →</button>
-              <button class="board-link" @click="router.push('/leaderboard')">Full table →</button>
-            </div>
-          </div>
-
-          <div v-if="ranked.length === 0" class="board-empty">
-            No games logged yet. Add a player and the table fills itself in.
-          </div>
-
-          <template v-else>
-            <div class="board-cols">
-              <span>#</span><span>Player</span><span>Games</span><span>Wins</span><span>Win %</span>
-            </div>
-            <div class="board-rows board-scroll">
-              <div
-                v-for="(p, i) in ranked" :key="p.id"
-                class="board-row-item"
-                :class="{ 'board-row-lead': i === 0 }"
-                :style="{ borderLeftColor: p.color || 'rgba(255,255,255,0.2)' }"
+            <div class="chip-list">
+              <button
+                v-for="d in DARTS_QUICK" :key="d.type"
+                v-ripple class="chip chip-blue" @click="goGame('/new-game?type=' + d.type)"
               >
-                <span class="rank display" :class="{ 'rank-gold': i === 0 }">{{ i + 1 }}</span>
-                <div class="board-player">
-                  <PlayerAvatar :player="p" :size="34" />
-                  <span class="board-name">{{ p.name }}</span>
-                  <span v-if="isPlaying(p.id)" class="tag tag-pink">PLAYING</span>
-                </div>
-                <span class="num">{{ p.gamesPlayed }}</span>
-                <span class="num num-bright">{{ p.wins }}</span>
-                <span class="num" :class="i === 0 ? 'num-gold' : 'num-bright'">{{ winPct(p) }}%</span>
+                <span class="chip-name display">{{ GAME_TYPE_LABELS[d.type] }}</span>
+                <span class="chip-sub">{{ d.sub }}</span>
+              </button>
+              <button v-ripple class="chip chip-ghost" @click="goGame('/new-game')">
+                <span class="chip-name display">ALL {{ dartsCount }} DARTS GAMES →</span>
+                <span class="chip-sub">Speed Cricket · Around the Clock · Horse · 301 · 701 · 1001</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="glass-panel door door-purple">
+            <div class="mode-glow" style="background: radial-gradient(circle, rgba(153,0,255,0.32), transparent 68%)" />
+            <div class="door-head">
+              <div class="mode-icon door-icon-purple">
+                <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#bf5fff" stroke-width="1.8" stroke-linejoin="round">
+                  <rect x="4" y="4" width="16" height="16" rx="4" />
+                  <circle cx="9" cy="9" r="1.4" fill="#bf5fff" stroke="none" />
+                  <circle cx="15" cy="15" r="1.4" fill="#bf5fff" stroke="none" />
+                  <circle cx="12" cy="12" r="1.4" fill="#bf5fff" stroke="none" />
+                </svg>
+              </div>
+              <div class="door-copy">
+                <span class="door-name display door-name-purple">DICE</span>
+                <span class="door-count">5 games</span>
               </div>
             </div>
-          </template>
-        </div>
+            <div class="chip-grid">
+              <button v-ripple class="chip chip-purple" @click="goGame('/yahtzee/setup')">
+                <span class="chip-name display">YAHTZEE</span>
+                <span class="chip-sub">2–8 players</span>
+              </button>
+              <button v-ripple class="chip chip-green" @click="goGame('/lrc/setup')">
+                <span class="chip-name display">LRC</span>
+                <span class="chip-sub">Pure luck</span>
+              </button>
+              <button v-ripple class="chip chip-gold" @click="goGame('/dice/farkle/setup')">
+                <span class="chip-name display">FARKLE</span>
+                <span class="chip-sub">Race to 10,000</span>
+              </button>
+              <button v-ripple class="chip chip-cyan" @click="goGame('/dice/scc/setup')">
+                <span class="chip-name display">SHIP CAP</span>
+                <span class="chip-sub">6, 5, 4 in order</span>
+              </button>
+              <button v-ripple class="chip chip-pink chip-wide" @click="goGame('/dice/pig/setup')">
+                <span class="chip-name display">PIG</span>
+                <span class="chip-sub">Roll a 1, lose it</span>
+              </button>
+            </div>
+          </div>
 
-        <div class="board-side">
           <div class="glass-panel roster">
             <span class="panel-label">Roster</span>
             <div v-if="playersStore.players.length" class="roster-stack">
@@ -277,6 +167,34 @@
             <p v-else class="roster-empty">No players yet.</p>
             <button v-ripple class="ghost-btn" @click="router.push('/player-setup')">+ Add player</button>
           </div>
+        </div>
+
+        <div class="door-col">
+          <div class="glass-panel door door-indigo">
+            <div class="mode-glow" style="background: radial-gradient(circle, rgba(143,123,255,0.3), transparent 68%)" />
+            <div class="door-head">
+              <div class="mode-icon door-icon-indigo">
+                <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#8f7bff" stroke-width="1.7" stroke-linejoin="round">
+                  <path d="M12 3.5c-2.4 3-6 5.3-6 8.4a3.4 3.4 0 0 0 5.2 2.9L10.5 20h3l-.7-5.2A3.4 3.4 0 0 0 18 11.9c0-3.1-3.6-5.4-6-8.4z" />
+                </svg>
+              </div>
+              <div class="door-copy">
+                <span class="door-name display door-name-indigo">CARDS &amp; COINS</span>
+                <span class="door-count">2 games</span>
+              </div>
+            </div>
+            <div class="chip-grid">
+              <button v-ripple class="chip chip-indigo" @click="goGame('/spades/setup')">
+                <span class="chip-name display">SPADES</span>
+                <span class="chip-sub">Classic or Wild Style</span>
+              </button>
+              <button v-ripple class="chip chip-silver" @click="showCoinFlip = true">
+                <span class="chip-name display">COIN FLIP</span>
+                <span class="chip-sub">Single or best of five</span>
+              </button>
+            </div>
+          </div>
+
 
           <div class="glass-panel narrator" @click="openSettings">
             <div class="narrator-glow" />
@@ -314,8 +232,59 @@
               </div>
             </div>
           </div>
+
+          <div class="glass-panel door door-gold">
+            <div class="mode-glow" style="background: radial-gradient(circle, rgba(255,215,0,0.26), transparent 68%)" />
+            <div class="door-head">
+              <div class="mode-icon door-icon-gold">
+                <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#ffd700" stroke-width="1.9" stroke-linecap="round">
+                  <path d="M6 20v-7M12 20V5M18 20v-10" />
+                </svg>
+              </div>
+              <div class="door-copy">
+                <span class="door-name display door-name-gold">STATS</span>
+                <span class="door-count">Leaderboard · counters</span>
+              </div>
+            </div>
+
+            <div class="stat-pair">
+              <div class="stat-cell">
+                <span class="counter-label">Games logged</span>
+                <span class="stat-value display">{{ totalGames }}</span>
+              </div>
+              <div class="stat-cell stat-cell-gold">
+                <span class="counter-label">Best win rate</span>
+                <span class="stat-value stat-value-gold display">{{ bestRate ? bestRate.pct + '%' : '—' }}</span>
+              </div>
+            </div>
+
+            <div v-if="topThree.length === 0" class="board-empty">
+              No games logged yet. Add a player and the table fills itself in.
+            </div>
+            <div v-else class="mini-board">
+              <div
+                v-for="(p, i) in topThree" :key="p.id"
+                class="mini-row" :class="{ 'board-row-lead': i === 0 }"
+                :style="{ borderLeftColor: p.color || 'rgba(255,255,255,0.2)' }"
+              >
+                <span class="rank display" :class="{ 'rank-gold': i === 0 }">{{ i + 1 }}</span>
+                <div class="board-player">
+                  <PlayerAvatar :player="p" :size="28" />
+                  <span class="board-name">{{ p.name }}</span>
+                  <span v-if="isPlaying(p.id)" class="tag tag-pink">PLAYING</span>
+                </div>
+                <span class="num" :class="i === 0 ? 'num-gold' : 'num-bright'">{{ winPct(p) }}%</span>
+              </div>
+            </div>
+
+            <div class="door-links">
+              <button class="board-link" @click="router.push('/history')">History →</button>
+              <button class="board-link" @click="router.push('/leaderboard')">Full table →</button>
+            </div>
+          </div>
         </div>
       </section>
+
     </div>
 
     <!-- ── Narrator settings modal ───────────────────────── -->
@@ -625,7 +594,7 @@ import { useSettingsStore } from '../stores/settings'
 import { useGameStore } from '../stores/game'
 import { useAuthStore } from '../stores/auth'
 import { usePlayersStore } from '../stores/players'
-import { GAME_TYPE_LABELS, GAME_TYPE_ORDER, type Player } from '../types/index'
+import { GAME_TYPE_LABELS, GAME_TYPE_ORDER, type GameType, type Player } from '../types/index'
 import { speak, speakOhBaby, getAvailableVoices, type VoiceOption } from '../composables/useSpeech'
 import { playShotgun, playBuzzer, playStartChime, unlockAudio } from '../composables/useSounds'
 import PlayerAvatar from '../components/PlayerAvatar.vue'
@@ -661,11 +630,17 @@ const currentPlayerName = computed(() => {
 const activeIds = computed(() => new Set(gameStore.game?.players.map(p => p.id) ?? []))
 function isPlaying(id: string) { return hasActiveGame.value && activeIds.value.has(id) }
 
-const modeSummary = computed(() => {
-  const named = GAME_TYPE_ORDER.slice(0, 3).map(t => GAME_TYPE_LABELS[t]).join(' · ')
-  const rest = GAME_TYPE_ORDER.length - 3
-  return rest > 0 ? `${named} · ${rest} more` : named
-})
+/**
+ * The three the group actually plays get their own chip inside the Darts door; the other six
+ * stay one tap away behind the all-games chip, which is the same setup page with nothing
+ * preselected. A chip carries ?type= so the door lands on a game rather than a picker.
+ */
+const DARTS_QUICK: { type: GameType; sub: string }[] = [
+  { type: 'cricket', sub: '20s down · 2–6 players' },
+  { type: '501',     sub: 'Double out' },
+  { type: 'killer',  sub: 'Claim a number, take theirs' },
+]
+const dartsCount = GAME_TYPE_ORDER.length
 
 function winPct(p: Player) {
   return p.gamesPlayed > 0 ? Math.round((p.wins / p.gamesPlayed) * 100) : 0
@@ -675,6 +650,7 @@ const ranked = computed(() =>
     .sort((a, b) => b.wins - a.wins || b.gamesPlayed - a.gamesPlayed || a.name.localeCompare(b.name))
     .slice(0, 5)
 )
+const topThree = computed(() => ranked.value.slice(0, 3))
 const totalGames = computed(() => playersStore.players.reduce((n, p) => n + p.gamesPlayed, 0))
 /** needs a real sample size, otherwise one lucky win reads as 100% */
 const bestRate = computed(() => {
@@ -700,10 +676,11 @@ const personalityLabel = computed(() =>
   PERSONALITIES.find(p => p.value === settingsStore.narratorPersonality)?.label ?? 'Default'
 )
 
-function startNewGame() {
+/** Any door chip: the chime is the same start-of-game cue the old CTA played. */
+function goGame(path: string) {
   unlockAudio()
   playStartChime()
-  router.push('/new-game')
+  router.push(path)
 }
 
 /* ── Cloud sync modal ── */
@@ -868,12 +845,10 @@ function previewBullseyeSound(value: string) {
 @media (min-width: 1025px) and (min-height: 660px) {
   .home { overflow: hidden; }
   .home-inner { height: 100%; }
-  .board-row { flex: 1; min-height: 0; }
-  .board { max-height: 100%; }
-  .board-scroll { overflow-y: auto; scrollbar-width: none; min-height: 0; }
-  .board-scroll::-webkit-scrollbar { display: none; }
-  .board-side { max-height: 100%; overflow-y: auto; scrollbar-width: none; }
-  .board-side::-webkit-scrollbar { display: none; }
+  .door-cols { flex: 1; min-height: 0; }
+  /* each column scrolls on its own, so a tall category cannot push the other off screen */
+  .door-col { max-height: 100%; overflow-y: auto; scrollbar-width: none; }
+  .door-col::-webkit-scrollbar { display: none; }
 }
 
 .home-scrim {
@@ -938,7 +913,7 @@ function previewBullseyeSound(value: string) {
 .icon-btn:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.3); transform: translateY(-1px); }
 
 /* ── Hero ── */
-.hero-row { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(12px, 1.6vh, 24px); align-items: stretch; flex-shrink: 0; }
+.hero-row { display: grid; grid-template-columns: 1fr; gap: clamp(12px, 1.6vh, 24px); align-items: stretch; flex-shrink: 0; }
 .hero {
   display: flex; flex-direction: column; justify-content: center;
   gap: clamp(8px, 1.1vh, 16px);
@@ -1080,6 +1055,86 @@ function previewBullseyeSound(value: string) {
 .mode-title { font-size: 22px; letter-spacing: 0.1em; color: #fff; line-height: 1; }
 .mode-sub { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); text-transform: uppercase; }
 
+/* ── Category doors ──
+   Two independent columns, not a two-column grid: a grid row stretches its shorter panel to
+   the taller one's height, which left a hole under a two-game category. */
+.door-cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px, 1.6vh, 16px); align-items: start; }
+.door-col { display: flex; flex-direction: column; gap: clamp(12px, 1.6vh, 16px); min-width: 0; }
+.door { display: flex; flex-direction: column; gap: clamp(11px, 1.4vh, 15px); padding: clamp(16px, 2.1vh, 22px); border-radius: 22px; }
+.door-head { position: relative; display: flex; align-items: center; gap: 14px; }
+.door-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.door-name { font-size: 25px; letter-spacing: 0.1em; line-height: 1; }
+.door-count { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; color: rgba(255,255,255,0.4); text-transform: uppercase; }
+.door-name-blue { color: var(--blue, #00d4ff); }
+.door-name-purple { color: #bf5fff; }
+.door-name-indigo { color: #8f7bff; }
+.door-name-gold { color: #ffd700; }
+.door-blue { background: linear-gradient(150deg, rgba(0,212,255,0.15), rgba(255,255,255,0.03)); border-color: rgba(0,212,255,0.3); }
+.door-purple { background: linear-gradient(150deg, rgba(153,0,255,0.18), rgba(255,255,255,0.03)); border-color: rgba(191,95,255,0.32); }
+.door-indigo { background: linear-gradient(150deg, rgba(143,123,255,0.16), rgba(255,255,255,0.03)); border-color: rgba(143,123,255,0.32); }
+.door-gold { background: linear-gradient(150deg, rgba(255,215,0,0.13), rgba(255,255,255,0.03)); border-color: rgba(255,215,0,0.3); }
+.door-icon-blue { background: rgba(0,212,255,0.16); border: 1px solid rgba(0,212,255,0.34); }
+.door-icon-purple { background: rgba(153,0,255,0.2); border: 1px solid rgba(191,95,255,0.36); }
+.door-icon-indigo { background: rgba(143,123,255,0.2); border: 1px solid rgba(143,123,255,0.36); }
+.door-icon-gold { background: rgba(255,215,0,0.16); border: 1px solid rgba(255,215,0,0.34); }
+.door-icon-blue, .door-icon-purple, .door-icon-indigo, .door-icon-gold { width: 44px; height: 44px; border-radius: 14px; }
+
+.chip-list { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.chip-grid { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 6px; }
+.chip {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  /* 44px is the floor for a thumb on a tablet propped by the board */
+  min-height: 56px; padding: 13px 15px; border-radius: 13px; cursor: pointer; text-align: left;
+  transition: transform .14s, border-color .14s, box-shadow .14s;
+}
+.chip:hover { transform: translateY(-2px); box-shadow: 0 14px 30px -18px rgba(0,0,0,0.9); }
+.chip:active { transform: scale(0.985); }
+.chip-name { font-size: 19px; letter-spacing: 0.08em; color: #fff; line-height: 1; }
+.chip-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: rgba(255,255,255,0.48); text-transform: uppercase; }
+.chip-wide { grid-column: 1 / -1; }
+.chip-blue { background: rgba(0,212,255,0.13); border: 1px solid rgba(0,212,255,0.26); }
+.chip-blue:hover { border-color: rgba(0,212,255,0.62); }
+.chip-purple { background: rgba(153,0,255,0.18); border: 1px solid rgba(191,95,255,0.3); }
+.chip-purple:hover { border-color: rgba(191,95,255,0.62); }
+.chip-green { background: rgba(51,170,51,0.18); border: 1px solid rgba(85,204,102,0.3); }
+.chip-green:hover { border-color: rgba(85,204,102,0.62); }
+.chip-gold { background: rgba(255,200,87,0.16); border: 1px solid rgba(255,200,87,0.3); }
+.chip-gold:hover { border-color: rgba(255,200,87,0.62); }
+.chip-cyan { background: rgba(95,208,255,0.16); border: 1px solid rgba(95,208,255,0.3); }
+.chip-cyan:hover { border-color: rgba(95,208,255,0.62); }
+.chip-pink { background: rgba(255,95,162,0.16); border: 1px solid rgba(255,95,162,0.3); }
+.chip-pink:hover { border-color: rgba(255,95,162,0.62); }
+.chip-indigo { background: rgba(143,123,255,0.18); border: 1px solid rgba(143,123,255,0.3); }
+.chip-indigo:hover { border-color: rgba(143,123,255,0.62); }
+.chip-silver { background: rgba(223,227,238,0.14); border: 1px solid rgba(223,227,238,0.28); }
+.chip-silver:hover { border-color: rgba(223,227,238,0.6); }
+.chip-ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); }
+.chip-ghost:hover { border-color: rgba(255,255,255,0.34); }
+.chip-ghost .chip-name { font-size: 15px; letter-spacing: 0.1em; color: rgba(255,255,255,0.78); }
+
+/* ── Pick-a-category rule ── */
+.pick-rule { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.pick-label { font-size: 17px; letter-spacing: 0.24em; color: rgba(255,255,255,0.48); }
+.pick-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.18), transparent); }
+
+/* ── Resume row ── */
+.resume-row { display: flex; flex-direction: column; gap: clamp(10px, 1.3vh, 16px); flex-shrink: 0; }
+
+/* ── Stats door ── */
+.stat-pair { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat-cell { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 13px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); }
+.stat-cell-gold { border-color: rgba(255,215,0,0.22); }
+.stat-value { font-size: 30px; line-height: 0.9; color: #fff; }
+.stat-value-gold { color: #ffd700; }
+.mini-board { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.mini-row {
+  display: grid; grid-template-columns: 18px 1fr auto; align-items: center; gap: 11px;
+  padding: 9px 12px; border-radius: 12px; font-size: 13px; font-weight: 700;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-left: 3px solid;
+}
+.door-links { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 14px; }
+
 .mode-blue { background: linear-gradient(150deg, rgba(0,212,255,0.16), rgba(255,255,255,0.03)); border-color: rgba(0,212,255,0.3); }
 .mode-blue .mode-glow { background: radial-gradient(circle, rgba(0,212,255,0.3), transparent 68%); }
 .mode-blue .mode-icon { background: rgba(0,212,255,0.16); border: 1px solid rgba(0,212,255,0.34); }
@@ -1122,7 +1177,6 @@ function previewBullseyeSound(value: string) {
 .mode-silver:hover { border-color: rgba(216,221,230,0.6); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 40px -10px rgba(216,221,230,0.45), 0 26px 52px -24px rgba(0,0,0,0.85); }
 
 /* ── Leaderboard ── */
-.board-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: clamp(12px, 1.6vh, 24px); align-items: start; }
 .board { display: flex; flex-direction: column; gap: clamp(10px, 1.3vh, 16px); padding: clamp(16px, 2.2vh, 26px) 26px clamp(14px, 1.8vh, 22px); border-radius: 24px; }
 .board-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 .board-links { display: flex; align-items: baseline; gap: 14px; flex-shrink: 0; }
@@ -1144,7 +1198,6 @@ function previewBullseyeSound(value: string) {
   font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
   color: rgba(255,255,255,0.35);
 }
-.board-rows { display: flex; flex-direction: column; gap: 8px; }
 .board-row-item {
   display: grid; grid-template-columns: 36px 1fr 66px 66px 74px; align-items: center;
   padding: 13px 14px; border-radius: 14px;
@@ -1174,7 +1227,6 @@ function previewBullseyeSound(value: string) {
 .tag-pink { color: var(--pink); background: rgba(255,45,120,0.14); border: 1px solid rgba(255,45,120,0.35); }
 
 /* ── Roster / narrator ── */
-.board-side { display: flex; flex-direction: column; gap: clamp(10px, 1.3vh, 16px); }
 .roster { display: flex; flex-direction: column; gap: 12px; padding: clamp(15px, 2vh, 24px); border-radius: 24px; }
 .roster-stack { display: flex; align-items: center; }
 .roster-more {
@@ -1232,7 +1284,7 @@ function previewBullseyeSound(value: string) {
   .home-inner { gap: 18px; padding: 28px 24px 44px; }
   .home-inner { padding-top: calc(28px + env(safe-area-inset-top)); }
   .home-inner { padding-bottom: calc(44px + env(safe-area-inset-bottom)); }
-  .hero-row, .board-row { grid-template-columns: 1fr; }
+  .door-cols { grid-template-columns: 1fr; }
   .hero-wordmark { font-size: clamp(52px, 11vw, 92px); }
 
   /* The wordmark and START NEW GAME lead the page, then the game tiles immediately after.
@@ -1241,7 +1293,9 @@ function previewBullseyeSound(value: string) {
      stay second rather than dropping back down there — everything below the hero is the
      tile grid, so the fold costs part of that grid rather than burying it. */
   .hero-row { order: -2; }
-  .mode-row { order: -1; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .pick-rule { order: -1; }
+  .door-cols { order: -1; }
+  .resume-row { order: 1; }
 }
 @media (max-width: 700px) {
   .home-inner { padding: 20px 16px 40px; gap: 14px; }
