@@ -98,7 +98,9 @@ export function resumableGames(read: (key: string) => string | null): ResumableG
   const out: ResumableGame[] = []
 
   for (const source of SOURCES) {
-    let game: Record<string, unknown> | null = null
+    // No initialiser: every path through the try/catch below assigns before anything reads
+    // it, so `= null` here was only ever overwritten.
+    let game: Record<string, unknown> | null
     try {
       const raw = read(source.key)
       // A half-written or hand-edited save must not take the home screen down with it.
