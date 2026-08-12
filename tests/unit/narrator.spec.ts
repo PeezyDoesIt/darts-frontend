@@ -209,3 +209,48 @@ describe('the game clock', () => {
     }
   })
 })
+
+/**
+ * Variety, not coverage.
+ *
+ * Every event/personality pair had a clean variant written, so coverage looked complete —
+ * but eight of the eleven events offered exactly one line each, and `walkUp` fires on every
+ * single turn. Four players over twenty rounds heard the identical sentence eighty times.
+ *
+ * The threshold is deliberately low. This is not a demand for wit, it is a floor that fails
+ * if someone collapses a rotation back to a single line, which is invisible in review and
+ * only shows up after an hour of play.
+ */
+describe('line variety', () => {
+  const MIN_VARIANTS = 2
+
+  for (const mode of [loud, clean]) {
+    const label = mode.cleanMode ? 'clean' : 'unfiltered'
+
+    for (const event of ALL_EVENTS) {
+      for (const personality of PERSONALITIES) {
+        it(`${label}: ${event}/${personality} has something to rotate through`, () => {
+          const segments = linesFor(event, personality, ctx, mode) as string[][]
+          expect(segments.length).toBeGreaterThan(0)
+          // Every segment is spoken, so a one-line segment is a line heard every time.
+          for (const segment of segments) {
+            expect(segment.length).toBeGreaterThanOrEqual(MIN_VARIANTS)
+          }
+        })
+      }
+    }
+  }
+
+  it('never offers the same line twice within a segment', () => {
+    for (const mode of [loud, clean]) {
+      for (const event of ALL_EVENTS) {
+        for (const personality of PERSONALITIES) {
+          const segments = linesFor(event, personality, ctx, mode) as string[][]
+          for (const segment of segments) {
+            expect(new Set(segment).size, `${event}/${personality} repeats a variant`).toBe(segment.length)
+          }
+        }
+      }
+    }
+  })
+})
