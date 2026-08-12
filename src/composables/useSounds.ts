@@ -67,7 +67,8 @@ export function playStartChime(): void {
       osc.stop(t + 0.55)
     })
   }
-  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+  if (ctx.state === 'suspended') ctx.resume().then(go).catch(() => {})
+  else go()
 }
 
 export function playChime(): void {
@@ -92,7 +93,8 @@ export function playChime(): void {
       osc.stop(t + 0.55)
     })
   }
-  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+  if (ctx.state === 'suspended') ctx.resume().then(go).catch(() => {})
+  else go()
 }
 
 export function playCountdownBeep(): void {
@@ -501,7 +503,8 @@ export function playSpaceChime(): void {
       osc.start(t); osc.stop(t + 0.35)
     })
   }
-  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+  if (ctx.state === 'suspended') ctx.resume().then(go).catch(() => {})
+  else go()
 }
 
 export function scheduleSpaceTick(ctx: AudioContext): void {
@@ -597,7 +600,8 @@ export function playArcadeChime(): void {
       osc.start(t); osc.stop(t + 0.08)
     })
   }
-  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+  if (ctx.state === 'suspended') ctx.resume().then(go).catch(() => {})
+  else go()
 }
 
 export function scheduleArcadeTick(ctx: AudioContext): void {
@@ -690,7 +694,8 @@ export function playWesternChime(): void {
       osc.start(t); osc.stop(t + 0.7)
     })
   }
-  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+  if (ctx.state === 'suspended') ctx.resume().then(go).catch(() => {})
+  else go()
 }
 
 export function scheduleWesternTick(ctx: AudioContext): void {
@@ -802,7 +807,8 @@ export function playBoxingChime(): void {
     osc2.connect(gain2); gain2.connect(ctx.destination)
     osc2.start(now); osc2.stop(now + 0.6)
   }
-  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+  if (ctx.state === 'suspended') ctx.resume().then(go).catch(() => {})
+  else go()
 }
 
 export function scheduleBoxingTick(ctx: AudioContext): void {
@@ -1005,7 +1011,8 @@ export function playBombBeep(): void {
     click.connect(clickGain); clickGain.connect(master)
     click.start(now); click.stop(now + 0.012)
   }
-  ctx.state === 'suspended' ? ctx.resume().then(run).catch(() => {}) : run()
+  if (ctx.state === 'suspended') ctx.resume().then(run).catch(() => {})
+  else run()
 }
 
 // THEMED DISPATCHERS
@@ -1034,7 +1041,8 @@ export function playThemedTick(theme: string): void {
       default:        return scheduleBeep(ctx)
     }
   }
-  ctx.state === 'suspended' ? ctx.resume().then(run).catch(() => {}) : run()
+  if (ctx.state === 'suspended') ctx.resume().then(run).catch(() => {})
+  else run()
 }
 
 export function playThemedBuzzer(theme: string): Promise<void> {
@@ -1080,7 +1088,8 @@ export function playTurnStartTone(): void {
       osc.stop(t + 0.4)
     })
   }
-  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+  if (ctx.state === 'suspended') ctx.resume().then(go).catch(() => {})
+  else go()
 }
 
 /**
@@ -1110,7 +1119,8 @@ export function playTurnEndBeep(): void {
       osc.stop(t + 0.25)
     })
   }
-  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+  if (ctx.state === 'suspended') ctx.resume().then(go).catch(() => {})
+  else go()
 }
 
 // Rising 3-note major triad — plays when a player submits a turn having scored something.
@@ -1137,7 +1147,8 @@ export function playTurnScoreChime(): void {
       osc.stop(t + 0.32)
     })
   }
-  ctx.state === 'suspended' ? ctx.resume().then(go).catch(() => {}) : go()
+  if (ctx.state === 'suspended') ctx.resume().then(go).catch(() => {})
+  else go()
 }
 
 /**
@@ -1147,5 +1158,6 @@ export function playTurnScoreChime(): void {
  * for oh-one/ATC, a map of marks for cricket).
  */
 export function playTurnResultSound(scoredNothing: boolean): void {
-  scoredNothing ? playTurnEndBeep() : playTurnScoreChime()
+  if (scoredNothing) playTurnEndBeep()
+  else playTurnScoreChime()
 }
