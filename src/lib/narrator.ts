@@ -72,21 +72,87 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   // ── Whose turn it is. The one thing "Names only" keeps. ──────────────────────
   walkUp: {
     commentary: false,
+    // This is the most repeated line in the app — it fires on every single turn, so four
+    // players over twenty rounds hear it eighty times. One variant each meant hearing the
+    // identical sentence all eighty. These rotate.
     byPersonality: {
-      hype: c => [[`LET'S GO! ${c.name}, get up here — it's your time!`]],
-      savage: c => [[`${c.name}. Get up there.`]],
-      announcer: c => [[`Now stepping up to the oche — ${c.name}! The crowd falls silent.`]],
-      sarcastic: c => [[`${c.name} — it's your turn. Try not to embarrass yourself.`]],
-      smooth: c => [[`Alright ${c.name}, it's your turn. Make it smooth.`]],
+      hype: c => [[
+        `LET'S GO! ${c.name}, get up here — it's your time!`,
+        `${c.name}! Step UP! Let's see it!`,
+        `Here we GO — ${c.name} is on the oche!`,
+        `${c.name}, this is your moment. TAKE IT!`,
+        `Big turn coming up — ${c.name}, let's GO!`,
+      ]],
+      savage: c => [[
+        `${c.name}. Get up there.`,
+        `${c.name}. Go.`,
+        `${c.name}. We're waiting.`,
+        `Up. ${c.name}.`,
+        `${c.name}. Try harder this time.`,
+      ]],
+      announcer: c => [[
+        `Now stepping up to the oche — ${c.name}! The crowd falls silent.`,
+        `And it's ${c.name} to the line. All eyes on the board.`,
+        `${c.name} takes the oche. You could hear a pin drop in here.`,
+        `Next to throw — ${c.name}. The tension is palpable.`,
+        `${c.name} steps forward. This is what they came for.`,
+      ]],
+      sarcastic: c => [[
+        `${c.name} — it's your turn. Try not to embarrass yourself.`,
+        `${c.name}. Your moment. Such as it is.`,
+        `It's ${c.name}. Brace yourselves.`,
+        `${c.name}'s up. Expectations remain low.`,
+        `Go on then, ${c.name}. We've got all night.`,
+      ]],
+      smooth: c => [[
+        `Alright ${c.name}, it's your turn. Make it smooth.`,
+        `${c.name}, you're up, ${term(c)}. Take your time.`,
+        `Nice and easy, ${c.name}. Your throw.`,
+        `Alright ${c.name}. Let's see something pretty.`,
+        `${c.name}, ${term(c)}, the board's all yours.`,
+      ]],
     },
-    fallback: c => [[`${c.name} — it's your turn.`]],
+    fallback: c => [[
+      `${c.name} — it's your turn.`,
+      `${c.name}, you're up.`,
+      `Up next — ${c.name}.`,
+    ]],
     clean: {
-      default: c => [[`${c.name} — it's your turn.`]],
-      hype: c => [[`${c.name}! Let's GO!`]],
-      savage: c => [[`${c.name}. Get up there.`]],
-      announcer: c => [[`Now throwing — ${c.name}.`]],
-      sarcastic: c => [[`${c.name}. I guess.`]],
-      smooth: c => [[`Alright ${c.name}, make it smooth.`]],
+      default: c => [[
+        `${c.name} — it's your turn.`,
+        `${c.name}, you're up.`,
+        `Up next — ${c.name}.`,
+      ]],
+      hype: c => [[
+        `${c.name}! Let's GO!`,
+        `${c.name}, step UP!`,
+        `Here we go — ${c.name}!`,
+        `${c.name}, take it!`,
+      ]],
+      savage: c => [[
+        `${c.name}. Get up there.`,
+        `${c.name}. Go.`,
+        `${c.name}. We're waiting.`,
+        `Up. ${c.name}.`,
+      ]],
+      announcer: c => [[
+        `Now throwing — ${c.name}.`,
+        `${c.name} to the oche.`,
+        `And it's ${c.name} to the line.`,
+        `Next to throw — ${c.name}.`,
+      ]],
+      sarcastic: c => [[
+        `${c.name}. I guess.`,
+        `${c.name}'s turn. Brace yourselves.`,
+        `Go on then, ${c.name}.`,
+        `It's ${c.name}. Marvellous.`,
+      ]],
+      smooth: c => [[
+        `Alright ${c.name}, make it smooth.`,
+        `${c.name}, you're up, ${term(c)}.`,
+        `Nice and easy, ${c.name}.`,
+        `The board's all yours, ${c.name}.`,
+      ]],
     },
     // Previously this fell through to the bare name, so clean + savage said only "Alice".
     // Clean mode is on by default, so that was most new users' first experience.
@@ -96,26 +162,58 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   bonusTurn: {
     commentary: false,
     byPersonality: {
-      hype: c => [[`${c.name} — BONUS THROW! Let's go!`]],
-      savage: c => [[`${c.name} — bonus throw. Don't waste it.`]],
-      announcer: c => [[`And ${c.name} earns a bonus throw! The crowd goes wild!`]],
+      hype: c => [[
+        `${c.name} — BONUS THROW! Let's go!`,
+        `BONUS for ${c.name}! Make it count!`,
+        `${c.name} earns another one! GO!`,
+      ]],
+      savage: c => [[
+        `${c.name} — bonus throw. Don't waste it.`,
+        `${c.name} gets another. Use it properly.`,
+        `Bonus throw, ${c.name}. Try not to squander it.`,
+      ]],
+      announcer: c => [[
+        `And ${c.name} earns a bonus throw! The crowd goes wild!`,
+        `A bonus throw for ${c.name}! What an opportunity!`,
+        `${c.name} has earned another dart! Remarkable!`,
+      ]],
       // Named deliberately: the original said only "Oh, lucky you", which on a shared
       // screen left four people unsure whose bonus throw it was.
-      sarcastic: c => [[`Oh, lucky you, ${c.name}. A bonus throw. Wow.`]],
-      smooth: c => [[`Ooh, bonus throw for ${c.name}. Go ahead, ${term(c)}.`]],
+      sarcastic: c => [[
+        `Oh, lucky you, ${c.name}. A bonus throw. Wow.`,
+        `${c.name} gets a bonus. The universe is generous.`,
+        `A bonus throw for ${c.name}. Don't let it go to your head.`,
+      ]],
+      smooth: c => [[
+        `Ooh, bonus throw for ${c.name}. Go ahead, ${term(c)}.`,
+        `${c.name} earned another one. Take it, ${term(c)}.`,
+        `Bonus for ${c.name}. Make it pretty.`,
+      ]],
     },
-    fallback: c => [[`${c.name} — bonus throw!`]],
+    fallback: c => [[`${c.name} — bonus throw!`, `Bonus throw for ${c.name}.`]],
     // The unfiltered lines here carry no profanity, so clean mode keeps the same voices
     // rather than flattening all six into one neutral sentence.
     clean: {
-      default: c => [[`${c.name} — bonus throw.`]],
-      hype: c => [[`${c.name} — BONUS THROW! Let's go!`]],
-      savage: c => [[`${c.name} — bonus throw. Don't waste it.`]],
-      announcer: c => [[`And ${c.name} earns a bonus throw! The crowd is on its feet!`]],
-      sarcastic: c => [[`Oh, lucky you, ${c.name}. A bonus throw. Wow.`]],
-      smooth: c => [[`Ooh, bonus throw for ${c.name}. Go ahead, ${term(c)}.`]],
+      default: c => [[`${c.name} — bonus throw.`, `Bonus throw for ${c.name}.`]],
+      hype: c => [[`${c.name} — BONUS THROW! Let's go!`, `BONUS for ${c.name}! Make it count!`]],
+      savage: c => [[
+        `${c.name} — bonus throw. Don't waste it.`,
+        `${c.name} gets another. Use it properly.`,
+      ]],
+      announcer: c => [[
+        `And ${c.name} earns a bonus throw! The crowd is on its feet!`,
+        `A bonus throw for ${c.name}! What an opportunity!`,
+      ]],
+      sarcastic: c => [[
+        `Oh, lucky you, ${c.name}. A bonus throw. Wow.`,
+        `${c.name} gets a bonus. The universe is generous.`,
+      ]],
+      smooth: c => [[
+        `Ooh, bonus throw for ${c.name}. Go ahead, ${term(c)}.`,
+        `${c.name} earned another one. Take it, ${term(c)}.`,
+      ]],
     },
-    cleanFallback: c => [[`${c.name} — bonus throw.`]],
+    cleanFallback: c => [[`${c.name} — bonus throw.`, `Bonus throw for ${c.name}.`]],
   },
 
   // ── Commentary. All of this is silenced by "Names only". ─────────────────────
@@ -243,85 +341,242 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   twentySecondWalkUp: {
     commentary: true,
     byPersonality: {
-      hype: c => [[`${c.name}, twenty seconds! Let's MOVE!`]],
-      savage: c => [[`${c.name}. Walk up.`]],
-      announcer: c => [[`${c.name}, twenty seconds remaining!`]],
-      sarcastic: c => [[`${c.name}, twenty seconds. Not that it seems to matter.`]],
-      smooth: c => [[`${c.name}, about twenty seconds left, ${term(c)}.`]],
+      hype: c => [[
+        `${c.name}, twenty seconds! Let's MOVE!`,
+        `Twenty seconds, ${c.name} — get up there!`,
+        `Clock's running, ${c.name}! MOVE!`,
+      ]],
+      savage: c => [[
+        `${c.name}. Walk up.`,
+        `Twenty seconds, ${c.name}.`,
+        `${c.name}. Now.`,
+      ]],
+      announcer: c => [[
+        `${c.name}, twenty seconds remaining!`,
+        `Twenty seconds on the clock for ${c.name}.`,
+        `The clock is against ${c.name} — twenty seconds.`,
+      ]],
+      sarcastic: c => [[
+        `${c.name}, twenty seconds. Not that it seems to matter.`,
+        `Twenty seconds, ${c.name}. No rush, obviously.`,
+        `${c.name}, twenty seconds. Whenever suits.`,
+      ]],
+      smooth: c => [[
+        `${c.name}, about twenty seconds left, ${term(c)}.`,
+        `Twenty seconds, ${c.name}. Ease on up.`,
+        `Clock's ticking, ${c.name}. Come on up, ${term(c)}.`,
+      ]],
     },
-    fallback: c => [[`${c.name}, walk up now.`]],
+    fallback: c => [[
+      `${c.name}, walk up now.`,
+      `${c.name}, twenty seconds.`,
+    ]],
     clean: {
-      default: c => [[`${c.name}, twenty seconds.`]],
-      hype: c => [[`${c.name}, twenty seconds! Let's MOVE!`]],
-      savage: c => [[`${c.name}. Walk up.`]],
-      announcer: c => [[`${c.name}, twenty seconds remaining!`]],
-      sarcastic: c => [[`${c.name}, twenty seconds. Not that it seems to matter.`]],
-      smooth: c => [[`${c.name}, about twenty seconds left, ${term(c)}.`]],
+      default: c => [[`${c.name}, twenty seconds.`, `${c.name}, walk up now.`]],
+      hype: c => [[
+        `${c.name}, twenty seconds! Let's MOVE!`,
+        `Clock's running, ${c.name}!`,
+      ]],
+      savage: c => [[`${c.name}. Walk up.`, `Twenty seconds, ${c.name}.`, `${c.name}. Now.`]],
+      announcer: c => [[
+        `${c.name}, twenty seconds remaining!`,
+        `Twenty seconds on the clock for ${c.name}.`,
+      ]],
+      sarcastic: c => [[
+        `${c.name}, twenty seconds. Not that it seems to matter.`,
+        `Twenty seconds, ${c.name}. No rush, obviously.`,
+      ]],
+      smooth: c => [[
+        `${c.name}, about twenty seconds left, ${term(c)}.`,
+        `Twenty seconds, ${c.name}. Ease on up.`,
+      ]],
     },
-    cleanFallback: c => [[`${c.name}, twenty seconds.`]],
+    cleanFallback: c => [[`${c.name}, twenty seconds.`, `${c.name}, walk up now.`]],
   },
 
   twentySecondThrow: {
     commentary: true,
     byPersonality: {
-      hype: c => [[`${c.name}, twenty seconds! Let's MOVE!`]],
-      savage: c => [[`${c.name}. Shoot.`]],
-      announcer: c => [[`${c.name}, twenty seconds remaining in this turn!`]],
-      sarcastic: c => [[`${c.name}, twenty seconds. Not that it seems to matter.`]],
-      smooth: c => [[`${c.name}, about twenty seconds left, ${term(c)}.`]],
+      // Deliberately not the same words as twentySecondWalkUp: that one is "get to the
+      // line", this one is "you're at the line, throw". They previously shared three
+      // identical lines, which made the two moments indistinguishable.
+      hype: c => [[
+        `${c.name}, twenty seconds — THROW!`,
+        `Twenty seconds, ${c.name}! Let it fly!`,
+        `Clock's on you, ${c.name} — send it!`,
+      ]],
+      savage: c => [[
+        `${c.name}. Shoot.`,
+        `Twenty seconds. Throw, ${c.name}.`,
+        `${c.name}. Any day now.`,
+      ]],
+      announcer: c => [[
+        `${c.name}, twenty seconds remaining in this turn!`,
+        `Twenty seconds left for ${c.name} to release.`,
+        `The clock closes in on ${c.name} — twenty seconds.`,
+      ]],
+      sarcastic: c => [[
+        `${c.name}, twenty seconds. Not that it seems to matter.`,
+        `Twenty seconds, ${c.name}. Take your time. Really.`,
+        `${c.name}, twenty seconds. The dart won't throw itself.`,
+      ]],
+      smooth: c => [[
+        `${c.name}, about twenty seconds left, ${term(c)}.`,
+        `Twenty seconds, ${c.name}. Let it go smooth.`,
+        `Clock's easing down, ${c.name}. Send it, ${term(c)}.`,
+      ]],
     },
-    fallback: c => [[`${c.name}, you need to shoot.`]],
+    fallback: c => [[
+      `${c.name}, you need to shoot.`,
+      `${c.name}, twenty seconds to throw.`,
+    ]],
     clean: {
-      default: c => [[`${c.name}, twenty seconds.`]],
-      hype: c => [[`${c.name}, twenty seconds! Let's MOVE!`]],
-      savage: c => [[`${c.name}. Shoot.`]],
-      announcer: c => [[`${c.name}, twenty seconds remaining in this turn!`]],
-      sarcastic: c => [[`${c.name}, twenty seconds. Not that it seems to matter.`]],
-      smooth: c => [[`${c.name}, about twenty seconds left, ${term(c)}.`]],
+      default: c => [[`${c.name}, twenty seconds.`, `${c.name}, you need to throw.`]],
+      hype: c => [[`${c.name}, twenty seconds — THROW!`, `Let it fly, ${c.name}!`]],
+      savage: c => [[`${c.name}. Shoot.`, `Throw, ${c.name}.`, `${c.name}. Any day now.`]],
+      announcer: c => [[
+        `${c.name}, twenty seconds remaining in this turn!`,
+        `Twenty seconds left for ${c.name} to release.`,
+      ]],
+      sarcastic: c => [[
+        `${c.name}, twenty seconds. Not that it seems to matter.`,
+        `${c.name}, the dart won't throw itself.`,
+      ]],
+      smooth: c => [[
+        `${c.name}, about twenty seconds left, ${term(c)}.`,
+        `Let it go smooth, ${c.name}.`,
+      ]],
     },
-    cleanFallback: c => [[`${c.name}, twenty seconds.`]],
+    cleanFallback: c => [[`${c.name}, twenty seconds.`, `${c.name}, you need to throw.`]],
   },
 
   throwNudge: {
     commentary: true,
     byPersonality: {
-      hype: c => [[`${c.name}! You're up — let's go!`]],
-      savage: c => [[`${c.name}. Throw.`]],
-      announcer: c => [[`${c.name}, the board is waiting.`]],
-      sarcastic: c => [[`${c.name}. Still your turn, by the way.`]],
-      smooth: c => [[`${c.name}, it's you, ${term(c)}.`]],
+      hype: c => [[
+        `${c.name}! You're up — let's go!`,
+        `${c.name}! Still you! Let's GO!`,
+        `Come on ${c.name}, we're waiting on you!`,
+      ]],
+      savage: c => [[
+        `${c.name}. Throw.`,
+        `${c.name}. Still you.`,
+        `Today, ${c.name}.`,
+      ]],
+      announcer: c => [[
+        `${c.name}, the board is waiting.`,
+        `We're still waiting on ${c.name}.`,
+        `The oche remains occupied — ${c.name}.`,
+      ]],
+      sarcastic: c => [[
+        `${c.name}. Still your turn, by the way.`,
+        `${c.name}. In case you'd forgotten.`,
+        `Any time, ${c.name}. Genuinely.`,
+      ]],
+      smooth: c => [[
+        `${c.name}, it's you, ${term(c)}.`,
+        `Still you, ${c.name}. No rush.`,
+        `We're on you, ${c.name}. Whenever you're ready.`,
+      ]],
     },
-    fallback: c => [[`${c.name}, it's your turn`]],
+    fallback: c => [[
+      `${c.name}, it's your turn`,
+      `${c.name}, still your turn`,
+    ]],
     clean: {
-      default: c => [[`${c.name}, it's your turn`]],
-      hype: c => [[`${c.name}! You're up — let's go!`]],
-      savage: c => [[`${c.name}. Throw.`]],
-      announcer: c => [[`${c.name}, the board is waiting.`]],
-      sarcastic: c => [[`${c.name}. Still your turn, by the way.`]],
-      smooth: c => [[`${c.name}, it's you, ${term(c)}.`]],
+      default: c => [[`${c.name}, it's your turn`, `${c.name}, still your turn`]],
+      hype: c => [[`${c.name}! You're up — let's go!`, `Come on ${c.name}!`]],
+      savage: c => [[`${c.name}. Throw.`, `${c.name}. Still you.`, `Today, ${c.name}.`]],
+      announcer: c => [[
+        `${c.name}, the board is waiting.`,
+        `We're still waiting on ${c.name}.`,
+      ]],
+      sarcastic: c => [[
+        `${c.name}. Still your turn, by the way.`,
+        `${c.name}. In case you'd forgotten.`,
+      ]],
+      smooth: c => [[
+        `${c.name}, it's you, ${term(c)}.`,
+        `Still you, ${c.name}. No rush.`,
+      ]],
     },
-    cleanFallback: c => [[`${c.name}, it's your turn`]],
+    cleanFallback: c => [[`${c.name}, it's your turn`, `${c.name}, still your turn`]],
   },
 
   win: {
     commentary: false,
     byPersonality: {
-      hype: c => [[`${c.name} takes it! What a finish!`]],
-      savage: c => [[`${c.name} wins. Everyone else, do better.`]],
-      announcer: c => [[`And it's ${c.name}! A deserved victory tonight!`]],
-      sarcastic: c => [[`${c.name} wins. Try to act surprised.`]],
-      smooth: c => [[`${c.name} takes it. Smooth work, ${term(c)}.`]],
+      hype: c => [[
+        `${c.name} takes it! What a finish!`,
+        `${c.name} WINS! That's how it's done!`,
+        `GET IN! ${c.name} takes the whole thing!`,
+        `${c.name}! Champion! What a performance!`,
+      ]],
+      savage: c => [[
+        `${c.name} wins. Everyone else, do better.`,
+        `${c.name} wins. The rest of you were spectators.`,
+        `${c.name}. Winner. Barely a contest.`,
+        `That's ${c.name}. Try again sometime.`,
+      ]],
+      announcer: c => [[
+        `And it's ${c.name}! A deserved victory tonight!`,
+        `${c.name} takes it! What a way to close out the match!`,
+        `Victory goes to ${c.name}! The crowd is on its feet!`,
+        `And that's the match — ${c.name}, your winner!`,
+      ]],
+      sarcastic: c => [[
+        `${c.name} wins. Try to act surprised.`,
+        `${c.name} takes it. Nobody saw that coming. Nobody.`,
+        `And ${c.name} wins. Alert the press.`,
+        `${c.name}. Victorious. We're all thrilled.`,
+      ]],
+      smooth: c => [[
+        `${c.name} takes it. Smooth work, ${term(c)}.`,
+        `That's the game, ${c.name}. Beautiful.`,
+        `${c.name} closes it out. Real nice, ${term(c)}.`,
+        `And ${c.name} takes it home. Smooth.`,
+      ]],
     },
-    fallback: c => [[`${c.name} wins! Well played.`]],
+    fallback: c => [[
+      `${c.name} wins! Well played.`,
+      `${c.name} takes it. Well played.`,
+      `That's the game — ${c.name} wins.`,
+    ]],
     clean: {
-      default: c => [[`${c.name} wins! Well played.`]],
-      hype: c => [[`${c.name} takes it! What a finish!`]],
-      savage: c => [[`${c.name} wins. Everyone else, do better.`]],
-      announcer: c => [[`And it's ${c.name}! A deserved victory tonight!`]],
-      sarcastic: c => [[`${c.name} wins. Try to act surprised.`]],
-      smooth: c => [[`${c.name} takes it. Smooth work, ${term(c)}.`]],
+      default: c => [[
+        `${c.name} wins! Well played.`,
+        `That's the game — ${c.name} wins.`,
+      ]],
+      hype: c => [[
+        `${c.name} takes it! What a finish!`,
+        `${c.name} WINS! That's how it's done!`,
+        `${c.name}! Champion!`,
+      ]],
+      savage: c => [[
+        `${c.name} wins. Everyone else, do better.`,
+        `${c.name}. Winner. Barely a contest.`,
+        `That's ${c.name}. Try again sometime.`,
+      ]],
+      announcer: c => [[
+        `And it's ${c.name}! A deserved victory tonight!`,
+        `Victory goes to ${c.name}!`,
+        `And that's the match — ${c.name}, your winner!`,
+      ]],
+      sarcastic: c => [[
+        `${c.name} wins. Try to act surprised.`,
+        `And ${c.name} wins. Alert the press.`,
+        `${c.name}. Victorious. We're all thrilled.`,
+      ]],
+      smooth: c => [[
+        `${c.name} takes it. Smooth work, ${term(c)}.`,
+        `That's the game, ${c.name}. Beautiful.`,
+        `And ${c.name} takes it home. Smooth.`,
+      ]],
     },
-    cleanFallback: c => [[`${c.name} wins! Well played.`]],
+    cleanFallback: c => [[
+      `${c.name} wins! Well played.`,
+      `That's the game — ${c.name} wins.`,
+    ]],
   },
 
   // ── The game clock. About the match, not any one player. ─────────────────────
@@ -332,44 +587,94 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   gameTimeWarning: {
     commentary: true,
     byPersonality: {
-      hype: c => [[`${c.count} minutes left! Let's GO!`]],
-      savage: c => [[`${c.count} minutes. Move it along.`]],
-      announcer: c => [[`${c.count} minutes remaining in this match!`]],
-      sarcastic: c => [[`${c.count} minutes left. No rush, obviously.`]],
-      smooth: c => [[`${c.count} minutes on the clock, ${term(c)}.`]],
+      hype: c => [[
+        `${c.count} minutes left! Let's GO!`,
+        `${c.count} minutes on the clock — pick it UP!`,
+        `Only ${c.count} minutes! Everybody up!`,
+      ]],
+      savage: c => [[
+        `${c.count} minutes. Move it along.`,
+        `${c.count} minutes. Some of you should hurry.`,
+        `${c.count} minutes left. Tick tock.`,
+      ]],
+      announcer: c => [[
+        `${c.count} minutes remaining in this match!`,
+        `We have ${c.count} minutes left on the clock!`,
+        `${c.count} minutes to play — the pressure builds!`,
+      ]],
+      sarcastic: c => [[
+        `${c.count} minutes left. No rush, obviously.`,
+        `${c.count} minutes. Savour them.`,
+        `Only ${c.count} minutes of this left.`,
+      ]],
+      smooth: c => [[
+        `${c.count} minutes on the clock, ${term(c)}.`,
+        `${c.count} minutes left. Keep it flowing.`,
+        `We got ${c.count} minutes, ${term(c)}.`,
+      ]],
     },
-    fallback: c => [[`${c.count} minutes remaining in the game!`]],
+    fallback: c => [[
+      `${c.count} minutes remaining in the game!`,
+      `${c.count} minutes left.`,
+    ]],
     clean: {
-      default: c => [[`${c.count} minutes remaining.`]],
-      hype: c => [[`${c.count} minutes left! Let's go!`]],
-      savage: c => [[`${c.count} minutes. Move it along.`]],
-      announcer: c => [[`${c.count} minutes remaining in this match.`]],
-      sarcastic: c => [[`${c.count} minutes left. No rush.`]],
-      smooth: c => [[`${c.count} minutes on the clock, ${term(c)}.`]],
+      default: c => [[`${c.count} minutes remaining.`, `${c.count} minutes left.`]],
+      hype: c => [[`${c.count} minutes left! Let's go!`, `${c.count} minutes — pick it up!`]],
+      savage: c => [[
+        `${c.count} minutes. Move it along.`,
+        `${c.count} minutes left. Tick tock.`,
+      ]],
+      announcer: c => [[
+        `${c.count} minutes remaining in this match.`,
+        `We have ${c.count} minutes left on the clock!`,
+      ]],
+      sarcastic: c => [[`${c.count} minutes left. No rush.`, `${c.count} minutes. Savour them.`]],
+      smooth: c => [[
+        `${c.count} minutes on the clock, ${term(c)}.`,
+        `${c.count} minutes left. Keep it flowing.`,
+      ]],
     },
-    cleanFallback: c => [[`${c.count} minutes remaining.`]],
+    cleanFallback: c => [[`${c.count} minutes remaining.`, `${c.count} minutes left.`]],
   },
 
   // Not commentary: the match ending is a state change, the same call as a win.
   gameOver: {
     commentary: false,
     byPersonality: {
-      hype: () => [[`TIME! That's the game!`]],
-      savage: () => [[`Time. Game over.`]],
-      announcer: () => [[`And that is time! The match is over!`]],
-      sarcastic: () => [[`Time's up. Riveting stuff.`]],
-      smooth: c => [[`That's time, ${term(c)}. Game over.`]],
+      hype: () => [[`TIME! That's the game!`, `THAT'S TIME! What a match!`, `Clock's done — that's the GAME!`]],
+      savage: () => [[`Time. Game over.`, `Time. That's it.`, `Clock's out. Done.`]],
+      announcer: () => [[
+        `And that is time! The match is over!`,
+        `Time is called! What a contest this has been!`,
+        `The clock runs out — and that is your match!`,
+      ]],
+      sarcastic: () => [[
+        `Time's up. Riveting stuff.`,
+        `And time. What a journey that was.`,
+        `Time. I'll treasure this.`,
+      ]],
+      smooth: c => [[
+        `That's time, ${term(c)}. Game over.`,
+        `Clock's done, ${term(c)}. That's the game.`,
+        `And that's time. Good game, ${term(c)}.`,
+      ]],
     },
-    fallback: () => [[`Time is up! Game over!`]],
+    fallback: () => [[`Time is up! Game over!`, `That's time — game over.`]],
     clean: {
-      default: () => [[`Time's up. Game over.`]],
-      hype: () => [[`Time! That's the game!`]],
-      savage: () => [[`Time. Game over.`]],
-      announcer: () => [[`And that is time. The match is over.`]],
-      sarcastic: () => [[`Time's up. Riveting stuff.`]],
-      smooth: c => [[`That's time, ${term(c)}. Game over.`]],
+      default: () => [[`Time's up. Game over.`, `That's time — game over.`]],
+      hype: () => [[`Time! That's the game!`, `THAT'S TIME! What a match!`]],
+      savage: () => [[`Time. Game over.`, `Time. That's it.`, `Clock's out. Done.`]],
+      announcer: () => [[
+        `And that is time. The match is over.`,
+        `Time is called! What a contest this has been!`,
+      ]],
+      sarcastic: () => [[`Time's up. Riveting stuff.`, `And time. What a journey that was.`]],
+      smooth: c => [[
+        `That's time, ${term(c)}. Game over.`,
+        `Clock's done, ${term(c)}. That's the game.`,
+      ]],
     },
-    cleanFallback: () => [[`Time's up. Game over.`]],
+    cleanFallback: () => [[`Time's up. Game over.`, `That's time — game over.`]],
   },
 }
 
