@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# Refuse to push straight to main.
+#
+# main deploys, so anything landing on it should have had CI run against it first. Three of
+# four consecutive red runs came from commits that skipped a PR: the coin flip moved to its
+# own tile in two direct pushes, the home specs still asserted the old hero chip, and nothing
+# caught it until a PR ran the suite afterwards.
+#
+# This is a stand-in for GitHub branch protection, which needs Pro or a public repo and is
+# available on neither. It guards this machine rather than the remote, which is where those
+# pushes came from — but it is not a server-side guarantee, and a different clone without
+# core.hooksPath set is unprotected.
+#
+# git reports one line per ref being pushed: <local ref> <local sha> <remote ref> <remote sha>
+
+while read -r local_ref local_sha remote_ref remote_sha
+do
+  case "$remote_ref" in
+    refs/heads/main)
+      echo ""
+      echo "  pre-push: refusing to push straight to main."
+      echo ""
+      echo "  main deploys, and CI has to run against a change before it lands there."
+      echo "  Put it on a branch and open a PR:"
+      echo ""
+      echo "      git switch -c my-change"
+      echo "      git push -u origin my-change"
+      echo "      gh pr create"
+      echo ""
+      echo "  Then let 'gh pr merge' land it — that merges server-side and is unaffected"
+      echo "  by this hook."
+      echo ""
+      echo "  Genuine emergency: git push --no-verify"
+      echo ""
+      exit 1
+      ;;
+  esac
+done
+
+exit 0
