@@ -21,6 +21,39 @@ async function betAndDeal(page: import('@playwright/test').Page, presses = 2) {
   await page.getByRole('button', { name: 'Deal', exact: true }).click()
 }
 
+/**
+ * Seeds a one-player table with a stacked shoe, so the deal is known rather than random.
+ *
+ * Any test that expects the player to *act* needs this. A natural blackjack settles the
+ * round inside deal() — no hole card to hide, no Stand button to press — so roughly one
+ * hand in twenty, an unseeded test asserts against a table that has already finished. That
+ * is what showed up as a flaky run rather than as a clean failure.
+ *
+ * The deal takes one card per player then one for the dealer, twice, drawing with pop().
+ * Filler sits underneath because the store reshuffles once the shoe falls to fifteen.
+ */
+async function seedTable(
+  page: import('@playwright/test').Page,
+  { player, dealer }: { player: [number, number]; dealer: number[] },
+) {
+  const card = (rank: number) => ({ kind: 'pip', suit: 'spades', rank })
+  // Draw order: player, dealer, player, dealer — then anything the dealer hits for.
+  const sequence = [player[0], dealer[0], player[1], dealer[1], ...dealer.slice(2)].map(card)
+  const filler = Array.from({ length: 40 }, () => card(2))
+
+  await page.addInitScript(({ shoe }) => {
+    localStorage.setItem('blackjack_active_game', JSON.stringify({
+      id: 'smoke-bj', startedAt: '2026-01-01T00:00:00.000Z',
+      players: [{
+        id: 'smoke-1', name: 'Peezy', avatarUrl: null, color: '#ff4d6d',
+        chips: 100, bet: 10, hand: [], status: 'betting', outcome: null,
+      }],
+      dealer: [], shoe, currentPlayerIndex: 0, phase: 'betting', round: 1,
+      lastAction: 'Place your bets',
+    }))
+  }, { shoe: [...filler, ...sequence.reverse()] })
+}
+
 test('blackjack: the home tile opens the table', async ({ page }) => {
   await seedRoster(page)
   await page.goto('/')
@@ -67,18 +100,23 @@ test('blackjack: dealing takes the stake and puts cards on the table', async ({ 
 
   await betAndDeal(page)
 
-  // Two cards each, and the stake is off the stack — 100 less a bet of 10.
+  // Two cards to the player, and the stake off the stack — 100 less a bet of 10.
   await expect(page.locator('.seat').first().locator('.hand button')).toHaveCount(2)
   await expect(page.locator('.seat').first()).toContainText('90 chips')
-  await expect(page.locator('.dealer .hand button')).toHaveCount(2)
+
+  // A floor rather than exactly two, and deliberately so. This test deals a real shoe to
+  // cover the setup journey, and roughly one hand in twenty is a natural blackjack — which
+  // settles inside deal() and sends the dealer drawing to seventeen before anything renders.
+  // The seeded tests below pin the exact two-card table; this one must not.
+  expect(await page.locator('.dealer .hand button').count()).toBeGreaterThanOrEqual(2)
 })
 
 test('blackjack: the hole card stays down until the dealer plays', async ({ page }) => {
   await seedRoster(page)
-  await page.goto('/blackjack/setup')
-  await pickBubble(page, 'Peezy')
-  await page.getByRole('button', { name: 'Deal In' }).click()
-  await betAndDeal(page)
+  // 17 against 18 — the player has to act, so there is a hole card to keep hidden.
+  await seedTable(page, { player: [10, 7], dealer: [10, 8] })
+  await page.goto('/blackjack')
+  await page.getByRole('button', { name: 'Deal', exact: true }).click()
 
   // The whole tension of the game. Showing it early makes every decision trivial.
   const hole = page.locator('.dealer').getByRole('button', { name: 'Face-down card' })
@@ -94,46 +132,50 @@ test('blackjack: the hole card stays down until the dealer plays', async ({ page
 
 test('blackjack: a hand plays out and the round settles', async ({ page }) => {
   await seedRoster(page)
-  await page.goto('/blackjack/setup')
-  await pickBubble(page, 'Peezy')
-  await page.getByRole('button', { name: 'Deal In' }).click()
-  await betAndDeal(page)
+  await seedTable(page, { player: [10, 7], dealer: [10, 8] })
+  await page.goto('/blackjack')
+  await page.getByRole('button', { name: 'Deal', exact: true }).click()
 
   await page.getByRole('button', { name: 'Stand' }).click()
 
   // Standing with nobody left to act runs the dealer and settles in one step.
   await expect(page.locator('.seat').first().locator('.outcome')).toHaveCount(1)
-  await expect(page.locator('.last-action')).toContainText(/Dealer (stands|busts) on \d+/)
+  await expect(page.locator('.last-action')).toContainText('Dealer stands on 18')
   await expect(page.getByRole('button', { name: 'Next hand' })).toBeVisible()
 })
 
-test('blackjack: chips only ever move by the stake', async ({ page }) => {
-  await seedRoster(page)
-  await page.goto('/blackjack/setup')
-  await pickBubble(page, 'Peezy')
-  await page.getByRole('button', { name: 'Deal In' }).click()
-  await betAndDeal(page)
-  await page.getByRole('button', { name: 'Stand' }).click()
+/**
+ * The bug this game shipped with paid winners twice and cost losers nothing, so each case
+ * asserts an exact stack rather than that a number moved — a test checking only for change
+ * would have passed against it. Stacking the shoe is what lets the number be exact.
+ */
+for (const { label, player, dealer, outcome, chips } of [
+  { label: 'a win returns the stake and pays it', player: [10, 9], dealer: [10, 8], outcome: 'WIN', chips: 110 },
+  { label: 'a loss costs the stake and no more', player: [10, 7], dealer: [10, 8], outcome: 'LOSE', chips: 90 },
+  { label: 'a push hands the stake back', player: [10, 8], dealer: [10, 8], outcome: 'PUSH', chips: 100 },
+  { label: 'blackjack pays three to two', player: [14, 13], dealer: [10, 8], outcome: 'BLACKJACK · pays 3:2', chips: 115 },
+] as const) {
+  test(`blackjack: ${label}`, async ({ page }) => {
+    await seedRoster(page)
+    await seedTable(page, { player: [...player] as [number, number], dealer: [...dealer] })
+    await page.goto('/blackjack')
+    await page.getByRole('button', { name: 'Deal', exact: true }).click()
 
-  // The bug this game shipped with paid winners twice and cost losers nothing, so the
-  // assertion is on the arithmetic rather than merely that a number changed.
-  const seat = page.locator('.seat').first()
-  const outcome = (await seat.locator('.outcome').innerText()).trim()
-  const chips = Number((await seat.innerText()).match(/(\d+) chips/)![1])
+    // A natural blackjack settles inside the deal, so there is nothing to stand on.
+    const stand = page.getByRole('button', { name: 'Stand' })
+    if (await stand.count()) await stand.click()
 
-  const expected: Record<string, number> = {
-    'WIN': 110, 'BLACKJACK · pays 3:2': 115, 'PUSH': 100, 'LOSE': 90, 'BUST': 90,
-  }
-  expect(expected[outcome], `unexpected outcome label "${outcome}"`).toBeDefined()
-  expect(chips, `${outcome} left the stack at ${chips}`).toBe(expected[outcome])
-})
+    const seat = page.locator('.seat').first()
+    await expect(seat.locator('.outcome')).toHaveText(outcome)
+    await expect(seat).toContainText(`${chips} chips`)
+  })
+}
 
 test('blackjack: the next hand clears the table', async ({ page }) => {
   await seedRoster(page)
-  await page.goto('/blackjack/setup')
-  await pickBubble(page, 'Peezy')
-  await page.getByRole('button', { name: 'Deal In' }).click()
-  await betAndDeal(page)
+  await seedTable(page, { player: [10, 7], dealer: [10, 8] })
+  await page.goto('/blackjack')
+  await page.getByRole('button', { name: 'Deal', exact: true }).click()
   await page.getByRole('button', { name: 'Stand' }).click()
   await page.getByRole('button', { name: 'Next hand' }).click()
 
