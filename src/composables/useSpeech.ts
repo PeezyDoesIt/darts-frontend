@@ -1,18 +1,15 @@
 import { useSettingsStore } from '../stores/settings'
+import { resolveVoice } from '../lib/voiceMatch'
 
-// Preferred female voice name fragments, in priority order
-const FEMALE_FRAGMENTS = ['Zira', 'Aria', 'Jenny', 'Michelle', 'Ana', 'Emma', 'Natasha', 'Samantha', 'Karen', 'Allison', 'Zoe', 'Tessa']
-
+/**
+ * The stored preference is an exact SpeechSynthesisVoice.name, and those are platform
+ * specific — so on any other device it simply will not be there. This used to fall straight
+ * to "the first English voice", which is how a voice picked on the iPad turned into somebody
+ * else on the phone. resolveVoice walks a ladder instead, and is tested against fabricated
+ * Windows, macOS, iOS and Android rosters rather than only this machine's.
+ */
 function selectVoice(name: string): SpeechSynthesisVoice | null {
-  const voices = window.speechSynthesis.getVoices()
-  if (!voices.length) return null
-  if (name) return voices.find(v => v.name === name) ?? voices.find(v => v.lang.startsWith('en')) ?? null
-  // No preference set — find a female English voice using partial name matching
-  for (const fragment of FEMALE_FRAGMENTS) {
-    const v = voices.find(v => v.name.includes(fragment) && v.lang.startsWith('en'))
-    if (v) return v
-  }
-  return voices.find(v => v.lang.startsWith('en')) ?? null
+  return resolveVoice(window.speechSynthesis.getVoices(), name).voice
 }
 
 const PRONUNCIATIONS: [RegExp, string][] = [
@@ -87,17 +84,11 @@ export function speak(text: string, opts?: { rate?: number; pitch?: number }): P
 
 export function speakOhBaby(): Promise<void> {
   return new Promise(resolve => {
-    function findFemaleVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
-      for (const fragment of FEMALE_FRAGMENTS) {
-        const v = voices.find(v => v.name.includes(fragment) && v.lang.startsWith('en'))
-        if (v) return v
-      }
-      return voices.find(v => v.lang.startsWith('en')) ?? null
-    }
-
     function go() {
-      const voices = window.speechSynthesis.getVoices()
-      const voice = findFemaleVoice(voices)
+      // This one ignores the stored preference on purpose — the bit is the voice, not the
+      // narrator. Passing no preference walks straight to the preferred-fragment list, which
+      // is what the duplicated findFemaleVoice here used to do by hand.
+      const voice = resolveVoice(window.speechSynthesis.getVoices(), '').voice
 
       window.speechSynthesis.cancel()
 
