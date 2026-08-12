@@ -30,9 +30,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Node 20 went end-of-life in April 2026, so the suite was building and validating the
+      # app on an unsupported runtime. Nothing in the toolchain objected — every engines
+      # field is a floor well below 22 — it simply stopped receiving security fixes.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
