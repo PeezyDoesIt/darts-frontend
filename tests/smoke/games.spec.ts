@@ -235,10 +235,9 @@ for (const [mode, label, expected] of [
   test(`spades: the ${mode} bid chips are evenly sized on a phone`, async ({ page }) => {
     test.setTimeout(90_000)
 
-    // 375px, not the project's 393. The row only wraps on the narrower phones — an iPhone
-    // SE or mini — and at 393 the chips happen to fit one row, so the defect is invisible.
-    await page.setViewportSize({ width: 375, height: 812 })
-
+    // Deliberately no explicit viewport: this runs on both projects and it is the narrow
+    // one that matters. At the default 393 the four chips fit one row and this passes
+    // whether the fix is there or not; at 375 the row wraps and the defect appears.
     await page.goto('/spades/setup')
     // hasText is case-insensitive and the solo blurb says "no partners", so it matches both
     // buttons. Match the name element exactly instead.
