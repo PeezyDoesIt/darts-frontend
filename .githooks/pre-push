@@ -7,10 +7,16 @@
 # own tile in two direct pushes, the home specs still asserted the old hero chip, and nothing
 # caught it until a PR ran the suite afterwards.
 #
-# This is a stand-in for GitHub branch protection, which needs Pro or a public repo and is
-# available on neither. It guards this machine rather than the remote, which is where those
-# pushes came from — but it is not a server-side guarantee, and a different clone without
-# core.hooksPath set is unprotected.
+# This is no longer the thing enforcing that. main is protected on GitHub — a pull request is
+# required, `test` and `preview` must pass, the branch must be current, and it applies to
+# admins too, so nobody has a way around it. This hook was written when the repo was private
+# on the free plan and protection could not be switched on at all; making it public is what
+# changed that.
+#
+# It is kept because it fails in the moment you type the command, with the commands to run
+# next, rather than after a round trip to a rejection that explains less. Treat it as a
+# convenience, not the guarantee: a clone without core.hooksPath set never runs it, and
+# that clone is still protected.
 #
 # git reports one line per ref being pushed: <local ref> <local sha> <remote ref> <remote sha>
 
@@ -31,7 +37,9 @@ do
       echo "  Then let 'gh pr merge' land it — that merges server-side and is unaffected"
       echo "  by this hook."
       echo ""
-      echo "  Genuine emergency: git push --no-verify"
+      echo "  --no-verify skips this hook but will not get the push through: main is"
+      echo "  protected on GitHub and the server rejects it too. A real emergency means"
+      echo "  lifting that protection in the repository settings, deliberately."
       echo ""
       exit 1
       ;;
