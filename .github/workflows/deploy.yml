@@ -8,6 +8,15 @@ on:
     branches: [main]
   pull_request:
 
+# The Wrangler that ships to production, pinned rather than left to resolve.
+#
+# wrangler-action takes no version by default, so the tool that publishes the site was
+# whatever resolved at the moment the job ran — 4.86.0 on 12 Aug while npm's latest was
+# 4.121.0. Nothing in the repo chose either number. Deploys should not change underneath us
+# without a commit saying so, and bumping this is that commit.
+env:
+  WRANGLER_VERSION: '4.86.0'
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -87,6 +96,15 @@ jobs:
           name: dist
           path: dist
 
+      # This job never runs npm ci — it deploys the artifact the test job built rather than
+      # rebuilding — so there is no node_modules for wrangler-action to find. It probes with
+      # `npx --no-install`, npm reports the miss as "npm error npx canceled ...", and the
+      # action then installs. That line is the probe working, not a failure, but a permanent
+      # npm error in a deploy log is what teaches you to skim past a real one. Installing the
+      # pinned version first makes the probe hit, so the action skips its own install.
+      - name: Install the pinned Wrangler
+        run: npm install --global wrangler@${{ env.WRANGLER_VERSION }}
+
       # Any branch other than the project's production branch deploys as a preview, on its
       # own hostname. Production is untouched.
       - name: Deploy preview to Cloudflare Pages
@@ -95,6 +113,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: c3d520e44678d984986f2145363abe64
+          wranglerVersion: ${{ env.WRANGLER_VERSION }}
           command: pages deploy dist --project-name=darts-frontend --branch=${{ github.head_ref }}
 
       - name: Check routing on the preview
@@ -137,11 +156,17 @@ jobs:
           name: dist
           path: dist
 
+      # Same as the preview job: pre-install so the action's probe hits rather than logging a
+      # miss, and so production ships the pinned version rather than whatever resolves today.
+      - name: Install the pinned Wrangler
+        run: npm install --global wrangler@${{ env.WRANGLER_VERSION }}
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: c3d520e44678d984986f2145363abe64
+          wranglerVersion: ${{ env.WRANGLER_VERSION }}
           command: pages deploy dist --project-name=darts-frontend --branch=main
 
       # Production is already live by this point, so this cannot prevent a bad deploy — but a
