@@ -14,7 +14,7 @@ export function unlockAudio(): void {
   const ctx = getBeepCtx()
   if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {})
   // Also unlock speech synthesis within the user gesture context
-  try { window.speechSynthesis.resume() } catch {}
+  try { window.speechSynthesis.resume() } catch { /* speech synthesis is not on every platform, and a failure here is not actionable */ }
 }
 
 function scheduleBeep(ctx: AudioContext): void {

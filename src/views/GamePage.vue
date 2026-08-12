@@ -620,7 +620,7 @@ import { useSettingsStore } from '../stores/settings'
 import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore, type CricketTarget } from '../types/index'
 import { useNarrator } from '../composables/useNarrator'
 import type { LineContext, NarratorEvent } from '../lib/narrator'
-import { playThemedTick, playBombBeep, playGameShowBuzzer, playTurnStartTone, playTurnResultSound, unlockAudio } from '../composables/useSounds'
+import { playBombBeep, playGameShowBuzzer, playTurnStartTone, playTurnResultSound, unlockAudio } from '../composables/useSounds'
 
 const WHITE_LABEL_THEMES = new Set<string | null>(
   PLAYER_THEMES
@@ -636,13 +636,6 @@ type OhOneScore = Extract<PlayerScore, { kind: 'ohOne' }>
 type SimpleScore = Extract<PlayerScore, { kind: 'simple' }>
 type CricketHits = Record<string | number, number>
 
-const SOUND_THEMES_UNUSED = [
-  { value: 'default', label: 'Default' },
-  { value: 'space',   label: 'Space' },
-  { value: 'arcade',  label: 'Arcade' },
-  { value: 'western', label: 'Western' },
-  { value: 'boxing',  label: 'Boxing' },
-]
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -650,7 +643,6 @@ const playersStore = usePlayersStore()
 const settingsStore = useSettingsStore()
 const { narrateAsync } = useNarrator()
 
-function pTerm() { return settingsStore.narratorGender === 'male' ? 'brother' : 'baby' }
 
 /**
  * Speak one narrator event. The view no longer decides what a personality sounds like or
@@ -799,7 +791,6 @@ const currentPlayer = computed(() => {
   const snap = game.value!.players[game.value!.currentPlayerIndex]!
   return playersStore.players.find(p => p.id === snap.id) ?? snap
 })
-const otherPlayers = computed(() => game.value!.players.filter(p => p.id !== currentPlayer.value.id))
 
 /** Per-player cricket target display wins over the game setting; null = follow the game.
  *  The player field was saved and synced but never read, so a per-player Hide did nothing. */
@@ -816,13 +807,6 @@ function setClosedTargetDisplay(val: 'show' | 'hide') {
   }
 }
 
-const upNext = computed(() => {
-  if (!game.value) return []
-  const { players, currentPlayerIndex } = game.value
-  const result = []
-  for (let i = 1; i < players.length; i++) result.push(players[(currentPlayerIndex + i) % players.length]!)
-  return result
-})
 
 const scoreLabel = computed(() => {
   const gt = game.value?.gameType
@@ -1139,7 +1123,6 @@ const showBlurBg = computed(() => {
 })
 
 const entryBlurBgStyle = computed(() => {
-  const isPlayerBg = !!currentPlayer.value.playerBackground
   const bg = currentPlayer.value.playerBackground ?? game.value?.gameTheme
   if (!bg) return {}
   return { backgroundImage: `url(${bg})` }

@@ -86,7 +86,7 @@ export const useGameStore = defineStore('game', () => {
           ...val,
           players: val.players.map(p => ({ ...p, avatarUrl: p.avatarUrl?.startsWith('data:') ? null : p.avatarUrl, playerBackground: null })),
         }
-        try { localStorage.setItem(SAVE_KEY, JSON.stringify(slim)) } catch {}
+        try { localStorage.setItem(SAVE_KEY, JSON.stringify(slim)) } catch { /* best effort: storage can be full, or unavailable in private mode */ }
       } else {
         localStorage.removeItem(SAVE_KEY)
       }

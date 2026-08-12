@@ -16,5 +16,13 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'vue/no-deprecated-slot-attribute': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+    // A leading underscore is how this codebase already says "deliberately unused" — an
+    // argument kept to satisfy a signature, for instance. Honour that rather than making
+    // people delete a parameter they need to keep.
+    '@typescript-eslint/no-unused-vars': ['error', {
+      argsIgnorePattern: '^_',
+      varsIgnorePattern: '^_',
+      caughtErrorsIgnorePattern: '^_',
+    }],
   }
 }

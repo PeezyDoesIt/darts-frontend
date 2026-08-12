@@ -146,7 +146,7 @@ export const useSpadesStore = defineStore('spades', () => {
       if (!Array.isArray(parsed.bookLog)) parsed.bookLog = []
       migrateTricksToBooks(parsed)
       game.value = parsed
-    } catch {}
+    } catch { /* a corrupt or stale save is discarded rather than crashing the store */ }
   }
 
   /**
@@ -189,7 +189,7 @@ export const useSpadesStore = defineStore('spades', () => {
         })),
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(slim))
-    } catch {}
+    } catch { /* best effort: storage can be full, or unavailable in private mode */ }
   }
 
   /**

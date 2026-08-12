@@ -57,7 +57,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { CRICKET_TARGETS, PLAYER_THEMES, type CricketTarget, type PlayerScore } from '../types/index'
+import { CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore } from '../types/index'
 import { playShotgun, playThemedBuzzer, playThemedBullseye } from '../composables/useSounds'
 import { speak, speakOhBaby } from '../composables/useSpeech'
 import { useSettingsStore } from '../stores/settings'

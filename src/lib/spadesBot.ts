@@ -135,7 +135,6 @@ export function chooseCard(hand: Card[], ctx: PlayContext): Card {
   if (goingNil) {
     // Stay under the book. Play the highest card that still loses; if everything wins,
     // shed the smallest card and take the hit.
-    const best = ctx.book.map(t => t.card)
     const pool = following.length > 0 ? following : legal.filter(c => !isTrump(c))
     const candidates = (pool.length > 0 ? pool : legal).filter(c => {
       const probe = [...ctx.book, { seat: ctx.seat, card: c }]

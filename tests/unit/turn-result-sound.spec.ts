@@ -38,7 +38,7 @@ class FakeAudioContext {
   close() { return Promise.resolve() }
 }
 
-;(window as unknown as { AudioContext: unknown }).AudioContext = FakeAudioContext
+(window as unknown as { AudioContext: unknown }).AudioContext = FakeAudioContext
 
 const { playTurnResultSound, playTurnEndBeep, playTurnScoreChime } =
   await import('@/composables/useSounds')

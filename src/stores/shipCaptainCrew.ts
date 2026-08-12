@@ -51,7 +51,7 @@ export const useSCCStore = defineStore('shipCaptainCrew', () => {
       if (!parsed.id) parsed.id = uuid()
       if (!parsed.startedAt) parsed.startedAt = new Date().toISOString()
       game.value = parsed
-    } catch {}
+    } catch { /* a corrupt or stale save is discarded rather than crashing the store */ }
   }
 
   function persist() {
@@ -64,7 +64,7 @@ export const useSCCStore = defineStore('shipCaptainCrew', () => {
         })),
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(slim))
-    } catch {}
+    } catch { /* best effort: storage can be full, or unavailable in private mode */ }
   }
 
   function startGame(players: Player[], target = DEFAULT_TARGET) {

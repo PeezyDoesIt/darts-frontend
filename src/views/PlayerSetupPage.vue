@@ -214,7 +214,7 @@ import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { goBack } from '../router/goBack'
 import { AVATAR_MAX_PX, BACKGROUND_MAX_PX, downscaleFile, downscaleVideoFrame } from '../lib/downscaleImage'
-import { PRESET_AVATARS, PLAYER_THEMES, TARGET_LABEL_COLORS, DICE_THEMES, type Player, type DiceTheme } from '../types/index'
+import { DICE_THEMES, type Player, type DiceTheme } from '../types/index'
 
 const FONT_COLORS: { name: string; value: string }[] = [
   { name: 'White',    value: '#ffffff' },

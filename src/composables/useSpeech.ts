@@ -1,30 +1,5 @@
 import { useSettingsStore } from '../stores/settings'
 
-const ALLOWED_VOICES = [
-  // macOS / iOS
-  'Karen', 'Zoe', 'Tessa', 'Allison', 'Samantha', 'Serena', 'Kate', 'Daniel', 'Moira', 'Fred', 'Rishi', 'Veena',
-  // macOS character voices
-  'Ralph', 'Bad News', 'Deranged', 'Hysterical', 'Bells', 'Boing', 'Bubbles', 'Cellos', 'Good News', 'Pipe Organ', 'Trinoids', 'Wobble', 'Zarvox',
-  // Windows built-in (Edge reports short names; Chrome appends the language)
-  'Microsoft Zira Desktop', 'Microsoft Zira Desktop - English (United States)',
-  'Microsoft Hazel Desktop', 'Microsoft Hazel Desktop - English (Great Britain)',
-  'Microsoft David Desktop', 'Microsoft David Desktop - English (United States)',
-  'Microsoft Mark Desktop', 'Microsoft Mark Desktop - English (United States)',
-  'Microsoft George Desktop', 'Microsoft George Desktop - English (Great Britain)',
-  // Windows neural (online) — available in Edge; female voices listed first
-  'Microsoft Aria Online (Natural) - English (United States)',
-  'Microsoft Jenny Online (Natural) - English (United States)',
-  'Microsoft Michelle Online (Natural) - English (United States)',
-  'Microsoft Ana Online (Natural) - English (United States)',
-  'Microsoft Emma Online (Natural) - English (United Kingdom)',
-  'Microsoft Natasha Online (Natural) - English (Australia)',
-  'Microsoft Guy Online (Natural) - English (United States)',
-  'Microsoft Ryan Online (Natural) - English (United Kingdom)',
-  'Microsoft William Online (Natural) - English (Australia)',
-  // Chrome / Edge
-  'Google UK English Female', 'Google UK English Male', 'Google US English',
-]
-
 // Preferred female voice name fragments, in priority order
 const FEMALE_FRAGMENTS = ['Zira', 'Aria', 'Jenny', 'Michelle', 'Ana', 'Emma', 'Natasha', 'Samantha', 'Karen', 'Allison', 'Zoe', 'Tessa']
 
@@ -68,7 +43,7 @@ export function cancelPendingSpeak(): void {
   if (_pendingSpeakTimer !== null) { clearTimeout(_pendingSpeakTimer); _pendingSpeakTimer = null }
   if (_pendingVoiceTimer !== null) { clearTimeout(_pendingVoiceTimer); _pendingVoiceTimer = null }
   window.speechSynthesis.onvoiceschanged = null
-  try { window.speechSynthesis.cancel() } catch {}
+  try { window.speechSynthesis.cancel() } catch { /* speech synthesis is not on every platform, and a failure here is not actionable */ }
 }
 
 function doSpeak(text: string, resolve: () => void, opts?: { rate?: number; pitch?: number }) {

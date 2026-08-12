@@ -50,7 +50,7 @@ export const useLRCStore = defineStore('lrc', () => {
           game.value = parsed
         }
       }
-    } catch {}
+    } catch { /* a corrupt or stale save is discarded rather than crashing the store */ }
   }
 
   function persist() {

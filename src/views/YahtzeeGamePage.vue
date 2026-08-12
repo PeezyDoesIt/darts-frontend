@@ -558,9 +558,9 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { chooseCategory, chooseKeeps } from '../lib/yahtzeeBot'
-import { useYahtzeeStore, grandTotal, upperTotal, upperBonus, lowerTotal, calcScore, isScorecardComplete, YAHTZEE_CATEGORIES } from '../stores/yahtzee'
+import { useYahtzeeStore, grandTotal, upperTotal, upperBonus, lowerTotal, calcScore, YAHTZEE_CATEGORIES } from '../stores/yahtzee'
 import { usePlayersStore } from '../stores/players'
-import type { YahtzeeCategory, YahtzeeScorecard } from '../stores/yahtzee'
+import type { YahtzeeCategory } from '../stores/yahtzee'
 import { DICE_THEMES, DIE_GRADIENTS, GRADIENT_DIE_THEMES, type DiceTheme } from '../types/index'
 import { useNarrator } from '../composables/useNarrator'
 import { recordGameResult } from '../api/gameResults'
@@ -731,7 +731,6 @@ function addPlayer(player: typeof playersStore.players[0]) {
   yahtzeeStore.addPlayerToGame(player)
   showAddPlayer.value = false
 }
-const showBetPanel = ref(false)
 const roundBetInput = ref('')
 const gameBetInput = ref('')
 const roundBetActive = ref<number | null>(null)
