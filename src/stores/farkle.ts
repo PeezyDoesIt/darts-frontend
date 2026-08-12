@@ -53,7 +53,7 @@ export const useFarkleStore = defineStore('farkle', () => {
       if (!parsed.id) parsed.id = uuid()
       if (!parsed.startedAt) parsed.startedAt = new Date().toISOString()
       game.value = parsed
-    } catch {}
+    } catch { /* a corrupt or stale save is discarded rather than crashing the store */ }
   }
 
   function persist() {

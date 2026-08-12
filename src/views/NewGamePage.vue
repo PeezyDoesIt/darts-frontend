@@ -308,7 +308,7 @@ import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
-import { GAME_TYPE_LABELS, GAME_TYPE_ORDER, PLAYER_THEMES, type GameType, type Player } from '../types/index'
+import { GAME_TYPE_LABELS, type GameType, type Player } from '../types/index'
 import { DEFAULT_LIVES as KILLER_DEFAULT_LIVES, rulesFor } from '../lib/killer'
 
 const GAME_TYPE_ROW1: GameType[] = ['cricket', 'speedCricket', 'aroundTheClock', 'killer', 'horse']
@@ -400,34 +400,13 @@ const closedTargetOptions = [
 ]
 const OBSIDIAN = 'linear-gradient(160deg, #050505 0%, #111111 40%, #222222 75%, #333344 100%)'
 const gameTheme = ref<string | null>(OBSIDIAN)
-const gameThemeMode = ref<'theme' | 'image'>('theme')
-const gameThemeImage = ref<string | null>(null)
 const gameThemeSize = ref<'cover' | 'contain' | null>(null)
 const gameThemePosition = ref<'top' | 'center' | 'bottom' | null>(null)
 const gameThemeFill = ref<'black' | 'blur' | null>(null)
 const selectedPlayers = ref<Player[]>([])
 
-function selectGameTheme(val: string) { gameTheme.value = val; gameThemeImage.value = null }
 
-function onGameThemeFileChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = ev => {
-    const url = ev.target?.result as string
-    gameThemeImage.value = url
-    gameTheme.value = url
-  }
-  reader.readAsDataURL(file)
-}
 
-const gameThemePreviewStyle = computed(() => {
-  if (gameThemeImage.value) {
-    const isBlur = gameThemeFill.value === 'blur' && gameThemeSize.value === 'contain'
-    return { backgroundImage: `url(${gameThemeImage.value})`, backgroundSize: gameThemeSize.value ?? 'cover', backgroundPosition: gameThemePosition.value ?? 'center', backgroundRepeat: 'no-repeat', backgroundColor: isBlur ? 'transparent' : '#000' }
-  }
-  return { background: 'rgba(255,255,255,0.05)' }
-})
 
 function isSelected(id: string) { return selectedPlayers.value.some(p => p.id === id) }
 function togglePlayer(p: Player) {

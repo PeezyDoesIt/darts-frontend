@@ -391,7 +391,7 @@ function loadDeck(): { theme: CardTheme; artCourts: boolean } {
 const deck = ref(loadDeck())
 const artAvailable = computed(() => ART_CAPABLE.includes(deck.value.theme))
 watch(deck, (d) => {
-  try { localStorage.setItem(DECK_KEY, JSON.stringify(d)) } catch {}
+  try { localStorage.setItem(DECK_KEY, JSON.stringify(d)) } catch { /* best effort: storage can be full, or unavailable in private mode */ }
 }, { deep: true })
 
 function setTheme(theme: CardTheme) {
@@ -420,7 +420,7 @@ function loadSortPrefs(): HandSortPrefs {
 }
 const sortPrefs = ref<HandSortPrefs>(loadSortPrefs())
 watch(sortPrefs, (p) => {
-  try { localStorage.setItem(SORT_KEY, JSON.stringify(p)) } catch {}
+  try { localStorage.setItem(SORT_KEY, JSON.stringify(p)) } catch { /* best effort: storage can be full, or unavailable in private mode */ }
 }, { deep: true })
 
 function moveSuit(i: number, delta: number) {

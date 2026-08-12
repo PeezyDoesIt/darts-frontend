@@ -69,7 +69,7 @@ import { computed, ref } from 'vue'
  * mean different things in each. Counting taps means the same component is correct under
  * both, and the player reads the board rather than the UI.
  */
-const props = defineProps<{
+defineProps<{
   ownNumber: number
   isKiller: boolean
   requireDouble: boolean

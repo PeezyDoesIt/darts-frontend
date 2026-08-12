@@ -40,6 +40,14 @@ jobs:
 
       - run: npm ci
 
+      # Cheapest check of the lot, so it goes first.
+      #
+      # `lint` existed and had never run in CI, which is the only reason 37 errors could
+      # accumulate in it: dead imports, superseded constants, a half-built theme-upload path
+      # nothing called. None of it failed anything, so none of it was visible. Running it
+      # here is what stops the next one arriving.
+      - run: npm run lint
+
       # Cheapest checks first, so a typo fails in a minute rather than after a browser
       # download. Nothing used to gate this deploy at all — a red suite still shipped.
       - run: npm run test:unit
