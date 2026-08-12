@@ -14,8 +14,15 @@ on:
 # whatever resolved at the moment the job ran — 4.86.0 on 12 Aug while npm's latest was
 # 4.121.0. Nothing in the repo chose either number. Deploys should not change underneath us
 # without a commit saying so, and bumping this is that commit.
+#
+# These two move together. Wrangler dropped Node 20 somewhere between 4.86.0 (>=20.3.0) and
+# 4.100.0 (>=22.0.0); on Node 20 it refuses to run at all rather than warning, so the deploy
+# jobs need a Node that satisfies whichever version is pinned above. The test job is
+# deliberately left on its own Node — changing what the suite builds and runs against is a
+# separate question from what publishes the result.
 env:
-  WRANGLER_VERSION: '4.86.0'
+  WRANGLER_VERSION: '4.121.0'
+  DEPLOY_NODE_VERSION: '22'
 
 jobs:
   test:
@@ -88,7 +95,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.DEPLOY_NODE_VERSION }}
 
       - name: Download built site
         uses: actions/download-artifact@v4
@@ -148,7 +155,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.DEPLOY_NODE_VERSION }}
 
       - name: Download built site
         uses: actions/download-artifact@v4
