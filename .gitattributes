@@ -1,0 +1,5 @@
+# Shell scripts must keep LF in the working tree. On Windows autocrlf would check the
+# pre-push hook out with CRLF, and sh refuses a script whose shebang ends in \r with
+# "bad interpreter: /bin/sh^M" — the hook then silently stops guarding anything.
+.githooks/** text eol=lf
+*.sh          text eol=lf
