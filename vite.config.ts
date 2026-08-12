@@ -19,7 +19,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     include: ['tests/unit/**/*.{test,spec}.{ts,js}', 'src/**/*.{test,spec}.{ts,js}'],
-    // tests/e2e is Cypress — it must not be collected by vitest
-    exclude: ['node_modules', 'dist', 'tests/e2e/**'],
+    // tests/smoke is Playwright — it must not be collected by vitest. This used to exclude
+    // tests/e2e for Cypress, which has not existed here since the move to Playwright.
+    exclude: ['node_modules', 'dist', 'tests/smoke/**'],
   },
 })
