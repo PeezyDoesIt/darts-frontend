@@ -78,46 +78,47 @@
       </div>
 
       <!--
-        Categories, not nine flat tiles. Each door lists its own games, so the grouping is
-        visible without costing a tap — the door is a container, not a gate. Two independent
-        columns rather than a grid: a grid row stretches its short panel to the tall one's
-        height, which left a hole under a two-game category.
+        Categories rather than nine flat tiles — but the door lists its own games, so the
+        grouping is visible without costing a tap. Two independent columns, not a two-column
+        grid: a grid row stretches its shorter panel to the taller one's height, which left a
+        hole under a two-game category.
       -->
       <section class="door-cols">
         <div class="door-col">
           <div class="glass-panel door door-blue">
-            <div class="mode-glow" style="background: radial-gradient(circle, rgba(0,212,255,0.28), transparent 68%)" />
+            <div class="mode-glow" />
             <div class="door-head">
-              <div class="mode-icon door-icon-blue">
+              <div class="mode-icon">
                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round">
                   <path d="M5.5 6.5h13M5.5 12h13M5.5 17.5h13" />
                   <path d="M8 4.2 11 8.8M16 4.2 13 8.8M8 9.7l3 4.6M16 9.7l-3 4.6M8 15.2l3 4.6M16 15.2l-3 4.6" />
                 </svg>
               </div>
               <div class="door-copy">
-                <span class="door-name display door-name-blue">DARTS</span>
+                <span class="door-name mode-title display">DARTS</span>
                 <span class="door-count">{{ dartsCount }} games</span>
               </div>
             </div>
             <div class="chip-list">
+              <!-- The three the group actually plays; ?type= lands on the game rather than a picker. -->
               <button
                 v-for="d in DARTS_QUICK" :key="d.type"
-                v-ripple class="chip chip-blue" @click="goGame('/new-game?type=' + d.type)"
+                v-ripple class="mode chip chip-blue" @click="goGame('/new-game?type=' + d.type)"
               >
-                <span class="chip-name display">{{ GAME_TYPE_LABELS[d.type] }}</span>
+                <span class="mode-title chip-name display">{{ GAME_TYPE_LABELS[d.type] }}</span>
                 <span class="chip-sub">{{ d.sub }}</span>
               </button>
-              <button v-ripple class="chip chip-ghost" @click="goGame('/new-game')">
-                <span class="chip-name display">ALL {{ dartsCount }} DARTS GAMES →</span>
-                <span class="chip-sub">Speed Cricket · Around the Clock · Horse · 301 · 701 · 1001</span>
+              <button v-ripple class="mode chip chip-ghost" @click="goGame('/new-game')">
+                <span class="chip-name chip-name-sm display">All {{ dartsCount }} darts games →</span>
+                <span class="chip-sub">Cut Throat · Around the Clock · 301 · 701 and more</span>
               </button>
             </div>
           </div>
 
           <div class="glass-panel door door-purple">
-            <div class="mode-glow" style="background: radial-gradient(circle, rgba(153,0,255,0.32), transparent 68%)" />
+            <div class="mode-glow" />
             <div class="door-head">
-              <div class="mode-icon door-icon-purple">
+              <div class="mode-icon">
                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#bf5fff" stroke-width="1.8" stroke-linejoin="round">
                   <rect x="4" y="4" width="16" height="16" rx="4" />
                   <circle cx="9" cy="9" r="1.4" fill="#bf5fff" stroke="none" />
@@ -126,30 +127,30 @@
                 </svg>
               </div>
               <div class="door-copy">
-                <span class="door-name display door-name-purple">DICE</span>
+                <span class="door-name display">DICE</span>
                 <span class="door-count">5 games</span>
               </div>
             </div>
             <div class="chip-grid">
-              <button v-ripple class="chip chip-purple" @click="goGame('/yahtzee/setup')">
-                <span class="chip-name display">YAHTZEE</span>
+              <button v-ripple class="mode chip chip-purple" @click="goGame('/yahtzee/setup')">
+                <span class="mode-title chip-name display">YAHTZEE</span>
                 <span class="chip-sub">2–8 players</span>
               </button>
-              <button v-ripple class="chip chip-green" @click="goGame('/lrc/setup')">
-                <span class="chip-name display">LRC</span>
+              <button v-ripple class="mode chip chip-green" @click="goGame('/lrc/setup')">
+                <span class="mode-title chip-name display">LEFT RIGHT CENTER</span>
                 <span class="chip-sub">Pure luck</span>
               </button>
-              <button v-ripple class="chip chip-gold" @click="goGame('/dice/farkle/setup')">
-                <span class="chip-name display">FARKLE</span>
+              <button v-ripple class="mode chip chip-gold" @click="goGame('/dice/farkle/setup')">
+                <span class="mode-title chip-name display">FARKLE</span>
                 <span class="chip-sub">Race to 10,000</span>
               </button>
-              <button v-ripple class="chip chip-cyan" @click="goGame('/dice/scc/setup')">
-                <span class="chip-name display">SHIP CAP</span>
+              <button v-ripple class="mode chip chip-cyan" @click="goGame('/dice/scc/setup')">
+                <span class="mode-title chip-name display">SHIP CAPTAIN CREW</span>
                 <span class="chip-sub">6, 5, 4 in order</span>
               </button>
-              <button v-ripple class="chip chip-pink chip-wide" @click="goGame('/dice/pig/setup')">
-                <span class="chip-name display">PIG</span>
-                <span class="chip-sub">Roll a 1, lose it</span>
+              <button v-ripple class="mode chip chip-pink chip-wide" @click="goGame('/dice/pig/setup')">
+                <span class="mode-title chip-name display">PIG</span>
+                <span class="chip-sub">Roll a 1, lose it all</span>
               </button>
             </div>
           </div>
@@ -171,30 +172,34 @@
 
         <div class="door-col">
           <div class="glass-panel door door-indigo">
-            <div class="mode-glow" style="background: radial-gradient(circle, rgba(143,123,255,0.3), transparent 68%)" />
+            <div class="mode-glow" />
             <div class="door-head">
-              <div class="mode-icon door-icon-indigo">
+              <div class="mode-icon">
                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#8f7bff" stroke-width="1.7" stroke-linejoin="round">
                   <path d="M12 3.5c-2.4 3-6 5.3-6 8.4a3.4 3.4 0 0 0 5.2 2.9L10.5 20h3l-.7-5.2A3.4 3.4 0 0 0 18 11.9c0-3.1-3.6-5.4-6-8.4z" />
                 </svg>
               </div>
               <div class="door-copy">
-                <span class="door-name display door-name-indigo">CARDS &amp; COINS</span>
-                <span class="door-count">2 games</span>
+                <span class="door-name display">CARDS &amp; COINS</span>
+                <span class="door-count">3 games</span>
               </div>
             </div>
             <div class="chip-grid">
-              <button v-ripple class="chip chip-indigo" @click="goGame('/spades/setup')">
-                <span class="chip-name display">SPADES</span>
+              <button v-ripple class="mode chip chip-indigo" @click="goGame('/spades/setup')">
+                <span class="mode-title chip-name display">SPADES</span>
                 <span class="chip-sub">Classic or Wild Style</span>
               </button>
-              <button v-ripple class="chip chip-silver" @click="showCoinFlip = true">
-                <span class="chip-name display">COIN FLIP</span>
-                <span class="chip-sub">Single or best of five</span>
+              <button v-ripple class="mode chip chip-indigo" @click="goGame('/blackjack/setup')">
+                <span class="mode-title chip-name display">BLACKJACK</span>
+                <span class="chip-sub">21 · chips and betting</span>
+              </button>
+              <!-- Not a game, but it is what you reach for before one starts. -->
+              <button v-ripple class="mode chip chip-silver chip-wide" @click="showCoinFlip = true">
+                <span class="mode-title chip-name display">COIN FLIP</span>
+                <span class="chip-sub">Who throws first · best of 3 or 5</span>
               </button>
             </div>
           </div>
-
 
           <div class="glass-panel narrator" @click="openSettings">
             <div class="narrator-glow" />
@@ -234,31 +239,35 @@
           </div>
 
           <div class="glass-panel door door-gold">
-            <div class="mode-glow" style="background: radial-gradient(circle, rgba(255,215,0,0.26), transparent 68%)" />
+            <div class="mode-glow" />
             <div class="door-head">
-              <div class="mode-icon door-icon-gold">
+              <div class="mode-icon">
                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#ffd700" stroke-width="1.9" stroke-linecap="round">
                   <path d="M6 20v-7M12 20V5M18 20v-10" />
                 </svg>
               </div>
               <div class="door-copy">
-                <span class="door-name display door-name-gold">STATS</span>
+                <span class="door-name display">STATS</span>
                 <span class="door-count">Leaderboard · counters</span>
               </div>
             </div>
 
+            <!-- Both counters live here now. On their own above the tiles they were two big
+                 numbers competing with the games for the top of the page. -->
             <div class="stat-pair">
               <div class="stat-cell">
                 <span class="counter-label">Games logged</span>
                 <span class="stat-value display">{{ totalGames }}</span>
+                <span class="counter-foot">Across {{ playersStore.players.length }} players</span>
               </div>
               <div class="stat-cell stat-cell-gold">
                 <span class="counter-label">Best win rate</span>
                 <span class="stat-value stat-value-gold display">{{ bestRate ? bestRate.pct + '%' : '—' }}</span>
+                <span class="counter-foot">{{ bestRate ? bestRate.name : 'Needs 3+ games' }}</span>
               </div>
             </div>
 
-            <div v-if="topThree.length === 0" class="board-empty">
+            <div v-if="ranked.length === 0" class="board-empty">
               No games logged yet. Add a player and the table fills itself in.
             </div>
             <div v-else class="mini-board">
@@ -284,7 +293,6 @@
           </div>
         </div>
       </section>
-
     </div>
 
     <!-- ── Narrator settings modal ───────────────────────── -->
@@ -631,9 +639,9 @@ const activeIds = computed(() => new Set(gameStore.game?.players.map(p => p.id) 
 function isPlaying(id: string) { return hasActiveGame.value && activeIds.value.has(id) }
 
 /**
- * The three the group actually plays get their own chip inside the Darts door; the other six
- * stay one tap away behind the all-games chip, which is the same setup page with nothing
- * preselected. A chip carries ?type= so the door lands on a game rather than a picker.
+ * The three the group plays get a chip of their own inside the Darts door; the rest stay one
+ * tap away behind the all-games chip, which is this same setup page with nothing preselected.
+ * The count is derived rather than written down, so adding a game keeps the door honest.
  */
 const DARTS_QUICK: { type: GameType; sub: string }[] = [
   { type: 'cricket', sub: '20s down · 2–6 players' },
@@ -846,7 +854,7 @@ function previewBullseyeSound(value: string) {
   .home { overflow: hidden; }
   .home-inner { height: 100%; }
   .door-cols { flex: 1; min-height: 0; }
-  /* each column scrolls on its own, so a tall category cannot push the other off screen */
+  /* Each column scrolls on its own, so a tall category cannot push the other off screen. */
   .door-col { max-height: 100%; overflow-y: auto; scrollbar-width: none; }
   .door-col::-webkit-scrollbar { display: none; }
 }
@@ -1055,86 +1063,6 @@ function previewBullseyeSound(value: string) {
 .mode-title { font-size: 22px; letter-spacing: 0.1em; color: #fff; line-height: 1; }
 .mode-sub { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); text-transform: uppercase; }
 
-/* ── Category doors ──
-   Two independent columns, not a two-column grid: a grid row stretches its shorter panel to
-   the taller one's height, which left a hole under a two-game category. */
-.door-cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px, 1.6vh, 16px); align-items: start; }
-.door-col { display: flex; flex-direction: column; gap: clamp(12px, 1.6vh, 16px); min-width: 0; }
-.door { display: flex; flex-direction: column; gap: clamp(11px, 1.4vh, 15px); padding: clamp(16px, 2.1vh, 22px); border-radius: 22px; }
-.door-head { position: relative; display: flex; align-items: center; gap: 14px; }
-.door-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.door-name { font-size: 25px; letter-spacing: 0.1em; line-height: 1; }
-.door-count { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; color: rgba(255,255,255,0.4); text-transform: uppercase; }
-.door-name-blue { color: var(--blue, #00d4ff); }
-.door-name-purple { color: #bf5fff; }
-.door-name-indigo { color: #8f7bff; }
-.door-name-gold { color: #ffd700; }
-.door-blue { background: linear-gradient(150deg, rgba(0,212,255,0.15), rgba(255,255,255,0.03)); border-color: rgba(0,212,255,0.3); }
-.door-purple { background: linear-gradient(150deg, rgba(153,0,255,0.18), rgba(255,255,255,0.03)); border-color: rgba(191,95,255,0.32); }
-.door-indigo { background: linear-gradient(150deg, rgba(143,123,255,0.16), rgba(255,255,255,0.03)); border-color: rgba(143,123,255,0.32); }
-.door-gold { background: linear-gradient(150deg, rgba(255,215,0,0.13), rgba(255,255,255,0.03)); border-color: rgba(255,215,0,0.3); }
-.door-icon-blue { background: rgba(0,212,255,0.16); border: 1px solid rgba(0,212,255,0.34); }
-.door-icon-purple { background: rgba(153,0,255,0.2); border: 1px solid rgba(191,95,255,0.36); }
-.door-icon-indigo { background: rgba(143,123,255,0.2); border: 1px solid rgba(143,123,255,0.36); }
-.door-icon-gold { background: rgba(255,215,0,0.16); border: 1px solid rgba(255,215,0,0.34); }
-.door-icon-blue, .door-icon-purple, .door-icon-indigo, .door-icon-gold { width: 44px; height: 44px; border-radius: 14px; }
-
-.chip-list { position: relative; display: flex; flex-direction: column; gap: 6px; }
-.chip-grid { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 6px; }
-.chip {
-  position: relative; overflow: hidden;
-  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
-  /* 44px is the floor for a thumb on a tablet propped by the board */
-  min-height: 56px; padding: 13px 15px; border-radius: 13px; cursor: pointer; text-align: left;
-  transition: transform .14s, border-color .14s, box-shadow .14s;
-}
-.chip:hover { transform: translateY(-2px); box-shadow: 0 14px 30px -18px rgba(0,0,0,0.9); }
-.chip:active { transform: scale(0.985); }
-.chip-name { font-size: 19px; letter-spacing: 0.08em; color: #fff; line-height: 1; }
-.chip-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: rgba(255,255,255,0.48); text-transform: uppercase; }
-.chip-wide { grid-column: 1 / -1; }
-.chip-blue { background: rgba(0,212,255,0.13); border: 1px solid rgba(0,212,255,0.26); }
-.chip-blue:hover { border-color: rgba(0,212,255,0.62); }
-.chip-purple { background: rgba(153,0,255,0.18); border: 1px solid rgba(191,95,255,0.3); }
-.chip-purple:hover { border-color: rgba(191,95,255,0.62); }
-.chip-green { background: rgba(51,170,51,0.18); border: 1px solid rgba(85,204,102,0.3); }
-.chip-green:hover { border-color: rgba(85,204,102,0.62); }
-.chip-gold { background: rgba(255,200,87,0.16); border: 1px solid rgba(255,200,87,0.3); }
-.chip-gold:hover { border-color: rgba(255,200,87,0.62); }
-.chip-cyan { background: rgba(95,208,255,0.16); border: 1px solid rgba(95,208,255,0.3); }
-.chip-cyan:hover { border-color: rgba(95,208,255,0.62); }
-.chip-pink { background: rgba(255,95,162,0.16); border: 1px solid rgba(255,95,162,0.3); }
-.chip-pink:hover { border-color: rgba(255,95,162,0.62); }
-.chip-indigo { background: rgba(143,123,255,0.18); border: 1px solid rgba(143,123,255,0.3); }
-.chip-indigo:hover { border-color: rgba(143,123,255,0.62); }
-.chip-silver { background: rgba(223,227,238,0.14); border: 1px solid rgba(223,227,238,0.28); }
-.chip-silver:hover { border-color: rgba(223,227,238,0.6); }
-.chip-ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); }
-.chip-ghost:hover { border-color: rgba(255,255,255,0.34); }
-.chip-ghost .chip-name { font-size: 15px; letter-spacing: 0.1em; color: rgba(255,255,255,0.78); }
-
-/* ── Pick-a-category rule ── */
-.pick-rule { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
-.pick-label { font-size: 17px; letter-spacing: 0.24em; color: rgba(255,255,255,0.48); }
-.pick-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.18), transparent); }
-
-/* ── Resume row ── */
-.resume-row { display: flex; flex-direction: column; gap: clamp(10px, 1.3vh, 16px); flex-shrink: 0; }
-
-/* ── Stats door ── */
-.stat-pair { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.stat-cell { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 13px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); }
-.stat-cell-gold { border-color: rgba(255,215,0,0.22); }
-.stat-value { font-size: 30px; line-height: 0.9; color: #fff; }
-.stat-value-gold { color: #ffd700; }
-.mini-board { position: relative; display: flex; flex-direction: column; gap: 6px; }
-.mini-row {
-  display: grid; grid-template-columns: 18px 1fr auto; align-items: center; gap: 11px;
-  padding: 9px 12px; border-radius: 12px; font-size: 13px; font-weight: 700;
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-left: 3px solid;
-}
-.door-links { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 14px; }
-
 .mode-blue { background: linear-gradient(150deg, rgba(0,212,255,0.16), rgba(255,255,255,0.03)); border-color: rgba(0,212,255,0.3); }
 .mode-blue .mode-glow { background: radial-gradient(circle, rgba(0,212,255,0.3), transparent 68%); }
 .mode-blue .mode-icon { background: rgba(0,212,255,0.16); border: 1px solid rgba(0,212,255,0.34); }
@@ -1176,7 +1104,93 @@ function previewBullseyeSound(value: string) {
 .mode-silver .mode-icon { background: rgba(216,221,230,0.16); border: 1px solid rgba(216,221,230,0.34); }
 .mode-silver:hover { border-color: rgba(216,221,230,0.6); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 40px -10px rgba(216,221,230,0.45), 0 26px 52px -24px rgba(0,0,0,0.85); }
 
+/* ── Category doors ──
+   Two independent columns rather than a two-column grid: a grid row stretches its shorter
+   panel to the taller one's height, which left a visible hole under a two-game category. */
+.door-cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px, 1.6vh, 16px); align-items: start; }
+.door-col { display: flex; flex-direction: column; gap: clamp(12px, 1.6vh, 16px); min-width: 0; }
+.door { display: flex; flex-direction: column; gap: clamp(11px, 1.4vh, 15px); padding: clamp(16px, 2.1vh, 22px); border-radius: 22px; }
+.door-head { position: relative; display: flex; align-items: center; gap: 14px; }
+.door-head .mode-icon { width: 44px; height: 44px; border-radius: 14px; }
+.door-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.door-name { font-size: 25px; letter-spacing: 0.1em; line-height: 1; color: #fff; }
+.door-count { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; color: rgba(255,255,255,0.4); text-transform: uppercase; }
+.door-blue { background: linear-gradient(150deg, rgba(0,212,255,0.15), rgba(255,255,255,0.03)); border-color: rgba(0,212,255,0.3); }
+.door-blue .door-name { color: var(--blue); }
+.door-blue .mode-glow { background: radial-gradient(circle, rgba(0,212,255,0.28), transparent 68%); }
+.door-blue .mode-icon { background: rgba(0,212,255,0.16); border: 1px solid rgba(0,212,255,0.34); }
+.door-purple { background: linear-gradient(150deg, rgba(153,0,255,0.18), rgba(255,255,255,0.03)); border-color: rgba(191,95,255,0.32); }
+.door-purple .door-name { color: var(--purple); }
+.door-purple .mode-glow { background: radial-gradient(circle, rgba(153,0,255,0.32), transparent 68%); }
+.door-purple .mode-icon { background: rgba(153,0,255,0.2); border: 1px solid rgba(191,95,255,0.36); }
+.door-indigo { background: linear-gradient(150deg, rgba(143,123,255,0.16), rgba(255,255,255,0.03)); border-color: rgba(143,123,255,0.32); }
+.door-indigo .door-name { color: #8f7bff; }
+.door-indigo .mode-glow { background: radial-gradient(circle, rgba(143,123,255,0.3), transparent 68%); }
+.door-indigo .mode-icon { background: rgba(143,123,255,0.2); border: 1px solid rgba(143,123,255,0.36); }
+.door-gold { background: linear-gradient(150deg, rgba(255,215,0,0.13), rgba(255,255,255,0.03)); border-color: rgba(255,215,0,0.3); }
+.door-gold .door-name { color: var(--gold); }
+.door-gold .mode-glow { background: radial-gradient(circle, rgba(255,215,0,0.26), transparent 68%); }
+.door-gold .mode-icon { background: rgba(255,215,0,0.16); border: 1px solid rgba(255,215,0,0.34); }
+
+/* A chip is still a .mode — same tap target contract as the tiles it replaces, and the
+   smoke suite locates the coin flip that way — but compact enough to list inside a door. */
+.chip-list { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.chip-grid { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 6px; }
+.chip {
+  flex-direction: column; align-items: flex-start; gap: 4px;
+  min-height: 56px; padding: 13px 15px; border-radius: 13px;
+}
+.chip:hover { transform: translateY(-2px); box-shadow: 0 14px 30px -18px rgba(0,0,0,0.9); }
+.chip-name { font-size: 19px; letter-spacing: 0.08em; color: #fff; line-height: 1.05; text-transform: uppercase; }
+.chip-name-sm { font-size: 15px; letter-spacing: 0.1em; color: rgba(255,255,255,0.78); }
+.chip-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: rgba(255,255,255,0.48); text-transform: uppercase; }
+.chip-wide { grid-column: 1 / -1; }
+.chip-blue { background: rgba(0,212,255,0.13); border: 1px solid rgba(0,212,255,0.26); }
+.chip-blue:hover { border-color: rgba(0,212,255,0.62); }
+.chip-purple { background: rgba(153,0,255,0.18); border: 1px solid rgba(191,95,255,0.3); }
+.chip-purple:hover { border-color: rgba(191,95,255,0.62); }
+.chip-green { background: rgba(51,170,51,0.18); border: 1px solid rgba(85,204,102,0.3); }
+.chip-green:hover { border-color: rgba(85,204,102,0.62); }
+.chip-gold { background: rgba(255,200,87,0.16); border: 1px solid rgba(255,200,87,0.3); }
+.chip-gold:hover { border-color: rgba(255,200,87,0.62); }
+.chip-cyan { background: rgba(95,208,255,0.16); border: 1px solid rgba(95,208,255,0.3); }
+.chip-cyan:hover { border-color: rgba(95,208,255,0.62); }
+.chip-pink { background: rgba(255,95,162,0.16); border: 1px solid rgba(255,95,162,0.3); }
+.chip-pink:hover { border-color: rgba(255,95,162,0.62); }
+.chip-indigo { background: rgba(143,123,255,0.18); border: 1px solid rgba(143,123,255,0.3); }
+.chip-indigo:hover { border-color: rgba(143,123,255,0.62); }
+.chip-silver { background: rgba(216,221,230,0.14); border: 1px solid rgba(216,221,230,0.28); }
+.chip-silver:hover { border-color: rgba(216,221,230,0.6); }
+.chip-ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); }
+.chip-ghost:hover { border-color: rgba(255,255,255,0.34); }
+
+/* ── Pick-a-category rule ── */
+.pick-rule { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.pick-label { font-size: 17px; letter-spacing: 0.24em; color: rgba(255,255,255,0.48); }
+.pick-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.18), transparent); }
+
+/* ── Resume row ── */
+.resume-row { display: flex; flex-direction: column; gap: clamp(10px, 1.3vh, 16px); flex-shrink: 0; }
+
+/* ── Stats door ── */
+.stat-pair { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat-cell {
+  display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 13px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+}
+.stat-cell-gold { border-color: rgba(255,215,0,0.22); }
+.stat-value { font-size: clamp(26px, 3.6vh, 34px); line-height: 0.9; color: #fff; }
+.stat-value-gold { color: var(--gold); }
+.mini-board { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.mini-row {
+  display: grid; grid-template-columns: 18px 1fr auto; align-items: center; gap: 11px;
+  padding: 9px 12px; border-radius: 12px; font-size: 13px; font-weight: 700;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-left: 3px solid;
+}
+.door-links { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 14px; }
+
 /* ── Leaderboard ── */
+.board-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: clamp(12px, 1.6vh, 24px); align-items: start; }
 .board { display: flex; flex-direction: column; gap: clamp(10px, 1.3vh, 16px); padding: clamp(16px, 2.2vh, 26px) 26px clamp(14px, 1.8vh, 22px); border-radius: 24px; }
 .board-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 .board-links { display: flex; align-items: baseline; gap: 14px; flex-shrink: 0; }
@@ -1198,6 +1212,7 @@ function previewBullseyeSound(value: string) {
   font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
   color: rgba(255,255,255,0.35);
 }
+.board-rows { display: flex; flex-direction: column; gap: 8px; }
 .board-row-item {
   display: grid; grid-template-columns: 36px 1fr 66px 66px 74px; align-items: center;
   padding: 13px 14px; border-radius: 14px;
@@ -1227,6 +1242,7 @@ function previewBullseyeSound(value: string) {
 .tag-pink { color: var(--pink); background: rgba(255,45,120,0.14); border: 1px solid rgba(255,45,120,0.35); }
 
 /* ── Roster / narrator ── */
+.board-side { display: flex; flex-direction: column; gap: clamp(10px, 1.3vh, 16px); }
 .roster { display: flex; flex-direction: column; gap: 12px; padding: clamp(15px, 2vh, 24px); border-radius: 24px; }
 .roster-stack { display: flex; align-items: center; }
 .roster-more {
@@ -1284,17 +1300,16 @@ function previewBullseyeSound(value: string) {
   .home-inner { gap: 18px; padding: 28px 24px 44px; }
   .home-inner { padding-top: calc(28px + env(safe-area-inset-top)); }
   .home-inner { padding-bottom: calc(44px + env(safe-area-inset-bottom)); }
-  .door-cols { grid-template-columns: 1fr; }
+  .hero-row { grid-template-columns: 1fr; }
   .hero-wordmark { font-size: clamp(52px, 11vw, 92px); }
 
-  /* The wordmark and START NEW GAME lead the page, then the game tiles immediately after.
-     The tiles previously sat above the branding entirely, because stacked under the hero
-     the first one started at y=775 on an 812px phone and Spades was 544px past that. They
-     stay second rather than dropping back down there — everything below the hero is the
-     tile grid, so the fold costs part of that grid rather than burying it. */
+  /* The wordmark leads the page, then the categories immediately after. The tiles used to
+     sit above the branding entirely, because stacked under the hero the first one started at
+     y=775 on an 812px phone. The doors are compact enough to stay second: the fold now costs
+     part of a category rather than burying every game under a resume card. */
   .hero-row { order: -2; }
   .pick-rule { order: -1; }
-  .door-cols { order: -1; }
+  .door-cols { order: -1; grid-template-columns: 1fr; gap: 12px; }
   .resume-row { order: 1; }
 }
 @media (max-width: 700px) {
@@ -1304,7 +1319,7 @@ function previewBullseyeSound(value: string) {
   .hero { padding: 26px 22px; border-radius: 22px; }
   .hero-wordmark { font-size: clamp(46px, 15vw, 76px); }
   .strap-text { font-size: 10px; letter-spacing: 0.14em; }
-  .counter-row { grid-template-columns: 1fr; }
+  .stat-pair { grid-template-columns: 1fr; }
   .resume-card { flex-direction: column; align-items: stretch; }
   .resume-btn { width: 100%; }
   .board { padding: 20px 18px; }

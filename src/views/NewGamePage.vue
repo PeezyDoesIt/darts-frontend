@@ -346,9 +346,9 @@ const currentStep = ref(route.query.step ? Number(route.query.step) : 1)
 const showAdvanced = ref(false)
 
 /**
- * A Darts door chip on the menu links straight to a game — /new-game?type=killer — so the
- * door lands on the game rather than on a picker. An unknown or missing type falls back to
- * Cricket, which is what this page always defaulted to.
+ * A Darts chip on the menu links straight to a game — /new-game?type=killer — so the door
+ * lands on the game rather than on a picker. An unknown or missing type falls back to
+ * Cricket, which is what this page has always opened on.
  */
 const queryType = route.query.type as GameType | undefined
 const selectedGameType = ref<GameType | null>(
