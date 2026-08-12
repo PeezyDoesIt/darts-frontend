@@ -202,6 +202,19 @@
           </div>
         </button>
 
+        <button v-ripple class="glass-panel mode mode-indigo" @click="router.push('/blackjack/setup')">
+          <div class="mode-glow" />
+          <div class="mode-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8f7bff" stroke-width="1.7" stroke-linejoin="round">
+              <path d="M12 20.5 5.5 14a3.5 3.5 0 1 1 6.5-2 3.5 3.5 0 1 1 6.5 2z" />
+            </svg>
+          </div>
+          <div class="mode-copy">
+            <span class="mode-title display">BLACKJACK</span>
+            <span class="mode-sub">21 against the dealer · chips and betting</span>
+          </div>
+        </button>
+
         <!-- Not a game, but it belongs with them: it is the thing you reach for before one
              starts, and as a header glyph it was three unlabelled pixels on a tablet. -->
         <button v-ripple class="glass-panel mode mode-silver" @click="showCoinFlip = true">
