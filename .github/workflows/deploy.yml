@@ -15,7 +15,7 @@ on:
 # 4.121.0. Nothing in the repo chose either number. Deploys should not change underneath us
 # without a commit saying so, and bumping this is that commit.
 env:
-  WRANGLER_VERSION: '4.86.0'
+  WRANGLER_VERSION: '4.121.0'
 
 jobs:
   test:
