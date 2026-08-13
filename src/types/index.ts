@@ -212,7 +212,6 @@ export const NARRATOR_PERSONALITIES: NarratorPersonality[] = [
 
 export type GameType =
   | 'cricket'
-  | 'cutThroat'
   | 'speedCricket'
   | '301'
   | '501'
@@ -230,9 +229,25 @@ export type GameType =
   | 'spades'
   | 'blackjack'
 
+/**
+ * Cricket and its variants — the games that share the marks board and its rules.
+ *
+ * This list used to be written out by hand at every decision that needed it, roughly twenty
+ * times across five files, and it drifted: the walk-up screen's copy was missing Speed
+ * Cricket, which is how that game ended up with the 01 games' layout and its avatar in the
+ * opposite corner from Cricket's. Both shipped as bugs.
+ *
+ * `score.kind === 'cricket'` is deliberately NOT this list — it discriminates the shape of a
+ * PlayerScore, not the game being played, and should stay spelled out where it is used.
+ */
+export const CRICKET_GAME_TYPES = ['cricket', 'speedCricket'] as const
+
+export function isCricketGame(type: GameType | null | undefined): boolean {
+  return type === 'cricket' || type === 'speedCricket'
+}
+
 export const GAME_TYPE_LABELS: Record<GameType, string> = {
   cricket: 'Cricket',
-  cutThroat: 'Cut Throat Cricket',
   speedCricket: 'Speed Cricket',
   aroundTheClock: 'Around the Clock',
   killer: 'Killer',

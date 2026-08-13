@@ -5,7 +5,7 @@
       <!-- Entry panel -->
       <div class="entry-panel" :style="entryPanelStyle">
         <div v-if="showBlurBg" class="entry-bg-blur" :style="entryBlurBgStyle" />
-        <div class="turn-header" :class="{ 'turn-header-3btns': game.gameType === 'aroundTheClock' || game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket' }" :style="{ '--player-color': currentPlayer.color }">
+        <div class="turn-header" :class="{ 'turn-header-3btns': game.gameType === 'aroundTheClock' || isCricketGame(game.gameType) }" :style="{ '--player-color': currentPlayer.color }">
           <!-- Left: round pill centered in left space -->
           <div class="turn-left">
             <button class="header-avatar-btn" @click="router.push({ path: '/player-setup', query: { edit: currentPlayer.id } })" title="Edit player">
@@ -20,15 +20,15 @@
           <!-- Center: player name (absolutely centered) -->
           <div class="turn-name-wrap">
             <span class="turn-name display"
-              :class="{ 'turn-name-no-glow': game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket' || game.gameType === 'horse' || game.gameType === 'aroundTheClock' }"
-              :style="{ color: currentPlayerNameColor, filter: (game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket' || game.gameType === 'horse' || game.gameType === 'aroundTheClock') ? undefined : `drop-shadow(0 0 6px ${currentPlayer.color}60)` }">{{ currentPlayer.name }}</span>
+              :class="{ 'turn-name-no-glow': isCricketGame(game.gameType) || game.gameType === 'horse' || game.gameType === 'aroundTheClock' }"
+              :style="{ color: currentPlayerNameColor, filter: (isCricketGame(game.gameType) || game.gameType === 'horse' || game.gameType === 'aroundTheClock') ? undefined : `drop-shadow(0 0 6px ${currentPlayer.color}60)` }">{{ currentPlayer.name }}</span>
           </div>
 
           <!-- Right: action buttons -->
           <div class="turn-right">
             <span v-if="game.gameDuration !== null" class="game-clock-badge" :class="{ 'game-clock-low': gameTimeLeft !== null && gameTimeLeft <= 300 }">{{ gameTimeLeftDisplay }}</span>
             <button v-ripple class="btn btn-sm header-quit-btn" @click="confirmQuit = true" title="Quit game">✕</button>
-            <template v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'">
+            <template v-if="isCricketGame(game.gameType)">
               <button v-ripple class="btn btn-sm btn-surface marks-layout-btn" @click="toggleMarksLayout" :title="marksLayout === 'top' ? 'Move marks to right column' : 'Move marks to top strip'">
                 {{ marksLayout === 'top' ? '▶' : '▼' }}
               </button>
@@ -44,15 +44,15 @@
                 ANY
               </button>
             </template>
-            <button v-ripple class="btn btn-sm btn-surface scores-btn" :class="{ 'scores-btn-cricket': game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket' }" @click="showAllScores = !showAllScores">SCORES</button>
+            <button v-ripple class="btn btn-sm btn-surface scores-btn" :class="{ 'scores-btn-cricket': isCricketGame(game.gameType) }" @click="showAllScores = !showAllScores">SCORES</button>
           </div>
 
           <!-- Arrow indicator shown only when marks panel is open -->
-          <div v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket') && marksVisible && marksLayout === 'top'" class="marks-open-arrow" />
+          <div v-if="(isCricketGame(game.gameType)) && marksVisible && marksLayout === 'top'" class="marks-open-arrow" />
         </div>
 
         <!-- Cricket marks grid: top strip (default) -->
-        <template v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket') && marksLayout === 'top' && marksVisible">
+        <template v-if="(isCricketGame(game.gameType)) && marksLayout === 'top' && marksVisible">
 
           <!-- 1-3 players: players as rows, targets as columns -->
           <div v-if="game.players.length < 4" class="cricket-strip">
@@ -103,12 +103,11 @@
 
         <div class="entry-body">
           <CricketEntry
-            v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'"
+            v-if="isCricketGame(game.gameType)"
             ref="cricketEntryRef"
             :key="currentPlayer.id + '-' + game.round + '-' + (game.turnSeq ?? 0)"
             :playerId="currentPlayer.id"
             :scores="game.scores"
-            :isCutThroat="game.gameType === 'cutThroat'"
             :marksToClose="game.gameType === 'speedCricket' ? 1 : 3"
             :round="game.round"
             :closedTargetDisplay="effectiveClosedTargetDisplay"
@@ -121,8 +120,8 @@
             :throwTimerDuration="throwTimerDuration"
             :throwPaused="throwPaused"
             :showPauseLocked="showPauseLocked"
-            :wildTargets="game.wildEnabled && game.gameType !== 'cutThroat' ? game.wildTargets : undefined"
-            :wildPlayerMarks="game.wildEnabled && game.gameType !== 'cutThroat' ? wildPlayerMarks : undefined"
+            :wildTargets="game.wildEnabled ? game.wildTargets : undefined"
+            :wildPlayerMarks="game.wildEnabled ? wildPlayerMarks : undefined"
             @submit="handleCricketSubmit"
             @toggleThrowPause="toggleThrowPause"
           />
@@ -213,7 +212,7 @@
                 <span v-if="p.id === currentPlayer.id" class="ws-throwing-tag">▶</span>
               </span>
               <!-- Cricket marks -->
-              <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'" class="ws-cricket-marks">
+              <div v-if="isCricketGame(game.gameType)" class="ws-cricket-marks">
                 <div v-for="t in CRICKET_TARGETS" :key="t" class="ws-mark-cell"
                   :class="{ 'ws-mark-closed': (getCricketMarks(p.id)?.[t] ?? 0) >= (game.gameType === 'speedCricket' ? 1 : 3) }">
                   <span class="ws-mark-label">{{ t === 'bull' ? 'B' : t }}</span>
@@ -246,7 +245,7 @@
       <!-- ═══════════════════ END WIDESCREEN SIDEBAR ═══════════════════ -->
 
       <!-- Cricket marks grid: right column (optional layout) -->
-      <div v-if="(game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket') && marksLayout === 'right' && marksVisible" class="cricket-col">
+      <div v-if="(isCricketGame(game.gameType)) && marksLayout === 'right' && marksVisible" class="cricket-col">
 
         <!-- 3 players: first two on top, third stacked below -->
         <template v-if="game.players.length === 3">
@@ -336,7 +335,7 @@
           <div class="game-type-badge">{{ GAME_TYPE_LABELS[game.gameType] }}</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
-          <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'" class="ct-display-row">
+          <div v-if="isCricketGame(game.gameType)" class="ct-display-row">
             <button v-for="opt in ctDisplayOptions" :key="opt.value" v-ripple
               class="ct-display-btn" :class="{ active: effectiveClosedTargetDisplay === opt.value }"
               @click="setClosedTargetDisplay(opt.value); showAllScores = false">{{ opt.label }}</button>
@@ -380,7 +379,7 @@
             <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.disableTimerPause }" @click="settingsStore.setDisableTimerPause(true)">Locked</button>
           </div>
         </div>
-        <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'" class="timer-control-group">
+        <div v-if="isCricketGame(game.gameType)" class="timer-control-group">
           <span class="timer-control-label">Round Limit</span>
           <div class="round-limit-control">
             <button v-ripple class="round-limit-btn" :disabled="game.cricketRoundLimit === null || game.cricketRoundLimit <= 1" @click="gameStore.setRoundLimit(Math.max(1, (game.cricketRoundLimit ?? 7) - 1))">−</button>
@@ -462,7 +461,7 @@
                 <span v-if="p.id === currentPlayer.id" class="throwing-tag">throwing</span>
                 <span v-else-if="game.cricketPlayToCompletion && game.cricketFinishOrder.includes(p.id)" class="finished-tag">finished</span>
               </span>
-              <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'" class="cricket-mini">
+              <div v-if="isCricketGame(game.gameType)" class="cricket-mini">
                 <div v-for="t in CRICKET_TARGETS" :key="t" class="mini-target">
                   <span class="mini-label">{{ t === 'bull' ? 'B' : t }}</span>
                   <div class="mini-marks">
@@ -471,7 +470,7 @@
                 </div>
               </div>
             </div>
-            <div v-if="game.gameType !== 'cricket' && game.gameType !== 'cutThroat' && game.gameType !== 'speedCricket'" class="lb-score">
+            <div v-if="!isCricketGame(game.gameType)" class="lb-score">
               <span class="lb-score-val" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">{{ displayScore(p.id) }}</span>
               <span class="lb-score-label">{{ scoreLabel }}</span>
             </div>
@@ -638,7 +637,7 @@ import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
-import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore, type CricketTarget } from '../types/index'
+import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, isCricketGame, type PlayerScore, type CricketTarget } from '../types/index'
 import { useNarrator } from '../composables/useNarrator'
 import type { LineContext, NarratorEvent } from '../lib/narrator'
 import { playBombBeep, playGameShowBuzzer, playTurnStartTone, playTurnResultSound, unlockAudio } from '../composables/useSounds'
@@ -832,8 +831,8 @@ function setClosedTargetDisplay(val: 'show' | 'hide') {
 const scoreLabel = computed(() => {
   const gt = game.value?.gameType
   if (!gt) return ''
-  if ((gt === 'cricket' || gt === 'cutThroat' || gt === 'speedCricket') && game.value?.cricketPlayToCompletion) return 'place'
-  if (gt === 'cricket' || gt === 'cutThroat' || gt === 'speedCricket') return 'closed'
+  if ((isCricketGame(gt)) && game.value?.cricketPlayToCompletion) return 'place'
+  if (isCricketGame(gt)) return 'closed'
   if (['301','501','701','1001'].includes(gt)) return 'left'
   if (gt === 'horse') return 'letters'
   return 'total'
@@ -1133,7 +1132,7 @@ function startThrowTimer() {
       playGameShowBuzzer()
       gameStore.recordTimeout(currentPlayer.value.id)
       const gt = game.value?.gameType
-      if (gt === 'cricket' || gt === 'cutThroat' || gt === 'speedCricket') handleCricketSubmit({} as Record<CricketTarget, number>)
+      if (isCricketGame(gt)) handleCricketSubmit({} as Record<CricketTarget, number>)
       else handleNumpadSubmit(0)
     }
   }, 1000)

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { v4 as uuid } from 'uuid'
 import type { ActiveGame, GameType, Player, PlayerScore, CricketTarget } from '../types/index'
-import { CRICKET_TARGETS } from '../types/index'
+import { CRICKET_TARGETS, isCricketGame } from '../types/index'
 import {
   DEFAULT_LIVES as KILLER_DEFAULT_LIVES, assignNumbers, resolveKillerTurn, survivors,
   type KillerSeat,
@@ -24,7 +24,7 @@ function initScore(
     : null
 
   for (const p of players) {
-    if (gameType === 'cricket' || gameType === 'cutThroat' || gameType === 'speedCricket') {
+    if (isCricketGame(gameType)) {
       scores[p.id] = {
         kind: 'cricket',
         data: {
@@ -491,7 +491,7 @@ export const useGameStore = defineStore('game', () => {
     if (game.value.players.some(p => p.id === player.id)) return
     game.value.players.push(player)
     const gameType = game.value.gameType
-    if (gameType === 'cricket' || gameType === 'cutThroat' || gameType === 'speedCricket') {
+    if (isCricketGame(gameType)) {
       game.value.scores[player.id] = {
         kind: 'cricket',
         data: {
@@ -598,7 +598,7 @@ export const useGameStore = defineStore('game', () => {
     const g = game.value
     let winnerId: string | null = null
 
-    if (g.gameType === 'cricket' || g.gameType === 'cutThroat' || g.gameType === 'speedCricket') {
+    if (isCricketGame(g.gameType)) {
       const marksToClose = g.gameType === 'speedCricket' ? 1 : 3
       let bestClosed = -1, bestPoints = -1
       for (const p of g.players) {

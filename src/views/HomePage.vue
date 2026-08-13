@@ -110,7 +110,7 @@
               </button>
               <button v-ripple class="mode chip chip-ghost" @click="goGame('/new-game')">
                 <span class="chip-name chip-name-sm display">All {{ dartsCount }} darts games →</span>
-                <span class="chip-sub">Cut Throat · Around the Clock · 301 · 701 and more</span>
+                <span class="chip-sub">Speed Cricket · Around the Clock · 301 · 701 and more</span>
               </button>
             </div>
           </div>

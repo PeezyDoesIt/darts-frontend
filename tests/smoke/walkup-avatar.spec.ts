@@ -4,10 +4,10 @@ import { pickBubble, seedRoster } from './helpers'
 /**
  * The walk-up watermark's corner.
  *
- * It used to be anchored bottom-right and flip to bottom-left only for cricket and
- * cut-throat — dodging the floating START button those two draw in the right corner. Every
- * other game (301, Speed Cricket, Around the Clock…) therefore showed the same player's
- * avatar in the opposite corner, which reads as a bug rather than a layout choice.
+ * It used to be anchored bottom-right and flip to bottom-left for one hand-written list of
+ * game types — dodging the floating START button those games draw in the right corner. Every
+ * game outside that list (301, Speed Cricket, Around the Clock…) therefore showed the same
+ * player's avatar in the opposite corner, which reads as a bug rather than a layout choice.
  *
  * These assert the corner and nothing else: a game where the watermark drifts back to the
  * right should fail here, but restyling the watermark should not.
@@ -92,11 +92,8 @@ test('speed cricket walk-up puts the avatar bottom-left', async ({ page }) => {
  * The same screen picks its whole layout from the same list the watermark used, and Speed
  * Cricket was missing from it — so it got the 01 games' stacked layout and inline button
  * rather than cricket's composition and floating START, despite being grouped with cricket at
- * every other decision in the app. The trio is spelled out by hand in about twenty places.
+ * every other decision in the app. That list is one shared predicate now.
  */
-// Cut-throat is the third of the family but is deliberately absent here: it has a GameType,
-// a label and branches everywhere, yet no pill on the new-game screen creates it, so there is
-// no way to reach its walk-up to assert on.
 for (const game of ['Cricket', 'Speed Cricket']) {
   test(`${game} walk-up uses the cricket layout`, async ({ page }) => {
     await walkUpFor(page, game)

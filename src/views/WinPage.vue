@@ -52,6 +52,7 @@ import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
 import { useNarrator } from '../composables/useNarrator'
 import { recordGameResult } from '../api/gameResults'
+import { CRICKET_TARGETS } from '../types/index'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -59,6 +60,8 @@ const playersStore = usePlayersStore()
 const { narrateAsync } = useNarrator()
 const game = computed(() => gameStore.game)
 const winner = computed(() => game.value?.players.find(p => p.id === game.value!.winnerId) ?? null)
+/** Speed Cricket closes a number in one mark rather than three, as it does everywhere else. */
+const marksToClose = computed(() => game.value?.gameType === 'speedCricket' ? 1 : 3)
 const finalPlayers = computed(() => {
   if (!game.value) return []
   if (game.value.cricketPlayToCompletion && game.value.cricketFinishOrder?.length) {
@@ -103,7 +106,18 @@ function displayScore(playerId: string) {
   const s = game.value?.scores[playerId]
   if (!s) return '—'
   if (s.kind === 'ohOne') return `${s.data.remaining} left`
-  if (s.kind === 'cricket') return `${s.data.points} pts`
+  /*
+   * Closed count, not points.
+   *
+   * Cricket here is a race to close every number: marks are capped at the closing count and
+   * the excess is discarded, so `points` is initialised to 0 and never incremented by
+   * anything. This line read `${points} pts`, which meant every player on the win screen was
+   * shown "0 pts" — a real number, sourced from a field that is never filled in.
+   */
+  if (s.kind === 'cricket') {
+    const closed = CRICKET_TARGETS.filter(t => s.data.marks[t] >= marksToClose.value).length
+    return `${closed}/${CRICKET_TARGETS.length} closed`
+  }
   if (s.kind === 'simple') return String(s.data.total)
   if (s.kind === 'bobs27') return s.data.busted ? 'BUST' : `${s.data.score} pts`
   return '—'
