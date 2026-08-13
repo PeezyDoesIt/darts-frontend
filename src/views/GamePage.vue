@@ -1839,10 +1839,48 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .cc-target-label { font-size: 10px; width: 18px; }
   .cc-pip { width: 10px; height: 10px; }
   .cc-cell { gap: 1px; }
-  .turn-header { min-height: 74px; }
-  .turn-round-pill { font-size: clamp(36px, 4dvh, 52px); padding: 6px 16px; }
-  .turn-name { font-size: clamp(42px, 6dvh, 66px); max-width: 55vw; }
-  .scores-btn { height: 58px; padding: 0 28px; font-size: 32px; margin: 0 10px; }
+  /*
+   * The header shares the row on a phone instead of stacking on top of itself.
+   *
+   * `.turn-name-wrap` is absolutely positioned across the full header and centred, sitting at
+   * z-index 0 beneath the round pill and the buttons — which both have opaque backgrounds. On
+   * a wide screen there is room and it looks centred; on a 393px phone the avatar, pill and
+   * buttons already came to 413px, so the name was painted over from both sides at once and
+   * "Peezy F Baby" showed up as a single letter between the pill and the ✕.
+   *
+   * Here the name is in flow and takes what is left, so it can never be covered — and the
+   * pieces beside it are trimmed to leave it something worth having.
+   */
+  /*
+   * The name gets its own row on a phone, the way the setup screen's title does.
+   *
+   * `.turn-name-wrap` is absolutely positioned across the whole header and centred, at
+   * z-index 0 — underneath the round pill and the buttons, which both paint opaque
+   * backgrounds. Given room that looks centred; on a 375px phone the avatar, pill and
+   * cricket's four buttons come to 364px on their own, so the name was covered from both
+   * sides at once and "Peezy F Baby" rendered as one letter between the pill and the ✕.
+   *
+   * There is no trim that fixes it: the pieces beside the name genuinely need that row. So
+   * the header wraps and the name takes the second row, which costs far less height than it
+   * sounds — the single row was being held open to 74px for 44px of buttons, so the whole
+   * two-row header ends up only a little taller than the old one.
+   */
+  .turn-header { min-height: 0; flex-wrap: wrap; row-gap: 2px; padding-bottom: 5px; }
+  .turn-left { flex: 0 0 auto; order: 1; align-items: center; }
+  .turn-header-3btns .turn-left { align-items: center; padding-bottom: 0; }
+  .turn-right { flex: 1 1 auto; order: 2; justify-content: flex-end; padding-right: 6px; }
+  .turn-name-wrap {
+    position: static; order: 3;
+    flex: 0 0 100%; width: 100%;
+    align-items: center; justify-content: center; padding: 0 8px;
+  }
+  .turn-name {
+    display: block; max-width: 100%;
+    font-size: clamp(26px, 7.5vw, 48px); padding: 0 10px;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .turn-round-pill { font-size: clamp(20px, 2.8dvh, 30px); padding: 3px 10px; margin-left: 8px; }
+  .scores-btn { height: 40px; padding: 0 14px; font-size: 18px; margin: 0 4px; }
   .submit-float-btn { bottom: calc(14px + env(safe-area-inset-bottom)); right: 14px; padding: 12px 22px; font-size: 13px; }
   .submit-row { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
   .submit-btn { height: 46px; font-size: 16px; }
