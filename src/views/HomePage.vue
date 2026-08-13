@@ -679,6 +679,11 @@ const PERSONALITIES = [
   { value: 'announcer', label: 'Anchor',     sub: 'Formal sports broadcast' },
   { value: 'sarcastic', label: 'Sarcastic',  sub: 'Deadpan, dry, unimpressed' },
   { value: 'smooth',    label: 'Smooth',     sub: 'Low-key, cool, laid back' },
+  { value: 'preacher',  label: 'Preacher',   sub: 'Loud, righteous, takes it personally' },
+  { value: 'nature',    label: 'Wildlife',   sub: 'Narrates the table like a documentary' },
+  { value: 'noir',      label: 'Noir',       sub: 'Hardboiled, every score a metaphor' },
+  { value: 'machine',   label: 'Machine',    sub: 'Clinical, flat, quietly disappointed' },
+  { value: 'farley',    label: 'Farley',     sub: 'Manic, loud, then suddenly very quiet' },
 ]
 const personalityLabel = computed(() =>
   PERSONALITIES.find(p => p.value === settingsStore.narratorPersonality)?.label ?? 'Default'

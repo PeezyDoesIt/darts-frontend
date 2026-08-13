@@ -196,11 +196,18 @@ export const PLAYER_THEMES = [
  * and anything else can reference it — it was previously a local type, which is part of
  * why the narrator lines ended up duplicated across views instead of shared.
  */
+/**
+ * `preacher` is loud and sermonising where `savage` is cold and terse; `nature` narrates the
+ * table as wildlife; `noir` is hardboiled; `machine` is clinical and never varies its tone,
+ * which is the joke. Each is deliberately a register the existing six do not already cover.
+ */
 export type NarratorPersonality =
   | 'default' | 'hype' | 'savage' | 'announcer' | 'sarcastic' | 'smooth'
+  | 'preacher' | 'nature' | 'noir' | 'machine' | 'farley'
 
 export const NARRATOR_PERSONALITIES: NarratorPersonality[] = [
   'default', 'hype', 'savage', 'announcer', 'sarcastic', 'smooth',
+  'preacher', 'nature', 'noir', 'machine', 'farley',
 ]
 
 export type GameType =

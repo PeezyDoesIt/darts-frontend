@@ -230,7 +230,7 @@ describe('line variety', () => {
     for (const event of ALL_EVENTS) {
       for (const personality of PERSONALITIES) {
         it(`${label}: ${event}/${personality} has something to rotate through`, () => {
-          const segments = linesFor(event, personality, ctx, mode) as string[][]
+          const segments = linesFor(event, personality, mode, ctx) as string[][]
           expect(segments.length).toBeGreaterThan(0)
           // Every segment is spoken, so a one-line segment is a line heard every time.
           for (const segment of segments) {
@@ -245,7 +245,7 @@ describe('line variety', () => {
     for (const mode of [loud, clean]) {
       for (const event of ALL_EVENTS) {
         for (const personality of PERSONALITIES) {
-          const segments = linesFor(event, personality, ctx, mode) as string[][]
+          const segments = linesFor(event, personality, mode, ctx) as string[][]
           for (const segment of segments) {
             expect(new Set(segment).size, `${event}/${personality} repeats a variant`).toBe(segment.length)
           }
