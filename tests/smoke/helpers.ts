@@ -46,7 +46,7 @@ export async function seedRoster(page: Page, opts: { keepGames?: boolean } = {})
     // Any leftover game would put the home screen in a state the test did not ask for.
     for (const key of [
       'darts_active_game', 'lrc_active_game', 'yahtzee_active_game', 'spades_active_game',
-      'farkle_active_game', 'scc_active_game', 'pig_active_game',
+      'farkle_active_game', 'scc_active_game', 'pig_active_game', 'blackjack_active_game',
     ]) localStorage.removeItem(key)
   }, { seed: players, keepGames: opts.keepGames ?? false })
 }
@@ -68,4 +68,5 @@ export const SETUP_ROUTES = [
   { game: 'ship captain crew', path: '/dice/scc/setup' },
   { game: 'pig', path: '/dice/pig/setup' },
   { game: 'spades', path: '/spades/setup' },
+  { game: 'blackjack', path: '/blackjack/setup' },
 ] as const
