@@ -14,6 +14,24 @@ export const GRADIENT_DIE_THEMES = new Set<DiceTheme>([
   'silver','copper','sapphire','citrus','sunset','mint','peach','walnut',
 ])
 
+/**
+ * Face colour for the themes that are a flat colour rather than a gradient.
+ *
+ * These live here rather than only inside YahtzeeGamePage's dieFaceFill switch so a picker
+ * can show what it is offering. Six themes previously all drew the same white swatch, which
+ * is true of Casino and of nothing else — Neon is nearly black and Wooden is brown.
+ *
+ * `default` is absent on purpose: it tints with the current player's colour, so a caller has
+ * to supply that rather than read a constant.
+ */
+export const DIE_SOLID_FACES: Record<string, string> = {
+  casino:   '#ffffff',
+  neon:     '#080808',
+  metallic: '#888898',
+  wooden:   '#a0742e',
+  vintage:  '#f0e8d0',
+}
+
 export const DIE_GRADIENTS: Record<string, string> = {
   deepsea:   'linear-gradient(135deg, #001a33 0%, #006666 60%, #00aa88 100%)',
   oilslick:  'linear-gradient(135deg, #200040 0%, #001a4d 33%, #004040 66%, #001200 100%)',

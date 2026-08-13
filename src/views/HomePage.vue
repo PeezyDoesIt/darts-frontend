@@ -1109,6 +1109,17 @@ function previewBullseyeSound(value: string) {
    panel to the taller one's height, which left a visible hole under a two-game category. */
 .door-cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px, 1.6vh, 16px); align-items: start; }
 .door-col { display: flex; flex-direction: column; gap: clamp(12px, 1.6vh, 16px); min-width: 0; }
+/*
+ * Panels keep their own height instead of being squeezed by the column.
+ *
+ * Without this the one-screen rule below caps the column, flex shrinks the panels to fit,
+ * and `.glass-panel { overflow: hidden }` quietly slices the chips inside them — on a
+ * landscape iPad that cut SPADES and BLACKJACK through the middle of the word. Worse, the
+ * clipping happened *inside* each panel, so the column's scrollHeight never grew and the
+ * `overflow-y: auto` meant to rescue it never engaged: the games were unreachable, not
+ * merely below the fold.
+ */
+.door-col > * { flex-shrink: 0; }
 .door { display: flex; flex-direction: column; gap: clamp(11px, 1.4vh, 15px); padding: clamp(16px, 2.1vh, 22px); border-radius: 22px; }
 .door-head { position: relative; display: flex; align-items: center; gap: 14px; }
 .door-head .mode-icon { width: 44px; height: 44px; border-radius: 14px; }
