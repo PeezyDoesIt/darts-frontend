@@ -67,6 +67,7 @@ export const usePlayersStore = defineStore('players', () => {
           walkupBackground: p.walkupBackground ?? null,
           pinned: p.pinned ?? false,
           targetLabelColor: p.targetLabelColor ?? null,
+          pipColor: p.pipColor ?? null,
           cricketTargetDisplay: p.cricketTargetDisplay ?? null,
           diceTheme: p.diceTheme ?? null,
         }
@@ -84,6 +85,7 @@ export const usePlayersStore = defineStore('players', () => {
           cricketTargetDisplay: p.cricketTargetDisplay ?? null,
           pinned: p.pinned ?? true,
           targetLabelColor: p.targetLabelColor ?? null,
+          pipColor: p.pipColor ?? null,
           diceTheme: p.diceTheme ?? null,
         }
       })
@@ -139,6 +141,7 @@ export const usePlayersStore = defineStore('players', () => {
       throwBackground: data.throwBackground ?? null,
       walkupBackground: data.walkupBackground ?? null,
       targetLabelColor: data.targetLabelColor ?? null,
+      pipColor: data.pipColor ?? null,
       cricketTargetDisplay: data.cricketTargetDisplay ?? null,
       pinned: data.pinned ?? false,
       id: uuid(),
@@ -257,6 +260,7 @@ export const usePlayersStore = defineStore('players', () => {
       throw_background: p.throwBackground,
       walkup_background: p.walkupBackground,
       target_label_color: p.targetLabelColor,
+      pip_color: p.pipColor,
       cricket_target_display: p.cricketTargetDisplay,
       dice_theme: p.diceTheme,
       pinned: p.pinned,
@@ -281,6 +285,7 @@ export const usePlayersStore = defineStore('players', () => {
       throwBackground: (row.throw_background as string | null) ?? null,
       walkupBackground: (row.walkup_background as string | null) ?? null,
       targetLabelColor: (row.target_label_color as string | null) ?? null,
+      pipColor: (row.pip_color as string | null) ?? null,
       cricketTargetDisplay: (row.cricket_target_display as 'show' | 'hide' | null) ?? null,
       diceTheme: (row.dice_theme as import('../types/index').DiceTheme | null) ?? null,
       pinned: (row.pinned as boolean) ?? false,

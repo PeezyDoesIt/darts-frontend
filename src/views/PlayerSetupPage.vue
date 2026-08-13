@@ -119,6 +119,28 @@
           </div>
 
           <div class="field">
+            <label class="label">Cricket: Pip Color</label>
+            <p class="field-hint">The marks that fill in as you hit a number. Default is the app's pink.</p>
+            <div class="color-dropdown-wrap">
+              <button class="color-dropdown-btn" @click="showPipDropdown = !showPipDropdown">
+                <span class="color-dropdown-swatch" :style="{ background: pipColor ?? 'var(--pink)', border: '2px solid transparent' }" />
+                <span class="color-dropdown-label">{{ selectedPipName }}</span>
+                <span class="color-dropdown-arrow">{{ showPipDropdown ? '▲' : '▼' }}</span>
+              </button>
+              <div v-if="showPipDropdown" class="color-dropdown-menu">
+                <button
+                  v-for="s in TARGET_LABEL_COLORS" :key="String(s.value)"
+                  class="color-swatch-sm"
+                  :class="{ 'color-swatch-active': pipColor === s.value }"
+                  :style="{ background: s.value ?? 'var(--pink)', border: s.value === '#000000' ? '2px solid rgba(255,255,255,0.3)' : '2px solid transparent' }"
+                  :title="s.label"
+                  @click="pipColor = s.value; showPipDropdown = false"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
             <label class="label">Cricket: Closed Targets</label>
             <p class="field-hint">How completed targets appear on your turn. Overrides the game setting.</p>
             <div class="ct-player-opts">
@@ -261,7 +283,7 @@ import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { goBack } from '../router/goBack'
 import { AVATAR_MAX_PX, BACKGROUND_MAX_PX, downscaleFile, downscaleVideoFrame } from '../lib/downscaleImage'
-import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, type Player, type DiceTheme } from '../types/index'
+import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, TARGET_LABEL_COLORS, type Player, type DiceTheme } from '../types/index'
 
 const FONT_COLORS: { name: string; value: string }[] = [
   { name: 'White',    value: '#ffffff' },
@@ -363,6 +385,10 @@ const throwBackground = ref<string | null>(null)
 const walkupBackground = ref<string | null>(null)
 
 const targetLabelColor = ref<string | null>(null)
+const pipColor = ref<string | null>(null)
+const showPipDropdown = ref(false)
+const selectedPipName = computed(() =>
+  TARGET_LABEL_COLORS.find(c => c.value === pipColor.value)?.label ?? 'Default')
 const cricketTargetDisplay = ref<'show' | 'hide'>('show')
 const diceTheme = ref<DiceTheme | null>(null)
 
@@ -481,7 +507,7 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = '#ffffff'; avatarUrl.value = null
-  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; throwBackground.value = null; walkupBackground.value = null; bgMode.value = 'image'; targetLabelColor.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false
+  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; throwBackground.value = null; walkupBackground.value = null; bgMode.value = 'image'; targetLabelColor.value = null; pipColor.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
@@ -494,6 +520,7 @@ function loadPlayer(p: Player) {
   else { bgMode.value = 'image'; bgImagePreview.value = null }
 
   targetLabelColor.value = p.targetLabelColor ?? null
+  pipColor.value = p.pipColor ?? null
   cricketTargetDisplay.value = p.cricketTargetDisplay ?? 'show'
   diceTheme.value = p.diceTheme ?? null
 }
@@ -506,10 +533,10 @@ function save() {
   const tlc = targetLabelColor.value
   const ctd = cricketTargetDisplay.value
   if (editingId.value) {
-    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: null, playerBackgroundPosition: null, playerBackgroundFill: null, targetLabelColor: tlc, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
+    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: null, playerBackgroundPosition: null, playerBackgroundFill: null, targetLabelColor: tlc, pipColor: pipColor.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
     editingId.value = null
   } else {
-    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: null, playerBackgroundPosition: null, playerBackgroundFill: null, targetLabelColor: tlc, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: null, playerBackgroundPosition: null, playerBackgroundFill: null, targetLabelColor: tlc, pipColor: pipColor.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
       resetForm()
