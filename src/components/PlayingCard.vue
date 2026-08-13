@@ -304,8 +304,15 @@ const ariaLabel = computed(() => {
   z-index: 2;
 }
 .card.playable:focus-visible { box-shadow: 0 0 0 3px var(--gold), 0 10px 18px rgba(0,0,0,0.55); }
-/* An illegal card stays visible but is clearly out of play, so the rule teaches itself. */
-.card.dimmed { opacity: 0.34; filter: grayscale(0.6); }
+/*
+ * An illegal card stays visible but is clearly out of play, so the rule teaches itself.
+ *
+ * It has to stay *readable* to teach anything, and it did not. At 0.34 on a near-black
+ * table the pips went to black — a hand of hearts and diamonds looked like a row of empty
+ * slots, so you could not see what you were holding, only what you could play. Dimmer than
+ * playable is the point; invisible is not.
+ */
+.card.dimmed { opacity: 0.62; filter: grayscale(0.35); }
 .card.faceDown {
   background: repeating-linear-gradient(45deg, #1d2b53, #1d2b53 5px, #24357a 5px, #24357a 10px);
   display: flex; align-items: center; justify-content: center;

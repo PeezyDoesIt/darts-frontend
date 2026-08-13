@@ -101,7 +101,7 @@
             <p class="field-hint">How your dice look when it's your turn in Yahtzee.</p>
             <div class="color-dropdown-wrap">
               <button class="color-dropdown-btn dice-dropdown-btn" @click="showDiceDropdown = !showDiceDropdown">
-                <span class="dice-dropdown-icon">{{ selectedDiceTheme?.icon ?? '🎲' }}</span>
+                <span class="dice-dropdown-item-swatch" :style="swatchStyle(diceTheme ?? 'default')" />
                 <span class="color-dropdown-label">{{ selectedDiceTheme?.label ?? 'Default' }}</span>
                 <span class="color-dropdown-arrow">{{ showDiceDropdown ? '▲' : '▼' }}</span>
               </button>
@@ -112,7 +112,13 @@
                   :class="{ active: (diceTheme ?? 'default') === t.value }"
                   @click="diceTheme = t.value; showDiceDropdown = false"
                 >
-                  <span class="dice-dropdown-item-icon">{{ t.icon }}</span>
+                  <!--
+                    The die's own colours rather than an emoji. 🎰 and 🪵 say nothing about
+                    what you are picking, and several themes shared a glyph — 🌑 stood for
+                    both Silver and Midnight. The in-game picker in YahtzeeGamePage already
+                    showed a swatch; this is the same idea, square to read as a die face.
+                  -->
+                  <span class="dice-dropdown-item-swatch" :style="swatchStyle(t.value)" />
                   <span class="dice-dropdown-item-label">{{ t.label }}</span>
                 </button>
               </div>
@@ -214,7 +220,7 @@ import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { goBack } from '../router/goBack'
 import { AVATAR_MAX_PX, BACKGROUND_MAX_PX, downscaleFile, downscaleVideoFrame } from '../lib/downscaleImage'
-import { DICE_THEMES, type Player, type DiceTheme } from '../types/index'
+import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, type Player, type DiceTheme } from '../types/index'
 
 const FONT_COLORS: { name: string; value: string }[] = [
   { name: 'White',    value: '#ffffff' },
@@ -240,6 +246,18 @@ const selectedColorName = computed(() =>
 )
 
 const showDiceDropdown = ref(false)
+/**
+ * What the die actually looks like, for the swatch beside each theme name.
+ *
+ * Three cases, in order: the gradient themes carry their own; the flat ones have a face
+ * colour; and `default` tints with whatever colour this player is being given, so the swatch
+ * changes as you change their colour above — which is exactly what the die will do.
+ */
+function swatchStyle(theme: DiceTheme | null) {
+  const t = theme ?? 'default'
+  return { background: DIE_GRADIENTS[t] ?? DIE_SOLID_FACES[t] ?? `${color.value}55` }
+}
+
 const selectedDiceTheme = computed(() =>
   DICE_THEMES.find(t => t.value === (diceTheme.value ?? 'default'))
 )
@@ -564,7 +582,6 @@ function save() {
 .confirm-btns .btn { flex: 1; }
 
 .dice-dropdown-btn { font-size: 16px; }
-.dice-dropdown-icon { font-size: 20px; flex-shrink: 0; }
 .dice-dropdown-menu {
   margin-top: 6px;
   padding: 8px;
@@ -574,8 +591,14 @@ function save() {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 5px;
-  max-height: 240px;
+  /*
+   * Thirty-odd themes in a fixed 240px box, with the scrollbar hidden below, looked severed
+   * rather than scrollable — the last row was sliced through and nothing said there was
+   * more. Taller where the screen allows, and the fade tells you to keep going.
+   */
+  max-height: min(340px, 42vh);
   overflow-y: auto;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent 100%);
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   backdrop-filter: blur(12px);
@@ -592,7 +615,12 @@ function save() {
 }
 .dice-dropdown-item:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
 .dice-dropdown-item.active { border-color: var(--pink); background: rgba(255,45,120,0.15); }
-.dice-dropdown-item-icon { font-size: 18px; flex-shrink: 0; }
+/* Square, not round: it stands for a die face, and a circle read as a colour picker. */
+.dice-dropdown-item-swatch {
+  width: 20px; height: 20px; border-radius: 5px; flex-shrink: 0;
+  border: 1.5px solid rgba(255,255,255,0.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.22);
+}
 .dice-dropdown-item-label { font-size: 12px; font-weight: 800; font-family: var(--font-display); letter-spacing: 0.04em; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dice-dropdown-item.active .dice-dropdown-item-label { color: var(--pink); }
 
