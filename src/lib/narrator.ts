@@ -76,6 +76,11 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
     // players over twenty rounds hear it eighty times. One variant each meant hearing the
     // identical sentence all eighty. These rotate.
     byPersonality: {
+      farley: c => [[
+        `Okay. Okay okay okay. ${c.name}. You got this. Do you got this? You got this.`,
+        `${c.name}! Up! Go! I believe in you! ...I think!`,
+        `It's ${c.name}! Everybody look at ${c.name}!`,
+      ]],
       preacher: c => [[
         `${c.name}. ${c.name.toUpperCase()}. That's you. Get up here.`,
         `Up. Now. ${c.name}, that board has been waiting on you.`,
@@ -135,6 +140,11 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       `Up next — ${c.name}.`,
     ]],
     clean: {
+      farley: c => [[
+        `Okay. Okay okay okay. ${c.name}. You got this. Do you got this? You got this.`,
+        `${c.name}! Up! Go! I believe in you! ...I think!`,
+        `It's ${c.name}! Everybody look at ${c.name}!`,
+      ]],
       preacher: c => [[
         `${c.name}. ${c.name.toUpperCase()}. That's you. Get up here.`,
         `Up. Now. ${c.name}, that board has been waiting on you.`,
@@ -196,6 +206,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   bonusTurn: {
     commentary: false,
     byPersonality: {
+      farley: c => [[
+        `A BONUS?! For ${c.name}?! Somebody pinch me!`,
+        `${c.name} gets another one! Don't blow it! ...Sorry. You won't blow it.`,
+      ]],
       preacher: c => [[
         `${c.name} gets ANOTHER one. Do not waste it.`,
         `Bonus throw, ${c.name}. That is a gift. Act like it.`,
@@ -244,6 +258,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
     // The unfiltered lines here carry no profanity, so clean mode keeps the same voices
     // rather than flattening all six into one neutral sentence.
     clean: {
+      farley: c => [[
+        `A BONUS?! For ${c.name}?! Somebody pinch me!`,
+        `${c.name} gets another one! Don't blow it! ...Sorry. You won't blow it.`,
+      ]],
       preacher: c => [[
         `${c.name} gets ANOTHER one. Do not waste it.`,
         `Bonus throw, ${c.name}. That is a gift. Act like it.`,
@@ -286,6 +304,11 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   zeroRoast: {
     commentary: true,
     byPersonality: {
+      farley: () => [[
+        `OH, THAT'S GREAT. That's — no, that's great. It'll come back. Any minute now. ...Any minute.`,
+        `Zero! ZERO! And you know what? I've done worse. Way worse. Don't ask.`,
+        `Nothing! That's okay! That is okay. I'm saying it out loud so it's true.`,
+      ]],
       preacher: () => [[
         `Zero. Three darts, and you came back with NOTHING. You want to explain that to me? Slowly?`,
         `ZERO. Say it with me. Zero.`,
@@ -311,6 +334,11 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
     },
     fallback: () => [[`What the fuck was that?`, `Holy shit! Please, sit down. Who's next?`, `Who invited Helen Keller to play?`, `Damn!... That was trash.`, `Were you even facing the board?`]],
     clean: {
+      farley: () => [[
+        `OH, THAT'S GREAT. That's — no, that's great. It'll come back. Any minute now. ...Any minute.`,
+        `Zero! ZERO! And you know what? I've done worse. Way worse. Don't ask.`,
+        `Nothing! That's okay! That is okay. I'm saying it out loud so it's true.`,
+      ]],
       preacher: () => [[
         `Zero. Three darts, and nothing to show. Explain that to me.`,
         `ZERO. Say it with me. Zero.`,
@@ -340,6 +368,13 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   timeout: {
     commentary: true,
     byPersonality: {
+      farley: c => [
+        [`${c.prevName}! You missed it! You MISSED it! ...It's fine. It's fine.`, `Gone! ${c.prevName}, it's gone! I can't watch.`],
+        ...(escalated(c) ? [[
+          `AGAIN?! ${c.prevName}! We talked about this!`,
+          `That's twice! I'm not mad! I'm just — okay I'm a little mad.`,
+        ]] : []),
+      ],
       preacher: c => [
         [`${c.prevName}! You had a turn and you let it walk right past you!`,
         `Gone. ${c.prevName}, your turn is GONE.`,],
@@ -401,6 +436,13 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       ...(escalated(c) ? [[`This is why nobody wants to play darts with you.`, `Three times. Sort it out.`, `Every single round with you.`]] : []),
     ],
     clean: {
+      farley: c => [
+        [`${c.prevName}! You missed it! You MISSED it! ...It's fine. It's fine.`, `Gone! ${c.prevName}, it's gone! I can't watch.`],
+        ...(escalated(c) ? [[
+          `AGAIN?! ${c.prevName}! We talked about this!`,
+          `That's twice! I'm not mad! I'm just — okay I'm a little mad.`,
+        ]] : []),
+      ],
       preacher: c => [[
         `${c.prevName}! You had a turn and you let it walk right past you!`,
         `Gone. ${c.prevName}, your turn is GONE.`,
@@ -451,6 +493,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   hurryUp: {
     commentary: true,
     byPersonality: {
+      farley: c => [[
+        `${c.name}! Come on! COME ON! ...please.`,
+        `We're all waiting, ${c.name}! Not in a mean way! In a supportive way!`,
+      ]],
       preacher: c => [[
         `${c.name}! We are all standing here waiting on YOU!`,
         `Move, ${c.name}. Move now.`,
@@ -487,6 +533,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       ? [`${c.name}. Hurry the fuck up. This is why nobody wants to play darts with you.`, `${c.name}. I will not say it again. GET. UP. HERE.`, `${c.name}. Move your ass. NOW.`]
       : [`${c.name}. Hurry the fuck up. It's your turn.`, `${c.name}. Get up here. Right now.`, `${c.name}. Clock's running. Move it.`]],
     clean: {
+      farley: c => [[
+        `${c.name}! Come on! COME ON! ...please.`,
+        `We're all waiting, ${c.name}! Not in a mean way! In a supportive way!`,
+      ]],
       preacher: c => [[
         `${c.name}! We are all standing here waiting on YOU!`,
         `Move, ${c.name}. Move now.`,
@@ -526,6 +576,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   twentySecondWalkUp: {
     commentary: true,
     byPersonality: {
+      farley: c => [[
+        `Twenty seconds, ${c.name}! GO! GO GO GO!`,
+        `${c.name}! Twenty! That's not a lot! That's barely any!`,
+      ]],
       preacher: c => [[
         `Twenty seconds, ${c.name}! Get UP there!`,
         `${c.name}. Twenty. Move.`,
@@ -573,6 +627,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       `${c.name}, twenty seconds.`,
     ]],
     clean: {
+      farley: c => [[
+        `Twenty seconds, ${c.name}! GO! GO GO GO!`,
+        `${c.name}! Twenty! That's not a lot! That's barely any!`,
+      ]],
       preacher: c => [[
         `Twenty seconds, ${c.name}! Get UP there!`,
         `${c.name}. Twenty. Move.`,
@@ -614,6 +672,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   twentySecondThrow: {
     commentary: true,
     byPersonality: {
+      farley: c => [[
+        `THROW IT, ${c.name}! Throw it throw it throw it!`,
+        `Twenty seconds! ${c.name}! Just — let it go! LET IT GO!`,
+      ]],
       preacher: c => [[
         `Twenty seconds, ${c.name}. THROW it.`,
         `${c.name}! Let it go!`,
@@ -664,6 +726,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       `${c.name}, twenty seconds to throw.`,
     ]],
     clean: {
+      farley: c => [[
+        `THROW IT, ${c.name}! Throw it throw it throw it!`,
+        `Twenty seconds! ${c.name}! Just — let it go! LET IT GO!`,
+      ]],
       preacher: c => [[
         `Twenty seconds, ${c.name}. THROW it.`,
         `${c.name}! Let it go!`,
@@ -702,6 +768,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   throwNudge: {
     commentary: true,
     byPersonality: {
+      farley: c => [[
+        `${c.name}! Still you! STILL YOU!`,
+        `Buddy. ${c.name}. It's you. It's still you.`,
+      ]],
       preacher: c => [[
         `${c.name}. STILL you. Throw.`,
         `We have not moved on, ${c.name}. Neither should you.`,
@@ -749,6 +819,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       `${c.name}, still your turn`,
     ]],
     clean: {
+      farley: c => [[
+        `${c.name}! Still you! STILL YOU!`,
+        `Buddy. ${c.name}. It's you. It's still you.`,
+      ]],
       preacher: c => [[
         `${c.name}. STILL you. Throw.`,
         `We have not moved on, ${c.name}. Neither should you.`,
@@ -787,6 +861,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   win: {
     commentary: false,
     byPersonality: {
+      farley: c => [[
+        `${c.name} WINS! Get over here! No — GET OVER HERE! I'm so proud I could break a table!`,
+        `THAT'S ${c.name}! THAT'S MY — well, that's ${c.name}!`,
+      ]],
       preacher: c => [[
         `${c.name} takes it — and there was NOTHING anybody here could do about it.`,
         `That is how it is done. ${c.name}. Say the name.`,
@@ -840,6 +918,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       `That's the game — ${c.name} wins.`,
     ]],
     clean: {
+      farley: c => [[
+        `${c.name} WINS! Get over here! No — GET OVER HERE! I'm so proud I could break a table!`,
+        `THAT'S ${c.name}! THAT'S MY — well, that's ${c.name}!`,
+      ]],
       preacher: c => [[
         `${c.name} takes it — and there was NOTHING anybody here could do about it.`,
         `That is how it is done. ${c.name}. Say the name.`,
@@ -900,6 +982,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   gameTimeWarning: {
     commentary: true,
     byPersonality: {
+      farley: c => [[
+        `${c.count} minutes! That's it! That's ALL we get!`,
+        `${c.count} minutes, everybody! Make 'em count! Or don't! No pressure!`,
+      ]],
       preacher: c => [[
         `${c.count} minutes! Do something with them!`,
         `${c.count} minutes left. That is not a lot.`,
@@ -947,6 +1033,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       `${c.count} minutes left.`,
     ]],
     clean: {
+      farley: c => [[
+        `${c.count} minutes! That's it! That's ALL we get!`,
+        `${c.count} minutes, everybody! Make 'em count! Or don't! No pressure!`,
+      ]],
       preacher: c => [[
         `${c.count} minutes! Do something with them!`,
         `${c.count} minutes left. That is not a lot.`,
@@ -986,6 +1076,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   gameOver: {
     commentary: false,
     byPersonality: {
+      farley: () => [[
+        `THAT'S TIME! That's it! That's the whole thing!`,
+        `Time! It's over! ...I need to sit down.`,
+      ]],
       preacher: () => [[
         `That is TIME. It is over.`,
         `Clock's done. Everybody out.`,
@@ -1022,6 +1116,10 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
     },
     fallback: () => [[`Time is up! Game over!`, `That's time — game over.`]],
     clean: {
+      farley: () => [[
+        `THAT'S TIME! That's it! That's the whole thing!`,
+        `Time! It's over! ...I need to sit down.`,
+      ]],
       preacher: () => [[
         `That is TIME. It is over.`,
         `Clock's done. Everybody out.`,

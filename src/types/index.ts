@@ -203,11 +203,11 @@ export const PLAYER_THEMES = [
  */
 export type NarratorPersonality =
   | 'default' | 'hype' | 'savage' | 'announcer' | 'sarcastic' | 'smooth'
-  | 'preacher' | 'nature' | 'noir' | 'machine'
+  | 'preacher' | 'nature' | 'noir' | 'machine' | 'farley'
 
 export const NARRATOR_PERSONALITIES: NarratorPersonality[] = [
   'default', 'hype', 'savage', 'announcer', 'sarcastic', 'smooth',
-  'preacher', 'nature', 'noir', 'machine',
+  'preacher', 'nature', 'noir', 'machine', 'farley',
 ]
 
 export type GameType =
