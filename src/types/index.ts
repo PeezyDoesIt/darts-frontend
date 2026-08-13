@@ -94,6 +94,8 @@ export type Player = {
   throwBackground: string | null
   walkupBackground: string | null
   targetLabelColor: string | null
+  /** Colour of the cricket mark pips. Null keeps the app's pink, which is what they were. */
+  pipColor: string | null
   cricketTargetDisplay: 'show' | 'hide' | null  // null = use game setting
   diceTheme: DiceTheme | null  // null = same as 'default'
   pinned: boolean

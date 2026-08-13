@@ -18,7 +18,7 @@
         >
           <span class="target-label" :class="{ 'target-label-bull': target === 'bull' }" :style="{ color: targetColor, filter: `drop-shadow(0 0 6px ${targetColor}80)` }">{{ target === 'bull' ? '🎯' : target }}</span>
 
-          <div class="pips-wrap">
+          <div class="pips-wrap" :style="{ '--pip': pipColor || 'var(--pink)' }">
             <span
               v-for="n in mtc" :key="n"
               class="pip"
@@ -74,6 +74,8 @@ const props = defineProps<{
   playerColor?: string
   playerBackground?: string | null
   targetLabelColor?: string | null
+  /** Colour of a filled pip. Falls back to the app pink, which is what they always were. */
+  pipColor?: string | null
   marksToClose?: number
   throwTimeLeft?: number
   throwTimerDuration?: number
@@ -239,8 +241,8 @@ defineExpose({ submit, submitted })
 .target-label-bull { font-size: clamp(150px, 26dvh, 280px); }
 .pips-wrap { display: flex; align-items: stretch; gap: 20px; flex: 1; padding: 14px 0; margin-left: 24px; }
 .pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: clamp(28px, 5dvh, 60px); font-weight: 900; font-family: var(--font-display); color: rgba(0,0,0,0.6); line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.pip.existing { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,120,1), 0 0 40px rgba(255,45,120,0.5); }
-.pip.round { background: var(--pink); border-color: var(--pink); box-shadow: 0 0 16px rgba(255,45,120,0.6); }
+.pip.existing { background: var(--pip); border-color: var(--pip); box-shadow: 0 0 20px color-mix(in srgb, var(--pip) 85%, transparent), 0 0 40px color-mix(in srgb, var(--pip) 45%, transparent); }
+.pip.round { background: var(--pip); border-color: var(--pip); box-shadow: 0 0 16px color-mix(in srgb, var(--pip) 60%, transparent); }
 
 .closed-badge { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--pink); text-transform: uppercase; font-family: var(--font-display); opacity: 0.7; z-index: 2; }
 .hit-badge { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 22px; font-weight: 900; font-family: var(--font-display); color: var(--pink); filter: drop-shadow(0 0 8px rgba(255,45,120,0.6)); z-index: 2; }
