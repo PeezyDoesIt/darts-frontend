@@ -84,8 +84,30 @@ test('a 301 walk-up puts the avatar in the same corner as cricket', async ({ pag
 })
 
 test('speed cricket walk-up puts the avatar bottom-left', async ({ page }) => {
-  // Speed Cricket is cricket everywhere else in the app, but this screen's old check listed
-  // only cricket and cut-throat, so it took the right-hand corner with the 01 games.
   await walkUpFor(page, 'Speed Cricket')
   await expectWatermarkBottomLeft(page)
+})
+
+/**
+ * The same screen picks its whole layout from the same list the watermark used, and Speed
+ * Cricket was missing from it — so it got the 01 games' stacked layout and inline button
+ * rather than cricket's composition and floating START, despite being grouped with cricket at
+ * every other decision in the app. The trio is spelled out by hand in about twenty places.
+ */
+// Cut-throat is the third of the family but is deliberately absent here: it has a GameType,
+// a label and branches everywhere, yet no pill on the new-game screen creates it, so there is
+// no way to reach its walk-up to assert on.
+for (const game of ['Cricket', 'Speed Cricket']) {
+  test(`${game} walk-up uses the cricket layout`, async ({ page }) => {
+    await walkUpFor(page, game)
+    await expect(page.locator('.cricket-layout')).toBeVisible()
+    await expect(page.locator('.btn-cricket-start')).toBeVisible()
+    await expect(page.locator('.default-layout')).toHaveCount(0)
+  })
+}
+
+test('an 01 walk-up still uses the default layout', async ({ page }) => {
+  await walkUpFor(page, '301')
+  await expect(page.locator('.default-layout')).toBeVisible()
+  await expect(page.locator('.cricket-layout')).toHaveCount(0)
 })
