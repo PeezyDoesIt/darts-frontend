@@ -91,6 +91,17 @@ test('blackjack: a chosen stack is what everyone sits down with', async ({ page 
 
 test('blackjack: dealing takes the stake and puts cards on the table', async ({ page }) => {
   await seedRoster(page)
+  /*
+   * A fixed shuffle.
+   *
+   * This test walks the real setup journey instead of seeding a table, so the store builds
+   * its own shoe — and roughly one hand in twenty is a natural blackjack, which settles
+   * inside deal() and pays out before anything renders. The chip assertion below was
+   * therefore wrong about five percent of the time, which is exactly how it behaved: a CI
+   * run that failed once and passed on retry. `buildShoe` takes its rng from Math.random, so
+   * pinning that pins the deal without touching the journey being tested.
+   */
+  await page.addInitScript(() => { Math.random = () => 0.5 })
   await page.goto('/blackjack/setup')
   await pickBubble(page, 'Peezy')
   await page.getByRole('button', { name: 'Deal In' }).click()
