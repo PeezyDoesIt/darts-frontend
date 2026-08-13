@@ -95,7 +95,9 @@ const nextPlayer = computed(() => game.value!.players[game.value!.currentPlayerI
 const isCricket = computed(() => game.value?.gameType === 'cricket' || game.value?.gameType === 'cutThroat')
 
 const betweenStyle = computed((): CSSProperties => {
-  const bg = nextPlayer.value.playerBackground
+  // The walk-up pick wins, then the player's default. No game theme here: this screen is
+  // about whose turn it is, and the game's own backdrop belongs to the board they walk up to.
+  const bg = nextPlayer.value.walkupBackground ?? nextPlayer.value.playerBackground
   if (bg && (bg.startsWith('data:') || bg.startsWith('http'))) {
     return { backgroundImage: `url(${bg})`, backgroundSize: 'cover', backgroundPosition: 'center' }
   }

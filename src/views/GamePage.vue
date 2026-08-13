@@ -1101,9 +1101,24 @@ function startThrowTimer() {
   }, 1000)
 }
 
+/**
+ * What the throw screen shows behind the entry panel.
+ *
+ * The player's throw-screen pick wins, then their default background, then the game's theme.
+ * Resolved once rather than repeating the chain in each of the three computeds below, which
+ * is how the previous two-step version drifted into being spelled slightly differently in
+ * each of them.
+ */
+const throwBg = computed(() =>
+  currentPlayer.value.throwBackground ?? currentPlayer.value.playerBackground ?? game.value?.gameTheme ?? null)
+
+/** True when the background came from the player rather than the game, which frames it differently. */
+const throwBgIsPlayers = computed(() =>
+  !!(currentPlayer.value.throwBackground ?? currentPlayer.value.playerBackground))
+
 const entryPanelStyle = computed(() => {
-  const isPlayerBg = !!currentPlayer.value.playerBackground
-  const bg = currentPlayer.value.playerBackground ?? game.value?.gameTheme
+  const isPlayerBg = throwBgIsPlayers.value
+  const bg = throwBg.value
   if (!bg) return {}
   if (bg.startsWith('data:') || bg.startsWith('http')) {
     const size = isPlayerBg ? 'cover' : (game.value?.gameThemeSize ?? 'cover')
@@ -1116,14 +1131,14 @@ const entryPanelStyle = computed(() => {
 })
 
 const showBlurBg = computed(() => {
-  const isPlayerBg = !!currentPlayer.value.playerBackground
+  const isPlayerBg = throwBgIsPlayers.value
   const fill = isPlayerBg ? currentPlayer.value.playerBackgroundFill : game.value?.gameThemeFill
   const size = isPlayerBg ? currentPlayer.value.playerBackgroundSize : game.value?.gameThemeSize
   return fill === 'blur' && size === 'contain'
 })
 
 const entryBlurBgStyle = computed(() => {
-  const bg = currentPlayer.value.playerBackground ?? game.value?.gameTheme
+  const bg = throwBg.value
   if (!bg) return {}
   return { backgroundImage: `url(${bg})` }
 })

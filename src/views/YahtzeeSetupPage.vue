@@ -133,6 +133,8 @@ const botPlayers = computed<Player[]>(() =>
     playerBackgroundSize: null,
     playerBackgroundPosition: null,
     playerBackgroundFill: null,
+    throwBackground: null,
+    walkupBackground: null,
     targetLabelColor: null,
     cricketTargetDisplay: null,
     diceTheme: null,
