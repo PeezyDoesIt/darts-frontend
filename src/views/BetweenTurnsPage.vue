@@ -92,7 +92,18 @@ const { narrate: speakEvent } = useNarrator()
 const game = computed(() => gameStore.game)
 if (!game.value) router.push('/')
 const nextPlayer = computed(() => game.value!.players[game.value!.currentPlayerIndex]!)
-const isCricket = computed(() => game.value?.gameType === 'cricket' || game.value?.gameType === 'cutThroat')
+/*
+ * Speed Cricket belongs here too.
+ *
+ * It is grouped with cricket and cut-throat at every other decision in the app — the board's
+ * marks column, the wild-number row, the setup screen's cricket sections — but this one list
+ * was written without it, so its walk-up quietly used the 01 games' layout instead. The trio
+ * is spelled out by hand in about twenty places; this was the one that drifted.
+ */
+const isCricket = computed(() =>
+  game.value?.gameType === 'cricket'
+  || game.value?.gameType === 'cutThroat'
+  || game.value?.gameType === 'speedCricket')
 
 const betweenStyle = computed((): CSSProperties => {
   // The walk-up pick wins, then the player's default. No game theme here: this screen is
