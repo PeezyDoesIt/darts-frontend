@@ -308,7 +308,7 @@ import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
-import { GAME_TYPE_LABELS, type GameType, type Player } from '../types/index'
+import { GAME_TYPE_LABELS, GAME_TYPE_ORDER, type GameType, type Player } from '../types/index'
 import { DEFAULT_LIVES as KILLER_DEFAULT_LIVES, rulesFor } from '../lib/killer'
 
 const GAME_TYPE_ROW1: GameType[] = ['cricket', 'speedCricket', 'aroundTheClock', 'killer', 'horse']
@@ -345,7 +345,15 @@ const gameStore = useGameStore()
 const currentStep = ref(route.query.step ? Number(route.query.step) : 1)
 const showAdvanced = ref(false)
 
-const selectedGameType = ref<GameType | null>('cricket')
+/**
+ * A Darts chip on the menu links straight to a game — /new-game?type=killer — so the door
+ * lands on the game rather than on a picker. An unknown or missing type falls back to
+ * Cricket, which is what this page has always opened on.
+ */
+const queryType = route.query.type as GameType | undefined
+const selectedGameType = ref<GameType | null>(
+  queryType && GAME_TYPE_ORDER.includes(queryType) ? queryType : 'cricket',
+)
 const timerDuration = ref(60)
 const timerOptions = [60, 90, 120]
 const walkUpInput = ref('60')
