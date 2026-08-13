@@ -79,6 +79,20 @@ export type Player = {
   playerBackgroundSize: 'cover' | 'contain' | null
   playerBackgroundPosition: 'top' | 'center' | 'bottom' | null
   playerBackgroundFill: 'black' | 'blur' | null
+  /**
+   * Per-screen overrides for the two places a player's background is actually seen.
+   *
+   * `playerBackground` above stays the default and is what both fall back to, so setting
+   * only it behaves exactly as before. These exist because the walk-up screen and the throw
+   * screen are read at different distances and for different reasons — one is "you are up
+   * next", the other is the board you are aiming at — and one image rarely suits both.
+   *
+   * No size or position siblings on purpose: the ones on playerBackground have never been
+   * written as anything but null, so adding six more dead columns would be inventing
+   * settings nothing sets.
+   */
+  throwBackground: string | null
+  walkupBackground: string | null
   targetLabelColor: string | null
   cricketTargetDisplay: 'show' | 'hide' | null  // null = use game setting
   diceTheme: DiceTheme | null  // null = same as 'default'

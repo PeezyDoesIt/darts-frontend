@@ -55,6 +55,46 @@
                 <button v-if="bgImagePreview" v-ripple class="btn btn-outline btn-sm" @click="bgImagePreview = null; playerBackground = null">Clear</button>
               </div>
             </div>
+            <p class="field-hint">Used on both screens unless you set one below.</p>
+          </div>
+
+          <!--
+            The two screens a background is actually seen on, each able to differ. Both
+            preview the default when unset, so the box always shows what will really appear
+            rather than going blank and implying nothing is set.
+          -->
+          <div class="field">
+            <label class="label">Throw Screen Background</label>
+            <p class="field-hint">Behind the board while you're throwing.</p>
+            <div class="photo-area">
+              <div class="bg-preview" :style="screenBgPreview(throwBackground)">
+                <span v-if="!throwBackground" style="font-size:11px;opacity:0.45;letter-spacing:0.08em">DEFAULT</span>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                <label v-ripple class="btn btn-spray btn-lg" style="cursor:pointer;position:relative;overflow:hidden">
+                  Choose File
+                  <input type="file" accept="image/*" style="display:none" @change="onScreenBgFileChange($event, 'throw')" />
+                </label>
+                <button v-if="throwBackground" v-ripple class="btn btn-outline btn-sm" @click="throwBackground = null">Use default</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label">Walk-up Screen Background</label>
+            <p class="field-hint">Behind the "you're up next" screen between turns.</p>
+            <div class="photo-area">
+              <div class="bg-preview" :style="screenBgPreview(walkupBackground)">
+                <span v-if="!walkupBackground" style="font-size:11px;opacity:0.45;letter-spacing:0.08em">DEFAULT</span>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                <label v-ripple class="btn btn-spray btn-lg" style="cursor:pointer;position:relative;overflow:hidden">
+                  Choose File
+                  <input type="file" accept="image/*" style="display:none" @change="onScreenBgFileChange($event, 'walkup')" />
+                </label>
+                <button v-if="walkupBackground" v-ripple class="btn btn-outline btn-sm" @click="walkupBackground = null">Use default</button>
+              </div>
+            </div>
           </div>
 
           <div class="field">
@@ -318,6 +358,9 @@ function doDelete() {
 const bgMode = ref<'image'>('image')
 const playerBackground = ref<string | null>(null)
 const bgImagePreview = ref<string | null>(null)
+/* Per-screen overrides. Null means "use the default above", which is the common case. */
+const throwBackground = ref<string | null>(null)
+const walkupBackground = ref<string | null>(null)
 
 const targetLabelColor = ref<string | null>(null)
 const cricketTargetDisplay = ref<'show' | 'hide'>('show')
@@ -377,6 +420,40 @@ async function onBgFileChange(e: Event) {
   }
 }
 
+/**
+ * The per-screen pickers share one handler rather than each getting a copy of the one above.
+ *
+ * Three near-identical file readers is how the third one ends up missing the downscale and
+ * a 4MB photo lands in localStorage, which is the quota failure the roster already guards
+ * against elsewhere.
+ */
+async function onScreenBgFileChange(e: Event, which: 'throw' | 'walkup') {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  try {
+    // A name rather than the ref itself: <script setup> unwraps top-level refs in the
+    // template, so one passed from there arrives as its value and cannot be written back to.
+    const scaled = await downscaleFile(file, BACKGROUND_MAX_PX)
+    if (which === 'throw') throwBackground.value = scaled
+    else walkupBackground.value = scaled
+  } catch {
+    alert('Could not read that image.')
+  } finally {
+    input.value = ''
+  }
+}
+
+/** Falls back to the default background, so an unset screen previews what it will really show. */
+function screenBgPreview(bg: string | null) {
+  const shown = bg ?? playerBackground.value ?? bgImagePreview.value
+  if (!shown) return {}
+  if (shown.startsWith('data:') || shown.startsWith('http')) {
+    return { backgroundImage: `url(${shown})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundColor: '#000' }
+  }
+  return { background: shown }
+}
+
 // Start camera when dialog opens
 watch(cameraOpen, async (open) => {
   if (!open) return
@@ -404,13 +481,15 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = '#ffffff'; avatarUrl.value = null
-  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; bgMode.value = 'image'; targetLabelColor.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false
+  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; throwBackground.value = null; walkupBackground.value = null; bgMode.value = 'image'; targetLabelColor.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
   photoPreview.value = p.avatarUrl?.startsWith('data:') || p.avatarUrl?.startsWith('http') ? p.avatarUrl : null
   avatarUrl.value = photoPreview.value
   playerBackground.value = p.playerBackground ?? null
+  throwBackground.value = p.throwBackground ?? null
+  walkupBackground.value = p.walkupBackground ?? null
   if (p.playerBackground?.startsWith('data:')) { bgMode.value = 'image'; bgImagePreview.value = p.playerBackground }
   else { bgMode.value = 'image'; bgImagePreview.value = null }
 
@@ -427,10 +506,10 @@ function save() {
   const tlc = targetLabelColor.value
   const ctd = cricketTargetDisplay.value
   if (editingId.value) {
-    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: null, playerBackgroundPosition: null, playerBackgroundFill: null, targetLabelColor: tlc, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
+    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: null, playerBackgroundPosition: null, playerBackgroundFill: null, targetLabelColor: tlc, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
     editingId.value = null
   } else {
-    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, playerBackgroundSize: null, playerBackgroundPosition: null, playerBackgroundFill: null, targetLabelColor: tlc, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: null, playerBackgroundPosition: null, playerBackgroundFill: null, targetLabelColor: tlc, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
       resetForm()
