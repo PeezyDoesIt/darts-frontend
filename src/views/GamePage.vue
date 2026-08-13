@@ -394,6 +394,18 @@
             <button v-ripple class="timer-ctrl-btn" :class="{ active: game.skipWalkup }" @click="gameStore.setSkipWalkup(true)">Skip</button>
           </div>
         </div>
+        <!--
+          quietNarrator is read at speak time rather than captured when the game starts, so
+          flipping it here takes effect on the very next line. It lives with the other
+          in-game controls rather than in the header: the header is what you tap mid-throw.
+        -->
+        <div class="timer-control-group">
+          <span class="timer-control-label">Narrator</span>
+          <div class="timer-control-btns">
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.quietNarrator }" @click="settingsStore.setQuietNarrator(false)">Commentary</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.quietNarrator }" @click="settingsStore.setQuietNarrator(true)">Names only</button>
+          </div>
+        </div>
         <div class="timer-control-group">
           <button v-ripple class="btn btn-sm btn-danger" @click="confirmQuit = true; showAllScores = false">Quit Game</button>
         </div>

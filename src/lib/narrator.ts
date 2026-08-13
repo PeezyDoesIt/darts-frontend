@@ -76,6 +76,23 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
     // players over twenty rounds hear it eighty times. One variant each meant hearing the
     // identical sentence all eighty. These rotate.
     byPersonality: {
+      preacher: c => [[
+        `${c.name}. ${c.name.toUpperCase()}. That's you. Get up here.`,
+        `Up. Now. ${c.name}, that board has been waiting on you.`,
+        `${c.name}! On your feet.`,
+      ]],
+      nature: c => [[
+        `Here we observe ${c.name}, approaching the oche with practised confidence.`,
+        `${c.name} steps forward. The others watch, and wait.`,
+      ]],
+      noir: c => [[
+        `${c.name} steps up. The board's seen a hundred like him. It wasn't impressed then either.`,
+        `${c.name}. The oche doesn't care who you are. It never did.`,
+      ]],
+      machine: c => [[
+        `Player: ${c.name}. Turn: active. Proceed.`,
+        `${c.name} is up. Awaiting input.`,
+      ]],
       hype: c => [[
         `LET'S GO! ${c.name}, get up here — it's your time!`,
         `${c.name}! Step UP! Let's see it!`,
@@ -118,6 +135,23 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       `Up next — ${c.name}.`,
     ]],
     clean: {
+      preacher: c => [[
+        `${c.name}. ${c.name.toUpperCase()}. That's you. Get up here.`,
+        `Up. Now. ${c.name}, that board has been waiting on you.`,
+        `${c.name}! On your feet.`,
+      ]],
+      nature: c => [[
+        `Here we observe ${c.name}, approaching the oche with practised confidence.`,
+        `${c.name} steps forward. The others watch, and wait.`,
+      ]],
+      noir: c => [[
+        `${c.name} steps up. The board's seen a hundred like him. It wasn't impressed then either.`,
+        `${c.name}. The oche doesn't care who you are. It never did.`,
+      ]],
+      machine: c => [[
+        `Player: ${c.name}. Turn: active. Proceed.`,
+        `${c.name} is up. Awaiting input.`,
+      ]],
       default: c => [[
         `${c.name} — it's your turn.`,
         `${c.name}, you're up.`,
@@ -162,6 +196,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   bonusTurn: {
     commentary: false,
     byPersonality: {
+      preacher: c => [[
+        `${c.name} gets ANOTHER one. Do not waste it.`,
+        `Bonus throw, ${c.name}. That is a gift. Act like it.`,
+      ]],
+      nature: c => [[
+        `A rare second opportunity presents itself to ${c.name}.`,
+        `${c.name} is granted another throw — an advantage seldom squandered.`,
+      ]],
+      noir: c => [[
+        `${c.name} gets a bonus. Nothing in this room is free, but take it anyway.`,
+        `Another throw for ${c.name}. Second chances are cheaper than they look.`,
+      ]],
+      machine: c => [[
+        `${c.name}: bonus throw allocated.`,
+        `Additional attempt granted. ${c.name}, proceed.`,
+      ]],
       hype: c => [[
         `${c.name} — BONUS THROW! Let's go!`,
         `BONUS for ${c.name}! Make it count!`,
@@ -194,6 +244,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
     // The unfiltered lines here carry no profanity, so clean mode keeps the same voices
     // rather than flattening all six into one neutral sentence.
     clean: {
+      preacher: c => [[
+        `${c.name} gets ANOTHER one. Do not waste it.`,
+        `Bonus throw, ${c.name}. That is a gift. Act like it.`,
+      ]],
+      nature: c => [[
+        `A rare second opportunity presents itself to ${c.name}.`,
+        `${c.name} is granted another throw — an advantage seldom squandered.`,
+      ]],
+      noir: c => [[
+        `${c.name} gets a bonus. Nothing in this room is free, but take it anyway.`,
+        `Another throw for ${c.name}. Second chances are cheaper than they look.`,
+      ]],
+      machine: c => [[
+        `${c.name}: bonus throw allocated.`,
+        `Additional attempt granted. ${c.name}, proceed.`,
+      ]],
       default: c => [[`${c.name} — bonus throw.`, `Bonus throw for ${c.name}.`]],
       hype: c => [[`${c.name} — BONUS THROW! Let's go!`, `BONUS for ${c.name}! Make it count!`]],
       savage: c => [[
@@ -220,6 +286,23 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   zeroRoast: {
     commentary: true,
     byPersonality: {
+      preacher: () => [[
+        `Zero. Three darts, and you came back with NOTHING. You want to explain that to me? Slowly?`,
+        `ZERO. Say it with me. Zero.`,
+        `That is what we call a wasted turn, and everybody saw it.`,
+      ]],
+      nature: () => [[
+        `A miss. The pack senses weakness. In the wild, this is where the herd moves on.`,
+        `Nothing. The board remains, indifferent, as it has for millennia.`,
+      ]],
+      noir: () => [[
+        `Zero. The kind of number that follows a man home and waits on the porch.`,
+        `Nothing scored. Somewhere, a dartboard is laughing.`,
+      ]],
+      machine: () => [[
+        `Score recorded: zero. Outcome anticipated. Model unchanged.`,
+        `Zero. Logged without comment.`,
+      ]],
       hype: () => [[`Zero?! Come ON! We need better than that!`, `Shake it off — next turn!`, `That wasn't it, but you got this!`]],
       savage: () => [[`Zero. Next.`, `Did you even try?`, `Yikes.`]],
       announcer: () => [[`A scoreless round! The commentators are at a loss for words.`, `Zero points! An unusual turn of events.`, `Difficult conditions out there.`]],
@@ -228,6 +311,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
     },
     fallback: () => [[`What the fuck was that?`, `Holy shit! Please, sit down. Who's next?`, `Who invited Helen Keller to play?`, `Damn!... That was trash.`, `Were you even facing the board?`]],
     clean: {
+      preacher: () => [[
+        `Zero. Three darts, and nothing to show. Explain that to me.`,
+        `ZERO. Say it with me. Zero.`,
+      ]],
+      nature: () => [[
+        `A miss. The pack senses weakness. In the wild, this is where the herd moves on.`,
+        `Nothing. The board remains, indifferent, as it has for millennia.`,
+      ]],
+      noir: () => [[
+        `Zero. The kind of number that follows a man home and waits on the porch.`,
+        `Nothing scored. Somewhere, a dartboard is laughing.`,
+      ]],
+      machine: () => [[
+        `Score recorded: zero. Outcome anticipated. Model unchanged.`,
+        `Zero. Logged without comment.`,
+      ]],
       default: () => [[`No score that turn.`, `Zero. Next.`]],
       hype: () => [[`Zero! Shake it off — next turn!`, `That wasn't it, but you got this!`]],
       savage: () => [[`Zero. Next.`, `Did you even try?`, `Yikes.`]],
@@ -241,6 +340,38 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   timeout: {
     commentary: true,
     byPersonality: {
+      preacher: c => [
+        [`${c.prevName}! You had a turn and you let it walk right past you!`,
+        `Gone. ${c.prevName}, your turn is GONE.`,],
+        ...(escalated(c) ? [[
+          `Again, ${c.prevName}? AGAIN?`,
+          `That is twice. Do not make it three.`,
+        ]] : []),
+      ],
+      nature: c => [
+        [`${c.prevName} has wandered from the group and missed the opportunity entirely.`,
+        `The moment passes. ${c.prevName} was elsewhere.`,],
+        ...(escalated(c) ? [[
+          `A pattern emerges. ${c.prevName} is not adapting.`,
+          `Repeated absence. The group has begun to compensate.`,
+        ]] : []),
+      ],
+      noir: c => [
+        [`${c.prevName} missed it. Turns are like buses in this town — you only notice them leaving.`,
+        `${c.prevName}'s turn came and went. Nobody waited.`,],
+        ...(escalated(c) ? [[
+          `Twice now, ${c.prevName}. That stops being bad luck and starts being a habit.`,
+          `Same story, second telling. ${c.prevName}.`,
+        ]] : []),
+      ],
+      machine: c => [
+        [`${c.prevName}: turn expired. No input received.`,
+        `Timeout. ${c.prevName} did not respond.`,],
+        ...(escalated(c) ? [[
+          `${c.prevName}: repeated timeout. Pattern logged.`,
+          `Second occurrence. ${c.prevName}.`,
+        ]] : []),
+      ],
       hype: c => [
         [`${c.prevName} missed their turn! Unacceptable!`, `${c.prevName}! Where are you?! Get UP here!`, `${c.prevName} — you just gave away a free turn!`],
         [`Step your game up!`, `This is not the time to be slacking!`, `We need energy out here!`],
@@ -270,7 +401,29 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       ...(escalated(c) ? [[`This is why nobody wants to play darts with you.`, `Three times. Sort it out.`, `Every single round with you.`]] : []),
     ],
     clean: {
-      default: c => [[`${c.prevName} missed their turn.`]],
+      preacher: c => [[
+        `${c.prevName}! You had a turn and you let it walk right past you!`,
+        `Gone. ${c.prevName}, your turn is GONE.`,
+      ]],
+      nature: c => [[
+        `${c.prevName} has wandered from the group and missed the opportunity entirely.`,
+        `The moment passes. ${c.prevName} was elsewhere.`,
+      ]],
+      noir: c => [[
+        `${c.prevName} missed it. Turns are like buses in this town — you only notice them leaving.`,
+        `${c.prevName}'s turn came and went. Nobody waited.`,
+      ]],
+      machine: c => [[
+        `${c.prevName}: turn expired. No input received.`,
+        `Timeout. ${c.prevName} did not respond.`,
+      ]],
+      // Two lines and an escalation, like every other voice here. This was one fixed
+      // sentence: clean mode is on by default, so the plainest narrator was also the one
+      // that repeated itself most.
+      default: c => [
+        [`${c.prevName} missed their turn.`, `${c.prevName} wasn't there for that one.`],
+        ...(escalated(c) ? [[`That's happened a few times now.`, `${c.prevName} has missed several.`]] : []),
+      ],
       hype: c => [
         [`${c.prevName} missed their turn! Step it up!`, `${c.prevName}! Where were you?!`],
         ...(escalated(c) ? [[`Again?! Come on ${c.prevName}!`, `Three times! Do better!`]] : []),
@@ -298,6 +451,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   hurryUp: {
     commentary: true,
     byPersonality: {
+      preacher: c => [[
+        `${c.name}! We are all standing here waiting on YOU!`,
+        `Move, ${c.name}. Move now.`,
+      ]],
+      nature: c => [[
+        `${c.name} lingers. The others grow restless.`,
+        `Still ${c.name} hesitates. The window narrows.`,
+      ]],
+      noir: c => [[
+        `${c.name}. The clock's running and it doesn't take requests.`,
+        `Sometime today, ${c.name}. The night's not getting younger.`,
+      ]],
+      machine: c => [[
+        `${c.name}: input overdue.`,
+        `Still waiting. ${c.name}.`,
+      ]],
       hype: c => [repeat(c)
         ? [`${c.name}! I SAID let's GO! Move it!`, `${c.name}! Stop stalling and GET UP HERE!`, `${c.name}! MOVE! We don't have all day!`]
         : [`${c.name}! Hurry UP! We're all waiting!`, `${c.name}! Let's go, let's go, let's GO!`, `${c.name}! The clock is ticking!`]],
@@ -318,6 +487,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       ? [`${c.name}. Hurry the fuck up. This is why nobody wants to play darts with you.`, `${c.name}. I will not say it again. GET. UP. HERE.`, `${c.name}. Move your ass. NOW.`]
       : [`${c.name}. Hurry the fuck up. It's your turn.`, `${c.name}. Get up here. Right now.`, `${c.name}. Clock's running. Move it.`]],
     clean: {
+      preacher: c => [[
+        `${c.name}! We are all standing here waiting on YOU!`,
+        `Move, ${c.name}. Move now.`,
+      ]],
+      nature: c => [[
+        `${c.name} lingers. The others grow restless.`,
+        `Still ${c.name} hesitates. The window narrows.`,
+      ]],
+      noir: c => [[
+        `${c.name}. The clock's running and it doesn't take requests.`,
+        `Sometime today, ${c.name}. The night's not getting younger.`,
+      ]],
+      machine: c => [[
+        `${c.name}: input overdue.`,
+        `Still waiting. ${c.name}.`,
+      ]],
       default: c => [[`${c.name}, hurry up.`, `${c.name}, the clock is running.`]],
       hype: c => [repeat(c)
         ? [`${c.name}! I SAID let's GO!`, `${c.name}! Stop stalling!`]
@@ -341,6 +526,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   twentySecondWalkUp: {
     commentary: true,
     byPersonality: {
+      preacher: c => [[
+        `Twenty seconds, ${c.name}! Get UP there!`,
+        `${c.name}. Twenty. Move.`,
+      ]],
+      nature: c => [[
+        `Twenty seconds remain. ${c.name} must commit.`,
+        `The window is closing on ${c.name}.`,
+      ]],
+      noir: c => [[
+        `Twenty seconds, ${c.name}. That's all anyone gets.`,
+        `Clock's at twenty, ${c.name}. It won't wait.`,
+      ]],
+      machine: c => [[
+        `${c.name}: twenty seconds remaining.`,
+        `Countdown: twenty. ${c.name}.`,
+      ]],
       hype: c => [[
         `${c.name}, twenty seconds! Let's MOVE!`,
         `Twenty seconds, ${c.name} — get up there!`,
@@ -372,6 +573,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       `${c.name}, twenty seconds.`,
     ]],
     clean: {
+      preacher: c => [[
+        `Twenty seconds, ${c.name}! Get UP there!`,
+        `${c.name}. Twenty. Move.`,
+      ]],
+      nature: c => [[
+        `Twenty seconds remain. ${c.name} must commit.`,
+        `The window is closing on ${c.name}.`,
+      ]],
+      noir: c => [[
+        `Twenty seconds, ${c.name}. That's all anyone gets.`,
+        `Clock's at twenty, ${c.name}. It won't wait.`,
+      ]],
+      machine: c => [[
+        `${c.name}: twenty seconds remaining.`,
+        `Countdown: twenty. ${c.name}.`,
+      ]],
       default: c => [[`${c.name}, twenty seconds.`, `${c.name}, walk up now.`]],
       hype: c => [[
         `${c.name}, twenty seconds! Let's MOVE!`,
@@ -397,6 +614,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   twentySecondThrow: {
     commentary: true,
     byPersonality: {
+      preacher: c => [[
+        `Twenty seconds, ${c.name}. THROW it.`,
+        `${c.name}! Let it go!`,
+      ]],
+      nature: c => [[
+        `Twenty seconds. ${c.name} steadies, and must release.`,
+        `The moment is upon ${c.name}.`,
+      ]],
+      noir: c => [[
+        `Twenty seconds, ${c.name}. The dart won't throw itself. Nothing does.`,
+        `Time's short, ${c.name}. It always was.`,
+      ]],
+      machine: c => [[
+        `${c.name}: twenty seconds to release.`,
+        `Release window closing. ${c.name}.`,
+      ]],
       // Deliberately not the same words as twentySecondWalkUp: that one is "get to the
       // line", this one is "you're at the line, throw". They previously shared three
       // identical lines, which made the two moments indistinguishable.
@@ -431,6 +664,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       `${c.name}, twenty seconds to throw.`,
     ]],
     clean: {
+      preacher: c => [[
+        `Twenty seconds, ${c.name}. THROW it.`,
+        `${c.name}! Let it go!`,
+      ]],
+      nature: c => [[
+        `Twenty seconds. ${c.name} steadies, and must release.`,
+        `The moment is upon ${c.name}.`,
+      ]],
+      noir: c => [[
+        `Twenty seconds, ${c.name}. The dart won't throw itself. Nothing does.`,
+        `Time's short, ${c.name}. It always was.`,
+      ]],
+      machine: c => [[
+        `${c.name}: twenty seconds to release.`,
+        `Release window closing. ${c.name}.`,
+      ]],
       default: c => [[`${c.name}, twenty seconds.`, `${c.name}, you need to throw.`]],
       hype: c => [[`${c.name}, twenty seconds — THROW!`, `Let it fly, ${c.name}!`]],
       savage: c => [[`${c.name}. Shoot.`, `Throw, ${c.name}.`, `${c.name}. Any day now.`]],
@@ -453,6 +702,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   throwNudge: {
     commentary: true,
     byPersonality: {
+      preacher: c => [[
+        `${c.name}. STILL you. Throw.`,
+        `We have not moved on, ${c.name}. Neither should you.`,
+      ]],
+      nature: c => [[
+        `${c.name} remains at the oche, motionless.`,
+        `Still ${c.name}. The board waits, as boards do.`,
+      ]],
+      noir: c => [[
+        `Still you, ${c.name}. Nobody else is coming.`,
+        `${c.name}. Any time you like. Or don't.`,
+      ]],
+      machine: c => [[
+        `${c.name}: still active. Awaiting input.`,
+        `No input. ${c.name} remains current.`,
+      ]],
       hype: c => [[
         `${c.name}! You're up — let's go!`,
         `${c.name}! Still you! Let's GO!`,
@@ -484,6 +749,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       `${c.name}, still your turn`,
     ]],
     clean: {
+      preacher: c => [[
+        `${c.name}. STILL you. Throw.`,
+        `We have not moved on, ${c.name}. Neither should you.`,
+      ]],
+      nature: c => [[
+        `${c.name} remains at the oche, motionless.`,
+        `Still ${c.name}. The board waits, as boards do.`,
+      ]],
+      noir: c => [[
+        `Still you, ${c.name}. Nobody else is coming.`,
+        `${c.name}. Any time you like. Or don't.`,
+      ]],
+      machine: c => [[
+        `${c.name}: still active. Awaiting input.`,
+        `No input. ${c.name} remains current.`,
+      ]],
       default: c => [[`${c.name}, it's your turn`, `${c.name}, still your turn`]],
       hype: c => [[`${c.name}! You're up — let's go!`, `Come on ${c.name}!`]],
       savage: c => [[`${c.name}. Throw.`, `${c.name}. Still you.`, `Today, ${c.name}.`]],
@@ -506,6 +787,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   win: {
     commentary: false,
     byPersonality: {
+      preacher: c => [[
+        `${c.name} takes it — and there was NOTHING anybody here could do about it.`,
+        `That is how it is done. ${c.name}. Say the name.`,
+      ]],
+      nature: c => [[
+        `And so ${c.name} prevails — a rare thing, seldom witnessed twice in one season.`,
+        `${c.name} stands victorious. The others disperse.`,
+      ]],
+      noir: c => [[
+        `${c.name} wins. In this town that buys you a drink and nothing else.`,
+        `It's ${c.name}. Somebody had to be.`,
+      ]],
+      machine: c => [[
+        `${c.name} wins. Pre-game probability: low. Adjusting.`,
+        `Result: ${c.name}. Recorded.`,
+      ]],
       hype: c => [[
         `${c.name} takes it! What a finish!`,
         `${c.name} WINS! That's how it's done!`,
@@ -543,6 +840,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       `That's the game — ${c.name} wins.`,
     ]],
     clean: {
+      preacher: c => [[
+        `${c.name} takes it — and there was NOTHING anybody here could do about it.`,
+        `That is how it is done. ${c.name}. Say the name.`,
+      ]],
+      nature: c => [[
+        `And so ${c.name} prevails — a rare thing, seldom witnessed twice in one season.`,
+        `${c.name} stands victorious. The others disperse.`,
+      ]],
+      noir: c => [[
+        `${c.name} wins. In this town that buys you a drink and nothing else.`,
+        `It's ${c.name}. Somebody had to be.`,
+      ]],
+      machine: c => [[
+        `${c.name} wins. Pre-game probability: low. Adjusting.`,
+        `Result: ${c.name}. Recorded.`,
+      ]],
       default: c => [[
         `${c.name} wins! Well played.`,
         `That's the game — ${c.name} wins.`,
@@ -587,6 +900,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   gameTimeWarning: {
     commentary: true,
     byPersonality: {
+      preacher: c => [[
+        `${c.count} minutes! Do something with them!`,
+        `${c.count} minutes left. That is not a lot.`,
+      ]],
+      nature: c => [[
+        `${c.count} minutes remain. The season draws to its close.`,
+        `Time thins. ${c.count} minutes.`,
+      ]],
+      noir: c => [[
+        `${c.count} minutes. Then the lights go out on all of us.`,
+        `${c.count} minutes left. Make them count, or don't.`,
+      ]],
+      machine: c => [[
+        `${c.count} minutes remaining.`,
+        `Time remaining: ${c.count} minutes.`,
+      ]],
       hype: c => [[
         `${c.count} minutes left! Let's GO!`,
         `${c.count} minutes on the clock — pick it UP!`,
@@ -618,6 +947,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
       `${c.count} minutes left.`,
     ]],
     clean: {
+      preacher: c => [[
+        `${c.count} minutes! Do something with them!`,
+        `${c.count} minutes left. That is not a lot.`,
+      ]],
+      nature: c => [[
+        `${c.count} minutes remain. The season draws to its close.`,
+        `Time thins. ${c.count} minutes.`,
+      ]],
+      noir: c => [[
+        `${c.count} minutes. Then the lights go out on all of us.`,
+        `${c.count} minutes left. Make them count, or don't.`,
+      ]],
+      machine: c => [[
+        `${c.count} minutes remaining.`,
+        `Time remaining: ${c.count} minutes.`,
+      ]],
       default: c => [[`${c.count} minutes remaining.`, `${c.count} minutes left.`]],
       hype: c => [[`${c.count} minutes left! Let's go!`, `${c.count} minutes — pick it up!`]],
       savage: c => [[
@@ -641,6 +986,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   gameOver: {
     commentary: false,
     byPersonality: {
+      preacher: () => [[
+        `That is TIME. It is over.`,
+        `Clock's done. Everybody out.`,
+      ]],
+      nature: () => [[
+        `And with that, the season ends.`,
+        `Time. The table falls quiet once more.`,
+      ]],
+      noir: () => [[
+        `Time's up. It always is, eventually.`,
+        `That's the game. Nobody gets extra.`,
+      ]],
+      machine: () => [[
+        `Time elapsed. Game terminated.`,
+        `Clock: zero. Session complete.`,
+      ]],
       hype: () => [[`TIME! That's the game!`, `THAT'S TIME! What a match!`, `Clock's done — that's the GAME!`]],
       savage: () => [[`Time. Game over.`, `Time. That's it.`, `Clock's out. Done.`]],
       announcer: () => [[
@@ -661,6 +1022,22 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
     },
     fallback: () => [[`Time is up! Game over!`, `That's time — game over.`]],
     clean: {
+      preacher: () => [[
+        `That is TIME. It is over.`,
+        `Clock's done. Everybody out.`,
+      ]],
+      nature: () => [[
+        `And with that, the season ends.`,
+        `Time. The table falls quiet once more.`,
+      ]],
+      noir: () => [[
+        `Time's up. It always is, eventually.`,
+        `That's the game. Nobody gets extra.`,
+      ]],
+      machine: () => [[
+        `Time elapsed. Game terminated.`,
+        `Clock: zero. Session complete.`,
+      ]],
       default: () => [[`Time's up. Game over.`, `That's time — game over.`]],
       hype: () => [[`Time! That's the game!`, `THAT'S TIME! What a match!`]],
       savage: () => [[`Time. Game over.`, `Time. That's it.`, `Clock's out. Done.`]],
