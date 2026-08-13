@@ -120,6 +120,7 @@
             :throwTimeLeft="throwTimeLeft"
             :throwTimerDuration="throwTimerDuration"
             :throwPaused="throwPaused"
+            :showPauseLocked="showPauseLocked"
             :wildTargets="game.wildEnabled && game.gameType !== 'cutThroat' ? game.wildTargets : undefined"
             :wildPlayerMarks="game.wildEnabled && game.gameType !== 'cutThroat' ? wildPlayerMarks : undefined"
             @submit="handleCricketSubmit"
@@ -141,6 +142,7 @@
             :throwTimeLeft="throwTimeLeft"
             :throwTimerDuration="throwTimerDuration"
             :throwPaused="throwPaused"
+            :showPauseLocked="showPauseLocked"
             @submit="handleNumpadSubmit"
             @toggleThrowPause="toggleThrowPause"
           />
@@ -155,6 +157,7 @@
             :throwTimeLeft="throwTimeLeft"
             :throwTimerDuration="throwTimerDuration"
             :throwPaused="throwPaused"
+            :showPauseLocked="showPauseLocked"
             @submit="handleAtcSubmit"
             @toggleThrowPause="toggleThrowPause"
           />
@@ -171,6 +174,7 @@
             :throwTimeLeft="throwTimeLeft"
             :throwTimerDuration="throwTimerDuration"
             :throwPaused="throwPaused"
+            :showPauseLocked="showPauseLocked"
             @submit="handleNumpadSubmit"
             @toggleThrowPause="toggleThrowPause"
           />
@@ -365,11 +369,15 @@
             <button v-for="t in TIMER_OPTIONS" :key="t" v-ripple class="timer-ctrl-btn" :class="{ active: game.throwTimerDuration === t }" @click="gameStore.setThrowTimerDuration(t)">{{ t }}s</button>
           </div>
         </div>
+        <!--
+          "Pause / Allow / Lock" read like it stopped the clock. It governs whether tapping a
+          timer pauses it, which is the opposite thing, so it is named for what it controls.
+        -->
         <div class="timer-control-group">
-          <span class="timer-control-label">Pause</span>
+          <span class="timer-control-label">Timer Pause</span>
           <div class="timer-control-btns">
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.disableTimerPause }" @click="settingsStore.setDisableTimerPause(false)">Allow</button>
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.disableTimerPause }" @click="settingsStore.setDisableTimerPause(true)">Lock</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.disableTimerPause }" @click="settingsStore.setDisableTimerPause(false)">Allowed</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.disableTimerPause }" @click="settingsStore.setDisableTimerPause(true)">Locked</button>
           </div>
         </div>
         <div v-if="game.gameType === 'cricket' || game.gameType === 'cutThroat' || game.gameType === 'speedCricket'" class="timer-control-group">
@@ -1071,6 +1079,7 @@ watch(
 
 onUnmounted(() => {
   if (gameTimerInterval) { clearInterval(gameTimerInterval); gameTimerInterval = null }
+  if (pauseLockedTimeout) { clearTimeout(pauseLockedTimeout); pauseLockedTimeout = null }
 })
 
 // Throw timer
@@ -1081,7 +1090,23 @@ let throwInterval: ReturnType<typeof setInterval> | null = null
 let throwHurryUpSaid = false
 
 function clearThrowTimer() { if (throwInterval) { clearInterval(throwInterval); throwInterval = null } }
-function toggleThrowPause() { if (!settingsStore.disableTimerPause) throwPaused.value = !throwPaused.value }
+
+/*
+ * Tapping a locked timer used to do nothing at all, silently, which reads as a broken
+ * control rather than a deliberate one — and left nobody any way to discover that the lock
+ * exists. It now says so on the timer for a moment and carries on counting.
+ */
+const showPauseLocked = ref(false)
+let pauseLockedTimeout: ReturnType<typeof setTimeout> | null = null
+function flashPauseLocked() {
+  showPauseLocked.value = true
+  if (pauseLockedTimeout) clearTimeout(pauseLockedTimeout)
+  pauseLockedTimeout = setTimeout(() => { showPauseLocked.value = false }, 1400)
+}
+function toggleThrowPause() {
+  if (settingsStore.disableTimerPause) { flashPauseLocked(); return }
+  throwPaused.value = !throwPaused.value
+}
 function startThrowTimer() {
   clearThrowTimer()
   throwPaused.value = false

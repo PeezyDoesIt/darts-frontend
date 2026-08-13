@@ -29,7 +29,7 @@
           :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear' }"
         />
         <text x="80" y="80" class="circle-timer-text" text-anchor="middle" dominant-baseline="middle">
-          {{ !settingsStore.disableTimerPause && paused ? '⏸' : timeLeft }}
+          {{ showPauseLocked ? '🔒' : (!settingsStore.disableTimerPause && paused ? '⏸' : timeLeft) }}
         </text>
       </svg>
     </div>
@@ -61,7 +61,7 @@
             :style="{ transition: paused ? 'none' : 'stroke-dashoffset 1s linear' }"
           />
           <text x="80" y="80" class="circle-timer-text" text-anchor="middle" dominant-baseline="middle">
-            {{ !settingsStore.disableTimerPause && paused ? '⏸' : timeLeft }}
+            {{ showPauseLocked ? '🔒' : (!settingsStore.disableTimerPause && paused ? '⏸' : timeLeft) }}
           </text>
         </svg>
 
@@ -130,7 +130,22 @@ const paused = ref(false)
 const progress = computed(() => timerOff.value ? 0 : timeLeft.value / total.value)
 let interval: ReturnType<typeof setInterval> | null = null
 
-function togglePause() { if (!settingsStore.disableTimerPause) paused.value = !paused.value }
+/*
+ * Tapping the circle while pausing is locked used to do nothing, silently. The countdown
+ * says so for a moment instead — this screen is where a stalling player reaches for the
+ * timer, so it is where the lock has to explain itself.
+ */
+const showPauseLocked = ref(false)
+let pauseLockedTimeout: ReturnType<typeof setTimeout> | null = null
+function togglePause() {
+  if (settingsStore.disableTimerPause) {
+    showPauseLocked.value = true
+    if (pauseLockedTimeout) clearTimeout(pauseLockedTimeout)
+    pauseLockedTimeout = setTimeout(() => { showPauseLocked.value = false }, 1400)
+    return
+  }
+  paused.value = !paused.value
+}
 
 function playWhistle(): Promise<void> {
   return new Promise(resolve => {
@@ -232,6 +247,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (interval) clearInterval(interval)
+  if (pauseLockedTimeout) { clearTimeout(pauseLockedTimeout); pauseLockedTimeout = null }
   cancelPendingSpeak()
 })
 
