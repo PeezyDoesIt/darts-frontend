@@ -57,7 +57,7 @@
           :class="{ warning: (throwTimeLeft ?? 0) <= 30, urgent: (throwTimeLeft ?? 0) <= 10, paused: throwPaused }"
           :style="{ width: `${((throwTimeLeft ?? 0) / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
         <span class="submit-timer-text" :class="{ urgent: (throwTimeLeft ?? 0) <= 10 }">
-          {{ throwPaused ? 'PAUSED' : (throwTimeLeft ?? 0) + 's' }}
+          {{ showPauseLocked ? 'LOCKED' : throwPaused ? 'PAUSED' : (throwTimeLeft ?? 0) + 's' }}
         </span>
       </div>
       <button v-ripple class="btn btn-gold btn-xl submit-btn" :disabled="false" @click="submit">NEXT</button>
@@ -73,6 +73,8 @@ const props = defineProps<{
   throwTimeLeft?: number
   throwTimerDuration?: number
   throwPaused?: boolean
+  /** Set for a moment when the timer is tapped while pausing is locked. */
+  showPauseLocked?: boolean
 }>()
 const emit = defineEmits<{ submit: [score: number]; toggleThrowPause: [] }>()
 
