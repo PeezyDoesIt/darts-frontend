@@ -147,8 +147,9 @@
                   <span v-else>{{ avatarGlyph(p) }}</span>
                 </div>
                 <div class="existing-info">
-                  <span>{{ p.name }}</span>
-                  <span style="font-size:12px;color:var(--text-muted)">{{ p.wins }}W · {{ p.gamesPlayed }}G</span>
+                  <!-- title carries the full name, so a clamped one is still readable on hover. -->
+                  <span class="existing-name" :title="p.name">{{ p.name }}</span>
+                  <span class="existing-sub" style="font-size:12px;color:var(--text-muted)">{{ p.wins }}W · {{ p.gamesPlayed }}G</span>
                 </div>
                 <div class="row-actions">
                   <button v-ripple class="row-btn edit-btn" :class="{ active: editingId === p.id }" @click.stop="loadPlayer(p)" title="Edit">✏️</button>
@@ -524,7 +525,15 @@ function save() {
 .photo-preview { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
 .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
 
-.setup-right { width: 300px; display: flex; flex-direction: column; gap: 20px; padding: 28px; overflow: hidden; flex-shrink: 0; }
+/*
+ * Wider, with less padding, because the roster rows inside were starved.
+ *
+ * At 300px with 28px padding the name column worked out to 78px once the avatar and the
+ * three action buttons had taken theirs — the buttons alone were 104px, more than the name
+ * they sat beside. Two different players both rendered as "Pe…", which is worse than ugly:
+ * you could not tell which row you were about to edit or delete.
+ */
+.setup-right { width: 340px; display: flex; flex-direction: column; gap: 20px; padding: 20px; overflow: hidden; flex-shrink: 0; }
 .preview-card { border-radius: 16px; padding: 28px; display: flex; flex-direction: column; align-items: center; gap: 14px; backdrop-filter: blur(12px); transition: box-shadow 0.3s; }
 .preview-avatar { width: 96px; height: 96px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; overflow: hidden; }
 .preview-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -551,7 +560,19 @@ function save() {
 .row-btn-danger { border-color: rgba(220,50,50,0.3); background: rgba(220,50,50,0.08); filter: none; }
 .row-btn-danger:hover { background: rgba(220,50,50,0.25); border-color: rgba(220,50,50,0.6); }
 .existing-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 14px; font-weight: 700; overflow: hidden; }
-.existing-info > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/*
+ * The name may take a second line; the counters may not.
+ *
+ * Width alone is not enough — "Peezy F Baby" and "Peezy" still collide on one line, and the
+ * point of this list is telling rows apart before you press edit or delete. Two lines, then
+ * ellipsis, so a long name degrades to something still recognisable rather than to "Pe…".
+ */
+.existing-name {
+  white-space: normal; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; line-height: 1.2;
+}
+.existing-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .roster-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
 
 /* Camera dialog */
@@ -698,7 +719,13 @@ function save() {
   .page-header { padding: 12px 24px; padding-top: calc(12px + env(safe-area-inset-top)); }
   .field { gap: 7px; }
   .color-wheel-svg { max-width: 220px; }
-  .setup-right { width: 240px; padding: 20px; gap: 14px; }
+  /*
+   * 240px is the width a landscape iPad actually gets, and it was the worst case: about
+   * 34px of name once the avatar and the three buttons had taken theirs, which is where
+   * "Pe…" came from. Widened rather than shrinking the buttons — they are touch targets and
+   * are already only 32px. The form keeps ~680px here, which is more than it needs.
+   */
+  .setup-right { width: 320px; padding: 20px; gap: 14px; }
   .preview-avatar { width: 72px; height: 72px; font-size: 36px; }
 }
 </style>
