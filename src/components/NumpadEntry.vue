@@ -178,11 +178,29 @@ function submit() {
 .bust-tag { font-size: 11px; font-weight: 900; letter-spacing: 0.12em; color: #ef4444; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); border-radius: 4px; padding: 2px 6px; }
 
 /* Numpad */
-.numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; flex: 1; min-height: 0; }
+/*
+ * Four explicit rows that divide the box, instead of rows sized by the keys inside them.
+ *
+ * The keys used to carry `min-height: clamp(70px, 10dvh, 120px)`, and the grid honoured that
+ * even when flex had handed the numpad less room than it needed. On a landscape iPad that was
+ * 223px of box holding 426px of keys: the bottom two rows painted straight over DOUBLE /
+ * TRIPLE and the NEXT bar. `minmax(0, 1fr)` rows can always shrink to the space available, so
+ * the grid can no longer overflow its siblings whatever the viewport.
+ *
+ * `container-type: size` exists so the keys can size their text against the grid — see below.
+ */
+.numpad {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: 8px; width: 100%; flex: 1; min-height: 0;
+  container-type: size;
+}
 .key {
-  height: auto; min-height: clamp(70px, 10dvh, 120px); border-radius: 10px;
+  height: auto; min-height: 0; border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.15); background: #000;
-  color: #fff; font-size: clamp(44px, 6.5dvh, 72px); font-weight: 700; cursor: pointer;
+  /* Capped against the grid's own height so a squeezed row cannot clip its digit: one row of
+     four is 25cqh, so 16cqh leaves the number comfortably inside it. */
+  color: #fff; font-size: min(clamp(44px, 6.5dvh, 72px), 16cqh); font-weight: 700; cursor: pointer;
   transition: all 0.1s; display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); -webkit-tap-highlight-color: transparent;
   position: relative; overflow: hidden;
@@ -220,24 +238,50 @@ function submit() {
 .submit-timer-text.urgent { color: #fff; }
 
 /* Tablet / iPad */
+/*
+ * Tablet and desktop.
+ *
+ * Everything here is sized against the viewport height, because height is the scarce
+ * dimension on a landscape tablet — the panel is well over 1000px wide and under 900 tall.
+ * The previous values were tuned for width alone (a 12dvh "remaining", 14px slot padding, an
+ * 88px NEXT bar) and between them the fixed blocks took 645px of an 868px panel, leaving the
+ * keypad 223px: four rows of 42px under a 115px score. Trimming them gives the keypad roughly
+ * 45% of the panel, which is what makes it look like a keypad rather than a strip.
+ */
 @media (min-width: 768px) {
-  .numpad-wrap { padding: 24px 40px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); gap: 18px; }
-  .remaining-val { font-size: clamp(80px, 12dvh, 140px); }
+  /* Capped and centred: stretched across a 1600px panel the keypad read as three columns of
+     bars rather than keys, and the eye had to travel the full width to find DOUBLE. */
+  .numpad-wrap {
+    padding: 16px 40px; padding-bottom: calc(16px + env(safe-area-inset-bottom));
+    gap: clamp(8px, 1.5dvh, 18px);
+    width: 100%; max-width: 860px; margin-inline: auto;
+  }
+  .remaining-val { font-size: clamp(56px, 8.5dvh, 120px); }
   .dart-slots { gap: 16px; }
-  .dart-slot { padding: 14px 12px; border-radius: 14px; }
+  .dart-slot { padding: clamp(6px, 1dvh, 14px) 12px; border-radius: 14px; }
   .dart-slot-label { font-size: 11px; }
-  .dart-slot-val { font-size: clamp(40px, 6dvh, 64px); }
-  .total-val { font-size: clamp(36px, 5dvh, 52px); }
+  .dart-slot-val { font-size: clamp(32px, 4.6dvh, 60px); }
+  .total-row { padding: clamp(4px, 0.7dvh, 8px) 12px; }
+  .total-val { font-size: clamp(28px, 3.8dvh, 48px); }
   .numpad { gap: clamp(10px, 1.5dvh, 18px); }
-  .mult-row { }
-  .numpad-footer { }
+  .mult-btn { padding: clamp(6px, 1dvh, 12px) 0; font-size: clamp(22px, 3dvh, 34px); }
+  /* No side padding, so the timer and NEXT line up with the keypad's edges rather than
+     sitting 12px inside them. */
+  .numpad-footer {
+    padding: clamp(4px, 0.8dvh, 10px) 0;
+    padding-bottom: calc(clamp(4px, 0.8dvh, 10px) + env(safe-area-inset-bottom));
+  }
+  .submit-btn { height: clamp(52px, 6.4dvh, 84px); font-size: clamp(40px, 5.6dvh, 72px); }
+  .submit-timer-text { font-size: clamp(34px, 5dvh, 70px); }
 }
 
 @media (max-width: 480px) {
   .remaining-val { font-size: 56px; }
   .dart-slot-val { font-size: 28px; }
   .numpad { gap: 6px; }
-  .key { font-size: 36px; min-height: 60px; }
+  /* No min-height: it put this rule back into the overflow the base grid was changed to
+     avoid, and a 727px-tall phone was spilling the ⌫ row 12px past the grid. */
+  .key { font-size: min(36px, 16cqh); }
   .mult-btn { font-size: 22px; padding: 8px 0; }
 }
 </style>

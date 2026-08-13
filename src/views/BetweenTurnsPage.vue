@@ -2,8 +2,8 @@
   <div class="between" :style="betweenStyle">
     <div class="drip-bar" style="position:absolute;top:0;left:0;right:0" />
 
-    <!-- Avatar watermark: bottom-left for cricket, bottom-right otherwise -->
-    <div class="between-avatar-bg" :class="{ 'avatar-left': isCricket }" aria-hidden="true">
+    <!-- Avatar watermark: always bottom-left, so it does not move between game types. -->
+    <div class="between-avatar-bg" aria-hidden="true">
       <img v-if="isPhoto(nextPlayer.avatarUrl)" :src="nextPlayer.avatarUrl!" alt="" />
       <span v-else-if="nextPlayer.avatarUrl">{{ nextPlayer.avatarUrl }}</span>
     </div>
@@ -356,23 +356,27 @@ function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/g
 .swap-enter-from { opacity: 0; transform: scale(0.94); }
 .swap-leave-to { opacity: 0; transform: scale(1.04); }
 
+/*
+ * Bottom-left on every game type.
+ *
+ * It used to sit bottom-right and flip to the left only for cricket/cut-throat, dodging the
+ * floating START button that those two render in that corner. Nothing else on this screen is
+ * anchored bottom-left and both layouts centre their content, so the left corner is free
+ * whatever the game is — and a watermark that changes sides between games reads as a bug.
+ */
 .between-avatar-bg {
-  position: absolute; bottom: calc(14px + env(safe-area-inset-bottom)); right: 0;
+  position: absolute; bottom: calc(14px + env(safe-area-inset-bottom)); left: 0;
   pointer-events: none; user-select: none; z-index: 3;
-  display: flex; align-items: flex-end; justify-content: flex-end;
-}
-.between-avatar-bg.avatar-left {
-  right: auto; left: 0;
-  justify-content: flex-start;
+  display: flex; align-items: flex-end; justify-content: flex-start;
 }
 .between-avatar-bg img {
   height: clamp(140px, 35vmin, 420px);
   width: auto;
   max-width: clamp(140px, 35vmin, 420px);
   object-fit: contain;
-  opacity: 0.55; border-radius: 12px 0 0 12px;
+  /* Square against the screen edge it sits on, rounded on the side facing the content. */
+  opacity: 0.55; border-radius: 0 12px 12px 0;
 }
-.between-avatar-bg.avatar-left img { border-radius: 0 12px 12px 0; }
 .between-avatar-bg span {
   font-size: clamp(140px, 35vmin, 420px); line-height: 1; opacity: 0.75;
   filter: drop-shadow(0 0 32px rgba(0,0,0,0.5));
