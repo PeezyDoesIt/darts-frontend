@@ -71,6 +71,7 @@ export const useGameStore = defineStore('game', () => {
       if (parsed.killerRequireDouble === undefined) parsed.killerRequireDouble = false
       // A game saved before holds existed is simply not on hold.
       if (parsed.heldSince === undefined) parsed.heldSince = null
+      if (parsed.heckleTargetId === undefined) parsed.heckleTargetId = null
       /*
        * These two were `cricketPlayToCompletion` / `cricketFinishOrder` until the option was
        * extended to the 01 games. A game already in progress when the app updates still has
@@ -152,6 +153,7 @@ export const useGameStore = defineStore('game', () => {
       gameDuration,
       gameStartedAt: Date.now(),
       heldSince: null,
+      heckleTargetId: null,
       horseSetterIndex: 0,
       killerLives,
       killerRequireDouble,
@@ -624,6 +626,18 @@ export const useGameStore = defineStore('game', () => {
    * anchor makes the held stretch simply never have happened — and it stays correct if the
    * app was closed for the whole of it.
    */
+  /**
+   * Who the narrator picks on. Null is nobody, which is where every game starts.
+   *
+   * Silently cleared if that player leaves the game, so a removed seat cannot leave the
+   * narrator heckling somebody who is not there.
+   */
+  function setHeckleTarget(playerId: string | null) {
+    if (!game.value) return
+    if (playerId !== null && !game.value.players.some(p => p.id === playerId)) return
+    game.value.heckleTargetId = playerId
+  }
+
   function setHeld(val: boolean) {
     if (!game.value) return
     if (val) {
@@ -701,7 +715,7 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
-  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, setAtcCompletedNums, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, setTimerDuration, setThrowTimerDuration, setRoundLimit, setGameDuration, setSkipWalkup, setHeld, setWildEnabled, forceEndByTime, endGame }
+  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, setAtcCompletedNums, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, setTimerDuration, setThrowTimerDuration, setRoundLimit, setGameDuration, setSkipWalkup, setHeld, setHeckleTarget, setWildEnabled, forceEndByTime, endGame }
 })
 
 function reshuffleWild(game: ActiveGame) {
