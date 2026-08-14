@@ -122,7 +122,7 @@ import { useSettingsStore } from '../stores/settings'
 import { cancelPendingSpeak } from '../composables/useSpeech'
 import { useNarrator } from '../composables/useNarrator'
 import type { LineContext, NarratorEvent } from '../lib/narrator'
-import { playShotgun, playThemedBuzzer, playThemedTick, playThemedChime, unlockAudio } from '../composables/useSounds'
+import { playShotgun, playThemedBuzzer, playThemedChime, playBombBeep, playExplosion, unlockAudio } from '../composables/useSounds'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -247,7 +247,7 @@ async function handleTurnAnnouncement() {
 
     // The default voice gets whistles instead of the third-offence roast. Skipped in quiet
     // mode along with the lines they punctuate, since a jeer is commentary too.
-    const jeering = !settingsStore.quietNarrator && !settingsStore.cleanMode
+    const jeering = settingsStore.narratorMode === 'full' && !settingsStore.cleanMode
     if (jeering && p === 'default' && count < 3) {
       await new Promise(r => setTimeout(r, 150))
       await playWhistle()
@@ -267,9 +267,17 @@ onMounted(() => {
 
   interval = setInterval(() => {
     if (paused.value || isHeld.value) return
-    if (timeLeft.value <= 0) { clearInterval(interval!); playThemedBuzzer(settingsStore.soundTheme); startTurn(); return }
+    /*
+     * The bomb goes off when the walk-up is missed.
+     *
+     * Not awaited: the turn starts underneath it, so the explosion plays over the transition
+     * rather than holding the game up for a second and a half.
+     */
+    if (timeLeft.value <= 0) { clearInterval(interval!); void playExplosion(); startTurn(); return }
     timeLeft.value--
-    if (timeLeft.value > 0 && timeLeft.value <= 3) playThemedTick(settingsStore.soundTheme)
+    // Bomb beeps for the last three, matching the throw timer, which already beeps this way
+    // regardless of sound theme.
+    if (timeLeft.value > 0 && timeLeft.value <= 3) playBombBeep()
     if (timeLeft.value === 20 && settingsStore.announceWalkupAt20) {
       void narrate('twentySecondWalkUp')
     }

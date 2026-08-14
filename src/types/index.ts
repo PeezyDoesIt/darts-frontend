@@ -210,6 +210,24 @@ export const NARRATOR_PERSONALITIES: NarratorPersonality[] = [
   'preacher', 'nature', 'noir', 'machine', 'farley',
 ]
 
+/**
+ * How much the narrator says.
+ *
+ * `full` is everything; `names` keeps only the functional announcements — whose turn it is,
+ * that time is nearly up, who won — in one short line each; `off` is silent.
+ *
+ * This was a boolean, `quietNarrator`, offering only the first two. There was no way to turn
+ * the narrator off, and "Names only" left the walk-up speaking its whole personality line, so
+ * neither of the two states it did have delivered what its label promised.
+ */
+export type NarratorMode = 'full' | 'names' | 'off'
+
+export const NARRATOR_MODES: { value: NarratorMode; label: string; sub: string }[] = [
+  { value: 'full',  label: 'Commentary', sub: 'The full personality' },
+  { value: 'names', label: 'Names only', sub: 'Turns, warnings and results' },
+  { value: 'off',   label: 'Off',        sub: 'Say nothing at all' },
+]
+
 export type GameType =
   | 'cricket'
   | 'speedCricket'

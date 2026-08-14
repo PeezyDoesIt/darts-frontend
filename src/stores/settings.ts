@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { NARRATOR_PERSONALITIES, type NarratorPersonality } from '../types/index'
+import { NARRATOR_PERSONALITIES, type NarratorMode, type NarratorPersonality } from '../types/index'
 import { DEFAULT_BOT_NAMES, botName, normaliseBotName } from '../lib/spadesBot'
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -9,17 +9,18 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.getItem('voiceName') ?? ''
   )
 
-  // quietNarrator: only announce whose turn it is, skip commentary.
-  //
-  // Off by default, so a new table hears the narrator it picked. This shipped on, which
-  // silenced nine of the eleven events — the personality only ever reached the walk-up line,
-  // so choosing a tone changed almost nothing until you found this setting and turned it off.
-  // Anyone who has already set it either way keeps their choice; only a fresh install changes.
-  const quietNarrator = ref<boolean>(
-    localStorage.getItem('quietNarrator') !== null
-      ? localStorage.getItem('quietNarrator') === 'true'
-      : false
-  )
+  /**
+   * How much the narrator says: everything, functional announcements only, or nothing.
+   *
+   * This replaces the `quietNarrator` boolean, which had no way to turn the narrator off at
+   * all. Anyone who had set it keeps the equivalent choice — the old key is read once and
+   * then written forward under the new one — so nobody's setting resets on upgrade.
+   */
+  const narratorMode = ref<NarratorMode>((() => {
+    const stored = localStorage.getItem('narratorMode')
+    if (stored === 'full' || stored === 'names' || stored === 'off') return stored
+    return localStorage.getItem('quietNarrator') === 'true' ? 'names' : 'full'
+  })())
 
   /**
    * What the computer seats in Spades are called. Persisted like every other preference, so
@@ -73,9 +74,9 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('voicePitch', String(val))
   }
 
-  function setQuietNarrator(val: boolean) {
-    quietNarrator.value = val
-    localStorage.setItem('quietNarrator', String(val))
+  function setNarratorMode(val: NarratorMode) {
+    narratorMode.value = val
+    localStorage.setItem('narratorMode', val)
   }
 
   function setDisableWalkUpTimer(val: boolean) {
@@ -165,5 +166,5 @@ export const useSettingsStore = defineStore('settings', () => {
     else localStorage.removeItem('coinTailsImage')
   }
 
-  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, quietNarrator, setQuietNarrator, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme, narratorGender, setNarratorGender, narratorPersonality, setNarratorPersonality, announceThrowAt20, setAnnounceThrowAt20, announceWalkupAt20, setAnnounceWalkupAt20, coinHeadsImage, coinTailsImage, setCoinHeadsImage, setCoinTailsImage, botNames, setBotName }
+  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, narratorMode, setNarratorMode, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme, narratorGender, setNarratorGender, narratorPersonality, setNarratorPersonality, announceThrowAt20, setAnnounceThrowAt20, announceWalkupAt20, setAnnounceWalkupAt20, coinHeadsImage, coinTailsImage, setCoinHeadsImage, setCoinTailsImage, botNames, setBotName }
 })

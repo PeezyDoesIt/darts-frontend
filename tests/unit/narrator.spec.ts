@@ -4,9 +4,10 @@ import {
 } from '@/lib/narrator'
 
 const ctx = { name: 'Alice', prevName: 'Bob', term: 'baby' }
-const loud = { cleanMode: false, quietNarrator: false }
-const clean = { cleanMode: true, quietNarrator: false }
-const quiet = { cleanMode: false, quietNarrator: true }
+const loud = { cleanMode: false, mode: 'full' as const }
+const clean = { cleanMode: true, mode: 'full' as const }
+const quiet = { cleanMode: false, mode: 'names' as const }
+const silent = { cleanMode: false, mode: 'off' as const }
 
 const flat = (out: string[][]) => out.flat().join(' ')
 
@@ -250,6 +251,61 @@ describe('line variety', () => {
             expect(new Set(segment).size, `${event}/${personality} repeats a variant`).toBe(segment.length)
           }
         }
+      }
+    }
+  })
+})
+
+/**
+ * The three narrator modes.
+ *
+ * "Names only" used to mean "skip the events flagged as commentary" and nothing more, so the
+ * events that were *not* commentary still spoke their full personality line. The walk-up is
+ * one of those and fires on every single turn, so the setting called Names only delivered
+ * "Okay. Okay okay okay. Alice. You got this. Do you got this? You got this." eighty times a
+ * game. And there was no way to turn the narrator off at all.
+ */
+describe('narrator modes', () => {
+  it('says nothing whatsoever when off', () => {
+    for (const event of ALL_EVENTS) {
+      for (const personality of PERSONALITIES) {
+        expect(linesFor(event, personality, silent, ctx), `${event}/${personality} spoke while off`)
+          .toEqual([])
+      }
+    }
+  })
+
+  it('keeps the walk-up short under Names only, whatever the personality', () => {
+    for (const personality of PERSONALITIES) {
+      const said = flat(linesFor('walkUp', personality, quiet, ctx) as string[][])
+      expect(said, `${personality} walk-up is silent`).toContain('Alice')
+      // The longest full-personality walk-up runs past 70 characters; every quiet form is a
+      // handful of words. The bound is what separates "a name" from "a performance".
+      expect(said.length, `${personality} walk-up is not short: ${said}`).toBeLessThan(40)
+    }
+  })
+
+  it('still warns that time is running out under Names only', () => {
+    // The whole point of the 30-second warning is that a turn is about to be lost, which is
+    // information rather than banter — it was classed as commentary and therefore silenced.
+    for (const personality of PERSONALITIES) {
+      const said = flat(linesFor('hurryUp', personality, quiet, ctx) as string[][])
+      expect(said, `${personality} gives no hurry-up`).toContain('Hurry up')
+      expect(said, `${personality} hurry-up does not name the player`).toContain('Alice')
+    }
+  })
+
+  it('still says who won under Names only', () => {
+    const said = flat(linesFor('win', 'farley', quiet, ctx) as string[][])
+    expect(said).toContain('Alice')
+    expect(said.length).toBeLessThan(40)
+  })
+
+  it('keeps silencing the trash talk under Names only', () => {
+    for (const event of ALL_EVENTS) {
+      if (!isCommentary(event)) continue
+      for (const personality of PERSONALITIES) {
+        expect(linesFor(event, personality, quiet, ctx), `${event}/${personality} leaked`).toEqual([])
       }
     }
   })
