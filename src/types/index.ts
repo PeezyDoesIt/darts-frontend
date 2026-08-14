@@ -387,6 +387,14 @@ export type ActiveGame = {
    * never counts. That holds across a reload, or a night with the app closed.
    */
   heldSince: number | null
+  /**
+   * The player the narrator is picking on, or null.
+   *
+   * Lives on the game rather than the roster on purpose: it is a bit, aimed at whoever is
+   * winning or whoever is slow tonight, and it should not follow somebody into next week's
+   * game. It dies when the game does.
+   */
+  heckleTargetId: string | null
   horseSetterIndex: number      // index of the current setter in HORSE
   killerLives: number           // starting lives per player in KILLER
   killerRequireDouble: boolean  // KILLER house rule: only doubles count
