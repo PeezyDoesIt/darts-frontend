@@ -130,3 +130,31 @@ test('the narrator can be turned off, before a game and during one', async ({ pa
   await group.getByRole('button', { name: 'Names only' }).click()
   await expect(group.getByRole('button', { name: 'Names only' })).toHaveClass(/active/)
 })
+
+/**
+ * The advice iOS needs, and nobody else does.
+ *
+ * A browser can only offer voices the system already has, and iOS ships very few until they
+ * are downloaded — so a short list on an iPad is the device's doing rather than a missing
+ * feature. The panel says where the fix actually lives.
+ */
+test.describe('on an iPad', () => {
+  test.use({ userAgent: 'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1' })
+
+  test('a thin voice list explains how to get more', async ({ page }) => {
+    await page.goto('/')
+    await page.locator('.narrator').click()
+
+    // This browser has few or no voices, which is exactly the case the hint is for.
+    const hint = page.locator('.voice-hint')
+    await expect(hint).toBeVisible()
+    await expect(hint).toContainText('Spoken Content')
+  })
+})
+
+test('the hint stays out of the way on a device that is not Apple', async ({ page }) => {
+  // The path it names is Apple's, so on anything else it would be wrong as well as noise.
+  await page.goto('/')
+  await page.locator('.narrator').click()
+  await expect(page.locator('.voice-hint')).toHaveCount(0)
+})

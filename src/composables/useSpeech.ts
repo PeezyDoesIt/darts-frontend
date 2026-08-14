@@ -116,13 +116,60 @@ export type VoiceOption = { label: string; value: string; sublabel?: string }
 // Voices that respond to gender pitch-shifting
 const GENDERED_VOICES = new Set(['Deranged', 'Hysterical', 'Bad News'])
 
+/**
+ * Apple's novelty and character voices, under every name they have shipped under.
+ *
+ * The list used to hold five, and three of those were names Apple had already retired:
+ * Deranged became Wobble, Hysterical became Jester, and Pipe Organ became Organ. So on any
+ * current iPad those three entries matched nothing at all, and the voices that had replaced
+ * them were unrecognised — they appeared, if at all, as bare names filed under American.
+ *
+ * Both spellings are kept because an older device still has the old ones, and matching a
+ * name that is not there costs nothing.
+ */
 const CHARACTER_VOICES: { name: string; label: string; sublabel: string }[] = [
-  { name: 'Zarvox',     label: 'Zarvox',      sublabel: 'Robotic alien' },
-  { name: 'Deranged',   label: 'Deranged',    sublabel: 'Unhinged' },
-  { name: 'Hysterical', label: 'Hysterical',  sublabel: 'Manic' },
-  { name: 'Bad News',   label: 'Bad News',    sublabel: 'Ominous' },
-  { name: 'Pipe Organ', label: 'Pipe Organ',  sublabel: 'Musical tones' },
+  // Novelty — the singing and shouting ones.
+  { name: 'Zarvox',     label: 'Zarvox',     sublabel: 'Robotic alien' },
+  { name: 'Trinoids',   label: 'Trinoids',   sublabel: 'Alien chorus' },
+  { name: 'Wobble',     label: 'Wobble',     sublabel: 'Unhinged' },
+  { name: 'Deranged',   label: 'Deranged',   sublabel: 'Unhinged' },
+  { name: 'Jester',     label: 'Jester',     sublabel: 'Manic' },
+  { name: 'Hysterical', label: 'Hysterical', sublabel: 'Manic' },
+  { name: 'Bad News',   label: 'Bad News',   sublabel: 'Ominous — sung as a dirge' },
+  { name: 'Good News',  label: 'Good News',  sublabel: 'Cheerful fanfare' },
+  { name: 'Organ',      label: 'Organ',      sublabel: 'Musical tones' },
+  { name: 'Pipe Organ', label: 'Pipe Organ', sublabel: 'Musical tones' },
+  { name: 'Cellos',     label: 'Cellos',     sublabel: 'Sung over cellos' },
+  { name: 'Bells',      label: 'Bells',      sublabel: 'Sung through bells' },
+  { name: 'Boing',      label: 'Boing',      sublabel: 'Springy' },
+  { name: 'Bubbles',    label: 'Bubbles',    sublabel: 'Underwater' },
+  { name: 'Bahh',       label: 'Bahh',       sublabel: 'Sheep' },
+  { name: 'Whisper',    label: 'Whisper',    sublabel: 'Whispered' },
+  { name: 'Albert',     label: 'Albert',     sublabel: 'Small and squeaky' },
+  { name: 'Superstar',  label: 'Superstar',  sublabel: 'Theatrical' },
+  { name: 'Princess',   label: 'Princess',   sublabel: 'Theatrical' },
+  { name: 'Junior',     label: 'Junior',     sublabel: 'Young' },
+  { name: 'Ralph',      label: 'Ralph',      sublabel: 'Gravelly' },
+  { name: 'Kathy',      label: 'Kathy',      sublabel: 'Flat and dry' },
+  { name: 'Fred',       label: 'Fred',       sublabel: 'Old-school Mac' },
+  // Character — newer, natural-sounding, and the ones worth using for a whole game.
+  { name: 'Eddy',       label: 'Eddy',       sublabel: 'Character voice' },
+  { name: 'Flo',        label: 'Flo',        sublabel: 'Character voice' },
+  { name: 'Grandma',    label: 'Grandma',    sublabel: 'Character voice' },
+  { name: 'Grandpa',    label: 'Grandpa',    sublabel: 'Character voice' },
+  { name: 'Reed',       label: 'Reed',       sublabel: 'Character voice' },
+  { name: 'Rocko',      label: 'Rocko',      sublabel: 'Character voice' },
+  { name: 'Sandy',      label: 'Sandy',      sublabel: 'Character voice' },
+  { name: 'Shelley',    label: 'Shelley',    sublabel: 'Character voice' },
 ]
+
+/**
+ * iOS ships these with the locale in the name — "Rocko (English (US))" — while macOS ships
+ * them bare. Matching both is what makes the same list work on the iPad and the laptop.
+ */
+function matchesCharacter(voiceName: string, characterName: string): boolean {
+  return voiceName === characterName || voiceName.startsWith(`${characterName} (`)
+}
 
 
 /** en-GB → British, so the list reads as accents rather than locale codes. */
@@ -179,11 +226,18 @@ export function getAvailableVoices(
 
   const claimed = new Set<string>()
 
-  // Curated character voices (macOS-specific fun ones) keep their descriptions.
+  /*
+   * Character voices first, with their descriptions.
+   *
+   * The stored value is the voice's real name, locale suffix and all, because that is what
+   * has to be handed back to the speech engine — only the label is tidied. Storing the tidy
+   * name would save a preference that resolves to nothing.
+   */
   for (const c of CHARACTER_VOICES) {
-    if (voices.some(v => v.name === c.name)) {
-      result.push({ label: c.label, value: c.name, sublabel: c.sublabel })
-      claimed.add(c.name)
+    const match = voices.find(v => matchesCharacter(v.name, c.name))
+    if (match && !claimed.has(match.name)) {
+      result.push({ label: c.label, value: match.name, sublabel: c.sublabel })
+      claimed.add(match.name)
     }
   }
 

@@ -345,6 +345,18 @@
                 <span v-if="v.sublabel" class="voice-btn-sub">{{ v.sublabel }}</span>
               </button>
             </div>
+            <!--
+              The one thing the app cannot do for you.
+
+              A browser can only offer the voices the system already has, and iOS ships very
+              few until they are downloaded — so a short list here is the device's doing, not
+              a missing feature, and the fix lives in Settings rather than in this panel.
+            -->
+            <p v-if="showVoiceHint" class="settings-muted voice-hint">
+              Only {{ availableVoices.length - 1 }} to choose from? iOS downloads voices on
+              demand. <strong>Settings › Accessibility › Spoken Content › Voices › English</strong>
+              — the Novelty ones are the fun ones. They show up here once downloaded.
+            </p>
           </div>
 
           <div class="settings-section">
@@ -787,6 +799,19 @@ function onCoinImagePicked(side: 'heads' | 'tails', e: Event) {
 /* ── Narrator settings ── */
 const showSettings = ref(false)
 const availableVoices = ref<VoiceOption[]>([])
+
+/**
+ * Shown on Apple devices with a thin list.
+ *
+ * Not shown everywhere: on a machine that already offers a dozen voices the advice is noise,
+ * and the Settings path it names is Apple's. The threshold counts real voices, so Default
+ * does not make a device with none look like a device with one.
+ */
+const showVoiceHint = computed(() => {
+  const isApple = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  return isApple && availableVoices.value.length > 0 && availableVoices.value.length - 1 < 6
+})
 
 const bullseyeSoundOptions = [
   { value: 'shotgun',      label: 'Shotgun',                      sub: 'Current — loud blast' },
@@ -1408,6 +1433,8 @@ function previewBullseyeSound(value: string) {
 .voice-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
 .voice-btn-label { font-weight: 700; }
 .voice-btn-sub { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.6); flex-shrink: 0; }
+.voice-hint { margin: 10px 0 0; font-size: 13px; line-height: 1.55; }
+.voice-hint strong { color: var(--blue); font-weight: 700; }
 
 .test-btn { align-self: flex-end; }
 
