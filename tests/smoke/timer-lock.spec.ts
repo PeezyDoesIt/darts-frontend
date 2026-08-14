@@ -41,23 +41,23 @@ for (const game of ['Cricket', 'Speed Cricket']) {
     await page.getByRole('button', { name: /^START$/ }).click()
     await expect(page).toHaveURL(/\/game$/)
 
-    const timer = page.locator('.submit-timer-text').first()
+    const timer = page.locator('.throw-timer-text').first()
     // Pausing works to begin with, so the assertion below is about the lock rather than
     // about the timer being untappable in the first place.
-    await page.locator('.submit-left').first().click()
+    await page.locator('.throw-timer').first().click()
     await expect(timer).toHaveText('PAUSED')
-    await page.locator('.submit-left').first().click()
+    await page.locator('.throw-timer').first().click()
     await expect(timer).not.toHaveText('PAUSED')
 
     await setLock(page, true)
-    await page.locator('.submit-left').first().click()
+    await page.locator('.throw-timer').first().click()
     // Says why nothing happened, rather than absorbing the tap silently.
     await expect(timer).toHaveText('LOCKED')
     // …and then goes back to counting, still unpaused.
     await expect(timer).toHaveText(/\d+s/, { timeout: 3000 })
 
     await setLock(page, false)
-    await page.locator('.submit-left').first().click()
+    await page.locator('.throw-timer').first().click()
     await expect(timer).toHaveText('PAUSED')
   })
 
