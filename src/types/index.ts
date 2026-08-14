@@ -335,7 +335,7 @@ export type ActiveGame = {
   throwTimerDuration: number
   closedTargetDisplay: 'show' | 'hide'
   bustEliminates: boolean
-  cricketPlayToCompletion: boolean
+  playToCompletion: boolean
   cricketHatTrickBonus: boolean
   cricketRoundLimit: number | null
   gameThemeSize: 'cover' | 'contain' | null
@@ -349,7 +349,7 @@ export type ActiveGame = {
    */
   turnSeq: number
   skipWalkup: boolean
-  cricketFinishOrder: string[]
+  finishOrder: string[]
   gameTheme: string | null
   players: Player[]
   currentPlayerIndex: number

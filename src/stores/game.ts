@@ -69,6 +69,15 @@ export const useGameStore = defineStore('game', () => {
       if (parsed.wildLockedNums === undefined) parsed.wildLockedNums = []
       if (parsed.killerLives === undefined) parsed.killerLives = KILLER_DEFAULT_LIVES
       if (parsed.killerRequireDouble === undefined) parsed.killerRequireDouble = false
+      /*
+       * These two were `cricketPlayToCompletion` / `cricketFinishOrder` until the option was
+       * extended to the 01 games. A game already in progress when the app updates still has
+       * the old keys, and without this it would resume with the option silently switched off
+       * mid-game — the finish order lost, and the first player to check out ending it.
+       */
+      const legacy = parsed as unknown as Record<string, unknown>
+      if (parsed.playToCompletion === undefined) parsed.playToCompletion = legacy.cricketPlayToCompletion === true
+      if (parsed.finishOrder === undefined) parsed.finishOrder = (legacy.cricketFinishOrder as string[] | undefined) ?? []
       return parsed
     } catch { return null }
   }
@@ -109,7 +118,7 @@ export const useGameStore = defineStore('game', () => {
     _pendingTimeout.value = true
   }
 
-  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide', bustEliminates: boolean, cricketPlayToCompletion: boolean, cricketHatTrickBonus: boolean, cricketRoundLimit: number | null, gameTheme: string | null, gameThemeSize: 'cover' | 'contain' | null, gameThemePosition: 'top' | 'center' | 'bottom' | null, gameThemeFill: 'black' | 'blur' | null, players: Player[], skipWalkup: boolean = false, gameDuration: number | null = null, killerLives: number = KILLER_DEFAULT_LIVES, killerRequireDouble: boolean = false) {
+  function startGame(gameType: GameType, timerDuration: number, throwTimerDuration: number, closedTargetDisplay: 'show' | 'hide', bustEliminates: boolean, playToCompletion: boolean, cricketHatTrickBonus: boolean, cricketRoundLimit: number | null, gameTheme: string | null, gameThemeSize: 'cover' | 'contain' | null, gameThemePosition: 'top' | 'center' | 'bottom' | null, gameThemeFill: 'black' | 'blur' | null, players: Player[], skipWalkup: boolean = false, gameDuration: number | null = null, killerLives: number = KILLER_DEFAULT_LIVES, killerRequireDouble: boolean = false) {
     playerTimeoutCounts.value = {}
     playerHurryUpCounts.value = {}
     lastTurnWasTimeout.value = false
@@ -120,7 +129,7 @@ export const useGameStore = defineStore('game', () => {
       throwTimerDuration,
       closedTargetDisplay,
       bustEliminates,
-      cricketPlayToCompletion,
+      playToCompletion,
       cricketHatTrickBonus,
       cricketRoundLimit,
       gameThemeSize,
@@ -129,7 +138,7 @@ export const useGameStore = defineStore('game', () => {
       bonusTurnActive: false,
       turnSeq: 0,
       skipWalkup,
-      cricketFinishOrder: [],
+      finishOrder: [],
       gameTheme,
       players,
       currentPlayerIndex: 0,
@@ -178,6 +187,24 @@ export const useGameStore = defineStore('game', () => {
       } else if (newRemaining === 0) {
         score.data.remaining = 0
         score.data.history.push(value)
+        /*
+         * Checking out takes a place rather than ending the game, when the option is on.
+         *
+         * The same shape as cricket's: the first one out is the winner, the rest keep
+         * playing for second and third, and the game ends when everyone has checked out.
+         * advanceTurn already skips anyone in the finish order, so a player who is out
+         * stops being dealt turns without anything else being needed here.
+         */
+        if (game.value.playToCompletion) {
+          if (!game.value.finishOrder.includes(playerId)) game.value.finishOrder.push(playerId)
+          if (game.value.finishOrder.length >= game.value.players.length) {
+            game.value.winnerId = game.value.finishOrder[0]!
+            game.value.status = 'finished'
+            return
+          }
+          advanceTurn()
+          return
+        }
         game.value.winnerId = playerId
         game.value.status = 'finished'
         return
@@ -215,13 +242,13 @@ export const useGameStore = defineStore('game', () => {
           score.data.marks[target] = Math.min(marksToClose, score.data.marks[target] + hits)
         }
 
-        if (game.value.cricketPlayToCompletion) {
+        if (game.value.playToCompletion) {
           // Track finish order: player closes all targets → placed in order
           const allClosed = CRICKET_TARGETS.every(t => score.data.marks[t] >= marksToClose)
-          if (allClosed && !game.value.cricketFinishOrder.includes(playerId)) {
-            game.value.cricketFinishOrder.push(playerId)
-            if (game.value.cricketFinishOrder.length === game.value.players.length) {
-              game.value.winnerId = game.value.cricketFinishOrder[0]!
+          if (allClosed && !game.value.finishOrder.includes(playerId)) {
+            game.value.finishOrder.push(playerId)
+            if (game.value.finishOrder.length === game.value.players.length) {
+              game.value.winnerId = game.value.finishOrder[0]!
               game.value.status = 'finished'
               return
             }
@@ -435,8 +462,8 @@ export const useGameStore = defineStore('game', () => {
     }
 
 
-    if (game.value.cricketPlayToCompletion && game.value.cricketFinishOrder.length > 0) {
-      const finishSet = new Set(game.value.cricketFinishOrder)
+    if (game.value.playToCompletion && game.value.finishOrder.length > 0) {
+      const finishSet = new Set(game.value.finishOrder)
       let nextIndex = (currentPlayerIndex + 1) % players.length
       let steps = 0
       while (finishSet.has(players[nextIndex]!.id) && steps < players.length) {

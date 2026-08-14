@@ -446,7 +446,7 @@
             class="lb-player-row"
             :class="{
               active: p.id === currentPlayer.id,
-              'ptc-finished': game.cricketPlayToCompletion && game.cricketFinishOrder.includes(p.id)
+              'ptc-finished': game.playToCompletion && game.finishOrder.includes(p.id)
             }"
             :style="p.id === currentPlayer.id ? { '--active-color': p.color, background: p.color + '12', boxShadow: `0 0 20px ${p.color}20` } : {}"
           >
@@ -459,7 +459,7 @@
               <span class="lb-player-name" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">
                 {{ p.name }}
                 <span v-if="p.id === currentPlayer.id" class="throwing-tag">throwing</span>
-                <span v-else-if="game.cricketPlayToCompletion && game.cricketFinishOrder.includes(p.id)" class="finished-tag">finished</span>
+                <span v-else-if="game.playToCompletion && game.finishOrder.includes(p.id)" class="finished-tag">finished</span>
               </span>
               <div v-if="isCricketGame(game.gameType)" class="cricket-mini">
                 <div v-for="t in CRICKET_TARGETS" :key="t" class="mini-target">
@@ -474,7 +474,7 @@
               <span class="lb-score-val" :style="p.id === currentPlayer.id ? { color: '#fff' } : {}">{{ displayScore(p.id) }}</span>
               <span class="lb-score-label">{{ scoreLabel }}</span>
             </div>
-            <button v-if="game.players.length > 2 && !(game.cricketPlayToCompletion && game.cricketFinishOrder.includes(p.id))" v-ripple class="remove-player-btn" @click.stop="confirmRemoveId = p.id" title="Remove from game">✕</button>
+            <button v-if="game.players.length > 2 && !(game.playToCompletion && game.finishOrder.includes(p.id))" v-ripple class="remove-player-btn" @click.stop="confirmRemoveId = p.id" title="Remove from game">✕</button>
           </div>
         </div>
       </div>
@@ -827,7 +827,8 @@ function setClosedTargetDisplay(val: 'show' | 'hide') {
 const scoreLabel = computed(() => {
   const gt = game.value?.gameType
   if (!gt) return ''
-  if ((isCricketGame(gt)) && game.value?.cricketPlayToCompletion) return 'place'
+  // Places, whatever the game — the column shows finishing position once the option is on.
+  if (game.value?.playToCompletion) return 'place'
   if (isCricketGame(gt)) return 'closed'
   if (['301','501','701','1001'].includes(gt)) return 'left'
   if (gt === 'horse') return 'letters'
@@ -885,8 +886,8 @@ function ordinal(n: number): string {
 function displayScore(playerId: string): string {
   const s = game.value?.scores[playerId]
   if (!s) return '—'
-  if (s.kind === 'cricket' && game.value?.cricketPlayToCompletion) {
-    const pos = game.value.cricketFinishOrder.indexOf(playerId)
+  if (s.kind === 'cricket' && game.value?.playToCompletion) {
+    const pos = game.value.finishOrder.indexOf(playerId)
     return pos >= 0 ? ordinal(pos + 1) : '—'
   }
   if (s.kind === 'ohOne') return String(s.data.remaining)

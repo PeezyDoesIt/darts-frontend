@@ -162,15 +162,6 @@
               <span class="ct-opt-sub">{{ opt.sub }}</span>
             </button>
           </div>
-          <div class="toggle-row" style="margin-top:12px" @click="cricketPlayToCompletion = !cricketPlayToCompletion">
-            <div class="toggle-track" :class="{ active: cricketPlayToCompletion }">
-              <div class="toggle-thumb" />
-            </div>
-            <div class="toggle-info">
-              <span class="toggle-label">Play to Completion</span>
-              <span class="toggle-sub">Game continues until all players have closed every target</span>
-            </div>
-          </div>
           <div class="toggle-row" @click="cricketHatTrickBonus = !cricketHatTrickBonus">
             <div class="toggle-track" :class="{ active: cricketHatTrickBonus }">
               <div class="toggle-thumb" />
@@ -193,6 +184,24 @@
               <button v-ripple class="round-limit-btn" :disabled="cricketRoundLimit === null || cricketRoundLimit <= 1" @click="cricketRoundLimit = Math.max(1, (cricketRoundLimit ?? 5) - 1)">−</button>
               <span class="round-limit-val" @click="cricketRoundLimit = cricketRoundLimit === null ? 7 : null">{{ cricketRoundLimit ?? 'OFF' }}</span>
               <button v-ripple class="round-limit-btn" @click="cricketRoundLimit = (cricketRoundLimit ?? 0) + 1">+</button>
+            </div>
+          </div>
+        </section>
+
+        <!--
+          Play to Completion is not a cricket rule, so it no longer lives in the cricket
+          section: it means "carry on for the other places once someone is out", which reads
+          the same whether being out is closing every target or checking out to zero.
+        -->
+        <section v-if="playToCompletionSupported" class="ng-section">
+          <span class="label">Places</span>
+          <div class="toggle-row" @click="playToCompletion = !playToCompletion">
+            <div class="toggle-track" :class="{ active: playToCompletion }">
+              <div class="toggle-thumb" />
+            </div>
+            <div class="toggle-info">
+              <span class="toggle-label">Play to Completion</span>
+              <span class="toggle-sub">{{ playToCompletionHint }}</span>
             </div>
           </div>
         </section>
@@ -394,7 +403,22 @@ function onGameDurationInput(val: string | number | null) {
 
 const closedTargetDisplay = ref<'show' | 'hide'>('show')
 const bustEliminates = ref(false)
-const cricketPlayToCompletion = ref(false)
+const playToCompletion = ref(false)
+
+/**
+ * The games that have a notion of a player being "out" while others carry on.
+ *
+ * Killer, Horse and Around the Clock each end on their own terms, so offering it there would
+ * be a promise the store does not keep — only cricket's close-everything and 01's check-out
+ * push onto the finish order.
+ */
+const OH_ONE_TYPES = ['301', '501', '701', '1001']
+const playToCompletionSupported = computed(() =>
+  isCricketGame(selectedGameType.value) || OH_ONE_TYPES.includes(selectedGameType.value ?? ''))
+const playToCompletionHint = computed(() =>
+  isCricketGame(selectedGameType.value)
+    ? 'Game continues until all players have closed every target'
+    : 'Game continues until everyone has checked out — first one out wins, the rest play for second and third')
 const cricketHatTrickBonus = ref(false)
 const cricketRoundLimit = ref<number | null>(null)
 const cricketWild = ref(false)
@@ -435,7 +459,7 @@ function startGame() {
   if (selectedPlayers.value.length < 1 || !selectedGameType.value) return
   const t = timerDuration.value
   const tt = throwTimerDuration.value
-  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, cricketPlayToCompletion.value, cricketHatTrickBonus.value, cricketRoundLimit.value, gameTheme.value, gameThemeSize.value, gameThemePosition.value, gameThemeFill.value, selectedPlayers.value, skipWalkup.value, gameDuration.value, killerLives.value, killerRequireDouble.value)
+  gameStore.startGame(selectedGameType.value, t, tt, closedTargetDisplay.value, bustEliminates.value, playToCompletion.value, cricketHatTrickBonus.value, cricketRoundLimit.value, gameTheme.value, gameThemeSize.value, gameThemePosition.value, gameThemeFill.value, selectedPlayers.value, skipWalkup.value, gameDuration.value, killerLives.value, killerRequireDouble.value)
   if (cricketWild.value) gameStore.setWildEnabled(true)
   router.push(skipWalkup.value ? '/game' : '/between')
 }
