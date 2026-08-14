@@ -25,21 +25,52 @@ const FABRICATED_BASELINE = 100
  * Writes stay off the UI's critical path (nothing here is awaited by callers), but they
  * are now actually issued, and a failure is visible instead of invisible.
  */
-function fireWrite(label: string, run: () => PromiseLike<{ error: unknown }>) {
-  void (async () => {
-    try {
-      const { error } = await run()
-      if (error) console.warn(`[players] ${label} failed:`, error)
-    } catch (e) {
-      console.warn(`[players] ${label} failed:`, e)
-    }
-  })()
+/** Whatever a Supabase error or a thrown value has to say for itself, as one line. */
+function describe(e: unknown): string {
+  if (typeof e === 'string') return e
+  if (e && typeof e === 'object') {
+    const o = e as { message?: unknown; details?: unknown }
+    if (typeof o.message === 'string' && o.message) return o.message
+    if (typeof o.details === 'string' && o.details) return o.details
+  }
+  return 'Unknown error'
 }
 
 export const usePlayersStore = defineStore('players', () => {
   const players = ref<Player[]>([])
   /** True once a save has had to drop photos to fit, so the UI can tell the user. */
   const storageDegraded = ref(false)
+
+  /**
+   * The last cloud write or read that failed, or null when everything is getting through.
+   *
+   * Every failure here used to go to `console.warn` and nowhere else, which is how the whole
+   * roster silently stopped syncing for days: three columns were missing from the table, and
+   * PostgREST rejects the entire row when one is — so name changes, colours and win counts
+   * were all being dropped too. On screen it looked identical to working.
+   *
+   * Cleared by the next write that succeeds, so a one-off blip while offline disappears on
+   * its own rather than needing to be dismissed.
+   */
+  const syncFailure = ref<{ what: string; message: string } | null>(null)
+
+  function noteSyncOk() { syncFailure.value = null }
+  function noteSyncFailed(what: string, e: unknown) {
+    syncFailure.value = { what, message: describe(e) }
+  }
+
+  function fireWrite(label: string, run: () => PromiseLike<{ error: unknown }>) {
+    void (async () => {
+      try {
+        const { error } = await run()
+        if (error) { console.warn(`[players] ${label} failed:`, error); noteSyncFailed(label, error) }
+        else noteSyncOk()
+      } catch (e) {
+        console.warn(`[players] ${label} failed:`, e)
+        noteSyncFailed(label, e)
+      }
+    })()
+  }
 
   function stripFabricatedBaseline() {
     if (localStorage.getItem(SEED_MIGRATION_KEY)) return
@@ -310,6 +341,7 @@ export const usePlayersStore = defineStore('players', () => {
 
     if (error || !data) {
       console.warn('[players] syncFromCloud read failed:', error)
+      noteSyncFailed('reading the roster', error ?? 'No data returned')
       return
     }
 
@@ -350,10 +382,17 @@ export const usePlayersStore = defineStore('players', () => {
     }
 
     // Push anything where local was newer, plus players the cloud has never seen
+    let pushed = 0
     for (const p of needPush) {
       const { error: pushError } = await supabase.from('players').upsert(playerToDb(p, session.user.id))
-      if (pushError) console.warn('[players] syncFromCloud push failed for', p.name, pushError)
+      if (pushError) {
+        console.warn('[players] syncFromCloud push failed for', p.name, pushError)
+        noteSyncFailed(`saving ${p.name}`, pushError)
+      } else pushed++
     }
+    // Only a clean run clears the flag: if some rows went up and others did not, the roster
+    // is still out of step and saying "synced" would be a lie.
+    if (pushed === needPush.length) noteSyncOk()
 
     // Anything still held inline is a photo taken while signed out — now that there is a
     // session, move it up so it survives this device.
@@ -363,7 +402,7 @@ export const usePlayersStore = defineStore('players', () => {
   loadFromStorage()
 
   return {
-    players, storageDegraded, addPlayer, updatePlayer, deletePlayer, recordWin, recordGame,
-    syncFromCloud, offloadPendingPhotos,
+    players, storageDegraded, syncFailure, addPlayer, updatePlayer, deletePlayer, recordWin,
+    recordGame, syncFromCloud, offloadPendingPhotos,
   }
 })

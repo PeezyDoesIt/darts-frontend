@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { seedRoster } from './helpers'
+import { seedRoster, signIn } from './helpers'
 
 /**
  * The game history screen, with the API stubbed.
@@ -9,23 +9,6 @@ import { seedRoster } from './helpers'
  * rows and not just its empty state — the empty state is what shows on any machine that
  * isn't signed in, which is every machine a test runs on.
  */
-
-/** supabase-js reads the session straight out of localStorage, so a fake one is enough. */
-const SUPABASE_KEY = 'sb-lnojmgfnqaxtodjjlyni-auth-token'
-
-const FAR_FUTURE = 4102444800  // 2100-01-01, so the session never reads as expired
-
-async function signIn(page: import('@playwright/test').Page) {
-  await page.addInitScript(({ key, exp }) => {
-    localStorage.setItem(key, JSON.stringify({
-      access_token: 'test-token',
-      refresh_token: 'test-refresh',
-      expires_at: exp,
-      token_type: 'bearer',
-      user: { id: 'user-1', aud: 'authenticated' },
-    }))
-  }, { key: SUPABASE_KEY, exp: FAR_FUTURE })
-}
 
 /**
  * A fixed evening, local time, shared by the seed data and by the page.

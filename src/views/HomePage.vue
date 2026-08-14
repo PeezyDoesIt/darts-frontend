@@ -9,6 +9,13 @@
     <div class="bloom bloom-purple" />
 
     <div class="home-inner">
+      <!--
+        Here as well as on the setup screen, because saving a player navigates straight back
+        here — a warning that only lived over there would appear for no time at all, at
+        exactly the moment it has something to say.
+      -->
+      <SyncWarning class="home-sync-warn" />
+
       <!-- ── Hero + resume / counters ─────────────────────── -->
       <section class="hero-row">
         <div class="glass-panel hero">
@@ -23,7 +30,7 @@
           -->
           <div class="hero-actions">
             <button v-ripple class="hero-action" title="Cloud sync" @click="openSyncModal">
-              <span class="sync-dot" :class="{ 'sync-dot-off': !authStore.user }" />
+              <span class="sync-dot" :class="{ 'sync-dot-off': !authStore.user, 'sync-dot-bad': !!playersStore.syncFailure }" />
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 15.5a3.5 3.5 0 0 0-2.6-5.8A5.5 5.5 0 0 0 6.8 10 3.6 3.6 0 0 0 7 17h11" />
                 <path d="M12 20v-6M9.5 16.5 12 14l2.5 2.5" />
@@ -606,6 +613,7 @@ import { GAME_TYPE_LABELS, GAME_TYPE_ORDER, type GameType, type Player } from '.
 import { speak, speakOhBaby, getAvailableVoices, type VoiceOption } from '../composables/useSpeech'
 import { playShotgun, playBuzzer, playStartChime, unlockAudio } from '../composables/useSounds'
 import PlayerAvatar from '../components/PlayerAvatar.vue'
+import SyncWarning from '../components/SyncWarning.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -885,6 +893,15 @@ function previewBullseyeSound(value: string) {
 
 .drip-bar { position: absolute; top: 0; left: 0; right: 0; z-index: 3; }
 
+/*
+ * First on screen, and never squeezed.
+ *
+ * Being first in the template is not enough: the sections below carry negative `order`
+ * values, so with the default `order: 0` this sorted last and landed 2189px down a 727px
+ * screen — visible in the CSS sense, and completely useless. Lower than the lowest of them.
+ */
+.home-sync-warn { order: -3; flex-shrink: 0; }
+
 .home-inner {
   position: relative;
   z-index: 2;
@@ -914,6 +931,10 @@ function previewBullseyeSound(value: string) {
    target of its own, so it read as a dead row across the page. */
 .sync-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: var(--lime); box-shadow: 0 0 10px var(--lime); animation: livePulse 1.8s ease-in-out infinite; }
 .sync-dot-off { background: rgba(255,255,255,0.4); box-shadow: none; animation: none; }
+/* Signed in is not the same as syncing. The dot means "connected", and it stayed green while
+   the roster was failing to save — the one thing on screen that looked like sync status,
+   contradicting the warning above it. */
+.sync-dot-bad { background: var(--gold, #f59e0b); box-shadow: 0 0 10px var(--gold, #f59e0b); }
 
 .icon-btn {
   width: 44px; height: 44px; border-radius: 14px; flex-shrink: 0;

@@ -70,3 +70,25 @@ export const SETUP_ROUTES = [
   { game: 'spades', path: '/spades/setup' },
   { game: 'blackjack', path: '/blackjack/setup' },
 ] as const
+
+/**
+ * A fake signed-in session.
+ *
+ * supabase-js reads the session straight out of localStorage, so a fabricated one is enough
+ * to make the app take its signed-in paths — which is the only way to exercise cloud sync in
+ * a test. Lived in history.spec until a second file needed it.
+ */
+const SUPABASE_KEY = 'sb-lnojmgfnqaxtodjjlyni-auth-token'
+const FAR_FUTURE = 4102444800  // 2100-01-01, so the session never reads as expired
+
+export async function signIn(page: Page) {
+  await page.addInitScript(({ key, exp }) => {
+    localStorage.setItem(key, JSON.stringify({
+      access_token: 'test-token',
+      refresh_token: 'test-refresh',
+      expires_at: exp,
+      token_type: 'bearer',
+      user: { id: 'user-1', aud: 'authenticated' },
+    }))
+  }, { key: SUPABASE_KEY, exp: FAR_FUTURE })
+}
