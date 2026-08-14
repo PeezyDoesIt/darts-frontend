@@ -59,6 +59,52 @@
           </div>
 
           <!--
+            How the image is fitted.
+
+            The throw screen has always honoured these three — it sets background-size and
+            background-position from them, and draws a blurred copy behind a contained image
+            when Fill is Blur. Nothing could set them: this screen wrote null into all three
+            on every save, on both the create and update paths, so a photo could only ever be
+            cropped to fill. They are only worth showing once there is an image to fit.
+          -->
+          <div v-if="bgImagePreview" class="field">
+            <label class="label">Background Fit</label>
+            <p class="field-hint">Crop fills the screen and trims the edges. Fit shows the whole image and fills what is left over.</p>
+            <div class="bgfit-row">
+              <button
+                v-for="opt in BG_SIZE_OPTS" :key="String(opt.value)" v-ripple
+                class="bgfit-btn" :class="{ active: playerBackgroundSize === opt.value }"
+                @click="playerBackgroundSize = opt.value"
+              >{{ opt.label }}</button>
+            </div>
+          </div>
+
+          <div v-if="bgImagePreview" class="field">
+            <label class="label">Background Position</label>
+            <p class="field-hint">Which part of the image to keep when it is cropped.</p>
+            <div class="bgfit-row">
+              <button
+                v-for="opt in BG_POSITION_OPTS" :key="String(opt.value)" v-ripple
+                class="bgfit-btn" :class="{ active: playerBackgroundPosition === opt.value }"
+                @click="playerBackgroundPosition = opt.value"
+              >{{ opt.label }}</button>
+            </div>
+          </div>
+
+          <!-- Only meaningful when the image is contained: cropping leaves nothing to fill. -->
+          <div v-if="bgImagePreview && playerBackgroundSize === 'contain'" class="field">
+            <label class="label">Background Fill</label>
+            <p class="field-hint">What sits behind the image in the space it does not cover.</p>
+            <div class="bgfit-row">
+              <button
+                v-for="opt in BG_FILL_OPTS" :key="String(opt.value)" v-ripple
+                class="bgfit-btn" :class="{ active: playerBackgroundFill === opt.value }"
+                @click="playerBackgroundFill = opt.value"
+              >{{ opt.label }}</button>
+            </div>
+          </div>
+
+          <!--
             The two screens a background is actually seen on, each able to differ. Both
             preview the default when unset, so the box always shows what will really appear
             rather than going blank and implying nothing is set.
@@ -113,6 +159,33 @@
                   :style="{ background: s.value, border: s.value === '#000000' ? '2px solid rgba(255,255,255,0.3)' : '2px solid transparent' }"
                   :title="s.name"
                   @click="color = s.value; showColorDropdown = false"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!--
+            Auto is not "no colour": it picks white on the themes that need it, otherwise the
+            complement of the player's own colour. So the default entry has to show something,
+            and it shows what Auto would actually produce.
+          -->
+          <div class="field">
+            <label class="label">Cricket: Target Numbers</label>
+            <p class="field-hint">The big 20 / 19 / 18 labels on your throw screen. Auto picks a colour that stands off your background.</p>
+            <div class="color-dropdown-wrap">
+              <button class="color-dropdown-btn" @click="showTargetDropdown = !showTargetDropdown">
+                <span class="color-dropdown-swatch" :style="{ background: targetLabelColor ?? autoTargetColor, border: targetLabelColor === '#000000' ? '2px solid rgba(255,255,255,0.35)' : '2px solid transparent' }" />
+                <span class="color-dropdown-label">{{ selectedTargetName }}</span>
+                <span class="color-dropdown-arrow">{{ showTargetDropdown ? '▲' : '▼' }}</span>
+              </button>
+              <div v-if="showTargetDropdown" class="color-dropdown-menu">
+                <button
+                  v-for="s in TARGET_LABEL_COLORS" :key="String(s.value)"
+                  class="color-swatch-sm"
+                  :class="{ 'color-swatch-active': targetLabelColor === s.value }"
+                  :style="{ background: s.value ?? autoTargetColor, border: s.value === '#000000' ? '2px solid rgba(255,255,255,0.3)' : '2px solid transparent' }"
+                  :title="s.label"
+                  @click="targetLabelColor = s.value; showTargetDropdown = false"
                 />
               </div>
             </div>
@@ -284,6 +357,7 @@ import { useGameStore } from '../stores/game'
 import { goBack } from '../router/goBack'
 import { AVATAR_MAX_PX, BACKGROUND_MAX_PX, downscaleFile, downscaleVideoFrame } from '../lib/downscaleImage'
 import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, TARGET_LABEL_COLORS, type Player, type DiceTheme } from '../types/index'
+import { autoTargetColor as autoTargetColorFor } from '../lib/targetColor'
 
 const FONT_COLORS: { name: string; value: string }[] = [
   { name: 'White',    value: '#ffffff' },
@@ -379,12 +453,44 @@ function doDelete() {
 
 const bgMode = ref<'image'>('image')
 const playerBackground = ref<string | null>(null)
+
+/*
+ * Null is a real choice here, not "unset": the throw screen treats a null size as the CSS
+ * default, which is what every existing player has and what they should keep unless they say
+ * otherwise. So each list leads with the null option rather than offering a fourth "default".
+ */
+const BG_SIZE_OPTS = [
+  { label: 'Crop to fill', value: null },
+  { label: 'Fit whole image', value: 'contain' as const },
+] as const
+const BG_POSITION_OPTS = [
+  { label: 'Centre', value: null },
+  { label: 'Top', value: 'top' as const },
+  { label: 'Bottom', value: 'bottom' as const },
+] as const
+const BG_FILL_OPTS = [
+  { label: 'Black', value: null },
+  { label: 'Blurred image', value: 'blur' as const },
+] as const
+
+const playerBackgroundSize = ref<'cover' | 'contain' | null>(null)
+const playerBackgroundPosition = ref<'top' | 'center' | 'bottom' | null>(null)
+const playerBackgroundFill = ref<'black' | 'blur' | null>(null)
 const bgImagePreview = ref<string | null>(null)
 /* Per-screen overrides. Null means "use the default above", which is the common case. */
 const throwBackground = ref<string | null>(null)
 const walkupBackground = ref<string | null>(null)
 
 const targetLabelColor = ref<string | null>(null)
+const showTargetDropdown = ref(false)
+/**
+ * What the board would use for this player right now, so the Auto entry is a preview rather
+ * than a placeholder. Shared with CricketEntry — the point of the shared helper is that this
+ * swatch cannot disagree with the screen it describes.
+ */
+const autoTargetColor = computed(() => autoTargetColorFor(color.value, playerBackground.value))
+const selectedTargetName = computed(() =>
+  TARGET_LABEL_COLORS.find(c => c.value === targetLabelColor.value)?.label ?? 'Auto')
 const pipColor = ref<string | null>(null)
 const showPipDropdown = ref(false)
 const selectedPipName = computed(() =>
@@ -508,12 +614,16 @@ function closeCamera() {
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = '#ffffff'; avatarUrl.value = null
   photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; throwBackground.value = null; walkupBackground.value = null; bgMode.value = 'image'; targetLabelColor.value = null; pipColor.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false
+  playerBackgroundSize.value = null; playerBackgroundPosition.value = null; playerBackgroundFill.value = null
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
   photoPreview.value = p.avatarUrl?.startsWith('data:') || p.avatarUrl?.startsWith('http') ? p.avatarUrl : null
   avatarUrl.value = photoPreview.value
   playerBackground.value = p.playerBackground ?? null
+  playerBackgroundSize.value = p.playerBackgroundSize ?? null
+  playerBackgroundPosition.value = p.playerBackgroundPosition ?? null
+  playerBackgroundFill.value = p.playerBackgroundFill ?? null
   throwBackground.value = p.throwBackground ?? null
   walkupBackground.value = p.walkupBackground ?? null
   if (p.playerBackground?.startsWith('data:')) { bgMode.value = 'image'; bgImagePreview.value = p.playerBackground }
@@ -533,10 +643,10 @@ function save() {
   const tlc = targetLabelColor.value
   const ctd = cricketTargetDisplay.value
   if (editingId.value) {
-    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: null, playerBackgroundPosition: null, playerBackgroundFill: null, targetLabelColor: tlc, pipColor: pipColor.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
+    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, targetLabelColor: tlc, pipColor: pipColor.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
     editingId.value = null
   } else {
-    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: null, playerBackgroundPosition: null, playerBackgroundFill: null, targetLabelColor: tlc, pipColor: pipColor.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, targetLabelColor: tlc, pipColor: pipColor.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
       resetForm()
@@ -766,6 +876,20 @@ function save() {
 .ct-player-label { font-size: 14px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.06em; color: #fff; }
 .ct-player-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: var(--text-muted); text-transform: uppercase; text-align: center; line-height: 1.3; }
 .ct-player-btn.active .ct-player-label { color: var(--pink); }
+
+/* Background fit / position / fill — same shape as the closed-target buttons above. */
+.bgfit-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.bgfit-btn {
+  flex: 1; min-width: 96px; padding: 12px 10px; border-radius: 8px;
+  border: 2px solid #ffffff; background: transparent;
+  font-size: 14px; font-weight: 900; font-family: var(--font-display);
+  letter-spacing: 0.06em; color: #fff;
+  cursor: pointer; transition: all 0.15s;
+  position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.bgfit-btn:hover { border-color: var(--pink); background: rgba(255,45,120,0.08); }
+.bgfit-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); color: var(--pink); }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
