@@ -28,19 +28,25 @@ async function signIn(page: import('@playwright/test').Page) {
 }
 
 /**
- * Noon on the previous calendar day, local time.
+ * A fixed evening, local time, shared by the seed data and by the page.
  *
- * This used to seed `Date.now() - 26 * 3600_000`, and an elapsed-hours offset is not a
- * calendar day: `dayLabel` buckets by local calendar date, so 26 hours back only reads as
- * "Yesterday" once the clock is past 02:00. Before that it lands two days back and falls
- * through to the weekday branch — the suite went green at 22:33 and red at 01:11 on the
- * same commit, labelling the row "Monday".
+ * `dayLabel` buckets by local calendar date, so anything that reads the real clock twice can
+ * straddle a date boundary between the two reads. This file has now been bitten by that
+ * twice: first by seeding `Date.now() - 26 * 3600_000` and calling it "yesterday" (an
+ * elapsed-hours offset is not a calendar day, so it only read as Yesterday after 02:00);
+ * then by seeding "tonight" as `new Date()` at module load and asserting the label after the
+ * page rendered — which failed at 00:00:06 and passed on the retry three seconds later.
  *
- * Noon is the furthest point from either midnight, and `setDate`/`setHours` are local like
- * `dayKey` is, so this survives DST too.
+ * Freezing the page's clock to the same instant the fixtures are built from removes the race
+ * rather than making it rarer. No offset written here is a real-time offset any more.
+ *
+ * 20:00 is chosen for distance from both midnights; the date is arbitrary but fixed.
  */
+const NOW = new Date('2026-03-10T20:00:00')
+
+/** Noon the previous calendar day. Local, like `dayKey`, so this survives DST too. */
 function yesterdayNoon(): Date {
-  const d = new Date()
+  const d = new Date(NOW)
   d.setDate(d.getDate() - 1)
   d.setHours(12, 0, 0, 0)
   return d
@@ -50,18 +56,21 @@ const GAMES = [
   {
     id: 'g1', clientGameId: 'c1', gameType: 'cricket', winnerId: 'smoke-1',
     playerIds: ['smoke-1', 'smoke-2'], startedAt: null,
-    finishedAt: new Date().toISOString(), roundCount: 7, finalScores: null,
-    createdAt: new Date().toISOString(),
+    finishedAt: NOW.toISOString(), roundCount: 7, finalScores: null,
+    createdAt: NOW.toISOString(),
   },
   {
     id: 'g2', clientGameId: 'c2', gameType: 'spades', winnerId: 'smoke-2',
     playerIds: ['smoke-1', 'smoke-2'], startedAt: null,
     finishedAt: yesterdayNoon().toISOString(),
-    roundCount: null, finalScores: null, createdAt: new Date().toISOString(),
+    roundCount: null, finalScores: null, createdAt: NOW.toISOString(),
   },
 ]
 
 test.beforeEach(async ({ page }) => {
+  // Before seedRoster: both add init scripts, and the clock has to be fixed before any page
+  // script reads it.
+  await page.clock.setFixedTime(NOW)
   await seedRoster(page)
   await signIn(page)
 })
