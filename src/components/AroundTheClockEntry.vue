@@ -101,14 +101,12 @@
 
     <!-- Footer: timer left, NEXT right -->
     <div class="atc-footer">
-      <div v-if="throwTimerDuration" class="atc-timer" @click="emit('toggleThrowPause')">
-        <div class="submit-timer-fill"
-          :class="{ warning: (throwTimeLeft ?? 0) <= 30, urgent: (throwTimeLeft ?? 0) <= 10, paused: throwPaused }"
-          :style="{ width: `${((throwTimeLeft ?? 0) / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
-        <span class="submit-timer-text" :class="{ urgent: (throwTimeLeft ?? 0) <= 10 }">
-          {{ showPauseLocked ? 'LOCKED' : throwPaused ? 'PAUSED' : (throwTimeLeft ?? 0) + 's' }}
-        </span>
-      </div>
+      <ThrowTimer
+        class="atc-timer"
+        :timeLeft="throwTimeLeft" :duration="throwTimerDuration"
+        :paused="throwPaused" :locked="showPauseLocked"
+        @toggle="emit('toggleThrowPause')"
+      />
       <button v-ripple class="btn btn-gold atc-next-btn" @click="submit">NEXT</button>
     </div>
   </div>
@@ -116,6 +114,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import ThrowTimer from './ThrowTimer.vue'
 
 const props = defineProps<{
   completedCount: number
@@ -479,33 +478,15 @@ function submit() {
 }
 
 /* Big timer */
+/*
+ * Height only. The box this used to draw — rounded corners, a border, a tinted background —
+ * is what made the clock look like a different control here than on the cricket board, and
+ * the look now belongs to ThrowTimer.
+ */
 .atc-timer {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.07);
-  cursor: pointer;
   min-height: clamp(48px, 7dvh, 72px);
 }
 
-.submit-timer-fill {
-  position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none;
-  background: #ff0000; transition: width 1s linear, background 0.3s; z-index: 0;
-}
-.submit-timer-fill.warning { background: #ff0000; }
-.submit-timer-fill.urgent  { background: #ff3333; }
-.submit-timer-fill.paused  { background: rgba(120,120,120,0.6); }
-.submit-timer-text {
-  position: relative; z-index: 1;
-  font-size: clamp(28px, 5dvh, 56px);
-  font-weight: 900; letter-spacing: 0.04em; color: #fff;
-  font-family: var(--font-display);
-}
 
 /* ── Tablet ── */
 @media (min-width: 768px) {

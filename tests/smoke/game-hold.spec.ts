@@ -53,7 +53,7 @@ async function persisted(page: Page) {
 
 test('holding stops the throw timer and resuming starts it again', async ({ page }) => {
   await startHeldGame(page)
-  const timer = page.locator('.submit-timer-text').first()
+  const timer = page.locator('.throw-timer-text').first()
   await expect(timer).toHaveText(/\d+s/)
 
   await hold(page)
@@ -72,8 +72,8 @@ test('holding stops the throw timer and resuming starts it again', async ({ page
 test('a paused throw timer is cleared by the turn change — the reason holds exist', async ({ page }) => {
   await startHeldGame(page)
 
-  const timer = page.locator('.submit-timer-text').first()
-  await page.locator('.submit-left').first().click()
+  const timer = page.locator('.throw-timer-text').first()
+  await page.locator('.throw-timer').first().click()
   await expect(timer).toHaveText('PAUSED')
 
   // Hand over. startThrowTimer sets throwPaused back to false for the incoming player, so the
