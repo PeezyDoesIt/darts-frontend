@@ -96,6 +96,8 @@ export type Player = {
   targetLabelColor: string | null
   /** Colour of the cricket mark pips. Null keeps the app's pink, which is what they were. */
   pipColor: string | null
+  /** Shape of the cricket mark pips. Null keeps the filled blocks they have always been. */
+  pipStyle: PipStyle | null
   cricketTargetDisplay: 'show' | 'hide' | null  // null = use game setting
   diceTheme: DiceTheme | null  // null = same as 'default'
   pinned: boolean
@@ -106,6 +108,24 @@ export type Player = {
    *  every upsert but never read back — leaving sync with no basis to compare versions. */
   updatedAt?: string | null
 }
+
+/**
+ * How a cricket mark is drawn.
+ *
+ * The pips had a colour and nothing else, while the dice next to them in the same form had a
+ * whole theme list — so "pip theme" was a setting that existed by name and offered one shape.
+ *
+ * `marks` is the one worth having: it is how a real board is scored, a slash for the first
+ * hit, crossed for the second, ringed for the third.
+ */
+export type PipStyle = 'blocks' | 'marks' | 'dots' | 'outline'
+
+export const PIP_STYLES: { value: PipStyle; label: string; sub: string }[] = [
+  { value: 'blocks',  label: 'Blocks',  sub: 'Filled bars — the original' },
+  { value: 'marks',   label: 'Classic', sub: 'Slash, cross, ring — scored like a real board' },
+  { value: 'dots',    label: 'Dots',    sub: 'Round and small' },
+  { value: 'outline', label: 'Outline', sub: 'Hollow, coloured edge only' },
+]
 
 export const DICE_THEMES: { value: DiceTheme; label: string; icon: string; group: string }[] = [
   // Classics & Neutrals

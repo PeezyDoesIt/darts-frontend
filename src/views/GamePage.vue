@@ -116,6 +116,7 @@
             :playerBackground="currentPlayer.playerBackground"
             :targetLabelColor="currentPlayer.targetLabelColor"
             :pipColor="currentPlayer.pipColor"
+            :pipStyle="currentPlayer.pipStyle"
             :throwTimeLeft="throwTimeLeft"
             :throwTimerDuration="throwTimerDuration"
             :throwPaused="throwPaused"
