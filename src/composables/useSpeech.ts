@@ -166,8 +166,13 @@ function tidyVoiceName(name: string): string {
  * Character voices keep their friendly labels and stay at the top; the rest are grouped by
  * accent, because two American voices differ far less than an American and a Scottish one.
  */
-export function getAvailableVoices(): VoiceOption[] {
-  const voices = window.speechSynthesis.getVoices()
+export function getAvailableVoices(
+  // Takes the roster rather than only reading the global, so the grouping and the name
+  // tidying can be tested against fabricated Windows, macOS and Android rosters — the CI
+  // runner has no speech engine at all, and a test that can only run on a laptop is not
+  // protecting anything.
+  voices: SpeechSynthesisVoice[] = window.speechSynthesis.getVoices(),
+): VoiceOption[] {
   const result: VoiceOption[] = [
     { label: 'Default', value: '', sublabel: 'Auto-selected narrator' },
   ]
