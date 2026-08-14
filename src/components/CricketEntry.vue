@@ -57,7 +57,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { CRICKET_TARGETS, PLAYER_THEMES, type PlayerScore } from '../types/index'
+import { CRICKET_TARGETS, type PlayerScore } from '../types/index'
+import { resolveTargetColor } from '../lib/targetColor'
 import { playShotgun, playThemedBuzzer, playThemedBullseye } from '../composables/useSounds'
 import { speak, speakOhBaby } from '../composables/useSpeech'
 import { useSettingsStore } from '../stores/settings'
@@ -85,37 +86,8 @@ const props = defineProps<{
   wildPlayerMarks?: Record<string, number>
 }>()
 
-const WHITE_LABEL_THEMES = new Set<string | null>(
-  PLAYER_THEMES
-    .filter(t => ['Magma', 'Steel', 'Obsidian', 'Blood', 'Oil Slick', 'Midnight'].includes(t.label))
-    .map(t => t.value as string | null)
-)
-
-function complementaryColor(hex: string): string {
-  if (!hex.startsWith('#') || hex.length < 7) return hex
-  const r = parseInt(hex.slice(1,3), 16) / 255
-  const g = parseInt(hex.slice(3,5), 16) / 255
-  const b = parseInt(hex.slice(5,7), 16) / 255
-  const max = Math.max(r,g,b), min = Math.min(r,g,b)
-  let h = 0, s = 0
-  const l = (max + min) / 2
-  if (max !== min) {
-    const d = max - min
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6
-    else if (max === g) h = ((b - r) / d + 2) / 6
-    else h = ((r - g) / d + 4) / 6
-  }
-  h = (h + 0.5) % 1
-  const outL = Math.max(l, 0.70)
-  return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(outL * 100)}%)`
-}
-
-const targetColor = computed(() => {
-  if (props.targetLabelColor) return props.targetLabelColor
-  if (props.playerBackground && WHITE_LABEL_THEMES.has(props.playerBackground)) return '#ffffff'
-  return props.playerColor ? complementaryColor(props.playerColor) : 'var(--pink)'
-})
+const targetColor = computed(() =>
+  resolveTargetColor(props.targetLabelColor, props.playerColor, props.playerBackground))
 
 const emit = defineEmits<{
   submit: [hits: Record<string, number>]

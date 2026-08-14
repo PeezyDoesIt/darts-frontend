@@ -637,16 +637,12 @@ import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
-import { GAME_TYPE_LABELS, CRICKET_TARGETS, PLAYER_THEMES, isCricketGame, type PlayerScore, type CricketTarget } from '../types/index'
+import { GAME_TYPE_LABELS, CRICKET_TARGETS, isCricketGame, type PlayerScore, type CricketTarget } from '../types/index'
+import { resolveTargetColor } from '../lib/targetColor'
 import { useNarrator } from '../composables/useNarrator'
 import type { LineContext, NarratorEvent } from '../lib/narrator'
 import { playBombBeep, playGameShowBuzzer, playTurnStartTone, playTurnResultSound, unlockAudio } from '../composables/useSounds'
 
-const WHITE_LABEL_THEMES = new Set<string | null>(
-  PLAYER_THEMES
-    .filter(t => ['Magma', 'Steel', 'Obsidian', 'Blood', 'Oil Slick', 'Midnight'].includes(t.label))
-    .map(t => t.value as string | null)
-)
 import CricketEntry from '../components/CricketEntry.vue'
 import KillerEntry from '../components/KillerEntry.vue'
 import NumpadEntry from '../components/NumpadEntry.vue'
@@ -1180,32 +1176,17 @@ const entryBlurBgStyle = computed(() => {
   return { backgroundImage: `url(${bg})` }
 })
 
-function complementaryColor(hex: string): string {
-  if (!hex.startsWith('#') || hex.length < 7) return hex
-  const r = parseInt(hex.slice(1,3), 16) / 255
-  const g = parseInt(hex.slice(3,5), 16) / 255
-  const b = parseInt(hex.slice(5,7), 16) / 255
-  const max = Math.max(r,g,b), min = Math.min(r,g,b)
-  let h = 0, s = 0
-  const l = (max + min) / 2
-  if (max !== min) {
-    const d = max - min
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6
-    else if (max === g) h = ((b - r) / d + 2) / 6
-    else h = ((r - g) / d + 4) / 6
-  }
-  h = (h + 0.5) % 1
-  // Boost lightness to at least 70% so the colour is always readable on a dark background
-  const outL = Math.max(l, 0.70)
-  return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(outL * 100)}%)`
-}
-
+/*
+ * The same rule as the cricket board's target numbers, and now literally the same code.
+ *
+ * This screen, CricketEntry and the setup screen's new Auto swatch all have to answer "what
+ * colour is this player's text when they have not chosen one" — and two of them carried their
+ * own copy of the resolution plus its 30-line complementaryColor. Adding a picker for
+ * targetLabelColor was the moment a third copy would have been written.
+ */
 const currentPlayerNameColor = computed(() => {
   const p = currentPlayer.value
-  if (p.targetLabelColor) return p.targetLabelColor
-  if (p.playerBackground && WHITE_LABEL_THEMES.has(p.playerBackground)) return '#ffffff'
-  return complementaryColor(p.color)
+  return resolveTargetColor(p.targetLabelColor, p.color, p.playerBackground)
 })
 
 function scrollActivePlayerIntoView() {
