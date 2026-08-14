@@ -18,13 +18,13 @@
         >
           <span class="target-label" :class="{ 'target-label-bull': target === 'bull' }" :style="{ color: targetColor, filter: `drop-shadow(0 0 6px ${targetColor}80)` }">{{ target === 'bull' ? '🎯' : target }}</span>
 
-          <div class="pips-wrap" :style="{ '--pip': pipColor || 'var(--pink)' }">
+          <div class="pips-wrap" :class="`pips-${pipStyle ?? 'blocks'}`" :style="{ '--pip': pipColor || 'var(--pink)' }">
             <span
               v-for="n in mtc" :key="n"
               class="pip"
               :class="{ existing: pipIsExisting(target, n), round: pipIsRound(target, n) }"
               @click.stop="handlePipClick(target, n)"
-            >{{ myClosed(target) ? '✕' : '' }}</span>
+            >{{ pipGlyph(target, n) }}</span>
           </div>
 
           <span v-if="myClosed(target)" class="closed-badge">✓ CLOSED</span>
@@ -55,7 +55,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { CRICKET_TARGETS, type PlayerScore } from '../types/index'
+import { CRICKET_TARGETS, type PipStyle, type PlayerScore } from '../types/index'
 import { resolveTargetColor } from '../lib/targetColor'
 import ThrowTimer from './ThrowTimer.vue'
 import { playShotgun, playThemedBuzzer, playThemedBullseye } from '../composables/useSounds'
@@ -75,6 +75,8 @@ const props = defineProps<{
   targetLabelColor?: string | null
   /** Colour of a filled pip. Falls back to the app pink, which is what they always were. */
   pipColor?: string | null
+  /** Shape of a mark. Falls back to the filled blocks they always were. */
+  pipStyle?: PipStyle | null
   marksToClose?: number
   throwTimeLeft?: number
   throwTimerDuration?: number
@@ -114,6 +116,20 @@ const totalHitsThisRound = computed(() =>
 )
 
 const mtc = computed(() => props.marksToClose ?? 3)
+
+/**
+ * What a single mark shows.
+ *
+ * Only the Classic style draws anything: a board is scored with a slash for the first hit,
+ * crossed for the second and ringed for the third, so the glyph depends on which mark it is
+ * rather than on the target being closed. The other styles are drawn in CSS and show a
+ * closing cross exactly as they always did.
+ */
+function pipGlyph(target: EffTarget, n: number): string {
+  if (props.pipStyle !== 'marks') return myClosed(target) ? '✕' : ''
+  if (!pipIsExisting(target, n) && !pipIsRound(target, n)) return ''
+  return n === 1 ? '/' : n === 2 ? '✕' : '⊗'
+}
 function myClosed(target: EffTarget) { return (existingMarks.value[String(target)] ?? 0) >= mtc.value }
 function pipIsExisting(target: EffTarget, n: number) { return (existingMarks.value[String(target)] ?? 0) >= n }
 function pipIsRound(target: EffTarget, n: number) {
@@ -215,6 +231,65 @@ defineExpose({ submit, submitted })
 .pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: clamp(28px, 5dvh, 60px); font-weight: 900; font-family: var(--font-display); color: rgba(0,0,0,0.6); line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .pip.existing { background: var(--pip); border-color: var(--pip); box-shadow: 0 0 20px color-mix(in srgb, var(--pip) 85%, transparent), 0 0 40px color-mix(in srgb, var(--pip) 45%, transparent); }
 .pip.round { background: var(--pip); border-color: var(--pip); box-shadow: 0 0 16px color-mix(in srgb, var(--pip) 60%, transparent); }
+
+/*
+ * The other mark styles.
+ *
+ * Every one of them keeps the pip's hit box exactly as it is — only the paint changes — so a
+ * tap lands in the same place whichever style is chosen. That matters more than it sounds:
+ * these are tapped mid-throw.
+ */
+
+/* Classic: how a board is actually scored. The glyph carries the mark, so the tile behind it
+   stays empty and the slash, cross and ring do the talking. */
+.pips-marks .pip {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--pip);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--pip) 70%, transparent);
+}
+.pips-marks .pip.existing,
+.pips-marks .pip.round {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--pip) 45%, transparent);
+  box-shadow: none;
+}
+/* The ring is drawn as a glyph rather than a border, so it wants a little less weight. */
+.pips-marks .pip { font-weight: 800; }
+
+/* Dots: a small round mark centred in the same tile. */
+.pips-dots .pip {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  position: relative;
+}
+.pips-dots .pip::after {
+  content: '';
+  width: 42%; aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.pips-dots .pip.existing::after,
+.pips-dots .pip.round::after {
+  background: var(--pip);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--pip) 75%, transparent);
+}
+
+/* Outline: the edge carries the colour and the middle stays empty. */
+.pips-outline .pip {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--pip);
+}
+.pips-outline .pip.existing,
+.pips-outline .pip.round {
+  background: transparent;
+  border-color: var(--pip);
+  box-shadow: inset 0 0 12px color-mix(in srgb, var(--pip) 35%, transparent),
+              0 0 14px color-mix(in srgb, var(--pip) 45%, transparent);
+}
 
 .closed-badge { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--pink); text-transform: uppercase; font-family: var(--font-display); opacity: 0.7; z-index: 2; }
 .hit-badge { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 22px; font-weight: 900; font-family: var(--font-display); color: var(--pink); filter: drop-shadow(0 0 8px rgba(255,45,120,0.6)); z-index: 2; }

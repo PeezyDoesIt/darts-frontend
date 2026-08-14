@@ -41,15 +41,29 @@ async function startOhOne(page: Page, { playToCompletion }: { playToCompletion: 
 async function setEveryoneTo(page: Page, remaining: number) {
   // The store persists on a 300ms debounce, so the key is not there the instant the board is.
   await expect.poll(() => page.evaluate(() => localStorage.getItem('darts_active_game') !== null)).toBe(true)
-  await page.evaluate(left => {
-    const raw = localStorage.getItem('darts_active_game')
-    if (!raw) throw new Error('no active game to shorten')
-    const game = JSON.parse(raw)
-    for (const id of Object.keys(game.scores)) {
-      if (game.scores[id].kind === 'ohOne') game.scores[id].data.remaining = left
-    }
-    localStorage.setItem('darts_active_game', JSON.stringify(game))
-  }, remaining)
+  /*
+   * Written until it sticks, rather than written once.
+   *
+   * The store persists on a debounce, so a write already in flight can land after this edit
+   * and put the original score back — rare on a quiet machine, and it showed up as one
+   * failure in a full parallel run. Re-reading proves the edit survived before anything
+   * depends on it.
+   */
+  await expect.poll(async () => {
+    return page.evaluate(left => {
+      const raw = localStorage.getItem('darts_active_game')
+      if (!raw) return null
+      const game = JSON.parse(raw)
+      for (const id of Object.keys(game.scores)) {
+        if (game.scores[id].kind === 'ohOne') game.scores[id].data.remaining = left
+      }
+      localStorage.setItem('darts_active_game', JSON.stringify(game))
+
+      const after = JSON.parse(localStorage.getItem('darts_active_game')!)
+      const first = Object.values(after.scores)[0] as { data: { remaining: number } }
+      return first.data.remaining
+    }, remaining)
+  }).toBe(remaining)
   await page.reload()
   await expect(page.locator('.remaining-val')).toHaveText(String(remaining))
 }

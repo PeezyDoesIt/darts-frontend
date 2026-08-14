@@ -214,6 +214,24 @@
           </div>
 
           <div class="field">
+            <label class="label">Cricket: Pip Style</label>
+            <p class="field-hint">The shape of the marks. Classic scores the way a real board does — slash, cross, ring.</p>
+            <div class="pipstyle-row">
+              <button
+                v-for="s in PIP_STYLES" :key="s.value" v-ripple
+                class="pipstyle-btn" :class="{ active: (pipStyle ?? 'blocks') === s.value }"
+                @click="pipStyle = s.value"
+              >
+                <!-- A live preview in the chosen colour, so the choice is visible before it is made. -->
+                <span class="pipstyle-preview" :class="`pips-${s.value}`" :style="{ '--pip': pipColor ?? 'var(--pink)' }">
+                  <span v-for="n in 3" :key="n" class="pip-mini">{{ s.value === 'marks' ? (n === 1 ? '/' : n === 2 ? '✕' : '⊗') : '' }}</span>
+                </span>
+                <span class="pipstyle-label">{{ s.label }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
             <label class="label">Cricket: Closed Targets</label>
             <p class="field-hint">How completed targets appear on your turn. Overrides the game setting.</p>
             <div class="ct-player-opts">
@@ -359,7 +377,7 @@ import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { goBack } from '../router/goBack'
 import { AVATAR_MAX_PX, BACKGROUND_MAX_PX, downscaleFile, downscaleVideoFrame } from '../lib/downscaleImage'
-import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, TARGET_LABEL_COLORS, type Player, type DiceTheme } from '../types/index'
+import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, PIP_STYLES, TARGET_LABEL_COLORS, type Player, type DiceTheme, type PipStyle } from '../types/index'
 import { autoTargetColor as autoTargetColorFor } from '../lib/targetColor'
 import SyncWarning from '../components/SyncWarning.vue'
 
@@ -496,6 +514,7 @@ const autoTargetColor = computed(() => autoTargetColorFor(color.value, playerBac
 const selectedTargetName = computed(() =>
   TARGET_LABEL_COLORS.find(c => c.value === targetLabelColor.value)?.label ?? 'Auto')
 const pipColor = ref<string | null>(null)
+const pipStyle = ref<PipStyle | null>(null)
 const showPipDropdown = ref(false)
 const selectedPipName = computed(() =>
   TARGET_LABEL_COLORS.find(c => c.value === pipColor.value)?.label ?? 'Default')
@@ -617,7 +636,7 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = '#ffffff'; avatarUrl.value = null
-  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; throwBackground.value = null; walkupBackground.value = null; bgMode.value = 'image'; targetLabelColor.value = null; pipColor.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false
+  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; throwBackground.value = null; walkupBackground.value = null; bgMode.value = 'image'; targetLabelColor.value = null; pipColor.value = null; pipStyle.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false
   playerBackgroundSize.value = null; playerBackgroundPosition.value = null; playerBackgroundFill.value = null
 }
 function loadPlayer(p: Player) {
@@ -635,6 +654,7 @@ function loadPlayer(p: Player) {
 
   targetLabelColor.value = p.targetLabelColor ?? null
   pipColor.value = p.pipColor ?? null
+  pipStyle.value = p.pipStyle ?? null
   cricketTargetDisplay.value = p.cricketTargetDisplay ?? 'show'
   diceTheme.value = p.diceTheme ?? null
 }
@@ -647,10 +667,10 @@ function save() {
   const tlc = targetLabelColor.value
   const ctd = cricketTargetDisplay.value
   if (editingId.value) {
-    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, targetLabelColor: tlc, pipColor: pipColor.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
+    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, targetLabelColor: tlc, pipColor: pipColor.value, pipStyle: pipStyle.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
     editingId.value = null
   } else {
-    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, targetLabelColor: tlc, pipColor: pipColor.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, targetLabelColor: tlc, pipColor: pipColor.value, pipStyle: pipStyle.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
       resetForm()
@@ -894,6 +914,30 @@ function save() {
 }
 .bgfit-btn:hover { border-color: var(--pink); background: rgba(255,45,120,0.08); }
 .bgfit-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); color: var(--pink); }
+
+/* Pip style: a live preview of the marks, in the colour already chosen above. */
+.pipstyle-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.pipstyle-btn {
+  flex: 1; min-width: 104px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 12px 8px; border-radius: 8px; border: 2px solid #ffffff; background: transparent;
+  cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.pipstyle-btn:hover { border-color: var(--pink); background: rgba(255,45,120,0.08); }
+.pipstyle-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); }
+.pipstyle-label { font-size: 13px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; color: #fff; }
+.pipstyle-btn.active .pipstyle-label { color: var(--pink); }
+.pipstyle-preview { display: flex; gap: 4px; width: 100%; height: 26px; }
+.pip-mini {
+  flex: 1; border-radius: 5px; border: 2px solid var(--pip); background: var(--pip);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 900; font-family: var(--font-display); line-height: 1;
+}
+/* Each preview paints itself the way the board will. */
+.pipstyle-preview.pips-marks .pip-mini { background: transparent; border-color: color-mix(in srgb, var(--pip) 45%, transparent); color: var(--pip); }
+.pipstyle-preview.pips-dots .pip-mini { background: transparent; border-color: transparent; position: relative; }
+.pipstyle-preview.pips-dots .pip-mini::after { content: ''; width: 42%; aspect-ratio: 1; border-radius: 50%; background: var(--pip); }
+.pipstyle-preview.pips-outline .pip-mini { background: transparent; border-color: var(--pip); }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
