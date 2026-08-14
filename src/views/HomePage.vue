@@ -936,9 +936,12 @@ function previewBullseyeSound(value: string) {
   gap: clamp(8px, 1.1vh, 16px);
   padding: clamp(20px, 3vh, 40px) clamp(22px, 2.4vw, 36px); border-radius: 26px;
 }
-/* Wraps rather than overflowing, so three labelled controls still fit a narrow phone. */
+/* Pinned to the hero's top-right corner: in flow they sat above the wordmark and pushed the
+   whole title block down. Lifted above .hero-glow so the bloom cannot wash them out. */
 .hero-actions {
-  position: relative; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2px;
+  position: absolute; z-index: 2;
+  top: clamp(16px, 2.2vh, 28px); right: clamp(18px, 2vw, 30px);
+  display: flex; flex-wrap: nowrap; gap: 8px;
 }
 .hero-action {
   display: flex; align-items: center; gap: 7px;
@@ -955,7 +958,7 @@ function previewBullseyeSound(value: string) {
 /* Tightened so all three hold one row on a phone. Wrapping to a second row pushed the game
    tiles down by the height of that row and cost two of them their place above the fold. */
 @media (max-width: 700px) {
-  .hero-actions { gap: 6px; }
+  .hero-actions { position: relative; top: auto; right: auto; flex-wrap: wrap; margin-bottom: 2px; gap: 6px; }
   .hero-action { padding: 0 10px; gap: 6px; font-size: 11px; letter-spacing: 0.02em; }
 }
 
