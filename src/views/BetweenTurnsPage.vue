@@ -39,6 +39,7 @@
       START
     </button>
 
+
     <!-- Default layout (non-cricket): name → circle with count inside → button -->
     <div v-else class="between-inner default-layout">
       <div class="default-content">
@@ -71,6 +72,26 @@
 
       </div>
     </div>
+
+    <!--
+      A hold set on the board stays set here, and this screen is where the walk-up countdown
+      would otherwise run the next player's time away. Resume is offered here too, so nobody
+      has to start a turn just to reach the control that stops the clock.
+
+      Placed after both layouts rather than between them: the default layout is chained by
+      v-else to the cricket START button above it, and anything inserted in between breaks
+      that pair.
+    -->
+    <Transition name="fade">
+      <div v-if="isHeld" class="hold-overlay">
+        <div class="hold-panel">
+          <div class="hold-icon">⏸</div>
+          <div class="hold-title display">ON HOLD</div>
+          <p class="hold-sub">Every timer is stopped. Nobody loses their turn.</p>
+          <button v-ripple class="btn btn-spray btn-xl hold-resume" @click="gameStore.setHeld(false)">Resume</button>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -102,6 +123,8 @@ const nextPlayer = computed(() => game.value!.players[game.value!.currentPlayerI
  * That is why the membership lives in one predicate now rather than at each decision.
  */
 const isCricket = computed(() => isCricketGame(game.value?.gameType))
+/** The whole game is stopped, not just this screen's countdown. */
+const isHeld = computed(() => game.value?.heldSince != null)
 
 const betweenStyle = computed((): CSSProperties => {
   // The walk-up pick wins, then the player's default. No game theme here: this screen is
@@ -226,7 +249,7 @@ onMounted(() => {
   if (timerOff.value) return  // no timer — wait for manual tap
 
   interval = setInterval(() => {
-    if (paused.value) return
+    if (paused.value || isHeld.value) return
     if (timeLeft.value <= 0) { clearInterval(interval!); playThemedBuzzer(settingsStore.soundTheme); startTurn(); return }
     timeLeft.value--
     if (timeLeft.value > 0 && timeLeft.value <= 3) playThemedTick(settingsStore.soundTheme)
@@ -376,6 +399,30 @@ function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/g
 }
 .btn-ready:hover { background: #ef4444; }
 .btn-ready:active { transform: scale(0.97); }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+
+/* Same panel as the board's, so a hold looks like one thing across both screens. */
+.hold-overlay {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.hold-panel {
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  text-align: center; max-width: 420px; width: 100%;
+}
+.hold-icon { font-size: clamp(48px, 12vmin, 88px); line-height: 1; }
+.hold-title {
+  font-size: clamp(40px, 11vmin, 84px); letter-spacing: 0.12em; line-height: 1;
+  color: var(--gold, #f59e0b);
+  text-shadow: 0 0 28px rgba(245,158,11,0.45);
+}
+.hold-sub { margin: 0; font-size: clamp(13px, 3.4vmin, 17px); color: rgba(255,255,255,0.65); line-height: 1.5; }
+.hold-resume { width: 100%; max-width: 320px; margin-top: 8px; }
 
 .swap-enter-active, .swap-leave-active { transition: opacity 0.35s, transform 0.35s; }
 .swap-enter-from { opacity: 0; transform: scale(0.94); }

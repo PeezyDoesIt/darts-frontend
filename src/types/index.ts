@@ -360,6 +360,15 @@ export type ActiveGame = {
   startedAt: string
   gameDuration: number | null   // minutes, null = no game timer
   gameStartedAt: number | null  // Date.now() timestamp when game was created
+  /**
+   * When the game was put on hold, or null when it is running.
+   *
+   * One field rather than a boolean plus a timestamp, so the two cannot disagree. The game
+   * clock is wall-clock — elapsed time is `Date.now() - gameStartedAt` — so releasing a hold
+   * pushes `gameStartedAt` forward by however long it lasted, and the held stretch simply
+   * never counts. That holds across a reload, or a night with the app closed.
+   */
+  heldSince: number | null
   horseSetterIndex: number      // index of the current setter in HORSE
   killerLives: number           // starting lives per player in KILLER
   killerRequireDouble: boolean  // KILLER house rule: only doubles count

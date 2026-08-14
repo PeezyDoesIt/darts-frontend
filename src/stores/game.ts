@@ -69,6 +69,8 @@ export const useGameStore = defineStore('game', () => {
       if (parsed.wildLockedNums === undefined) parsed.wildLockedNums = []
       if (parsed.killerLives === undefined) parsed.killerLives = KILLER_DEFAULT_LIVES
       if (parsed.killerRequireDouble === undefined) parsed.killerRequireDouble = false
+      // A game saved before holds existed is simply not on hold.
+      if (parsed.heldSince === undefined) parsed.heldSince = null
       /*
        * These two were `cricketPlayToCompletion` / `cricketFinishOrder` until the option was
        * extended to the 01 games. A game already in progress when the app updates still has
@@ -149,6 +151,7 @@ export const useGameStore = defineStore('game', () => {
       startedAt: new Date().toISOString(),
       gameDuration,
       gameStartedAt: Date.now(),
+      heldSince: null,
       horseSetterIndex: 0,
       killerLives,
       killerRequireDouble,
@@ -609,6 +612,30 @@ export const useGameStore = defineStore('game', () => {
     game.value.skipWalkup = val
   }
 
+  /**
+   * Stops and restarts the whole game — every timer, across turns, until released.
+   *
+   * Distinct from pausing a timer, which lasts one throw: startThrowTimer clears the pause on
+   * every turn, so there was no way to stop play for a few minutes without the clock eating
+   * somebody's turn.
+   *
+   * Releasing pushes `gameStartedAt` forward by the length of the hold rather than tracking
+   * time held separately. The game clock measures `Date.now() - gameStartedAt`, so moving the
+   * anchor makes the held stretch simply never have happened — and it stays correct if the
+   * app was closed for the whole of it.
+   */
+  function setHeld(val: boolean) {
+    if (!game.value) return
+    if (val) {
+      if (game.value.heldSince === null) game.value.heldSince = Date.now()
+      return
+    }
+    const since = game.value.heldSince
+    if (since === null) return
+    if (game.value.gameStartedAt !== null) game.value.gameStartedAt += Date.now() - since
+    game.value.heldSince = null
+  }
+
   function setWildEnabled(val: boolean) {
     if (!game.value) return
     game.value.wildEnabled = val
@@ -674,7 +701,7 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
-  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, setAtcCompletedNums, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, setTimerDuration, setThrowTimerDuration, setRoundLimit, setGameDuration, setSkipWalkup, setWildEnabled, forceEndByTime, endGame }
+  return { game, lastTurnWasZero, lastTurnWasTimeout, lastTurnHadBull, playerTimeoutCounts, playerHurryUpCounts, recordTimeout, recordHurryUp, startGame, submitScore, setAtcCompletedNums, startNextTurn, addPlayerToGame, removePlayerFromGame, setClosedTargetDisplay, setTimerDuration, setThrowTimerDuration, setRoundLimit, setGameDuration, setSkipWalkup, setHeld, setWildEnabled, forceEndByTime, endGame }
 })
 
 function reshuffleWild(game: ActiveGame) {
