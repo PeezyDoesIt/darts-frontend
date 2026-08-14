@@ -42,6 +42,8 @@ export interface LineContext {
   term?: string
   /** How many times this has already happened to this player. */
   count?: number
+  /** This player is the hot seat: the narrator is deliberately on their back. */
+  heckled?: boolean
 }
 
 type Lines = (ctx: Required<Pick<LineContext, 'name'>> & LineContext) => string[][]
@@ -1197,6 +1199,64 @@ function escalated(c: LineContext): boolean {
  * knowledge that went missing when this lived at the call sites: GamePage never checked
  * quietNarrator at all, so every nudge, roast and warning played straight through it.
  */
+/**
+ * The extra line the hot-seat player gets, on the events that are about hurrying them along.
+ *
+ * Appended rather than replacing the personality, so the chosen voice still comes through and
+ * the heckle reads as that voice picking on somebody. Only the pressure events — the walk-up
+ * they are arriving at, and the two nudges — because heckling somebody for winning is a
+ * different joke and this one is about rushing them.
+ */
+const HECKLE_EVENTS: NarratorEvent[] = ['walkUp', 'hurryUp', 'throwNudge']
+
+const HECKLES: Partial<Record<NarratorPersonality, (c: { name: string }) => string[]>> = {
+  farley: c => [
+    `And ${c.name} — I'm watching you. Specifically you. Nobody else. Just you.`,
+    `${c.name}, buddy, I love you, but MOVE.`,
+  ],
+  preacher: c => [
+    `And ${c.name}. I have my eye on YOU tonight.`,
+    `${c.name}, do not test me twice.`,
+  ],
+  nature: c => [
+    `${c.name} remains under close observation.`,
+    `The camera stays on ${c.name}. It has learned to expect delay.`,
+  ],
+  noir: c => [
+    `And ${c.name}. I've been watching you all night, pal.`,
+    `${c.name}. Don't think I've stopped counting.`,
+  ],
+  machine: c => [
+    `${c.name}: flagged. Monitoring.`,
+    `Subject ${c.name} remains under review.`,
+  ],
+  hype: c => [
+    `And ${c.name} — ALL EYES ON YOU!`,
+    `${c.name}, everybody's watching! GO!`,
+  ],
+  savage: c => [
+    `${c.name}. Specifically you.`,
+    `Still waiting on ${c.name}.`,
+  ],
+  announcer: c => [
+    `And the spotlight stays firmly on ${c.name}.`,
+    `${c.name} remains the story of this match.`,
+  ],
+  sarcastic: c => [
+    `And ${c.name}, obviously. Always ${c.name}.`,
+    `${c.name}. Who else would it be.`,
+  ],
+  smooth: c => [
+    `And ${c.name} — I'm watching you, ${term(c as LineContext)}.`,
+    `${c.name}, you know I've got my eye on you.`,
+  ],
+}
+
+const HECKLE_FALLBACK = (c: { name: string }) => [
+  `And ${c.name} — I'm watching you.`,
+  `Eyes on ${c.name}.`,
+]
+
 export function linesFor(
   event: NarratorEvent,
   personality: NarratorPersonality,
@@ -1209,6 +1269,18 @@ export function linesFor(
   // Off means off. There is no event important enough to speak over it.
   if (opts.mode === 'off') return []
 
+  /*
+   * The heckle rides on top of whatever the mode would have said anyway.
+   *
+   * Not under Names only or Off: those are somebody asking for less narrator, and a bit that
+   * makes it louder has no business overriding that. Picking a target while quiet does
+   * nothing until commentary goes back on, which is the honest behaviour — and the control
+   * says so.
+   */
+  const heckle = ctx.heckled && opts.mode === 'full' && HECKLE_EVENTS.includes(event)
+    ? [(HECKLES[personality] ?? HECKLE_FALLBACK)({ name: ctx.name })]
+    : []
+
   if (opts.mode === 'names') {
     if (def.commentary) return []
     // Falls through to the full line only for an event with no quiet form written, which is
@@ -1218,9 +1290,9 @@ export function linesFor(
 
   if (opts.cleanMode) {
     const clean = def.clean?.[personality] ?? def.cleanFallback
-    return clean ? clean(ctx) : []
+    return clean ? [...clean(ctx), ...heckle] : []
   }
-  return (def.byPersonality[personality] ?? def.fallback)(ctx)
+  return [...(def.byPersonality[personality] ?? def.fallback)(ctx), ...heckle]
 }
 
 /** Whether an event is silenced by "Names only". Exposed so the UI copy can stay honest. */

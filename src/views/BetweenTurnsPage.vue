@@ -219,6 +219,9 @@ function narrate(event: NarratorEvent, extra: Partial<LineContext> = {}) {
   return speakEvent(event, {
     name: nextPlayer.value.name,
     prevName: prevPlayer.value.name,
+    // The hot seat is about the player arriving, not the one who just left — a timeout line
+    // is aimed at prevName and deliberately does not carry the heckle.
+    heckled: !!game.value?.heckleTargetId && game.value.heckleTargetId === nextPlayer.value.id,
     ...extra,
   })
 }

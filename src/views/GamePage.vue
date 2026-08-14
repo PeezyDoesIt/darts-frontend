@@ -388,6 +388,35 @@
           </div>
         </div>
         <!--
+          The hot seat: who the narrator picks on.
+
+          Mid-game only and stored on the game, because it is a bit aimed at whoever is
+          winning tonight — it should not follow anybody into next week. Nobody is the
+          default and is always first, so switching it off is one press from anywhere.
+        -->
+        <div class="timer-control-group">
+          <span class="timer-control-label">Hot Seat</span>
+          <div class="timer-control-btns">
+            <button
+              v-ripple class="timer-ctrl-btn"
+              :class="{ active: !game.heckleTargetId }"
+              @click="gameStore.setHeckleTarget(null)"
+            >Nobody</button>
+            <button
+              v-for="p in game.players" :key="p.id"
+              v-ripple class="timer-ctrl-btn"
+              :class="{ active: game.heckleTargetId === p.id }"
+              :style="game.heckleTargetId === p.id ? { borderColor: p.color, color: p.color } : {}"
+              @click="gameStore.setHeckleTarget(p.id)"
+            >{{ p.name }}</button>
+          </div>
+          <!-- Says so rather than pretending: the heckle rides on commentary, which is off. -->
+          <span v-if="game.heckleTargetId && settingsStore.narratorMode !== 'full'" class="hot-seat-note">
+            Needs Commentary on to be heard.
+          </span>
+        </div>
+
+        <!--
           Stops the game itself, as opposed to the control below which governs whether players
           may pause a timer for their own turn. The two are easy to confuse, so they sit next
           to each other and say plainly which is which.
@@ -702,7 +731,10 @@ const { narrateAsync } = useNarrator()
  * this page previously bypassed entirely.
  */
 function narrate(event: NarratorEvent, extra: Partial<LineContext> = {}) {
-  narrateAsync(event, { name: currentPlayer.value?.name ?? '', ...extra })
+  // Set here rather than at each call site: every line this screen speaks is about whoever is
+  // currently up, so the hot seat applies to all of them or none.
+  const heckled = !!game.value?.heckleTargetId && game.value.heckleTargetId === currentPlayer.value?.id
+  narrateAsync(event, { name: currentPlayer.value?.name ?? '', heckled, ...extra })
 }
 
 const game = computed(() => gameStore.game)
@@ -1586,6 +1618,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .timer-control-group { display: flex; align-items: center; gap: 8px; }
 .timer-control-label { font-size: 14px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.55); white-space: nowrap; min-width: 52px; }
+.hot-seat-note { font-size: 12px; color: var(--gold, #f59e0b); letter-spacing: 0.02em; }
 .timer-control-btns { display: flex; gap: 4px; }
 .timer-ctrl-btn {
   padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);

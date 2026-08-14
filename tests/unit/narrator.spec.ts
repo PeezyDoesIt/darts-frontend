@@ -310,3 +310,63 @@ describe('narrator modes', () => {
     }
   })
 })
+
+/**
+ * The hot seat — the narrator picking on one player on purpose.
+ *
+ * The heckle is appended to whatever the personality was going to say rather than replacing
+ * it, so the chosen voice still comes through and the jab reads as that voice picking on
+ * somebody, instead of a separate narrator cutting in.
+ */
+describe('the hot seat', () => {
+  const heckled = { ...ctx, heckled: true }
+
+  it('adds a line to the pressure events, for every personality', () => {
+    for (const event of ['walkUp', 'hurryUp', 'throwNudge'] as const) {
+      for (const personality of PERSONALITIES) {
+        const normal = linesFor(event, personality, loud, ctx)
+        const targeted = linesFor(event, personality, loud, heckled)
+
+        expect(targeted.length, `${event}/${personality} says no more than usual`)
+          .toBeGreaterThan(normal.length)
+        expect(flat(targeted as string[][]), `${event}/${personality} heckle omits the name`)
+          .toContain('Alice')
+      }
+    }
+  })
+
+  it('leaves everything the personality would have said intact', () => {
+    // Appended, not substituted: losing the personality would make every voice sound the
+    // same the moment somebody was targeted.
+    const normal = flat(linesFor('walkUp', 'noir', loud, ctx) as string[][])
+    const targeted = flat(linesFor('walkUp', 'noir', loud, heckled) as string[][])
+    expect(targeted.startsWith(normal.split(' ')[0]!)).toBe(true)
+    expect(targeted.length).toBeGreaterThan(normal.length)
+  })
+
+  it('does not heckle on events that are not about hurrying somebody', () => {
+    for (const event of ['win', 'gameOver', 'zeroRoast', 'timeout'] as const) {
+      for (const personality of PERSONALITIES) {
+        expect(linesFor(event, personality, loud, heckled), `${event}/${personality}`)
+          .toEqual(linesFor(event, personality, loud, ctx))
+      }
+    }
+  })
+
+  it('stays quiet when the narrator is quiet', () => {
+    // Somebody who has asked for less narrator does not get more of it because a bit is on.
+    for (const event of ['walkUp', 'hurryUp'] as const) {
+      for (const personality of PERSONALITIES) {
+        expect(linesFor(event, personality, quiet, heckled), `${event}/${personality} names`)
+          .toEqual(linesFor(event, personality, quiet, ctx))
+        expect(linesFor(event, personality, silent, heckled), `${event}/${personality} off`)
+          .toEqual([])
+      }
+    }
+  })
+
+  it('gives each personality its own heckle', () => {
+    const said = PERSONALITIES.map(p => flat(linesFor('walkUp', p, loud, heckled) as string[][]))
+    expect(new Set(said).size).toBe(PERSONALITIES.length)
+  })
+})
