@@ -1015,6 +1015,62 @@ export function playBombBeep(): void {
   else run()
 }
 
+/**
+ * The bomb going off — for a walk-up nobody answered.
+ *
+ * Built from the same parts as the beeps that lead up to it, one octave down and an order of
+ * magnitude longer: a noise burst for the crack, a low sine sweep for the body, and a slow
+ * tail. Deliberately a second and a half — it is the sound of losing a turn, and a short
+ * blip would read as another beep rather than as the end of the countdown.
+ */
+export function playExplosion(): Promise<void> {
+  const ctx = getBeepCtx()
+  if (!ctx) return Promise.resolve()
+  const run = (): Promise<void> => {
+    const now = ctx.currentTime
+    const dur = 1.5
+
+    const master = ctx.createGain()
+    master.gain.setValueAtTime(0, now)
+    master.gain.linearRampToValueAtTime(1.0, now + 0.008)
+    master.gain.exponentialRampToValueAtTime(0.001, now + dur)
+    master.connect(ctx.destination)
+
+    // The crack: filtered white noise, opening wide then closing down as it decays.
+    const bufSize = Math.floor(ctx.sampleRate * dur)
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate)
+    const data = buf.getChannelData(0)
+    for (let i = 0; i < bufSize; i++) {
+      // Shaped as it is written rather than by a second gain node: the tail needs to be
+      // much longer than the attack, and an envelope here is cheaper than automation.
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 2)
+    }
+    const noise = ctx.createBufferSource()
+    noise.buffer = buf
+    const lp = ctx.createBiquadFilter()
+    lp.type = 'lowpass'
+    lp.frequency.setValueAtTime(3200, now)
+    lp.frequency.exponentialRampToValueAtTime(180, now + dur)
+    noise.connect(lp); lp.connect(master)
+    noise.start(now)
+
+    // The body: a sine dropping through the floor, which is what makes it feel big.
+    const boom = ctx.createOscillator()
+    const boomGain = ctx.createGain()
+    boom.type = 'sine'
+    boom.frequency.setValueAtTime(120, now)
+    boom.frequency.exponentialRampToValueAtTime(28, now + 0.9)
+    boomGain.gain.setValueAtTime(1.0, now)
+    boomGain.gain.exponentialRampToValueAtTime(0.001, now + 1.1)
+    boom.connect(boomGain); boomGain.connect(master)
+    boom.start(now); boom.stop(now + 1.1)
+
+    return new Promise(resolve => { noise.onended = () => resolve() })
+  }
+  if (ctx.state === 'suspended') return ctx.resume().then(run).catch(() => {})
+  return run()
+}
+
 // THEMED DISPATCHERS
 // theme: 'default' | 'space' | 'arcade' | 'western' | 'boxing'
 // ─────────────────────────────────────────────────────────────────────────────

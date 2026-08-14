@@ -10,7 +10,7 @@
  * ALTERNATIVES. The caller speaks one alternative per utterance, in order. An empty list
  * means say nothing at all, which is how "Names only" silences commentary.
  */
-import { NARRATOR_PERSONALITIES, type NarratorPersonality } from '../types/index'
+import { NARRATOR_PERSONALITIES, type NarratorMode, type NarratorPersonality } from '../types/index'
 
 export type NarratorEvent =
   | 'walkUp'
@@ -48,11 +48,19 @@ type Lines = (ctx: Required<Pick<LineContext, 'name'>> & LineContext) => string[
 
 interface EventDef {
   /**
-   * Commentary is everything except telling people whose turn it is. "Names only" silences
-   * all of it — that setting promises "no commentary" and previously delivered none of it
-   * outside the walk-up screen.
+   * Commentary is everything except the functional announcements: whose turn it is, that
+   * time is nearly up, and who won. "Names only" silences all of it.
    */
   commentary: boolean
+  /**
+   * What a non-commentary event says under "Names only".
+   *
+   * Without this, "Names only" only skipped the events marked as commentary and let the rest
+   * speak their full personality line — so the most repeated line in the app, the walk-up,
+   * still delivered "Okay. Okay okay okay. Peezy. You got this. Do you got this? You got
+   * this." on every single turn. The setting was called Names only and said everything.
+   */
+  quiet?: Lines
   byPersonality: Partial<Record<NarratorPersonality, Lines>>
   /** Used when a personality has no entry of its own. */
   fallback: Lines
@@ -72,6 +80,9 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   // ── Whose turn it is. The one thing "Names only" keeps. ──────────────────────
   walkUp: {
     commentary: false,
+    // Names only: the name, and nothing else. Eighty times a game, this is the whole point
+    // of the setting.
+    quiet: c => [[`${c.name}.`, `${c.name}, you're up.`]],
     // This is the most repeated line in the app — it fires on every single turn, so four
     // players over twenty rounds hear it eighty times. One variant each meant hearing the
     // identical sentence all eighty. These rotate.
@@ -205,6 +216,7 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
 
   bonusTurn: {
     commentary: false,
+    quiet: c => [[`${c.name}, bonus throw.`]],
     byPersonality: {
       farley: c => [[
         `A BONUS?! For ${c.name}?! Somebody pinch me!`,
@@ -491,7 +503,12 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   },
 
   hurryUp: {
-    commentary: true,
+    /*
+     * Functional, not banter: the only warning that a turn is about to be lost, so it
+     * survives Names only. Off still silences it — off means off.
+     */
+    commentary: false,
+    quiet: c => [[`Hurry up, ${c.name}.`]],
     byPersonality: {
       farley: c => [[
         `${c.name}! Come on! COME ON! ...please.`,
@@ -860,6 +877,7 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
 
   win: {
     commentary: false,
+    quiet: c => [[`${c.name} wins.`]],
     byPersonality: {
       farley: c => [[
         `${c.name} WINS! Get over here! No — GET OVER HERE! I'm so proud I could break a table!`,
@@ -1075,6 +1093,7 @@ const EVENTS: Record<NarratorEvent, EventDef> = {
   // Not commentary: the match ending is a state change, the same call as a win.
   gameOver: {
     commentary: false,
+    quiet: () => [[`Game over.`]],
     byPersonality: {
       farley: () => [[
         `THAT'S TIME! That's it! That's the whole thing!`,
@@ -1181,12 +1200,21 @@ function escalated(c: LineContext): boolean {
 export function linesFor(
   event: NarratorEvent,
   personality: NarratorPersonality,
-  opts: { cleanMode: boolean; quietNarrator: boolean },
+  opts: { cleanMode: boolean; mode: NarratorMode },
   ctx: LineContext,
 ): string[][] {
   const def = EVENTS[event]
   if (!def) return []
-  if (opts.quietNarrator && def.commentary) return []
+
+  // Off means off. There is no event important enough to speak over it.
+  if (opts.mode === 'off') return []
+
+  if (opts.mode === 'names') {
+    if (def.commentary) return []
+    // Falls through to the full line only for an event with no quiet form written, which is
+    // better than silence for something functional like who just won.
+    if (def.quiet) return def.quiet(ctx as Parameters<Lines>[0])
+  }
 
   if (opts.cleanMode) {
     const clean = def.clean?.[personality] ?? def.cleanFallback

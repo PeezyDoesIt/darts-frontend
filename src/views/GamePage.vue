@@ -434,15 +434,19 @@
           </div>
         </div>
         <!--
-          quietNarrator is read at speak time rather than captured when the game starts, so
+          The mode is read at speak time rather than captured when the game starts, so
           flipping it here takes effect on the very next line. It lives with the other
           in-game controls rather than in the header: the header is what you tap mid-throw.
         -->
         <div class="timer-control-group">
           <span class="timer-control-label">Narrator</span>
           <div class="timer-control-btns">
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: !settingsStore.quietNarrator }" @click="settingsStore.setQuietNarrator(false)">Commentary</button>
-            <button v-ripple class="timer-ctrl-btn" :class="{ active: settingsStore.quietNarrator }" @click="settingsStore.setQuietNarrator(true)">Names only</button>
+            <button
+              v-for="m in NARRATOR_MODES" :key="m.value"
+              v-ripple class="timer-ctrl-btn"
+              :class="{ active: settingsStore.narratorMode === m.value }"
+              @click="settingsStore.setNarratorMode(m.value)"
+            >{{ m.label }}</button>
           </div>
         </div>
         <div class="timer-control-group">
@@ -669,7 +673,7 @@ import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { useGameStore } from '../stores/game'
 import { usePlayersStore } from '../stores/players'
 import { useSettingsStore } from '../stores/settings'
-import { GAME_TYPE_LABELS, CRICKET_TARGETS, isCricketGame, type PlayerScore, type CricketTarget } from '../types/index'
+import { GAME_TYPE_LABELS, CRICKET_TARGETS, NARRATOR_MODES, isCricketGame, type PlayerScore, type CricketTarget } from '../types/index'
 import { resolveTargetColor } from '../lib/targetColor'
 import { useNarrator } from '../composables/useNarrator'
 import type { LineContext, NarratorEvent } from '../lib/narrator'

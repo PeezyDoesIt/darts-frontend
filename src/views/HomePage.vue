@@ -217,12 +217,17 @@
             <div class="narrator-main">
               <div class="narrator-id">
                 <span class="narrator-name display">{{ personalityLabel }}</span>
-                <span class="narrator-scope">{{ settingsStore.quietNarrator ? 'Names only' : 'Full commentary' }}</span>
+                <span class="narrator-scope">{{ scopeLabel }}</span>
               </div>
+              <!--
+                Three states now, so a two-position switch cannot express it. The toggle
+                showed "on" for both Names only and Off, which is how a narrator that had been
+                turned off still looked switched on.
+              -->
               <div
                 class="toggle-track narrator-toggle"
-                :class="{ active: !settingsStore.quietNarrator }"
-                @click.stop="settingsStore.setQuietNarrator(!settingsStore.quietNarrator)"
+                :class="{ active: settingsStore.narratorMode !== 'off' }"
+                @click.stop="settingsStore.setNarratorMode(settingsStore.narratorMode === 'off' ? 'full' : 'off')"
               >
                 <div class="toggle-thumb" />
               </div>
@@ -316,18 +321,13 @@
             <div class="settings-label">Scope</div>
             <div class="scope-seg">
               <button
-                v-ripple class="scope-btn" :class="{ active: !settingsStore.quietNarrator }"
-                @click="settingsStore.setQuietNarrator(false)"
-              >Full commentary</button>
-              <button
-                v-ripple class="scope-btn" :class="{ active: settingsStore.quietNarrator }"
-                @click="settingsStore.setQuietNarrator(true)"
-              >Names only</button>
+                v-for="m in NARRATOR_MODES" :key="m.value"
+                v-ripple class="scope-btn" :class="{ active: settingsStore.narratorMode === m.value }"
+                @click="settingsStore.setNarratorMode(m.value)"
+              >{{ m.label }}</button>
             </div>
             <div class="settings-muted">
-              {{ settingsStore.quietNarrator
-                ? 'Only turn announcements play — no scores, no trash talk, no checkout calls.'
-                : 'Full play-by-play in the chosen personality.' }}
+              {{ scopeHint }}
             </div>
           </div>
 
@@ -381,8 +381,9 @@
               </div>
             </div>
 
-            <div v-if="settingsStore.quietNarrator" class="settings-muted scope-hint">
-              Personality only shapes commentary — it has no effect while “Names only” is on.
+            <div v-if="settingsStore.narratorMode !== 'full'" class="settings-muted scope-hint">
+              Personality only shapes commentary — it has no effect
+              {{ settingsStore.narratorMode === 'off' ? 'while the narrator is off' : 'while “Names only” is on' }}.
             </div>
             <!--
               The grid used to be hidden whenever Clean Mode was on, and Clean Mode is on by
@@ -394,7 +395,7 @@
               Clean mode has its own take on each style — a few share wording where no clean
               voice has been written yet.
             </div>
-            <div class="personality-grid" :class="{ 'grid-dim': settingsStore.quietNarrator }">
+            <div class="personality-grid" :class="{ 'grid-dim': settingsStore.narratorMode !== 'full' }">
               <button
                 v-for="per in PERSONALITIES" :key="per.value"
                 class="personality-btn"
@@ -614,6 +615,7 @@ import { speak, speakOhBaby, getAvailableVoices, type VoiceOption } from '../com
 import { playShotgun, playBuzzer, playStartChime, unlockAudio } from '../composables/useSounds'
 import PlayerAvatar from '../components/PlayerAvatar.vue'
 import SyncWarning from '../components/SyncWarning.vue'
+import { NARRATOR_MODES, type NarratorMode } from '../types/index'
 
 const router = useRouter()
 const route = useRoute()
@@ -696,6 +698,16 @@ const PERSONALITIES = [
 const personalityLabel = computed(() =>
   PERSONALITIES.find(p => p.value === settingsStore.narratorPersonality)?.label ?? 'Default'
 )
+
+const scopeLabel = computed(() =>
+  NARRATOR_MODES.find(m => m.value === settingsStore.narratorMode)?.label ?? 'Commentary')
+
+const SCOPE_HINTS: Record<NarratorMode, string> = {
+  full: 'Full play-by-play in the chosen personality.',
+  names: 'Whose turn it is, a hurry-up at thirty seconds, and who won. Nothing else.',
+  off: 'The narrator says nothing. Sound effects still play.',
+}
+const scopeHint = computed(() => SCOPE_HINTS[settingsStore.narratorMode])
 
 /** Any door chip: the chime is the same start-of-game cue the old CTA played. */
 function goGame(path: string) {

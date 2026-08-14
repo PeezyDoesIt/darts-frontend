@@ -27,7 +27,7 @@ export function useNarrator() {
     return linesFor(
       event,
       settings.narratorPersonality,
-      { cleanMode: settings.cleanMode, quietNarrator: settings.quietNarrator },
+      { cleanMode: settings.cleanMode, mode: settings.narratorMode },
       { term: settings.narratorGender === 'male' ? 'brother' : 'baby', ...ctx },
     )
   }
