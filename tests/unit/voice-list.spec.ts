@@ -101,3 +101,68 @@ describe('the voice list', () => {
     ])
   })
 })
+
+/**
+ * iOS names its character voices with the locale attached — "Rocko (English (US))" — while
+ * macOS ships them bare, and Apple has renamed several of them over the years.
+ *
+ * The list held five character voices and three of those were retired names: Deranged became
+ * Wobble, Hysterical became Jester, Pipe Organ became Organ. On a current iPad all three
+ * matched nothing, so the voices that replaced them were unrecognised.
+ */
+const IOS = [
+  v('Samantha', 'en-US'),
+  v('Aaron', 'en-US'),
+  v('Wobble (English (US))', 'en-US'),
+  v('Jester (English (US))', 'en-US'),
+  v('Organ (English (US))', 'en-US'),
+  v('Rocko (English (US))', 'en-US'),
+  v('Daniel', 'en-GB'),
+]
+
+const MACOS_OLD = [
+  v('Deranged', 'en-US'),
+  v('Hysterical', 'en-US'),
+  v('Pipe Organ', 'en-US'),
+]
+
+describe('character voices', () => {
+  it('recognises the modern Apple names', () => {
+    const labels = getAvailableVoices(IOS).map(o => o.label)
+    for (const name of ['Wobble', 'Jester', 'Organ', 'Rocko']) {
+      expect(labels, `${name} is unrecognised`).toContain(name)
+    }
+  })
+
+  it('still recognises the retired names, for an older device', () => {
+    const labels = getAvailableVoices(MACOS_OLD).map(o => o.label)
+    expect(labels).toContain('Deranged')
+    expect(labels).toContain('Hysterical')
+    expect(labels).toContain('Pipe Organ')
+  })
+
+  it('describes them, so the list is not a wall of bare names', () => {
+    const wobble = getAvailableVoices(IOS).find(o => o.label === 'Wobble')
+    expect(wobble?.sublabel).toBe('Unhinged')
+  })
+
+  it('stores the real voice name, locale suffix and all', () => {
+    // The tidy label is for reading. The value is handed back to the speech engine, so a
+    // preference saved as "Wobble" would resolve to nothing on the device that offered it.
+    const wobble = getAvailableVoices(IOS).find(o => o.label === 'Wobble')
+    expect(wobble?.value).toBe('Wobble (English (US))')
+  })
+
+  it('lists each one once, not again under its accent', () => {
+    const values = getAvailableVoices(IOS).map(o => o.value)
+    expect(values.filter(x => x === 'Rocko (English (US))')).toHaveLength(1)
+    expect(new Set(values).size).toBe(values.length)
+  })
+
+  it('still lists the ordinary voices alongside them', () => {
+    const values = getAvailableVoices(IOS).map(o => o.value)
+    expect(values).toContain('Samantha')
+    expect(values).toContain('Aaron')
+    expect(values).toContain('Daniel')
+  })
+})
