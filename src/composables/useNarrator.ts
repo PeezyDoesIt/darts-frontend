@@ -5,7 +5,7 @@ import { linesFor, type LineContext, type NarratorEvent } from '../lib/narrator'
 /**
  * Speaking a narrator event, with the settings already applied.
  *
- * Views should not be reading narratorPersonality, cleanMode and quietNarrator to assemble
+ * Views should not be reading cleanMode and the narrator mode to assemble
  * lines themselves — doing that in four separate places is how GamePage ended up never
  * checking quietNarrator at all, so "Names only" silenced nothing once play started.
  */
@@ -26,9 +26,8 @@ export function useNarrator() {
   function linesForEvent(event: NarratorEvent, ctx: LineContext): string[][] {
     return linesFor(
       event,
-      settings.narratorPersonality,
       { cleanMode: settings.cleanMode, mode: settings.narratorMode },
-      { term: settings.narratorGender === 'male' ? 'brother' : 'baby', ...ctx },
+      ctx,
     )
   }
 
@@ -36,7 +35,7 @@ export function useNarrator() {
   async function narrate(event: NarratorEvent, ctx: LineContext): Promise<void> {
     const utterances = linesForEvent(event, ctx)
     for (let i = 0; i < utterances.length; i++) {
-      await speak(pick(`${event}:${settings.narratorPersonality}:${i}`, utterances[i]!))
+      await speak(pick(`${event}:${i}`, utterances[i]!))
     }
   }
 

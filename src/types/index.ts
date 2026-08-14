@@ -197,20 +197,6 @@ export const PLAYER_THEMES = [
  * why the narrator lines ended up duplicated across views instead of shared.
  */
 /**
- * `preacher` is loud and sermonising where `savage` is cold and terse; `nature` narrates the
- * table as wildlife; `noir` is hardboiled; `machine` is clinical and never varies its tone,
- * which is the joke. Each is deliberately a register the existing six do not already cover.
- */
-export type NarratorPersonality =
-  | 'default' | 'hype' | 'savage' | 'announcer' | 'sarcastic' | 'smooth'
-  | 'preacher' | 'nature' | 'noir' | 'machine' | 'farley'
-
-export const NARRATOR_PERSONALITIES: NarratorPersonality[] = [
-  'default', 'hype', 'savage', 'announcer', 'sarcastic', 'smooth',
-  'preacher', 'nature', 'noir', 'machine', 'farley',
-]
-
-/**
  * How much the narrator says.
  *
  * `full` is everything; `names` keeps only the functional announcements — whose turn it is,

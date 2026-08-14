@@ -5,75 +5,84 @@ import { pickBubble, seedRoster } from './helpers'
  * The narrator settings, checked as a user meets them: at factory defaults, having touched
  * nothing.
  *
- * The personality grid used to be hidden whenever Clean Mode was on — and Clean Mode is on
- * by default — so out of the box none of the six styles could be reached at all, while the
- * panel on the home screen still named the one you were stuck with. The unit suite covers
- * what each personality says and could never have caught that, because the lines were fine.
- * Nothing could reach them.
+ * This file used to be about the personality grid — eleven writing styles, one of which had
+ * to be reachable at factory defaults. The styles are gone: a style changed which words were
+ * picked and nothing about how they sounded, because the narrator never passed a rate or a
+ * pitch to the speech engine. What is settable now is how much it says, and which of the
+ * device's speech voices says it.
  */
 
 test.beforeEach(async ({ page }) => {
   await seedRoster(page)
 })
 
-const PERSONALITIES = ['Default', 'Hype', 'Savage', 'Anchor', 'Sarcastic', 'Smooth']
-
-test('every narrator personality is reachable at factory defaults', async ({ page }) => {
+test('the narrator panel names the voice, since that is what there is to choose', async ({ page }) => {
   await page.goto('/')
-  await page.locator('.narrator').click()
-
-  const grid = page.locator('.personality-grid')
-  await expect(grid).toBeVisible()
-
-  for (const name of PERSONALITIES) {
-    await expect(grid.locator('.per-label', { hasText: new RegExp(`^${name}$`) })).toBeVisible()
-  }
-})
-
-test('choosing a personality sticks, and does not require turning Clean Mode off', async ({ page }) => {
-  await page.goto('/')
-  await page.locator('.narrator').click()
-
-  // Clean Mode ships on. Picking a style used to mean turning it off first, which reads as
-  // "to choose a narrator voice, allow profanity".
-  const cleanToggle = page.locator('.toggle-row', { hasText: 'Clean Mode' }).locator('.toggle-track')
-  await expect(cleanToggle).toHaveClass(/active/)
-
-  await page.locator('.personality-btn', { hasText: 'Sarcastic' }).click()
-  await expect(page.locator('.personality-btn.active .per-label')).toHaveText('Sarcastic')
-  await expect(cleanToggle).toHaveClass(/active/)
-
-  // Survives a reload — this is persisted, not just component state.
-  await page.reload()
-  await page.locator('.narrator').click()
-  await expect(page.locator('.personality-btn.active .per-label')).toHaveText('Sarcastic')
-})
-
-test('commentary is on by default, so the chosen style is actually audible', async ({ page }) => {
-  await page.goto('/')
-
-  // This shipped as "Names only", which silences nine of the eleven events — the personality
-  // only ever reached the walk-up line, so choosing a tone changed almost nothing.
+  // Not a style name. The panel used to advertise a choice that changed nothing audible.
   await expect(page.locator('.narrator-scope')).toHaveText('Commentary')
-
-  await page.locator('.narrator').click()
-  await expect(page.locator('.personality-grid')).not.toHaveClass(/grid-dim/)
+  await expect(page.locator('.narrator-name')).not.toHaveText(/savage|hype|farley/i)
 })
 
-test('switching to Names only says why the style stops mattering', async ({ page }) => {
-  await page.goto('/')
+/*
+ * Scoped to the FIRST `.voice-list`, because the bullseye-sound section below reuses both
+ * that class and `.voice-btn`, and one of its buttons is always active — so anything less
+ * specific matches two elements and fails on strict mode rather than on the behaviour.
+ *
+ * And waited for, because the browser reports its voices asynchronously: the list renders
+ * with Default alone and is rebuilt when `voiceschanged` fires, so clicking immediately
+ * races the rebuild.
+ */
+const voiceButtons = (page: import('@playwright/test').Page) =>
+  page.locator('.voice-list').first().locator('.voice-btn')
+
+/** Opens the settings and waits for the voice list to stop growing. */
+async function openVoices(page: import('@playwright/test').Page) {
   await page.locator('.narrator').click()
+  await expect.poll(() => voiceButtons(page).count()).toBeGreaterThan(1)
+  // Settled, not merely non-empty: the list is rebuilt as the browser reports more voices,
+  // and the accent grouping reorders it as the groups fill. An index taken mid-rebuild
+  // points at a different voice a moment later.
+  await expect.poll(async () => {
+    const a = await voiceButtons(page).count()
+    await page.waitForTimeout(250)
+    return (await voiceButtons(page).count()) === a
+  }).toBe(true)
+}
 
-  await page.locator('.scope-btn', { hasText: 'Names only' }).click()
+test('the voice list offers the voices this device actually has', async ({ page }) => {
+  await page.goto('/')
+  await openVoices(page)
 
-  // Dimmed and explained rather than hidden — the setting that makes personality inert
-  // should say so, and the styles stay selectable for when commentary goes back on.
-  await expect(page.locator('.scope-hint')).toContainText('no effect')
-  await expect(page.locator('.personality-grid')).toHaveClass(/grid-dim/)
-  await expect(page.locator('.personality-btn', { hasText: 'Savage' })).toBeEnabled()
+  // It used to show Default plus whichever of two hard-coded names happened to exist. This
+  // machine has three system voices; the list has to hold more than the one it curated.
+  const labels = await voiceButtons(page).locator('.voice-btn-label').allInnerTexts()
+  expect(labels.length, labels.join(', ')).toBeGreaterThan(2)
+  expect(labels[0]).toBe('Default')
+})
 
-  await page.locator('.scope-btn', { hasText: 'Commentary' }).first().click()
-  await expect(page.locator('.personality-grid')).not.toHaveClass(/grid-dim/)
+test('choosing a voice sticks across a reload', async ({ page }) => {
+  await page.goto('/')
+  await openVoices(page)
+
+  // Chosen by name rather than position, so the assertion still points at the voice that was
+  // clicked even if the list reorders.
+  const labels = await voiceButtons(page).locator('.voice-btn-label').allInnerTexts()
+  const wanted = labels.find(l => l !== 'Default')!
+  const button = voiceButtons(page).filter({ hasText: wanted }).first()
+
+  await button.click()
+  await expect(button).toHaveClass(/active/)
+
+  await page.reload()
+  await openVoices(page)
+  // `.voice-btn.active`, not `.active` under a button — the class is on the button itself.
+  await expect(page.locator('.voice-list').first().locator('.voice-btn.active .voice-btn-label'))
+    .toHaveText(wanted)
+})
+
+test('commentary is on by default, so the narrator is audible out of the box', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('.narrator-scope')).toHaveText('Commentary')
 })
 
 /**
@@ -81,11 +90,10 @@ test('switching to Names only says why the style stops mattering', async ({ page
  *
  * There was no way to. The setting was a boolean — full commentary or "Names only" — and
  * "Names only" did not do what it said either: it skipped the events flagged as commentary
- * and let everything else speak its whole personality line, so the walk-up still delivered a
- * paragraph on every single turn.
+ * and let everything else speak its whole line, so the walk-up still delivered a sentence on
+ * every single turn.
  */
 test('the narrator can be turned off, before a game and during one', async ({ page }) => {
-  await seedRoster(page)
   await page.goto('/')
   await page.locator('.narrator').click()
 
