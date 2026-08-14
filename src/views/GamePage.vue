@@ -318,6 +318,25 @@
       </Transition>
     </div>
 
+    <!--
+      On hold.
+
+      Covers the board rather than sitting beside it, for two reasons: the game is stopped, so
+      nothing behind it should be tappable — a stray tap while nobody is playing would enter
+      darts for whoever is up — and Resume needs to be one press rather than a trip back
+      through the scores panel.
+    -->
+    <Transition name="fade">
+      <div v-if="isHeld" class="hold-overlay">
+        <div class="hold-panel">
+          <div class="hold-icon">⏸</div>
+          <div class="hold-title display">ON HOLD</div>
+          <p class="hold-sub">Every timer is stopped. Nobody loses their turn.</p>
+          <button v-ripple class="btn btn-spray btn-xl hold-resume" @click="gameStore.setHeld(false)">Resume</button>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Game timer announcement overlay -->
     <Transition name="timer-announce">
       <div v-if="showGameTimerAnnounce" class="game-timer-announce-overlay">
@@ -368,6 +387,19 @@
             <button v-for="t in TIMER_OPTIONS" :key="t" v-ripple class="timer-ctrl-btn" :class="{ active: game.throwTimerDuration === t }" @click="gameStore.setThrowTimerDuration(t)">{{ t }}s</button>
           </div>
         </div>
+        <!--
+          Stops the game itself, as opposed to the control below which governs whether players
+          may pause a timer for their own turn. The two are easy to confuse, so they sit next
+          to each other and say plainly which is which.
+        -->
+        <div class="timer-control-group">
+          <span class="timer-control-label">Game Hold</span>
+          <div class="timer-control-btns">
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: !isHeld }" @click="gameStore.setHeld(false)">Running</button>
+            <button v-ripple class="timer-ctrl-btn" :class="{ active: isHeld }" @click="gameStore.setHeld(true); showAllScores = false">Hold</button>
+          </div>
+        </div>
+
         <!--
           "Pause / Allow / Lock" read like it stopped the clock. It governs whether tapping a
           timer pauses it, which is the opposite thing, so it is named for what it controls.
@@ -1037,6 +1069,9 @@ function startGameTimer() {
   gameFiveMinAnnounced = false
   gameTimerInterval = setInterval(() => {
     const gv = game.value
+    // Held: leave the reading exactly where it is. The anchor is moved forward when the hold
+    // is released, so the clock resumes from here rather than jumping.
+    if (gv?.heldSince !== null && gv?.heldSince !== undefined) return
     if (!gv || gv.status === 'finished' || gv.gameDuration === null || gv.gameStartedAt === null) {
       if (gameTimerInterval) { clearInterval(gameTimerInterval); gameTimerInterval = null }
       gameTimeLeft.value = null
@@ -1092,6 +1127,9 @@ function clearThrowTimer() { if (throwInterval) { clearInterval(throwInterval); 
  * control rather than a deliberate one — and left nobody any way to discover that the lock
  * exists. It now says so on the timer for a moment and carries on counting.
  */
+/** The whole game is stopped — every timer, across turns — until somebody resumes it. */
+const isHeld = computed(() => game.value?.heldSince != null)
+
 const showPauseLocked = ref(false)
 let pauseLockedTimeout: ReturnType<typeof setTimeout> | null = null
 function flashPauseLocked() {
@@ -1110,7 +1148,7 @@ function startThrowTimer() {
   if (!throwTimerDuration.value) return
   throwTimeLeft.value = throwTimerDuration.value
   throwInterval = setInterval(() => {
-    if (throwPaused.value) return
+    if (throwPaused.value || isHeld.value) return
     throwTimeLeft.value--
     if (throwTimeLeft.value > 0 && throwTimeLeft.value <= 5) playBombBeep()
     const half = Math.floor(throwTimerDuration.value / 2)
@@ -1441,6 +1479,27 @@ watch(() => game.value?.currentPlayerIndex, () => {
   display: flex; flex-direction: column;
   background: #0a0a0a;
 }
+
+/* Above the scores panel: holding from in there closes it and leaves this in front. */
+.hold-overlay {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.hold-panel {
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  text-align: center; max-width: 420px; width: 100%;
+}
+.hold-icon { font-size: clamp(48px, 12vmin, 88px); line-height: 1; }
+.hold-title {
+  font-size: clamp(40px, 11vmin, 84px); letter-spacing: 0.12em; line-height: 1;
+  color: var(--gold, #f59e0b);
+  text-shadow: 0 0 28px rgba(245,158,11,0.45);
+}
+.hold-sub { margin: 0; font-size: clamp(13px, 3.4vmin, 17px); color: rgba(255,255,255,0.65); line-height: 1.5; }
+.hold-resume { width: 100%; max-width: 320px; margin-top: 8px; }
 .lb-header {
   display: flex; align-items: center; justify-content: space-between; padding: 10px 16px;
   padding-top: calc(10px + env(safe-area-inset-top));
