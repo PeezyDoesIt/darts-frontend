@@ -40,8 +40,17 @@
     </button>
 
 
-    <!-- Default layout (non-cricket): name → circle with count inside → button -->
-    <div v-else class="between-inner default-layout">
+
+    <!--
+      Default layout (non-cricket): name → circle with count inside → button.
+
+      `v-if="!isCricket"` rather than `v-else`, because the v-else it used to be paired with
+      the cricket START button several lines above rather than with the layout it mirrors.
+      Anything inserted between the two silently re-paired it — which happened twice, and the
+      second time was valid Vue that lint could not flag: an 01 game quietly rendered the
+      cricket layout instead.
+    -->
+    <div v-if="!isCricket" class="between-inner default-layout">
       <div class="default-content">
 
         <div class="name-highlight-wrap">
@@ -74,13 +83,21 @@
     </div>
 
     <!--
+      Holding from here.
+
+      Without this the hold could only be set on the board, where the ON HOLD screen then
+      blocks play until it is released — so there was no route to this screen while held and
+      the overlay below was unreachable. It is also the screen where a hold is most wanted:
+      the countdown is visibly running down the turn of somebody who is not ready yet.
+    -->
+    <button v-if="!isHeld && !timerOff" v-ripple class="walkup-hold-btn" @click="gameStore.setHeld(true)">
+      ⏸ Hold
+    </button>
+
+    <!--
       A hold set on the board stays set here, and this screen is where the walk-up countdown
       would otherwise run the next player's time away. Resume is offered here too, so nobody
       has to start a turn just to reach the control that stops the clock.
-
-      Placed after both layouts rather than between them: the default layout is chained by
-      v-else to the cricket START button above it, and anything inserted in between breaks
-      that pair.
     -->
     <Transition name="fade">
       <div v-if="isHeld" class="hold-overlay">
@@ -403,6 +420,20 @@ function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/g
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
+/* Top-left, out of the way of both layouts' centred content and cricket's START button. */
+.walkup-hold-btn {
+  position: absolute; z-index: 4;
+  top: calc(14px + env(safe-area-inset-top)); left: 14px;
+  padding: 8px 14px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.22);
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  color: rgba(255,255,255,0.8);
+  font-size: 13px; font-weight: 800; letter-spacing: 0.06em;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.walkup-hold-btn:hover { color: #fff; border-color: rgba(255,255,255,0.45); }
+
 /* Same panel as the board's, so a hold looks like one thing across both screens. */
 .hold-overlay {
   position: absolute; inset: 0; z-index: 20;
@@ -436,9 +467,18 @@ function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/g
  * anchored bottom-left and both layouts centre their content, so the left corner is free
  * whatever the game is — and a watermark that changes sides between games reads as a bug.
  */
+/*
+ * Solid, and behind the content rather than over it.
+ *
+ * The two changes go together. This used to be a 55% watermark sitting at z-index 3 — above
+ * the name and the countdown — which is only safe because it was faded enough to see through.
+ * At full opacity in that position it would black out whatever it overlapped, so it drops
+ * below `.between-inner` (z-index 2) and above the screen's own scrim (0). Nothing here has a
+ * background of its own, so the picture still shows between the letters.
+ */
 .between-avatar-bg {
   position: absolute; bottom: calc(14px + env(safe-area-inset-bottom)); left: 0;
-  pointer-events: none; user-select: none; z-index: 3;
+  pointer-events: none; user-select: none; z-index: 1;
   display: flex; align-items: flex-end; justify-content: flex-start;
 }
 .between-avatar-bg img {
@@ -447,10 +487,10 @@ function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/g
   max-width: clamp(140px, 35vmin, 420px);
   object-fit: contain;
   /* Square against the screen edge it sits on, rounded on the side facing the content. */
-  opacity: 0.55; border-radius: 0 12px 12px 0;
+  border-radius: 0 12px 12px 0;
 }
 .between-avatar-bg span {
-  font-size: clamp(140px, 35vmin, 420px); line-height: 1; opacity: 0.75;
+  font-size: clamp(140px, 35vmin, 420px); line-height: 1;
   filter: drop-shadow(0 0 32px rgba(0,0,0,0.5));
 }
 

@@ -129,16 +129,16 @@ test('the walk-up countdown stops while held', async ({ page }) => {
   const before = await countdown.textContent()
   expect(Number(before)).toBeGreaterThan(0)
 
-  // Hold from the board is the only way in, so this asserts the screen honours a hold rather
-  // than sets one: put it on hold via storage, the way a hold set moments earlier would look.
-  await persisted(page)
-  await page.evaluate(() => {
-    const raw = localStorage.getItem('darts_active_game')!
-    const game = JSON.parse(raw)
-    game.heldSince = Date.now()
-    localStorage.setItem('darts_active_game', JSON.stringify(game))
-  })
-  await page.reload()
+  /*
+   * Held from this screen's own control.
+   *
+   * This used to write `heldSince` into storage and reload, which raced the store's own
+   * debounced persist — under a full parallel run the pending write landed after the edit
+   * and put the game back to running, so the overlay never appeared. It also faked a state
+   * that at the time nothing could reach: holding was board-only, and the board's overlay
+   * blocks play, so there was no route to this screen while held.
+   */
+  await page.getByRole('button', { name: /Hold/ }).click()
 
   await expect(page.locator('.hold-overlay')).toBeVisible()
   const frozen = await countdown.textContent()
