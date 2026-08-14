@@ -67,7 +67,6 @@ const settingsStore = useSettingsStore()
 const props = defineProps<{
   playerId: string
   scores: Record<string, PlayerScore>
-  isCutThroat: boolean
   round: number
   closedTargetDisplay?: 'show' | 'hide'
   avatarUrl?: string | null

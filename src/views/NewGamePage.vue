@@ -151,7 +151,7 @@
 
       <template v-if="showAdvanced">
         <!-- Cricket Options -->
-        <section v-if="selectedGameType === 'cricket' || selectedGameType === 'cutThroat' || selectedGameType === 'speedCricket'" class="ng-section">
+        <section v-if="isCricketGame(selectedGameType)" class="ng-section">
           <span class="label">Cricket Options</span>
           <span class="hint">Closed target display</span>
           <div class="closed-target-opts">
@@ -183,7 +183,7 @@
         </section>
 
         <!-- Round Limit -->
-        <section v-if="selectedGameType === 'cricket' || selectedGameType === 'cutThroat' || selectedGameType === 'speedCricket'" class="ng-section">
+        <section v-if="isCricketGame(selectedGameType)" class="ng-section">
           <span class="label">Round Limit</span>
           <div class="round-limit-row">
             <div class="toggle-info">
@@ -308,7 +308,7 @@ import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
-import { GAME_TYPE_LABELS, GAME_TYPE_ORDER, type GameType, type Player } from '../types/index'
+import { GAME_TYPE_LABELS, GAME_TYPE_ORDER, isCricketGame, type GameType, type Player } from '../types/index'
 import { DEFAULT_LIVES as KILLER_DEFAULT_LIVES, rulesFor } from '../lib/killer'
 
 const GAME_TYPE_ROW1: GameType[] = ['cricket', 'speedCricket', 'aroundTheClock', 'killer', 'horse']

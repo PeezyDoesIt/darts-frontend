@@ -78,6 +78,7 @@
 import { ref, computed, onMounted, onUnmounted, type CSSProperties } from 'vue'
 import { useRouter } from 'vue-router'
 import { isPhoto } from '../lib/playerDisplay'
+import { isCricketGame } from '../types/index'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
 import { cancelPendingSpeak } from '../composables/useSpeech'
@@ -95,15 +96,12 @@ const nextPlayer = computed(() => game.value!.players[game.value!.currentPlayerI
 /*
  * Speed Cricket belongs here too.
  *
- * It is grouped with cricket and cut-throat at every other decision in the app — the board's
- * marks column, the wild-number row, the setup screen's cricket sections — but this one list
- * was written without it, so its walk-up quietly used the 01 games' layout instead. The trio
- * is spelled out by hand in about twenty places; this was the one that drifted.
+ * It is grouped with cricket at every other decision in the app — the board's marks column,
+ * the wild-number row, the setup screen's cricket sections — but this screen's own copy of
+ * the list was written without it, so its walk-up quietly used the 01 games' layout instead.
+ * That is why the membership lives in one predicate now rather than at each decision.
  */
-const isCricket = computed(() =>
-  game.value?.gameType === 'cricket'
-  || game.value?.gameType === 'cutThroat'
-  || game.value?.gameType === 'speedCricket')
+const isCricket = computed(() => isCricketGame(game.value?.gameType))
 
 const betweenStyle = computed((): CSSProperties => {
   // The walk-up pick wins, then the player's default. No game theme here: this screen is
@@ -386,7 +384,7 @@ function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/g
 /*
  * Bottom-left on every game type.
  *
- * It used to sit bottom-right and flip to the left only for cricket/cut-throat, dodging the
+ * It used to sit bottom-right and flip to the left only for some game types, dodging the
  * floating START button that those two render in that corner. Nothing else on this screen is
  * anchored bottom-left and both layouts centre their content, so the left corner is free
  * whatever the game is — and a watermark that changes sides between games reads as a bug.
