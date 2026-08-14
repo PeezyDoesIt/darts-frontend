@@ -36,18 +36,16 @@
 
 <div class="submit-row">
       <!-- Left area: timer fill is constrained here, never reaches the button -->
-      <div class="submit-left" @click="throwTimerDuration ? emit('toggleThrowPause') : null">
-        <div v-if="throwTimerDuration" class="submit-timer-fill"
-          :class="{ warning: (throwTimeLeft ?? 0) <= 30, urgent: (throwTimeLeft ?? 0) <= 10, paused: throwPaused }"
-          :style="{ width: `${((throwTimeLeft ?? 0) / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
-        <span v-if="throwTimerDuration" class="submit-timer-text" :class="{ urgent: (throwTimeLeft ?? 0) <= 10 }">
-          {{ showPauseLocked ? 'LOCKED' : throwPaused ? 'PAUSED' : (throwTimeLeft ?? 0) + 's' }}
-        </span>
-        <span v-else-if="totalHitsThisRound > 0" class="hits-text">
+      <ThrowTimer
+        :timeLeft="throwTimeLeft" :duration="throwTimerDuration"
+        :paused="throwPaused" :locked="showPauseLocked"
+        @toggle="emit('toggleThrowPause')"
+      >
+        <span v-if="totalHitsThisRound > 0" class="hits-text">
           {{ totalHitsThisRound }} hit{{ totalHitsThisRound !== 1 ? 's' : '' }} this round
         </span>
         <span v-else class="round-label-text" :style="{ color: targetColor }">Round {{ round }}</span>
-      </div>
+      </ThrowTimer>
       <button v-ripple class="btn btn-gold submit-inline-btn" :disabled="submitted" @click="submit">
         NEXT
       </button>
@@ -59,6 +57,7 @@
 import { ref, computed } from 'vue'
 import { CRICKET_TARGETS, type PlayerScore } from '../types/index'
 import { resolveTargetColor } from '../lib/targetColor'
+import ThrowTimer from './ThrowTimer.vue'
 import { playShotgun, playThemedBuzzer, playThemedBullseye } from '../composables/useSounds'
 import { speak, speakOhBaby } from '../composables/useSpeech'
 import { useSettingsStore } from '../stores/settings'
@@ -256,19 +255,6 @@ defineExpose({ submit, submitted })
   box-shadow: 0 2px 12px rgba(220,38,38,0.4);
 }
 .submit-inline-btn:disabled { opacity: 0.4; }
-.submit-left { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; padding: 0 4px; min-height: 100%; cursor: pointer; }
-.submit-timer-fill {
-  position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none;
-  background: #ff0000; transition: width 1s linear, background 0.3s; z-index: 0;
-}
-.submit-timer-fill.warning { background: #ff0000; }
-.submit-timer-fill.urgent { background: #ff3333; }
-.submit-timer-fill.paused { background: rgba(120,120,120,0.6); }
-.submit-timer-text {
-  position: relative; z-index: 1; font-size: clamp(46px, 7dvh, 80px); font-weight: 900;
-  letter-spacing: 0.04em; text-transform: uppercase; color: #fff; font-family: var(--font-display);
-}
-.submit-timer-text.urgent { color: #fff; }
 
 @media (orientation: landscape) and (max-height: 900px) {
   .cricket-board-scroll { overflow: hidden; display: flex; flex-direction: column; }

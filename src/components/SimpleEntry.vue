@@ -53,14 +53,12 @@
                 MISSED
               </button>
             </div>
-            <div v-if="throwTimerDuration" class="horse-timer-row submit-row-horse" @click="emit('toggleThrowPause')">
-              <div class="submit-timer-fill"
-                :class="{ warning: (throwTimeLeft ?? 0) <= 30, urgent: (throwTimeLeft ?? 0) <= 10, paused: throwPaused }"
-                :style="{ width: `${((throwTimeLeft ?? 0) / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
-              <span class="submit-timer-text" :class="{ urgent: (throwTimeLeft ?? 0) <= 10 }">
-                {{ showPauseLocked ? 'LOCKED' : throwPaused ? 'PAUSED' : (throwTimeLeft ?? 0) + 's' }}
-              </span>
-            </div>
+            <ThrowTimer
+              class="horse-timer-row submit-row-horse"
+              :timeLeft="throwTimeLeft" :duration="throwTimerDuration"
+              :paused="throwPaused" :locked="showPauseLocked"
+              @toggle="emit('toggleThrowPause')"
+            />
           </template>
 
           <!-- Setter: numpad + NEXT -->
@@ -74,14 +72,11 @@
               <button v-ripple class="btn btn-gold btn-xl submit-btn" :disabled="entered === ''" @click="submit">
                 NEXT
               </button>
-              <div v-if="throwTimerDuration" class="submit-left" @click="emit('toggleThrowPause')">
-                <div class="submit-timer-fill"
-                  :class="{ warning: (throwTimeLeft ?? 0) <= 30, urgent: (throwTimeLeft ?? 0) <= 10, paused: throwPaused }"
-                  :style="{ width: `${((throwTimeLeft ?? 0) / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
-                <span class="submit-timer-text" :class="{ urgent: (throwTimeLeft ?? 0) <= 10 }">
-                  {{ showPauseLocked ? 'LOCKED' : throwPaused ? 'PAUSED' : (throwTimeLeft ?? 0) + 's' }}
-                </span>
-              </div>
+              <ThrowTimer
+                :timeLeft="throwTimeLeft" :duration="throwTimerDuration"
+                :paused="throwPaused" :locked="showPauseLocked"
+                @toggle="emit('toggleThrowPause')"
+              />
             </div>
           </template>
 
@@ -114,14 +109,11 @@
         <button v-ripple class="btn btn-gold btn-xl submit-btn" :disabled="entered === ''" @click="submit">
           NEXT
         </button>
-        <div v-if="throwTimerDuration" class="submit-left" @click="emit('toggleThrowPause')">
-          <div class="submit-timer-fill"
-            :class="{ warning: (throwTimeLeft ?? 0) <= 30, urgent: (throwTimeLeft ?? 0) <= 10, paused: throwPaused }"
-            :style="{ width: `${((throwTimeLeft ?? 0) / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
-          <span class="submit-timer-text" :class="{ urgent: (throwTimeLeft ?? 0) <= 10 }">
-            {{ showPauseLocked ? 'LOCKED' : throwPaused ? 'PAUSED' : (throwTimeLeft ?? 0) + 's' }}
-          </span>
-        </div>
+        <ThrowTimer
+          :timeLeft="throwTimeLeft" :duration="throwTimerDuration"
+          :paused="throwPaused" :locked="showPauseLocked"
+          @toggle="emit('toggleThrowPause')"
+        />
       </div>
     </template>
 
@@ -131,6 +123,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { GAME_TYPE_LABELS, type GameType } from '../types/index'
+import ThrowTimer from './ThrowTimer.vue'
 
 const props = defineProps<{
   gameType: GameType
@@ -299,6 +292,8 @@ function submit() {
   align-items: center;
   justify-content: center;
   height: clamp(44px, 5.5dvh, 60px);
+  /* Sized to the row it sits in, or a 50px clock is clipped by a 44px band. */
+  --throw-timer-size: clamp(22px, 3.8dvh, 34px);
   cursor: pointer;
 }
 
@@ -332,15 +327,11 @@ function submit() {
 }
 .numpad-footer-horse { flex-direction: column; align-items: stretch; }
 .numpad-footer-horse .submit-btn { flex: none; width: 100%; }
-.numpad-footer-horse .submit-left { flex: none; width: 100%; height: clamp(44px, 5.5dvh, 60px); }
-
-.submit-left {
-  flex: 0 0 80px; order: -1;
-  position: relative; overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 12px; background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08); cursor: pointer;
-}
+/*
+ * The clock is laid on its own row here, so it is sized rather than left to fill: this
+ * footer is a column, and a timer that grows to fill one is a red slab half the screen tall.
+ */
+.numpad-footer-horse .throw-timer { flex: none; height: clamp(34px, 5dvh, 48px); --throw-timer-size: clamp(20px, 3.4dvh, 30px); }
 
 .submit-btn {
   flex: 1; width: 100%; position: relative; overflow: hidden;
@@ -349,19 +340,6 @@ function submit() {
 }
 .submit-row-horse .submit-btn { height: clamp(52px, 7dvh, 72px); font-size: clamp(38px, 5.5dvh, 60px); }
 
-.submit-timer-fill {
-  position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none;
-  background: #ff0000; transition: width 1s linear, background 0.3s; z-index: 0;
-}
-.submit-timer-fill.warning { background: #ff0000; }
-.submit-timer-fill.urgent  { background: #ff3333; }
-.submit-timer-fill.paused  { background: rgba(120,120,120,0.6); }
-.submit-timer-text {
-  position: relative; z-index: 1;
-  font-size: clamp(38px, 6dvh, 70px); font-weight: 900; letter-spacing: 0.04em;
-  color: #fff; font-family: var(--font-display); text-transform: uppercase;
-}
-.submit-timer-text.urgent { color: #fff; }
 
 /* ── Non-HORSE: round info + standard numpad ── */
 .round-info { text-align: center; flex-shrink: 0; }
@@ -405,7 +383,7 @@ function submit() {
   .numpad-horse { max-width: none; padding: 4px 8px; }
   .key { height: clamp(38px, 7dvh, 54px); font-size: clamp(18px, 3.5dvh, 28px); }
   .submit-row-horse .submit-btn { height: clamp(38px, 6dvh, 52px) !important; font-size: clamp(24px, 4dvh, 36px) !important; }
-  .submit-timer-text { font-size: clamp(22px, 3.8dvh, 32px) !important; }
-  .numpad-footer-horse .submit-left { height: clamp(32px, 4.5dvh, 42px) !important; }
+  .horse-timer-row, .numpad-footer-horse .throw-timer { --throw-timer-size: clamp(22px, 3.8dvh, 32px); }
+  .numpad-footer-horse .throw-timer { height: clamp(32px, 4.5dvh, 42px); }
 }
 </style>
