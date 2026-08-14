@@ -25,13 +25,13 @@
           <div v-for="(p, i) in finalPlayers" :key="p.id" class="final-row"
             :class="{ winner: p.id === winner?.id }"
             :style="p.id === winner?.id ? { borderColor: p.color, background: `${p.color}20` } : {}">
-            <span v-if="game?.cricketPlayToCompletion" class="final-place" :style="i === 0 ? { color: p.color } : {}">{{ ordinal(i + 1) }}</span>
+            <span v-if="game?.playToCompletion" class="final-place" :style="i === 0 ? { color: p.color } : {}">{{ ordinal(i + 1) }}</span>
             <div class="final-avatar" :style="{ background: p.color, boxShadow: `0 0 10px ${p.color}80` }">
               <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
               <span v-else>{{ avatarGlyph(p) }}</span>
             </div>
             <span class="final-name">{{ p.name }}</span>
-            <span v-if="!game?.cricketPlayToCompletion" class="final-score" :style="p.id === winner?.id ? { color: p.color } : {}">{{ displayScore(p.id) }}</span>
+            <span v-if="!game?.playToCompletion" class="final-score" :style="p.id === winner?.id ? { color: p.color } : {}">{{ displayScore(p.id) }}</span>
           </div>
         </div>
 
@@ -64,8 +64,8 @@ const winner = computed(() => game.value?.players.find(p => p.id === game.value!
 const marksToClose = computed(() => game.value?.gameType === 'speedCricket' ? 1 : 3)
 const finalPlayers = computed(() => {
   if (!game.value) return []
-  if (game.value.cricketPlayToCompletion && game.value.cricketFinishOrder?.length) {
-    return game.value.cricketFinishOrder
+  if (game.value.playToCompletion && game.value.finishOrder?.length) {
+    return game.value.finishOrder
       .map(id => game.value!.players.find(p => p.id === id))
       .filter(Boolean) as typeof game.value.players
   }
