@@ -124,53 +124,85 @@ const CHARACTER_VOICES: { name: string; label: string; sublabel: string }[] = [
   { name: 'Pipe Organ', label: 'Pipe Organ',  sublabel: 'Musical tones' },
 ]
 
-// Curated standard voices to show in the picker (checked by partial name match)
-const CURATED_VOICE_FRAGMENTS: { fragment: string; label: string; sublabel: string }[] = [
-  { fragment: 'Samantha', label: 'Samantha', sublabel: 'System voice' },
-  { fragment: 'Zira',     label: 'Zira',     sublabel: 'System voice' },
-]
 
-// Priority-ordered name fragments for finding a good Australian voice
-const AU_FRAGMENTS = ['Natasha', 'Karen', 'Lee', 'Mitchell']
-// Priority-ordered name fragments for finding a good British voice
-const GB_FRAGMENTS = ['Emma', 'Ryan', 'Daniel', 'Kate', 'Hazel', 'George', 'Oliver']
-
-function findLocaleVoice(voices: SpeechSynthesisVoice[], fragments: string[], lang: string): SpeechSynthesisVoice | null {
-  // Prefer a named match (usually higher quality Natural/online voices)
-  for (const frag of fragments) {
-    const v = voices.find(v => v.name.includes(frag) && v.lang.startsWith(lang))
-    if (v) return v
-  }
-  // Fall back to any voice with the right locale
-  return voices.find(v => v.lang.startsWith(lang)) ?? null
+/** en-GB → British, so the list reads as accents rather than locale codes. */
+const LOCALE_NAMES: Record<string, string> = {
+  'en-us': 'American', 'en-gb': 'British', 'en-au': 'Australian', 'en-ie': 'Irish',
+  'en-in': 'Indian', 'en-za': 'South African', 'en-nz': 'New Zealand', 'en-ca': 'Canadian',
+  'en-sg': 'Singaporean', 'en-hk': 'Hong Kong', 'en-ph': 'Filipino', 'en-ng': 'Nigerian',
+  'en-ke': 'Kenyan', 'en-tz': 'Tanzanian', 'en-scotland': 'Scottish',
 }
 
-export function getAvailableVoices(): VoiceOption[] {
-  const voices = window.speechSynthesis.getVoices()
+function accentOf(lang: string): string {
+  return LOCALE_NAMES[lang.toLowerCase()] ?? lang
+}
+
+/**
+ * Strips the platform's boilerplate off a voice name.
+ *
+ * Windows ships "Microsoft David - English (United States)" and Chrome ships "Google UK
+ * English Male". The vendor and the locale are noise in a list where every row is a voice
+ * and the accent is already shown beside it.
+ */
+function tidyVoiceName(name: string): string {
+  return name
+    .replace(/^(Microsoft|Google|Apple)\s+/i, '')
+    .replace(/\s*[-–]\s*English.*$/i, '')
+    .replace(/\s*\(.*\)\s*$/, '')
+    .replace(/\bEnglish\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim() || name
+}
+
+/**
+ * Every English voice the device has, not a hand-picked handful.
+ *
+ * This used to return Default plus whichever of two named voices happened to exist, plus one
+ * Australian and one British pick. On a Windows machine with David, Mark and Zira installed
+ * it offered exactly one of them — so "choose a voice" was a choice between Default and Zira,
+ * and the other two were unreachable. Since the voice is now the only narrator setting that
+ * changes what you hear, hiding most of them is hiding the whole feature.
+ *
+ * Character voices keep their friendly labels and stay at the top; the rest are grouped by
+ * accent, because two American voices differ far less than an American and a Scottish one.
+ */
+export function getAvailableVoices(
+  // Takes the roster rather than only reading the global, so the grouping and the name
+  // tidying can be tested against fabricated Windows, macOS and Android rosters — the CI
+  // runner has no speech engine at all, and a test that can only run on a laptop is not
+  // protecting anything.
+  voices: SpeechSynthesisVoice[] = window.speechSynthesis.getVoices(),
+): VoiceOption[] {
   const result: VoiceOption[] = [
     { label: 'Default', value: '', sublabel: 'Auto-selected narrator' },
   ]
 
-  // Add curated character voices (macOS-specific fun voices)
+  const claimed = new Set<string>()
+
+  // Curated character voices (macOS-specific fun ones) keep their descriptions.
   for (const c of CHARACTER_VOICES) {
     if (voices.some(v => v.name === c.name)) {
       result.push({ label: c.label, value: c.name, sublabel: c.sublabel })
+      claimed.add(c.name)
     }
   }
 
-  // Add Samantha and Zira if available on this device
-  for (const { fragment, label, sublabel } of CURATED_VOICE_FRAGMENTS) {
-    const match = voices.find(v => v.name.includes(fragment) && v.lang.startsWith('en'))
-    if (match) result.push({ label, value: match.name, sublabel })
+  const english = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en') && !claimed.has(v.name))
+
+  // Grouped by accent, and the groups ordered by how many voices they hold, so the accents
+  // this device actually supports well come first.
+  const byAccent = new Map<string, SpeechSynthesisVoice[]>()
+  for (const v of english) {
+    const accent = accentOf(v.lang)
+    if (!byAccent.has(accent)) byAccent.set(accent, [])
+    byAccent.get(accent)!.push(v)
   }
 
-  // Australian accent
-  const auVoice = findLocaleVoice(voices, AU_FRAGMENTS, 'en-AU')
-  if (auVoice) result.push({ label: 'Australian', value: auVoice.name, sublabel: auVoice.name })
-
-  // British accent
-  const gbVoice = findLocaleVoice(voices, GB_FRAGMENTS, 'en-GB')
-  if (gbVoice) result.push({ label: 'British', value: gbVoice.name, sublabel: gbVoice.name })
+  for (const [accent, group] of [...byAccent.entries()].sort((a, b) => b[1].length - a[1].length)) {
+    for (const v of group) {
+      result.push({ label: tidyVoiceName(v.name), value: v.name, sublabel: accent })
+    }
+  }
 
   return result
 }

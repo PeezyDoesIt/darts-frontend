@@ -227,7 +227,6 @@ function narrate(event: NarratorEvent, extra: Partial<LineContext> = {}) {
 }
 
 async function handleTurnAnnouncement() {
-  const p = settingsStore.narratorPersonality
 
   if (game.value?.bonusTurnActive) { await narrate('bonusTurn'); return }
 
@@ -248,10 +247,10 @@ async function handleTurnAnnouncement() {
     await new Promise(r => setTimeout(r, 200))
     await narrate('timeout', { count })
 
-    // The default voice gets whistles instead of the third-offence roast. Skipped in quiet
-    // mode along with the lines they punctuate, since a jeer is commentary too.
+    // Whistles punctuate the first two timeouts. Skipped in quiet mode along with the lines
+    // they punctuate, since a jeer is commentary too.
     const jeering = settingsStore.narratorMode === 'full' && !settingsStore.cleanMode
-    if (jeering && p === 'default' && count < 3) {
+    if (jeering && count < 3) {
       await new Promise(r => setTimeout(r, 150))
       await playWhistle()
       await new Promise(r => setTimeout(r, 150))

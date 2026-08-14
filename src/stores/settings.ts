@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { NARRATOR_PERSONALITIES, type NarratorMode, type NarratorPersonality } from '../types/index'
+import type { NarratorMode } from '../types/index'
 import { DEFAULT_BOT_NAMES, botName, normaliseBotName } from '../lib/spadesBot'
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -128,15 +128,6 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.setItem('narratorGender', val)
   }
 
-  const _savedPersonality = localStorage.getItem('narratorPersonality') as NarratorPersonality | null
-  const narratorPersonality = ref<NarratorPersonality>(
-    _savedPersonality && NARRATOR_PERSONALITIES.includes(_savedPersonality) ? _savedPersonality : 'default'
-  )
-  function setNarratorPersonality(val: NarratorPersonality) {
-    narratorPersonality.value = val
-    localStorage.setItem('narratorPersonality', val)
-  }
-
   const announceThrowAt20 = ref<boolean>(
     localStorage.getItem('announceThrowAt20') !== 'false'
   )
@@ -166,5 +157,5 @@ export const useSettingsStore = defineStore('settings', () => {
     else localStorage.removeItem('coinTailsImage')
   }
 
-  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, narratorMode, setNarratorMode, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme, narratorGender, setNarratorGender, narratorPersonality, setNarratorPersonality, announceThrowAt20, setAnnounceThrowAt20, announceWalkupAt20, setAnnounceWalkupAt20, coinHeadsImage, coinTailsImage, setCoinHeadsImage, setCoinTailsImage, botNames, setBotName }
+  return { voiceName, voiceRate, voicePitch, setVoiceName, setVoiceRate, setVoicePitch, narratorMode, setNarratorMode, disableWalkUpTimer, setDisableWalkUpTimer, disableThrowTimer, setDisableThrowTimer, bullseyeSound, setBullseyeSound, disableTimerPause, setDisableTimerPause, cleanMode, setCleanMode, soundTheme, setSoundTheme, narratorGender, setNarratorGender, announceThrowAt20, setAnnounceThrowAt20, announceWalkupAt20, setAnnounceWalkupAt20, coinHeadsImage, coinTailsImage, setCoinHeadsImage, setCoinTailsImage, botNames, setBotName }
 })

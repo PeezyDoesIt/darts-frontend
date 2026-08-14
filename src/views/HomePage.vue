@@ -216,7 +216,7 @@
             </div>
             <div class="narrator-main">
               <div class="narrator-id">
-                <span class="narrator-name display">{{ personalityLabel }}</span>
+                <span class="narrator-name display">{{ voiceLabel }}</span>
                 <span class="narrator-scope">{{ scopeLabel }}</span>
               </div>
               <!--
@@ -316,7 +316,7 @@
             <button class="settings-close" @click="showSettings = false">✕</button>
           </div>
 
-          <!-- scope gates whether personality matters, so it comes first -->
+          <!-- How much it says, before which voice says it. -->
           <div class="settings-section">
             <div class="settings-label">Scope</div>
             <div class="scope-seg">
@@ -381,31 +381,6 @@
               </div>
             </div>
 
-            <div v-if="settingsStore.narratorMode !== 'full'" class="settings-muted scope-hint">
-              Personality only shapes commentary — it has no effect
-              {{ settingsStore.narratorMode === 'off' ? 'while the narrator is off' : 'while “Names only” is on' }}.
-            </div>
-            <!--
-              The grid used to be hidden whenever Clean Mode was on, and Clean Mode is on by
-              default — so out of the box there was no way to reach any of the six styles, and
-              the panel outside still named the one you were stuck with. Clean lines are
-              written per personality, so the two settings are independent.
-            -->
-            <div v-else-if="settingsStore.cleanMode" class="settings-muted scope-hint">
-              Clean mode has its own take on each style — a few share wording where no clean
-              voice has been written yet.
-            </div>
-            <div class="personality-grid" :class="{ 'grid-dim': settingsStore.narratorMode !== 'full' }">
-              <button
-                v-for="per in PERSONALITIES" :key="per.value"
-                class="personality-btn"
-                :class="{ active: settingsStore.narratorPersonality === per.value }"
-                @click="settingsStore.setNarratorPersonality(per.value as any)"
-              >
-                <span class="per-label">{{ per.label }}</span>
-                <span class="per-sub">{{ per.sub }}</span>
-              </button>
-            </div>
           </div>
 
           <div class="settings-section">
@@ -682,28 +657,24 @@ const ROSTER_MAX = 5
 const rosterShown = computed(() => playersStore.players.slice(0, ROSTER_MAX))
 const rosterOverflow = computed(() => Math.max(0, playersStore.players.length - ROSTER_MAX))
 
-const PERSONALITIES = [
-  { value: 'default',   label: 'Default',    sub: 'No-nonsense commentary' },
-  { value: 'hype',      label: 'Hype',       sub: 'High energy, gets excited' },
-  { value: 'savage',    label: 'Savage',     sub: 'Cold, cutting, zero sympathy' },
-  { value: 'announcer', label: 'Anchor',     sub: 'Formal sports broadcast' },
-  { value: 'sarcastic', label: 'Sarcastic',  sub: 'Deadpan, dry, unimpressed' },
-  { value: 'smooth',    label: 'Smooth',     sub: 'Low-key, cool, laid back' },
-  { value: 'preacher',  label: 'Preacher',   sub: 'Loud, righteous, takes it personally' },
-  { value: 'nature',    label: 'Wildlife',   sub: 'Narrates the table like a documentary' },
-  { value: 'noir',      label: 'Noir',       sub: 'Hardboiled, every score a metaphor' },
-  { value: 'machine',   label: 'Machine',    sub: 'Clinical, flat, quietly disappointed' },
-  { value: 'farley',    label: 'Farley',     sub: 'Manic, loud, then suddenly very quiet' },
-]
-const personalityLabel = computed(() =>
-  PERSONALITIES.find(p => p.value === settingsStore.narratorPersonality)?.label ?? 'Default'
-)
+/**
+ * The narrator panel names the voice now, because the voice is the only thing to choose.
+ *
+ * It used to name the writing style, of which there were eleven. They were removed: a style
+ * changed which words were picked and nothing about how they sounded, since the narrator
+ * never passed a rate or a pitch to the speech engine. Eleven identical-sounding narrators
+ * reading slightly different sentences is not a choice worth presenting.
+ */
+const voiceLabel = computed(() => {
+  const chosen = availableVoices.value.find(v => v.value === settingsStore.voiceName)
+  return chosen?.label ?? 'Default'
+})
 
 const scopeLabel = computed(() =>
   NARRATOR_MODES.find(m => m.value === settingsStore.narratorMode)?.label ?? 'Commentary')
 
 const SCOPE_HINTS: Record<NarratorMode, string> = {
-  full: 'Full play-by-play in the chosen personality.',
+  full: 'Full play-by-play — every nudge, roast and result.',
   names: 'Whose turn it is, a hurry-up at thirty seconds, and who won. Nothing else.',
   off: 'The narrator says nothing. Sound effects still play.',
 }
@@ -1400,12 +1371,6 @@ function previewBullseyeSound(value: string) {
 .scope-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
 .scope-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.12); }
 .scope-hint { color: rgba(255,255,255,0.5); font-size: 13px; }
-/* De-emphasised while "Names only" makes personality inert, but still selectable — the
-   choice persists and takes effect the moment commentary is switched back on. It used to
-   also set pointer-events: none, which left six styles on screen that could not be tapped
-   and no indication that another setting was the reason. The hint above says so instead.
-   0.4 was also too faint to read against the panel once it stopped being a disabled state. */
-.grid-dim { opacity: 0.6; }
 
 /* ── Settings modal (unchanged from the shipped panel) ── */
 .settings-overlay {
@@ -1493,18 +1458,6 @@ function previewBullseyeSound(value: string) {
 .toggle-title { font-size: 16px; font-weight: 700; color: #fff; }
 .toggle-sub { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.4; }
 
-.personality-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
-.personality-btn {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
-  padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.04); cursor: pointer; transition: all 0.15s; text-align: left;
-  position: relative; overflow: hidden;
-}
-.personality-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.25); }
-.personality-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); }
-.per-label { font-size: 13px; font-weight: 800; font-family: var(--font-display); letter-spacing: 0.05em; color: #fff; }
-.personality-btn.active .per-label { color: var(--pink); }
-.per-sub { font-size: 10px; color: rgba(255,255,255,0.45); font-weight: 600; line-height: 1.3; }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
