@@ -272,6 +272,9 @@
           <span class="preview-name">{{ name || 'Player Name' }}</span>
         </div>
 
+        <!-- Above the roster, because the roster is the thing that is out of step. -->
+        <SyncWarning />
+
         <div class="existing-section">
           <span class="label">Existing Players</span>
           <div class="existing-scroll">
@@ -358,6 +361,7 @@ import { goBack } from '../router/goBack'
 import { AVATAR_MAX_PX, BACKGROUND_MAX_PX, downscaleFile, downscaleVideoFrame } from '../lib/downscaleImage'
 import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, TARGET_LABEL_COLORS, type Player, type DiceTheme } from '../types/index'
 import { autoTargetColor as autoTargetColorFor } from '../lib/targetColor'
+import SyncWarning from '../components/SyncWarning.vue'
 
 const FONT_COLORS: { name: string; value: string }[] = [
   { name: 'White',    value: '#ffffff' },
