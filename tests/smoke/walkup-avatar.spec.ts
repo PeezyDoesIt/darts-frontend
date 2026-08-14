@@ -103,6 +103,31 @@ for (const game of ['Cricket', 'Speed Cricket']) {
   })
 }
 
+test('the watermark is solid, and cannot cover the name', async ({ page }) => {
+  /*
+   * It used to be a 55% wash sitting at z-index 3 — above the name and the countdown, which
+   * is only safe while you can see through it. Solid and in that position it would black out
+   * whatever it overlapped, so the two properties are asserted together: full opacity, and
+   * layered below the content rather than over it.
+   */
+  await walkUpFor(page, 'Cricket')
+
+  const layers = await page.evaluate(() => {
+    const wrap = document.querySelector('.between-avatar-bg')!
+    const inner = document.querySelector('.between-inner')!
+    const glyph = document.querySelector('.between-avatar-bg span')
+    return {
+      glyphOpacity: glyph ? getComputedStyle(glyph).opacity : null,
+      wrapZ: Number(getComputedStyle(wrap).zIndex),
+      contentZ: Number(getComputedStyle(inner).zIndex),
+    }
+  })
+
+  expect(layers.glyphOpacity, 'watermark is still see-through').toBe('1')
+  expect(layers.wrapZ, 'watermark sits above the content it could cover')
+    .toBeLessThan(layers.contentZ)
+})
+
 test('an 01 walk-up still uses the default layout', async ({ page }) => {
   await walkUpFor(page, '301')
   await expect(page.locator('.default-layout')).toBeVisible()
