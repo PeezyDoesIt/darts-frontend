@@ -63,6 +63,26 @@ export const DIE_GRADIENTS: Record<string, string> = {
   walnut:    'linear-gradient(135deg, #0a0400 0%, #3d1a00 35%, #6b3a10 65%, #9a6030 100%)',
 }
 
+/* ─────────────────────────────────────────────────────────────────
+   Cricket mark styles.
+
+   Per player, set on their profile. Null is the app's own look — the
+   one it ships with today — so every existing player is untouched and
+   nothing changes app-wide. This adds a choice; it does not move the
+   default. 'slab' is that same look named explicitly, for a player who
+   wants to pick it rather than inherit it.
+   ───────────────────────────────────────────────────────────────── */
+
+export type PipStyle = 'slab' | 'chalk' | 'spray' | 'neon' | 'steel'
+
+export const PIP_STYLES: { value: PipStyle; label: string; blurb: string }[] = [
+  { value: 'slab',  label: 'Slab',  blurb: 'Solid blocks, lit edges' },
+  { value: 'chalk', label: 'Chalk', blurb: 'Matte, hand drawn' },
+  { value: 'spray', label: 'Spray', blurb: 'Soft paint bloom' },
+  { value: 'neon',  label: 'Neon',  blurb: 'Hollow glowing tube' },
+  { value: 'steel', label: 'Steel', blurb: 'Bevelled metal plate' },
+]
+
 export type Player = {
   id: string
   name: string
@@ -96,7 +116,7 @@ export type Player = {
   targetLabelColor: string | null
   /** Colour of the cricket mark pips. Null keeps the app's pink, which is what they were. */
   pipColor: string | null
-  /** Shape of the cricket mark pips. Null keeps the filled blocks they have always been. */
+  /** Shape and finish of the cricket marks. Null keeps the app's own look. */
   pipStyle: PipStyle | null
   cricketTargetDisplay: 'show' | 'hide' | null  // null = use game setting
   diceTheme: DiceTheme | null  // null = same as 'default'
@@ -108,24 +128,6 @@ export type Player = {
    *  every upsert but never read back — leaving sync with no basis to compare versions. */
   updatedAt?: string | null
 }
-
-/**
- * How a cricket mark is drawn.
- *
- * The pips had a colour and nothing else, while the dice next to them in the same form had a
- * whole theme list — so "pip theme" was a setting that existed by name and offered one shape.
- *
- * `marks` is the one worth having: it is how a real board is scored, a slash for the first
- * hit, crossed for the second, ringed for the third.
- */
-export type PipStyle = 'blocks' | 'marks' | 'dots' | 'outline'
-
-export const PIP_STYLES: { value: PipStyle; label: string; sub: string }[] = [
-  { value: 'blocks',  label: 'Blocks',  sub: 'Filled bars — the original' },
-  { value: 'marks',   label: 'Classic', sub: 'Slash, cross, ring — scored like a real board' },
-  { value: 'dots',    label: 'Dots',    sub: 'Round and small' },
-  { value: 'outline', label: 'Outline', sub: 'Hollow, coloured edge only' },
-]
 
 export const DICE_THEMES: { value: DiceTheme; label: string; icon: string; group: string }[] = [
   // Classics & Neutrals
@@ -216,6 +218,20 @@ export const PLAYER_THEMES = [
  * and anything else can reference it — it was previously a local type, which is part of
  * why the narrator lines ended up duplicated across views instead of shared.
  */
+/**
+ * `preacher` is loud and sermonising where `savage` is cold and terse; `nature` narrates the
+ * table as wildlife; `noir` is hardboiled; `machine` is clinical and never varies its tone,
+ * which is the joke. Each is deliberately a register the existing six do not already cover.
+ */
+export type NarratorPersonality =
+  | 'default' | 'hype' | 'savage' | 'announcer' | 'sarcastic' | 'smooth'
+  | 'preacher' | 'nature' | 'noir' | 'machine' | 'farley'
+
+export const NARRATOR_PERSONALITIES: NarratorPersonality[] = [
+  'default', 'hype', 'savage', 'announcer', 'sarcastic', 'smooth',
+  'preacher', 'nature', 'noir', 'machine', 'farley',
+]
+
 /**
  * How much the narrator says.
  *

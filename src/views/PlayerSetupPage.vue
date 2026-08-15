@@ -215,18 +215,29 @@
 
           <div class="field">
             <label class="label">Cricket: Pip Style</label>
-            <p class="field-hint">The shape of the marks. Classic scores the way a real board does — slash, cross, ring.</p>
-            <div class="pipstyle-row">
+            <p class="field-hint">The shape of those marks. Default is the app's look — pick a style to make yours your own.</p>
+            <div class="pip-style-opts" :style="{ '--pv': pipColor ?? 'var(--pink)' }">
               <button
-                v-for="s in PIP_STYLES" :key="s.value" v-ripple
-                class="pipstyle-btn" :class="{ active: (pipStyle ?? 'blocks') === s.value }"
+                v-ripple class="pip-style-btn"
+                :class="{ active: pipStyle === null }"
+                @click="pipStyle = null"
+              >
+                <span class="pip-style-pv">
+                  <span class="pv pv-slab" /><span class="pv pv-slab" /><span class="pv pv-slab" />
+                </span>
+                <span class="pip-style-label">Default</span>
+              </button>
+              <button
+                v-for="s in PIP_STYLES" :key="s.value"
+                v-ripple class="pip-style-btn"
+                :class="{ active: pipStyle === s.value }"
+                :title="s.blurb"
                 @click="pipStyle = s.value"
               >
-                <!-- A live preview in the chosen colour, so the choice is visible before it is made. -->
-                <span class="pipstyle-preview" :class="`pips-${s.value}`" :style="{ '--pip': pipColor ?? 'var(--pink)' }">
-                  <span v-for="n in 3" :key="n" class="pip-mini">{{ s.value === 'marks' ? (n === 1 ? '/' : n === 2 ? '✕' : '⊗') : '' }}</span>
+                <span class="pip-style-pv">
+                  <span class="pv" :class="'pv-' + s.value" /><span class="pv" :class="'pv-' + s.value" /><span class="pv" :class="'pv-' + s.value" />
                 </span>
-                <span class="pipstyle-label">{{ s.label }}</span>
+                <span class="pip-style-label">{{ s.label }}</span>
               </button>
             </div>
           </div>
@@ -377,7 +388,7 @@ import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { goBack } from '../router/goBack'
 import { AVATAR_MAX_PX, BACKGROUND_MAX_PX, downscaleFile, downscaleVideoFrame } from '../lib/downscaleImage'
-import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, PIP_STYLES, TARGET_LABEL_COLORS, type Player, type DiceTheme, type PipStyle } from '../types/index'
+import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, TARGET_LABEL_COLORS, PIP_STYLES, type Player, type DiceTheme, type PipStyle } from '../types/index'
 import { autoTargetColor as autoTargetColorFor } from '../lib/targetColor'
 import SyncWarning from '../components/SyncWarning.vue'
 
@@ -514,10 +525,10 @@ const autoTargetColor = computed(() => autoTargetColorFor(color.value, playerBac
 const selectedTargetName = computed(() =>
   TARGET_LABEL_COLORS.find(c => c.value === targetLabelColor.value)?.label ?? 'Auto')
 const pipColor = ref<string | null>(null)
-const pipStyle = ref<PipStyle | null>(null)
 const showPipDropdown = ref(false)
 const selectedPipName = computed(() =>
   TARGET_LABEL_COLORS.find(c => c.value === pipColor.value)?.label ?? 'Default')
+const pipStyle = ref<PipStyle | null>(null)
 const cricketTargetDisplay = ref<'show' | 'hide'>('show')
 const diceTheme = ref<DiceTheme | null>(null)
 
@@ -901,6 +912,46 @@ function save() {
 .ct-player-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: var(--text-muted); text-transform: uppercase; text-align: center; line-height: 1.3; }
 .ct-player-btn.active .ct-player-label { color: var(--pink); }
 
+/* Pip style picker — six tiles, each showing three real marks in that style,
+   lit with whatever pip colour is selected above so the two read together. */
+.pip-style-opts { display: flex; gap: 8px; flex-wrap: wrap; }
+.pip-style-btn {
+  flex: 1 1 92px; min-width: 92px; padding: 10px 8px 9px; border-radius: 8px;
+  border: 2px solid #ffffff; background: transparent;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer; position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.pip-style-btn:hover { border-color: var(--pink); background: rgba(255,45,120,0.08); }
+.pip-style-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); }
+.pip-style-label { font-size: 13px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.06em; color: #fff; }
+.pip-style-btn.active .pip-style-label { color: var(--pink); }
+
+.pip-style-pv { display: flex; gap: 5px; align-items: stretch; height: 22px; width: 100%; }
+.pv { flex: 1; min-width: 0; }
+
+.pv-slab { border-radius: 5px; background: var(--pv); border: 2px solid var(--pv);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--pv) 70%, transparent); }
+
+.pv-chalk { border-radius: 3px; border: 2px solid color-mix(in srgb, var(--pv) 55%, #ffffff);
+  background: color-mix(in srgb, var(--pv) 80%, #ffffff);
+  box-shadow: inset 0 0 8px rgba(255,255,255,0.4); filter: saturate(0.78); }
+.pv-chalk:nth-child(odd) { transform: rotate(-2deg); }
+.pv-chalk:nth-child(even) { transform: rotate(1.5deg); }
+
+.pv-spray { border-radius: 46% 54% 51% 49% / 52% 47% 53% 48%;
+  background: radial-gradient(circle at 44% 40%, color-mix(in srgb, var(--pv) 92%, #ffffff) 0%, var(--pv) 55%, color-mix(in srgb, var(--pv) 50%, transparent) 100%);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--pv) 50%, transparent); filter: blur(0.5px) saturate(1.15); }
+
+.pv-neon { border-radius: 999px; border: 2px solid color-mix(in srgb, var(--pv) 88%, #ffffff);
+  background: color-mix(in srgb, var(--pv) 12%, transparent);
+  box-shadow: 0 0 7px color-mix(in srgb, var(--pv) 88%, transparent),
+              inset 0 0 7px color-mix(in srgb, var(--pv) 65%, transparent); }
+
+.pv-steel { border-radius: 2px; border: 1px solid color-mix(in srgb, var(--pv) 55%, #ffffff);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--pv) 68%, #ffffff) 0%, var(--pv) 42%, color-mix(in srgb, var(--pv) 68%, #000000) 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 3px rgba(0,0,0,0.4); }
+
 /* Background fit / position / fill — same shape as the closed-target buttons above. */
 .bgfit-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .bgfit-btn {
@@ -914,30 +965,6 @@ function save() {
 }
 .bgfit-btn:hover { border-color: var(--pink); background: rgba(255,45,120,0.08); }
 .bgfit-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); color: var(--pink); }
-
-/* Pip style: a live preview of the marks, in the colour already chosen above. */
-.pipstyle-row { display: flex; gap: 8px; flex-wrap: wrap; }
-.pipstyle-btn {
-  flex: 1; min-width: 104px; display: flex; flex-direction: column; align-items: center; gap: 8px;
-  padding: 12px 8px; border-radius: 8px; border: 2px solid #ffffff; background: transparent;
-  cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
-}
-.pipstyle-btn:hover { border-color: var(--pink); background: rgba(255,45,120,0.08); }
-.pipstyle-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); }
-.pipstyle-label { font-size: 13px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; color: #fff; }
-.pipstyle-btn.active .pipstyle-label { color: var(--pink); }
-.pipstyle-preview { display: flex; gap: 4px; width: 100%; height: 26px; }
-.pip-mini {
-  flex: 1; border-radius: 5px; border: 2px solid var(--pip); background: var(--pip);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 900; font-family: var(--font-display); line-height: 1;
-}
-/* Each preview paints itself the way the board will. */
-.pipstyle-preview.pips-marks .pip-mini { background: transparent; border-color: color-mix(in srgb, var(--pip) 45%, transparent); color: var(--pip); }
-.pipstyle-preview.pips-dots .pip-mini { background: transparent; border-color: transparent; position: relative; }
-.pipstyle-preview.pips-dots .pip-mini::after { content: ''; width: 42%; aspect-ratio: 1; border-radius: 50%; background: var(--pip); }
-.pipstyle-preview.pips-outline .pip-mini { background: transparent; border-color: var(--pip); }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }

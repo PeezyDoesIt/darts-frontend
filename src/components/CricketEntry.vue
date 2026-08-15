@@ -18,13 +18,13 @@
         >
           <span class="target-label" :class="{ 'target-label-bull': target === 'bull' }" :style="{ color: targetColor, filter: `drop-shadow(0 0 6px ${targetColor}80)` }">{{ target === 'bull' ? '🎯' : target }}</span>
 
-          <div class="pips-wrap" :class="`pips-${pipStyle ?? 'blocks'}`" :style="{ '--pip': pipColor || 'var(--pink)' }">
+          <div class="pips-wrap" :class="pipStyle ? 'pip-' + pipStyle : null" :style="{ '--pip': pipColor || 'var(--pink)' }">
             <span
               v-for="n in mtc" :key="n"
               class="pip"
               :class="{ existing: pipIsExisting(target, n), round: pipIsRound(target, n) }"
               @click.stop="handlePipClick(target, n)"
-            >{{ pipGlyph(target, n) }}</span>
+            >{{ myClosed(target) ? '✕' : '' }}</span>
           </div>
 
           <span v-if="myClosed(target)" class="closed-badge">✓ CLOSED</span>
@@ -36,16 +36,18 @@
 
 <div class="submit-row">
       <!-- Left area: timer fill is constrained here, never reaches the button -->
-      <ThrowTimer
-        :timeLeft="throwTimeLeft" :duration="throwTimerDuration"
-        :paused="throwPaused" :locked="showPauseLocked"
-        @toggle="emit('toggleThrowPause')"
-      >
-        <span v-if="totalHitsThisRound > 0" class="hits-text">
+      <div class="submit-left" @click="throwTimerDuration ? emit('toggleThrowPause') : null">
+        <div v-if="throwTimerDuration" class="submit-timer-fill"
+          :class="{ warning: (throwTimeLeft ?? 0) <= 30, urgent: (throwTimeLeft ?? 0) <= 10, paused: throwPaused }"
+          :style="{ width: `${((throwTimeLeft ?? 0) / throwTimerDuration) * 100}%`, transition: throwPaused ? 'none' : 'width 1s linear' }" />
+        <span v-if="throwTimerDuration" class="submit-timer-text" :class="{ urgent: (throwTimeLeft ?? 0) <= 10 }">
+          {{ showPauseLocked ? 'LOCKED' : throwPaused ? 'PAUSED' : (throwTimeLeft ?? 0) + 's' }}
+        </span>
+        <span v-else-if="totalHitsThisRound > 0" class="hits-text">
           {{ totalHitsThisRound }} hit{{ totalHitsThisRound !== 1 ? 's' : '' }} this round
         </span>
         <span v-else class="round-label-text" :style="{ color: targetColor }">Round {{ round }}</span>
-      </ThrowTimer>
+      </div>
       <button v-ripple class="btn btn-gold submit-inline-btn" :disabled="submitted" @click="submit">
         NEXT
       </button>
@@ -55,9 +57,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { CRICKET_TARGETS, type PipStyle, type PlayerScore } from '../types/index'
+import { CRICKET_TARGETS, type PlayerScore, type PipStyle } from '../types/index'
 import { resolveTargetColor } from '../lib/targetColor'
-import ThrowTimer from './ThrowTimer.vue'
 import { playShotgun, playThemedBuzzer, playThemedBullseye } from '../composables/useSounds'
 import { speak, speakOhBaby } from '../composables/useSpeech'
 import { useSettingsStore } from '../stores/settings'
@@ -75,7 +76,7 @@ const props = defineProps<{
   targetLabelColor?: string | null
   /** Colour of a filled pip. Falls back to the app pink, which is what they always were. */
   pipColor?: string | null
-  /** Shape of a mark. Falls back to the filled blocks they always were. */
+  /** Shape/finish of the marks. Undefined or null renders them exactly as the app always has. */
   pipStyle?: PipStyle | null
   marksToClose?: number
   throwTimeLeft?: number
@@ -116,20 +117,6 @@ const totalHitsThisRound = computed(() =>
 )
 
 const mtc = computed(() => props.marksToClose ?? 3)
-
-/**
- * What a single mark shows.
- *
- * Only the Classic style draws anything: a board is scored with a slash for the first hit,
- * crossed for the second and ringed for the third, so the glyph depends on which mark it is
- * rather than on the target being closed. The other styles are drawn in CSS and show a
- * closing cross exactly as they always did.
- */
-function pipGlyph(target: EffTarget, n: number): string {
-  if (props.pipStyle !== 'marks') return myClosed(target) ? '✕' : ''
-  if (!pipIsExisting(target, n) && !pipIsRound(target, n)) return ''
-  return n === 1 ? '/' : n === 2 ? '✕' : '⊗'
-}
 function myClosed(target: EffTarget) { return (existingMarks.value[String(target)] ?? 0) >= mtc.value }
 function pipIsExisting(target: EffTarget, n: number) { return (existingMarks.value[String(target)] ?? 0) >= n }
 function pipIsRound(target: EffTarget, n: number) {
@@ -232,63 +219,71 @@ defineExpose({ submit, submitted })
 .pip.existing { background: var(--pip); border-color: var(--pip); box-shadow: 0 0 20px color-mix(in srgb, var(--pip) 85%, transparent), 0 0 40px color-mix(in srgb, var(--pip) 45%, transparent); }
 .pip.round { background: var(--pip); border-color: var(--pip); box-shadow: 0 0 16px color-mix(in srgb, var(--pip) 60%, transparent); }
 
-/*
- * The other mark styles.
- *
- * Every one of them keeps the pip's hit box exactly as it is — only the paint changes — so a
- * tap lands in the same place whichever style is chosen. That matters more than it sounds:
- * these are tapped mid-throw.
- */
+/* ── Per-player mark styles ───────────────────────────────────────────────
+   No class at all is the default above, untouched. Each style below only
+   restyles the pip; nothing here changes layout, hit area or the pip count,
+   so a style is purely cosmetic and safe to switch mid-game.
+   'slab' is the default look, named — so it needs no rules of its own.
+   ─────────────────────────────────────────────────────────────────────── */
 
-/* Classic: how a board is actually scored. The glyph carries the mark, so the tile behind it
-   stays empty and the slash, cross and ring do the talking. */
-.pips-marks .pip {
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.18);
-  color: var(--pip);
-  text-shadow: 0 0 14px color-mix(in srgb, var(--pip) 70%, transparent);
+/* Chalk — matte, faintly askew, no glow at all. */
+.pips-wrap.pip-chalk .pip { border-radius: 4px; border-width: 2px; border-color: rgba(255,255,255,0.28); }
+.pips-wrap.pip-chalk .pip:nth-child(odd) { transform: rotate(-1.2deg); }
+.pips-wrap.pip-chalk .pip:nth-child(even) { transform: rotate(0.9deg); }
+.pips-wrap.pip-chalk .pip.existing,
+.pips-wrap.pip-chalk .pip.round {
+  background: color-mix(in srgb, var(--pip) 80%, #ffffff);
+  border-color: color-mix(in srgb, var(--pip) 55%, #ffffff);
+  box-shadow: inset 0 0 14px rgba(255,255,255,0.4);
+  filter: saturate(0.78);
 }
-.pips-marks .pip.existing,
-.pips-marks .pip.round {
-  background: transparent;
-  border-color: color-mix(in srgb, var(--pip) 45%, transparent);
-  box-shadow: none;
-}
-/* The ring is drawn as a glyph rather than a border, so it wants a little less weight. */
-.pips-marks .pip { font-weight: 800; }
 
-/* Dots: a small round mark centred in the same tile. */
-.pips-dots .pip {
-  background: transparent;
+/* Spray — irregular blob, soft bloom, edges bleeding out. */
+.pips-wrap.pip-spray .pip { border-radius: 46% 54% 51% 49% / 52% 47% 53% 48%; border-color: rgba(255,255,255,0.2); }
+.pips-wrap.pip-spray .pip.existing,
+.pips-wrap.pip-spray .pip.round {
+  background: radial-gradient(circle at 44% 40%, color-mix(in srgb, var(--pip) 92%, #ffffff) 0%, var(--pip) 55%, color-mix(in srgb, var(--pip) 50%, transparent) 100%);
   border-color: transparent;
-  box-shadow: none;
-  position: relative;
-}
-.pips-dots .pip::after {
-  content: '';
-  width: 42%; aspect-ratio: 1;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.14);
-  transition: background 0.2s, box-shadow 0.2s;
-}
-.pips-dots .pip.existing::after,
-.pips-dots .pip.round::after {
-  background: var(--pip);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--pip) 75%, transparent);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--pip) 50%, transparent);
+  filter: blur(0.6px) saturate(1.15);
 }
 
-/* Outline: the edge carries the colour and the middle stays empty. */
-.pips-outline .pip {
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.2);
-  color: var(--pip);
+/* Neon — hollow tube, lit from the inside. */
+.pips-wrap.pip-neon .pip { border-radius: 999px; border-width: 3px; background: transparent; }
+.pips-wrap.pip-neon .pip.existing,
+.pips-wrap.pip-neon .pip.round {
+  background: color-mix(in srgb, var(--pip) 12%, transparent);
+  border-color: color-mix(in srgb, var(--pip) 88%, #ffffff);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--pip) 88%, transparent),
+              0 0 30px color-mix(in srgb, var(--pip) 55%, transparent),
+              inset 0 0 12px color-mix(in srgb, var(--pip) 65%, transparent);
 }
-.pips-outline .pip.existing,
-.pips-outline .pip.round {
-  background: transparent;
-  border-color: var(--pip);
-  box-shadow: inset 0 0 12px color-mix(in srgb, var(--pip) 35%, transparent),
-              0 0 14px color-mix(in srgb, var(--pip) 45%, transparent);
+
+/* Steel — bevelled plate, hard corners, top-lit. */
+.pips-wrap.pip-steel .pip {
+  border-radius: 3px; border-width: 2px; border-color: rgba(255,255,255,0.3);
+  background: linear-gradient(160deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 50%, rgba(0,0,0,0.25) 100%);
+}
+.pips-wrap.pip-steel .pip.existing,
+.pips-wrap.pip-steel .pip.round {
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--pip) 68%, #ffffff) 0%,
+    var(--pip) 42%,
+    color-mix(in srgb, var(--pip) 68%, #000000) 100%);
+  border-color: color-mix(in srgb, var(--pip) 55%, #ffffff);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.55),
+              inset 0 -2px 4px rgba(0,0,0,0.4),
+              0 0 14px color-mix(in srgb, var(--pip) 32%, transparent);
+}
+
+/* A closed target stays solid red in every style. This repeats the rule
+   above deliberately: the style rules carry more class weight than the
+   original .board-tile.closed .pip.existing, so it has to be restated
+   after them or a closed number would keep the player's colour. */
+.board-tile.closed .pips-wrap .pip.existing,
+.board-tile.closed .pips-wrap .pip.round {
+  background: #cc0000; border-color: #cc0000; box-shadow: none; color: #000;
+  filter: none; transform: none;
 }
 
 .closed-badge { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--pink); text-transform: uppercase; font-family: var(--font-display); opacity: 0.7; z-index: 2; }
@@ -330,6 +325,19 @@ defineExpose({ submit, submitted })
   box-shadow: 0 2px 12px rgba(220,38,38,0.4);
 }
 .submit-inline-btn:disabled { opacity: 0.4; }
+.submit-left { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; padding: 0 4px; min-height: 100%; cursor: pointer; }
+.submit-timer-fill {
+  position: absolute; left: 0; top: 0; bottom: 0; pointer-events: none;
+  background: #ff0000; transition: width 1s linear, background 0.3s; z-index: 0;
+}
+.submit-timer-fill.warning { background: #ff0000; }
+.submit-timer-fill.urgent { background: #ff3333; }
+.submit-timer-fill.paused { background: rgba(120,120,120,0.6); }
+.submit-timer-text {
+  position: relative; z-index: 1; font-size: clamp(46px, 7dvh, 80px); font-weight: 900;
+  letter-spacing: 0.04em; text-transform: uppercase; color: #fff; font-family: var(--font-display);
+}
+.submit-timer-text.urgent { color: #fff; }
 
 @media (orientation: landscape) and (max-height: 900px) {
   .cricket-board-scroll { overflow: hidden; display: flex; flex-direction: column; }
