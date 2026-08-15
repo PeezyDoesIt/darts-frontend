@@ -28,8 +28,8 @@ const MACOS = [
   v('Samantha', 'en-US'),
   v('Karen', 'en-AU'),
   v('Daniel', 'en-GB'),
-  v('Zarvox', 'en-US'),
   v('Deranged', 'en-US'),
+  v('Bubbles', 'en-US'),
 ]
 
 const ANDROID = [
@@ -75,14 +75,14 @@ describe('the voice list', () => {
 
   it('keeps the character voices and their descriptions', () => {
     const options = getAvailableVoices(MACOS)
-    const zarvox = options.find(o => o.value === 'Zarvox')
-    expect(zarvox?.label).toBe('Zarvox')
-    expect(zarvox?.sublabel).toBe('Robotic alien')
+    const bubbles = options.find(o => o.value === 'Bubbles')
+    expect(bubbles?.label).toBe('Bubbles')
+    expect(bubbles?.sublabel).toBe('Underwater')
   })
 
   it('lists a character voice once, not again under its accent', () => {
     const values = getAvailableVoices(MACOS).map(o => o.value)
-    expect(values.filter(x => x === 'Zarvox')).toHaveLength(1)
+    expect(values.filter(x => x === 'Bubbles')).toHaveLength(1)
   })
 
   it('never produces a blank label', () => {
@@ -114,7 +114,6 @@ const IOS = [
   v('Samantha', 'en-US'),
   v('Aaron', 'en-US'),
   v('Wobble (English (US))', 'en-US'),
-  v('Jester (English (US))', 'en-US'),
   v('Organ (English (US))', 'en-US'),
   v('Rocko (English (US))', 'en-US'),
   v('Daniel', 'en-GB'),
@@ -129,7 +128,7 @@ const MACOS_OLD = [
 describe('character voices', () => {
   it('recognises the modern Apple names', () => {
     const labels = getAvailableVoices(IOS).map(o => o.label)
-    for (const name of ['Wobble', 'Jester', 'Organ', 'Rocko']) {
+    for (const name of ['Wobble', 'Organ', 'Rocko']) {
       expect(labels, `${name} is unrecognised`).toContain(name)
     }
   })
@@ -137,8 +136,11 @@ describe('character voices', () => {
   it('still recognises the retired names, for an older device', () => {
     const labels = getAvailableVoices(MACOS_OLD).map(o => o.label)
     expect(labels).toContain('Deranged')
-    expect(labels).toContain('Hysterical')
     expect(labels).toContain('Pipe Organ')
+    // Hysterical is deliberately absent: it is Jester under Apple's older name, and Jester
+    // is withdrawn. Removing one spelling while an older device still offers the other
+    // would not be removing it.
+    expect(labels).not.toContain('Hysterical')
   })
 
   it('describes them, so the list is not a wall of bare names', () => {
@@ -163,6 +165,52 @@ describe('character voices', () => {
     const values = getAvailableVoices(IOS).map(o => o.value)
     expect(values).toContain('Samantha')
     expect(values).toContain('Aaron')
+    expect(values).toContain('Daniel')
+  })
+})
+
+/**
+ * Voices the app will not offer.
+ *
+ * Dropping them from the described character list alone would not do it: the picker lists
+ * every English voice the device has, so they would simply reappear as bare names filed under
+ * their accent. Hysterical goes with Jester because they are the same voice under Apple's old
+ * and new names — removing one while an older device still offers the other is not removing
+ * it.
+ */
+const WITHDRAWN = ['Zarvox', 'Trinoids', 'Jester', 'Hysterical', 'Boing', 'Good News', 'Bad News']
+
+const HAS_WITHDRAWN = [
+  v('Zarvox', 'en-US'),
+  v('Trinoids', 'en-US'),
+  v('Jester (English (US))', 'en-US'),
+  v('Hysterical', 'en-US'),
+  v('Boing', 'en-US'),
+  v('Good News', 'en-US'),
+  v('Bad News', 'en-US'),
+  v('Samantha', 'en-US'),
+  v('Daniel', 'en-GB'),
+]
+
+describe('withdrawn voices', () => {
+  it('are not offered, under any of their names', () => {
+    const offered = getAvailableVoices(HAS_WITHDRAWN)
+    for (const name of WITHDRAWN) {
+      const found = offered.find(o => o.value === name || o.value.startsWith(`${name} (`) || o.label === name)
+      expect(found, `${name} is still offered as ${found?.value}`).toBeUndefined()
+    }
+  })
+
+  it('do not slip back in through the accent grouping', () => {
+    // The failure mode: removed from the described list, then re-added by the sweep that
+    // lists everything else the device has.
+    const values = getAvailableVoices(HAS_WITHDRAWN).map(o => o.value)
+    expect(values.some(x => /zarvox|trinoids|jester|hysterical|boing|news/i.test(x))).toBe(false)
+  })
+
+  it('leave every other voice on the device alone', () => {
+    const values = getAvailableVoices(HAS_WITHDRAWN).map(o => o.value)
+    expect(values).toContain('Samantha')
     expect(values).toContain('Daniel')
   })
 })

@@ -9,7 +9,11 @@ import { resolveVoice } from '../lib/voiceMatch'
  * Windows, macOS, iOS and Android rosters rather than only this machine's.
  */
 function selectVoice(name: string): SpeechSynthesisVoice | null {
-  return resolveVoice(window.speechSynthesis.getVoices(), name).voice
+  // A preference saved before a voice was withdrawn still names it, and the device still has
+  // it — so without this it would keep speaking in a voice the picker no longer lists and
+  // there would be no way to see why. Dropping the name falls through to the default.
+  const preferred = isExcluded(name) ? '' : name
+  return resolveVoice(window.speechSynthesis.getVoices(), preferred).voice
 }
 
 const PRONUNCIATIONS: [RegExp, string][] = [
@@ -114,7 +118,8 @@ export function speakOhBaby(): Promise<void> {
 export type VoiceOption = { label: string; value: string; sublabel?: string }
 
 // Voices that respond to gender pitch-shifting
-const GENDERED_VOICES = new Set(['Deranged', 'Hysterical', 'Bad News'])
+// Hysterical and Bad News used to be here too; both are excluded now.
+const GENDERED_VOICES = new Set(['Deranged'])
 
 /**
  * Apple's novelty and character voices, under every name they have shipped under.
@@ -129,19 +134,12 @@ const GENDERED_VOICES = new Set(['Deranged', 'Hysterical', 'Bad News'])
  */
 const CHARACTER_VOICES: { name: string; label: string; sublabel: string }[] = [
   // Novelty — the singing and shouting ones.
-  { name: 'Zarvox',     label: 'Zarvox',     sublabel: 'Robotic alien' },
-  { name: 'Trinoids',   label: 'Trinoids',   sublabel: 'Alien chorus' },
   { name: 'Wobble',     label: 'Wobble',     sublabel: 'Unhinged' },
   { name: 'Deranged',   label: 'Deranged',   sublabel: 'Unhinged' },
-  { name: 'Jester',     label: 'Jester',     sublabel: 'Manic' },
-  { name: 'Hysterical', label: 'Hysterical', sublabel: 'Manic' },
-  { name: 'Bad News',   label: 'Bad News',   sublabel: 'Ominous — sung as a dirge' },
-  { name: 'Good News',  label: 'Good News',  sublabel: 'Cheerful fanfare' },
   { name: 'Organ',      label: 'Organ',      sublabel: 'Musical tones' },
   { name: 'Pipe Organ', label: 'Pipe Organ', sublabel: 'Musical tones' },
   { name: 'Cellos',     label: 'Cellos',     sublabel: 'Sung over cellos' },
   { name: 'Bells',      label: 'Bells',      sublabel: 'Sung through bells' },
-  { name: 'Boing',      label: 'Boing',      sublabel: 'Springy' },
   { name: 'Bubbles',    label: 'Bubbles',    sublabel: 'Underwater' },
   { name: 'Bahh',       label: 'Bahh',       sublabel: 'Sheep' },
   { name: 'Whisper',    label: 'Whisper',    sublabel: 'Whispered' },
@@ -169,6 +167,24 @@ const CHARACTER_VOICES: { name: string; label: string; sublabel: string }[] = [
  */
 function matchesCharacter(voiceName: string, characterName: string): boolean {
   return voiceName === characterName || voiceName.startsWith(`${characterName} (`)
+}
+
+/**
+ * Voices the app will not offer, however the device spells them.
+ *
+ * Dropping them from the character list alone would not do it: the picker lists every English
+ * voice the device has, so they would simply reappear as bare names filed under their accent.
+ *
+ * Hysterical goes with Jester because they are the same voice — Apple renamed it — and
+ * removing one while an older device still offers the other is not removing it.
+ */
+const EXCLUDED_VOICES = [
+  'Zarvox', 'Trinoids', 'Jester', 'Hysterical',
+  'Boing', 'Good News', 'Bad News',
+]
+
+function isExcluded(voiceName: string): boolean {
+  return EXCLUDED_VOICES.some(name => matchesCharacter(voiceName, name))
 }
 
 
@@ -218,8 +234,12 @@ export function getAvailableVoices(
   // tidying can be tested against fabricated Windows, macOS and Android rosters — the CI
   // runner has no speech engine at all, and a test that can only run on a laptop is not
   // protecting anything.
-  voices: SpeechSynthesisVoice[] = window.speechSynthesis.getVoices(),
+  all: SpeechSynthesisVoice[] = window.speechSynthesis.getVoices(),
 ): VoiceOption[] {
+  // Filtered once, at the top, so an excluded voice cannot slip back in through the grouped
+  // list below after being left out of the character list above.
+  const voices = all.filter(v => !isExcluded(v.name))
+
   const result: VoiceOption[] = [
     { label: 'Default', value: '', sublabel: 'Auto-selected narrator' },
   ]
