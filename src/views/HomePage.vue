@@ -1501,6 +1501,8 @@ function previewBullseyeSound(value: string) {
   gap: 28px; width: 100%; max-width: 340px;
   max-height: calc(100dvh - 48px);
   overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
+  /* Touch scrolling, and kept to itself: without overscroll-behavior a drag inside this panel chains straight through to the page behind it, so on an iPad the modal stayed put and the page moved instead. */
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
 }
 .coin-modal::-webkit-scrollbar { display: none; }
 .coin-modal-header { display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
@@ -1584,6 +1586,18 @@ function previewBullseyeSound(value: string) {
 .series-pip.pip-filled { background: var(--gold); box-shadow: 0 0 6px rgba(255,215,0,0.6); }
 .series-divider { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.3); }
 .coin-series-winner { font-size: 28px; letter-spacing: 0.1em; color: var(--gold); filter: drop-shadow(0 0 12px rgba(255,215,0,0.6)); }
+/*
+ * Nothing in the modal gets squeezed; it scrolls instead.
+ *
+ * The reset button was rendering 30px tall for 52px of content, with its own overflow
+ * clipping the second line — so "↺ Reset Series" arrived cut in half. It is a flex item in a
+ * column whose contents are taller than it, and the automatic minimum size that normally
+ * stops a flex item shrinking below its content only applies while `overflow` is `visible`.
+ * This button sets `overflow: hidden` for the ripple, which opts it out of that protection —
+ * which is why it alone was affected and every sibling was fine.
+ */
+.coin-modal > * { flex-shrink: 0; }
+
 .coin-reset-btn {
   width: 100%; padding: 10px; border-radius: 8px;
   border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
