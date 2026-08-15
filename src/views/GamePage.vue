@@ -1391,6 +1391,10 @@ watch(() => game.value?.currentPlayerIndex, () => {
   background: rgba(0,0,0,0.4); border-bottom: 1px solid rgba(255,255,255,0.08);
   display: flex; flex-direction: column;
   scrollbar-width: none; max-height: 45vh;
+  /* Touch scrolling, and kept to itself: without overscroll-behavior a drag inside
+     this panel chains through to whatever is behind it, so the panel stays put and
+     the page moves instead — which is what the coin modal was doing on an iPad. */
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
 }
 .cricket-strip::-webkit-scrollbar { display: none; }
 .cs-header {
@@ -1472,6 +1476,10 @@ watch(() => game.value?.currentPlayerIndex, () => {
   width: 130px; flex-shrink: 0; display: flex; flex-direction: column;
   border-left: 1px solid rgba(255,255,255,0.08);
   background: rgba(0,0,0,0.4); overflow-y: auto; scrollbar-width: none;
+  /* Touch scrolling, and kept to itself: without overscroll-behavior a drag inside
+     this panel chains through to whatever is behind it, so the panel stays put and
+     the page moves instead — which is what the coin modal was doing on an iPad. */
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
 }
 .cricket-col::-webkit-scrollbar { display: none; }
 .cc-header {
@@ -1690,6 +1698,10 @@ watch(() => game.value?.currentPlayerIndex, () => {
   max-height: calc(100dvh - 48px);
   overflow-y: auto; overflow-x: hidden;
   scrollbar-width: none;
+  /* Touch scrolling, and kept to itself: without overscroll-behavior a drag inside
+     this panel chains through to whatever is behind it, so the panel stays put and
+     the page moves instead — which is what the coin modal was doing on an iPad. */
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
 }
 .coin-modal::-webkit-scrollbar { display: none; }
 .coin-body {
