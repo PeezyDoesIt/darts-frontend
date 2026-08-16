@@ -928,13 +928,10 @@ function previewBullseyeSound(value: string) {
 .glass-panel {
   position: relative;
   overflow: hidden;
-  /* Street: an opaque printed panel, not a pane of glass. Nothing to blur means nothing
-     repaints behind it — the page costs nothing to leave on a stand all evening. */
   background: #101014;
   border: 2px solid rgba(255,255,255,0.16);
   box-shadow: 8px 8px 0 rgba(0,0,0,0.6);
 }
-/* halftone grain — what makes a flat dark panel read as printed stock rather than a hole */
 .glass-panel::before {
   content: '';
   position: absolute; inset: 0; pointer-events: none; z-index: 0;
@@ -1515,7 +1512,7 @@ function previewBullseyeSound(value: string) {
   position: absolute; right: 0; background: none; border: none;
   color: rgba(255,255,255,0.45); font-size: 22px; cursor: pointer; padding: 4px 8px; line-height: 1;
 }
-
+.coin-close-btn:hover { color: #fff; }
 .coin-arena { display: flex; flex-direction: column; align-items: center; gap: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .coin-perspective { perspective: 700px; }
 .coin { width: 160px; height: 160px; position: relative; transform-style: preserve-3d; }
@@ -1541,8 +1538,8 @@ function previewBullseyeSound(value: string) {
 .coin-result-text.tails { color: #c8d4e8; filter: drop-shadow(0 0 20px rgba(180,200,240,0.6)); }
 .coin-customize {
   display: flex; align-items: center; gap: 20px; padding: 14px 20px;
-  background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.08);
-   width: 100%;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px; width: 100%;
 }
 .coin-cust-side { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .coin-cust-label { font-size: 10px; font-weight: 800; letter-spacing: 0.15em; color: rgba(255,255,255,0.38); text-transform: uppercase; }
@@ -1552,11 +1549,11 @@ function previewBullseyeSound(value: string) {
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   overflow: hidden; transition: border-color 0.15s, background 0.15s;
 }
-
+.coin-cust-btn:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
 .cust-preview { width: 100%; height: 100%; object-fit: cover; }
 .cust-placeholder { font-size: 11px; color: rgba(255,255,255,0.35); font-weight: 700; }
 .coin-cust-clear { background: none; border: none; color: rgba(255,80,80,0.65); font-size: 13px; cursor: pointer; padding: 2px 6px; }
-
+.coin-cust-clear:hover { color: #ff4444; }
 .coin-cust-divider { width: 1px; height: 60px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
 .coin-fade-enter-active, .coin-fade-leave-active { transition: opacity 0.22s; }
 .coin-fade-enter-from, .coin-fade-leave-to { opacity: 0; }
@@ -1565,12 +1562,12 @@ function previewBullseyeSound(value: string) {
 
 .coin-series-modes { display: flex; gap: 8px; justify-content: center; width: 100%; }
 .coin-mode-btn {
-  flex: 1; padding: 7px 0; 
+  flex: 1; padding: 7px 0; border-radius: 8px;
   border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);
   color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 700;
   cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
 }
-
+.coin-mode-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
 .coin-mode-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(255,215,0,0.1); }
 
 .coin-series-board { display: flex; align-items: center; justify-content: center; gap: 16px; width: 100%; padding: 10px 0; }
@@ -1603,24 +1600,24 @@ function previewBullseyeSound(value: string) {
 .coin-modal > * { flex-shrink: 0; }
 
 .coin-reset-btn {
-  width: 100%; padding: 10px; 
+  width: 100%; padding: 10px; border-radius: 8px;
   border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 700;
   cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
 }
-
+.coin-reset-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(255,215,0,0.1); }
 
 .coin-question-section { width: 100%; display: flex; flex-direction: column; align-items: center; }
 .coin-question-toggle {
-  background: none; border: 1px dashed rgba(255,255,255,0.2); 
+  background: none; border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px;
   color: rgba(255,255,255,0.35); font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
   padding: 7px 16px; cursor: pointer; width: 100%; transition: all 0.15s;
 }
-
+.coin-question-toggle:hover { border-color: rgba(255,215,0,0.4); color: rgba(255,215,0,0.6); }
 .coin-question-display {
   display: flex; align-items: center; gap: 10px; width: 100%;
-  background: rgba(255,215,0,0.07); border: 2px solid rgba(255,215,0,0.25);
-   padding: 10px 14px;
+  background: rgba(255,215,0,0.07); border: 1px solid rgba(255,215,0,0.25);
+  border-radius: 10px; padding: 10px 14px;
 }
 .coin-question-text {
   flex: 1; font-size: 15px; font-weight: 800; font-family: var(--font-display);
@@ -1628,23 +1625,23 @@ function previewBullseyeSound(value: string) {
   filter: drop-shadow(0 0 8px rgba(255,215,0,0.4));
 }
 .coin-question-clear { background: none; border: none; color: rgba(255,215,0,0.5); font-size: 14px; cursor: pointer; padding: 2px 4px; flex-shrink: 0; line-height: 1; }
-
+.coin-question-clear:hover { color: #ff5555; }
 .coin-question-input-row { display: flex; align-items: center; gap: 6px; width: 100%; }
 .coin-question-input {
-  flex: 1; background: rgba(255,255,255,0.06); border: 2px solid rgba(255,215,0,0.3);
-   color: #fff; font-size: 14px; font-weight: 600;
+  flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 8px; color: #fff; font-size: 14px; font-weight: 600;
   padding: 9px 12px; outline: none; font-family: inherit;
 }
 .coin-question-input::placeholder { color: rgba(255,255,255,0.3); }
 .coin-question-input:focus { border-color: rgba(255,215,0,0.6); }
 .coin-q-confirm, .coin-q-cancel {
-  flex-shrink: 0; width: 34px; height: 34px;  border: none;
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 8px; border: none;
   font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s;
 }
 .coin-q-confirm { background: rgba(255,215,0,0.15); color: var(--gold); }
-
+.coin-q-confirm:hover { background: rgba(255,215,0,0.3); }
 .coin-q-cancel { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.45); }
-
+.coin-q-cancel:hover { color: #ff5555; }
 
 /* ── Cloud sync ── */
 .sync-panel { max-width: 420px; }
@@ -1667,7 +1664,7 @@ function previewBullseyeSound(value: string) {
   .coin-modal-title { font-size: clamp(36px, 5vw, 56px); letter-spacing: 0.25em; }
   .coin-close-btn { font-size: 28px; padding: 6px 12px; }
   .coin-series-modes { gap: 12px; }
-  .coin-mode-btn { font-size: 17px; padding: 11px 0;  }
+  .coin-mode-btn { font-size: 17px; padding: 11px 0; border-radius: 10px; }
   .coin-arena { gap: 22px; }
   .coin-perspective { perspective: 1000px; }
   .coin { width: 220px; height: 220px; }
@@ -1683,125 +1680,6 @@ function previewBullseyeSound(value: string) {
   .coin-customize { padding: 16px 24px; }
   .coin-cust-btn { width: 80px; height: 80px; }
 }
-
-/* ══════════════════════════════════════════════════════════════════════
-   STREET TREATMENT
-   Flat printed panels instead of glass. The rules above were swept —
-   blur removed, corners squared, hairlines doubled, glow shadows swapped
-   for hard offsets. This section adds the things a sweep cannot infer:
-   inked display type, taped labels, and the poster-block buttons.
-   ══════════════════════════════════════════════════════════════════════ */
-
-/* Bebas carries the whole look, so it gets the printed drop */
-.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
-.chip-name, .chip-sub { text-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
-.door-name { font-size: 29px; letter-spacing: 0.09em; }
-
-/* PICK A CATEGORY becomes a strip of tape over a dashed rule */
-.pick-label {
-  transform: rotate(-1.2deg);
-  padding: 4px 12px 3px;
-  background: #fff;
-  color: #101014;
-  font-size: 19px;
-  letter-spacing: 0.16em;
-  box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
-  text-shadow: none;
-}
-.pick-line {
-  height: 3px;
-  background: repeating-linear-gradient(90deg, rgba(255,255,255,0.3) 0 8px, transparent 8px 14px);
-}
-
-/* Hero actions as solid blocks. They are the two things you reach for before a
-   game, so they stop being translucent chrome and start being buttons. */
-.hero-action {
-  min-height: 48px;
-  color: #101014;
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  border: 2px solid transparent;
-  box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
-  transition: transform .16s, box-shadow .16s;
-}
-.hero-actions .hero-action:first-child { background: #00d4ff; }
-.hero-actions .hero-action:last-child { background: #ff2d78; }
-
-/* the dot sits on a bright field now, so it needs its own contrast */
-.hero-action .sync-dot { box-shadow: 0 0 0 2px rgba(16,16,20,0.5); }
-
-/* RESUME is the loudest control on the page when a game is live */
-.resume-btn {
-  background: #ff2d78;
-  border: 2px solid #ff2d78;
-  color: #fff;
-  box-shadow: 4px 4px 0 rgba(0,0,0,0.55);
-}
-
-
-/* Add player: lime outline block, filling on hover */
-.ghost-btn {
-  color: #aaff00;
-  background: rgba(170,255,0,0.1);
-  border: 2px solid rgba(170,255,0,0.5);
-  box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
-  font-family: var(--font-display);
-  font-size: 17px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-
-/* Category icon tiles: square colour blocks, not rounded glass */
-.mode-icon { border: 2px solid rgba(255,255,255,0.22); }
-
-/* Leaderboard rows hand-stacked rather than aligned to a grid, with the
-   percentage big enough to read from the throw line */
-.mini-row {
-  grid-template-columns: 30px 1fr auto;
-  gap: 12px;
-  padding: 11px 13px;
-  border: 2px solid #2a2a34;
-  border-left-width: 2px;
-}
-.mini-row:nth-child(1) { transform: rotate(-0.5deg); }
-.mini-row:nth-child(2) { transform: rotate(0.4deg); }
-.mini-row:nth-child(3) { transform: rotate(-0.3deg); }
-.board-row-lead { background: rgba(255,215,0,0.1); border-color: #ffd700; }
-.rank { font-family: var(--font-display); font-size: 30px; line-height: 1; }
-.board-name { font-family: var(--font-display); font-size: 22px; letter-spacing: 0.05em; }
-.num {
-  font-family: var(--font-display);
-  font-size: 31px;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-.stat-value { font-variant-numeric: tabular-nums; }
-
-/* Square switch to match the square everything else */
-.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
-
-/* Modals are the same printed stock as the panels */
-.settings-panel, .coin-modal {
-  background: #101014;
-  border: 2px solid rgba(255,255,255,0.2);
-  box-shadow: 8px 8px 0 rgba(0,0,0,0.6);
-}
-/* The tape label must not make its header taller: these titles sit in headers with a fixed
-   height, and a coin-flip test asserts nothing in that modal overflows. Vertical padding is
-   traded for a tight line-height so the strip still reads as tape at the same box height. */
-.settings-title, .coin-modal-title {
-  display: inline-block;
-  transform: rotate(-1.4deg);
-  padding: 0 13px;
-  line-height: 1.05;
-  background: #ffd700;
-  color: #101014;
-  box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
-  text-shadow: none;
-}
-
 
 @media (hover: hover) and (pointer: fine) {
   .icon-btn:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.3); transform: translateY(-1px); }
@@ -1835,15 +1713,68 @@ function previewBullseyeSound(value: string) {
   .settings-close:hover { color: #fff; }
   .voice-btn:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
   .toggle-row:hover { background: rgba(255,255,255,0.08); }
-  .coin-close-btn:hover { color: #fff; }
-  .coin-cust-btn:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
-  .coin-cust-clear:hover { color: #ff4444; }
-  .coin-mode-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
-  .coin-reset-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(255,215,0,0.1); }
-  .coin-question-toggle:hover { border-color: rgba(255,215,0,0.4); color: rgba(255,215,0,0.6); }
-  .coin-question-clear:hover { color: #ff5555; }
-  .coin-q-confirm:hover { background: rgba(255,215,0,0.3); }
-  .coin-q-cancel:hover { color: #ff5555; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — inked type, taped section label, poster buttons.
+   The coin-flip modal is deliberately excluded from all of this: it is a
+   fixed-height scroller whose children were measured against its original
+   border and type sizes, and coin-flip.spec.ts asserts none of them ends up
+   holding more than it has room for. It keeps its shipped look.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.chip-name, .chip-sub { text-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+.door-name { font-size: 29px; letter-spacing: 0.09em; }
+.pick-label {
+  transform: rotate(-1.2deg);
+  padding: 4px 12px 3px;
+  background: #fff;
+  color: #101014;
+  font-size: 19px;
+  letter-spacing: 0.16em;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
+  text-shadow: none;
+}
+.pick-line { height: 3px; background: repeating-linear-gradient(90deg, rgba(255,255,255,0.3) 0 8px, transparent 8px 14px); }
+.hero-action {
+  min-height: 48px;
+  color: #101014;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 2px solid transparent;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
+  transition: transform .16s, box-shadow .16s;
+}
+.hero-actions .hero-action:first-child { background: #00d4ff; }
+.hero-actions .hero-action:last-child { background: #ff2d78; }
+.hero-action .sync-dot { box-shadow: 0 0 0 2px rgba(16,16,20,0.5); }
+.resume-btn { background: #ff2d78; border: 2px solid #ff2d78; color: #fff; box-shadow: 4px 4px 0 rgba(0,0,0,0.55); }
+.ghost-btn {
+  color: #aaff00;
+  background: rgba(170,255,0,0.1);
+  border: 2px solid rgba(170,255,0,0.5);
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
+  font-family: var(--font-display);
+  font-size: 17px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.mode-icon { border: 2px solid rgba(255,255,255,0.22); }
+.mini-row { grid-template-columns: 30px 1fr auto; gap: 12px; padding: 11px 13px; border: 2px solid #2a2a34; }
+.mini-row:nth-child(1) { transform: rotate(-0.5deg); }
+.mini-row:nth-child(2) { transform: rotate(0.4deg); }
+.mini-row:nth-child(3) { transform: rotate(-0.3deg); }
+.board-row-lead { background: rgba(255,215,0,0.1); border-color: #ffd700; }
+.rank { font-family: var(--font-display); font-size: 30px; line-height: 1; }
+.board-name { font-family: var(--font-display); font-size: 22px; letter-spacing: 0.05em; }
+.num { font-family: var(--font-display); font-size: 31px; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat-value { font-variant-numeric: tabular-nums; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+.settings-panel { background: #101014; border: 2px solid rgba(255,255,255,0.2); box-shadow: 8px 8px 0 rgba(0,0,0,0.6); }
+.settings-panel > * { flex-shrink: 0; }
+
+@media (hover: hover) and (pointer: fine) {
   .hero-action:hover { transform: translateY(-2px); box-shadow: 5px 5px 0 rgba(0,0,0,0.55); border-color: #fff; }
   .resume-btn:hover { background: #fff; border-color: #fff; color: #101014; }
   .ghost-btn:hover { color: #101014; background: #aaff00; border-color: #aaff00; transform: translateY(-2px); }
