@@ -1788,10 +1788,14 @@ function previewBullseyeSound(value: string) {
   border: 2px solid rgba(255,255,255,0.2);
   box-shadow: 8px 8px 0 rgba(0,0,0,0.6);
 }
+/* The tape label must not make its header taller: these titles sit in headers with a fixed
+   height, and a coin-flip test asserts nothing in that modal overflows. Vertical padding is
+   traded for a tight line-height so the strip still reads as tape at the same box height. */
 .settings-title, .coin-modal-title {
   display: inline-block;
   transform: rotate(-1.4deg);
-  padding: 5px 13px 4px;
+  padding: 0 13px;
+  line-height: 1.05;
   background: #ffd700;
   color: #101014;
   box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
