@@ -1,0 +1,215 @@
+/* ── Banksy / Street Art Theme ─────────────────────────────── */
+:root {
+  --bg-base:    #0e0e0e;
+  --bg-surface: #161616;
+  --bg-card:    #1e1e1e;
+  --border:     #2c2c2c;
+
+  /* Street art palette */
+  --pink:       #ff2d78;
+  --blue:       #00d4ff;
+  --lime:       #aaff00;
+  --orange:     #ff6b1a;
+  --purple:     #bf5fff;
+  --gold:       #ffd700;
+
+  --text:       #f0f0f0;
+  --text-muted: #555;
+
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+button, input, select, textarea, [role="button"] {
+  touch-action: manipulation;
+}
+
+html, body, #app {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-base);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow: hidden;
+  overscroll-behavior: none;
+  /* Prevent iOS rubber-band scroll on the root */
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+/* Quasar dark mode override */
+.q-dark, body.body--dark { background: var(--bg-base) !important; }
+
+/* Safe-area utilities */
+.safe-top    { padding-top:    env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+/* Use dynamic viewport height so mobile browser bars don't cut content */
+.dvh { height: 100dvh; }
+
+/* ── Scrollbar ── */
+.scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.scroll::-webkit-scrollbar { width: 3px; }
+.scroll::-webkit-scrollbar-track { background: transparent; }
+.scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+  user-select: none;
+  letter-spacing: 0.03em;
+  position: relative;
+}
+.btn:active { transform: scale(0.96); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+.btn-primary {
+  background: var(--pink);
+  color: #fff;
+  border: 2px solid var(--pink);
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.55);
+}
+.btn-primary:hover { background: #fff; border-color: #fff; color: #101014; transform: translateY(-2px); box-shadow: 6px 6px 0 rgba(0,0,0,0.55); }
+
+/* Gradient multi-color button */
+.btn-spray {
+  background: linear-gradient(135deg, var(--pink), var(--purple), var(--blue));
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.3); box-shadow: 4px 4px 0 rgba(0,0,0,0.55);
+}
+.btn-spray:hover { transform: translateY(-2px); box-shadow: 6px 6px 0 rgba(0,0,0,0.55); border-color: #fff; }
+
+.btn-surface {
+  background: var(--bg-card);
+  color: var(--text);
+  border: 2px solid var(--border);
+}
+.btn-surface:hover { border-color: #444; }
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-muted);
+  border: 2px solid #333;
+}
+.btn-outline:hover { border-color: var(--pink); color: var(--pink); }
+
+.btn-danger {
+  background: #ff2d2d;
+  color: #fff;
+}
+
+.btn-lg  { padding: 14px 32px; font-size: 16px; }
+.btn-sm  { padding: 7px 14px;  font-size: 13px; }
+.btn-xl  { padding: 18px 48px; font-size: 20px; letter-spacing: 0.05em; }
+
+/* Legacy alias */
+.btn-gold { background: var(--gold); color: #101014; font-weight: 900; border: 2px solid var(--gold); box-shadow: 4px 4px 0 rgba(0,0,0,0.55); }
+.btn-gold:hover { background: #fff; border-color: #fff; transform: translateY(-2px); box-shadow: 6px 6px 0 rgba(0,0,0,0.55); }
+
+/* ── Cards ── */
+.card {
+  position: relative;
+  overflow: hidden;
+  background: #101014;
+  border: 2px solid rgba(255,255,255,0.14);
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.6);
+  padding: 20px;
+}
+
+/* ── Glassmorphism surfaces ── */
+.glass {
+  position: relative;
+  background: #101014;
+  border: 2px solid rgba(255,255,255,0.14);
+}
+
+.glass-strong {
+  position: relative;
+  background: #14141a;
+  border: 2px solid rgba(255,255,255,0.2);
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.6);
+}
+
+/* ── Inputs ── */
+.input {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 2px solid var(--border);
+  padding: 12px 16px;
+  color: var(--text);
+  font-size: 15px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.input:focus { border-color: var(--pink); box-shadow: 3px 3px 0 rgba(255,45,120,0.35); }
+.input::placeholder { color: var(--text-muted); }
+
+/* ── Labels ── */
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* ── Divider ── */
+.divider { border: none; border-top: 2px solid var(--border); }
+
+/* ── Paint drip bar ── */
+.drip-bar {
+  height: 4px;
+  background: linear-gradient(90deg, var(--pink) 0%, var(--purple) 25%, var(--blue) 50%, var(--lime) 75%, var(--orange) 100%);
+  position: relative;
+  flex-shrink: 0;
+}
+.drip-bar::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background:
+    radial-gradient(ellipse 6px 12px at 8%  0%, var(--pink)   50%, transparent 51%),
+    radial-gradient(ellipse 5px 10px at 18% 0%, var(--purple) 50%, transparent 51%),
+    radial-gradient(ellipse 7px 14px at 31% 0%, var(--blue)   50%, transparent 51%),
+    radial-gradient(ellipse 4px  8px at 44% 0%, var(--lime)   50%, transparent 51%),
+    radial-gradient(ellipse 6px 12px at 57% 0%, var(--orange) 50%, transparent 51%),
+    radial-gradient(ellipse 5px 10px at 70% 0%, var(--pink)   50%, transparent 51%),
+    radial-gradient(ellipse 7px 13px at 83% 0%, var(--blue)   50%, transparent 51%),
+    radial-gradient(ellipse 5px  9px at 95% 0%, var(--purple) 50%, transparent 51%);
+}
+
+/* ── Neon glow utilities ── */
+.glow-pink   { box-shadow: 4px 4px 0 rgba(255,45,120,0.5); }
+.glow-blue   { box-shadow: 4px 4px 0 rgba(0,212,255,0.5); }
+.glow-purple { box-shadow: 4px 4px 0 rgba(191,95,255,0.5); }
+
+/* ── Display font util ── */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); font-family: var(--font-display); letter-spacing: 0.05em; }
+
+/* ── Street: halftone grain on the shared surfaces ──────────────────── */
+.card::before, .glass-strong::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.card > *, .glass-strong > * { position: relative; z-index: 1; }
