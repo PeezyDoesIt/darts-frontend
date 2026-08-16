@@ -86,12 +86,12 @@ const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !=
 .page-header {
   display: flex; align-items: center; justify-content: space-between; padding: 18px 40px;
   padding-top: calc(18px + env(safe-area-inset-top));
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0;
+  border-bottom: 2px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03); flex-shrink: 0;
 }
 .page-title { font-size: 28px; letter-spacing: 0.12em; background: linear-gradient(135deg, var(--gold), var(--orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .btn-outline { color: #ffffff !important; font-weight: 700 !important; border: 2px solid #ffffff !important; }
-.btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
+
 
 /* overflow-y: auto, not hidden. As a flex child inside a shell that never scrolls, this
    clipped its own content with no way to reach it — on a 568px phone the lower table rows
@@ -109,25 +109,25 @@ const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !=
 .pod-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .pod-name { font-size: 14px; font-weight: 700; }
 .pod-wins { font-size: 24px; }
-.pod-base { font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 6px 18px; border-radius: 4px; font-family: var(--font-display); }
+.pod-base { font-size: 12px; font-weight: 900; letter-spacing: 0.1em; padding: 6px 18px;  font-family: var(--font-display); }
 .first-base  { background: linear-gradient(135deg, var(--gold), var(--orange)); color: #000; }
-.second-base { background: rgba(170,170,170,0.3); color: #aaa; border: 1px solid #aaa; }
-.third-base  { background: rgba(205,127,50,0.3); color: #cd7f32; border: 1px solid #cd7f32; }
+.second-base { background: rgba(170,170,170,0.3); color: #aaa; border: 2px solid #aaa; }
+.third-base  { background: rgba(205,127,50,0.3); color: #cd7f32; border: 2px solid #cd7f32; }
 
 .lb-table-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 .lb-table-header { display: grid; grid-template-columns: 44px 1fr 80px 80px 80px; padding: 8px 16px; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
 .lb-table-row {
   display: grid; grid-template-columns: 44px 1fr 80px 80px 80px; align-items: center; padding: 14px 16px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid rgba(255,255,255,0.08); border-radius: 8px;
+  background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.08); border-left: 3px solid rgba(255,255,255,0.08); 
   font-size: 14px; font-weight: 600; transition: background 0.15s; margin-bottom: 6px;
 }
-.lb-table-row:hover { background: rgba(255,255,255,0.07); }
+
 .lb-table-row.top { border-left-width: 4px; }
 .rank { font-size: 20px; }
 .player-cell { display: flex; align-items: center; gap: 12px; }
 .cell-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .lb-body { flex-direction: column; padding: 20px; gap: 24px; overflow: auto; }
   .lb-body { height: auto; flex: none; }
   /* `height: auto; min-height: 100dvh` assumes the document scrolls. It does not — the
@@ -140,5 +140,27 @@ const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !=
   .podium { justify-content: center; }
   .lb-table-header, .lb-table-row { grid-template-columns: 36px 1fr 60px 60px 60px; }
   .page-header { padding: 14px 20px; padding-top: calc(14px + env(safe-area-inset-top)); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
+  .lb-table-row:hover { background: rgba(255,255,255,0.07); }
 }
 </style>

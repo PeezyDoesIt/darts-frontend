@@ -149,8 +149,7 @@ function quit() { pig.endGame(); goBack(router, '/') }
 .gp-header {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 12px 14px; padding-top: calc(12px + env(safe-area-inset-top));
-  border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0;
+  border-bottom: 2px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6); flex-shrink: 0;
 }
 .gp-title-wrap { display: flex; flex-direction: column; align-items: center; }
 .gp-title {
@@ -167,7 +166,7 @@ function quit() { pig.endGame(); goBack(router, '/') }
 .scoreboard { display: flex; flex-wrap: wrap; gap: 8px; }
 .score-chip {
   flex: 1 1 auto; min-width: 92px; display: flex; flex-direction: column; align-items: center;
-  gap: 2px; padding: 8px 10px; border-radius: 10px; border: 2px solid transparent;
+  gap: 2px; padding: 8px 10px;  border: 2px solid transparent;
   background: rgba(255,255,255,0.04);
 }
 .score-chip.active { background: rgba(255,255,255,0.09); }
@@ -176,7 +175,7 @@ function quit() { pig.endGame(); goBack(router, '/') }
 
 .turn-banner {
   display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
-  padding: 10px 14px; border-radius: 10px; border-left: 4px solid; background: rgba(255,255,255,0.05);
+  padding: 10px 14px;  border-left: 4px solid; background: rgba(255,255,255,0.05);
 }
 .tb-name { font-size: 16px; font-weight: 800; overflow-wrap: anywhere; }
 .tb-turn { font-size: 13px; color: var(--text-muted); }
@@ -191,8 +190,7 @@ function quit() { pig.endGame(); goBack(router, '/') }
 .gp-footer {
   flex-shrink: 0; display: flex; gap: 10px; padding: 12px 14px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-top: 2px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
 }
 .gp-footer .btn { flex: 1; min-height: 56px; }
 .gp-footer .btn:disabled { opacity: 0.4; }
@@ -206,7 +204,7 @@ function quit() { pig.endGame(); goBack(router, '/') }
 .win-card, .rules-card {
   width: 100%; max-width: 420px; max-height: 82dvh; overflow-y: auto;
   display: flex; flex-direction: column; align-items: center; gap: 12px;
-  padding: 26px 22px; border-radius: 16px; text-align: center;
+  padding: 26px 22px;  text-align: center;
 }
 .win-label { font-size: 11px; letter-spacing: 0.2em; color: var(--text-muted); }
 .win-name { font-size: 32px; margin: 0; overflow-wrap: anywhere; }
@@ -220,4 +218,21 @@ function quit() { pig.endGame(); goBack(router, '/') }
   height: 100dvh; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 16px; color: var(--text-muted);
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
 </style>

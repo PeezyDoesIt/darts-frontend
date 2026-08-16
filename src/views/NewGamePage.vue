@@ -481,10 +481,8 @@ function startGame() {
   justify-content: space-between;
   padding: 14px 20px;
   padding-top: calc(14px + env(safe-area-inset-top));
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 2px solid rgba(255,255,255,0.08);
   background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   flex-shrink: 0;
 }
 .header-back { min-width: 72px; }
@@ -564,7 +562,7 @@ function startGame() {
 .game-type-pill {
   flex: 1;
   padding: 10px 6px;
-  border-radius: 24px;
+  
   border: 2px solid rgba(255,255,255,0.15);
   background: rgba(255,255,255,0.04);
   color: #fff;
@@ -579,10 +577,7 @@ function startGame() {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.game-type-pill:hover {
-  border-color: rgba(255,255,255,0.35);
-  background: rgba(255,255,255,0.08);
-}
+
 .game-type-pill.active {
   border-color: var(--pink);
   color: var(--pink);
@@ -623,9 +618,9 @@ function startGame() {
 }
 
 /* Play order */
-.order-section { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; }
+.order-section { display: flex; flex-direction: column; gap: 10px; border-top: 2px solid rgba(255,255,255,0.06); padding-top: 20px; }
 .order-list { display: flex; flex-direction: column; gap: 8px; }
-.order-row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid rgba(255,255,255,0.1); border-radius: 8px; }
+.order-row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.08); border-left: 3px solid rgba(255,255,255,0.1);  }
 .order-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; overflow: hidden; }
 .order-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .order-num { font-size: 28px; font-family: var(--font-display); width: 28px; text-align: center; }
@@ -645,7 +640,7 @@ function startGame() {
   padding: 0 20px;
   font-size: 16px;
   font-weight: 800;
-  border-radius: 8px;
+  
   border: 2px solid rgba(255,255,255,0.2);
   background: rgba(255,255,255,0.04);
   color: #ffffff;
@@ -656,7 +651,7 @@ function startGame() {
   flex: 1;
   font-family: var(--font-display);
 }
-.large-timer-btn:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.08); }
+
 .large-timer-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.12); }
 
 .custom-time-bubble {
@@ -665,7 +660,7 @@ function startGame() {
   gap: 2px;
   padding: 0 12px;
   min-height: 52px;
-  border-radius: 8px;
+  
   border: 2px solid rgba(255,255,255,0.2);
   background: rgba(255,255,255,0.04);
   transition: all 0.15s;
@@ -695,12 +690,12 @@ function startGame() {
 /* Wild Mode section */
 .ng-wild-section { margin-bottom: 4px; }
 .ng-wild-row { border-color: rgba(255, 180, 0, 0.35) !important; background: rgba(255, 180, 0, 0.06) !important; }
-.ng-wild-row:hover { background: rgba(255, 180, 0, 0.12) !important; }
+
 
 .killer-lives { display: flex; gap: 8px; }
 .killer-life-btn {
-  flex: 1; min-height: 48px; border-radius: 10px; background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.12); color: var(--text); font-weight: 800;
+  flex: 1; min-height: 48px;  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.12); color: var(--text); font-weight: 800;
   font-size: 16px; cursor: pointer; font-family: var(--font-display);
 }
 .killer-life-btn.active { background: linear-gradient(135deg, var(--gold), var(--orange)); color: #000; border-color: transparent; }
@@ -713,8 +708,8 @@ function startGame() {
 /* Advanced toggle */
 .advanced-toggle-btn {
   background: none;
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.15);
+  
   padding: 12px 16px;
   color: rgba(255,255,255,0.6);
   font-size: 14px;
@@ -724,29 +719,25 @@ function startGame() {
   width: 100%;
   transition: all 0.15s;
 }
-.advanced-toggle-btn:hover {
-  border-color: rgba(255,255,255,0.3);
-  color: rgba(255,255,255,0.85);
-  background: rgba(255,255,255,0.04);
-}
+
 
 /* Toggles */
 .toggle-row {
-  display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 8px;
-  cursor: pointer; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; gap: 14px; padding: 12px 14px; 
+  cursor: pointer; background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.1);
   transition: background 0.15s; user-select: none;
 }
-.toggle-row:hover { background: rgba(255,255,255,0.08); }
+
 .toggle-track {
-  width: 44px; height: 24px; border-radius: 12px; flex-shrink: 0;
-  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+  width: 44px; height: 24px;  flex-shrink: 0;
+  background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.2);
   position: relative; transition: background 0.2s;
 }
 .toggle-track.active { background: var(--pink); border-color: var(--pink); }
 .toggle-thumb {
   position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
   border-radius: 50%; background: #fff; transition: transform 0.2s;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  box-shadow: 1px 1px 0 rgba(0,0,0,0.5);
 }
 .toggle-track.active .toggle-thumb { transform: translateX(20px); }
 .toggle-info { display: flex; flex-direction: column; gap: 2px; }
@@ -758,47 +749,47 @@ function startGame() {
 .closed-target-opts { display: flex; flex-direction: column; gap: 6px; }
 .ct-opt-btn {
   display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
-  padding: 10px 14px; border-radius: 8px; width: 100%; text-align: left;
-  border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
+  padding: 10px 14px;  width: 100%; text-align: left;
+  border: 2px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
   cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
-.ct-opt-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+
 .ct-opt-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.1); }
 .ct-opt-label { font-size: 14px; font-weight: 700; color: var(--text); }
 .ct-opt-btn.active .ct-opt-label { color: var(--pink); }
 .ct-opt-sub { font-size: 11px; color: var(--text-muted); line-height: 1.3; }
 
 /* Round limit */
-.round-limit-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 4px; }
+.round-limit-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 2px solid rgba(255,255,255,0.06); margin-top: 4px; }
 .round-limit-control { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.round-limit-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: var(--text); font-size: 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; position: relative; overflow: hidden; }
-.round-limit-btn:hover:not(:disabled) { background: rgba(255,255,255,0.12); }
+.round-limit-btn { width: 36px; height: 36px;  border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: var(--text); font-size: 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; position: relative; overflow: hidden; }
+
 .round-limit-btn:disabled { opacity: 0.3; cursor: default; }
 .round-limit-val { min-width: 52px; text-align: center; font-size: 20px; font-weight: 900; font-family: var(--font-display); color: var(--gold); cursor: pointer; letter-spacing: 0.05em; }
 
 /* Theme */
 .bg-tabs { display: flex; gap: 8px; }
-.tab { padding: 7px 16px; border-radius: 6px; border: 2px solid #ffffff; background: transparent; color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
-.tab:hover { border-color: var(--pink); color: var(--pink); }
+.tab { padding: 7px 16px;  border: 2px solid #ffffff; background: transparent; color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+
 .tab.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.1); }
 
 .game-theme-photo-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.game-theme-preview { width: 88px; height: 64px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+.game-theme-preview { width: 88px; height: 64px;  border: 2px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
 .theme-swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(20px, 1fr)); gap: 4px; }
 .theme-swatch {
-  width: 20px; height: 20px; border-radius: 4px; border: 2px solid rgba(255,255,255,0.12);
+  width: 20px; height: 20px;  border: 2px solid rgba(255,255,255,0.12);
   cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; flex-shrink: 0;
 }
-.theme-swatch:hover { border-color: rgba(255,255,255,0.4); transform: scale(1.08); }
+
 .theme-swatch.active { border-color: var(--blue); box-shadow: 0 0 10px rgba(0,212,255,0.5); transform: scale(1.12); }
 .selected-theme-name { font-size: 12px; font-weight: 700; color: var(--blue); letter-spacing: 0.08em; text-transform: uppercase; }
-.bg-fit-controls { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 4px; }
+.bg-fit-controls { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 2px solid rgba(255,255,255,0.08); margin-top: 4px; }
 .bg-fit-row { display: flex; align-items: center; gap: 10px; }
 .bg-fit-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; min-width: 56px; }
 .bg-fit-btns { display: flex; gap: 6px; }
-.bg-fit-btn { padding: 5px 14px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
-.bg-fit-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+.bg-fit-btn { padding: 5px 14px;  border: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+
 .bg-fit-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.15); color: var(--pink); }
 
 /* Labels & hints */
@@ -808,7 +799,7 @@ function startGame() {
 
 .btn-blocked { opacity: 0.5; }
 .btn-outline { color: #ffffff !important; font-weight: 700 !important; border: 2px solid #ffffff !important; }
-.btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
+
 
 /* ===== FOOTER ===== */
 .ng-footer {
@@ -818,10 +809,8 @@ function startGame() {
   justify-content: space-between;
   padding: 12px 20px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 2px solid rgba(255,255,255,0.08);
   background: rgba(0,0,0,0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   gap: 16px;
 }
 
@@ -866,7 +855,7 @@ function startGame() {
   .bubble-avatar { width: 60px; height: 60px; font-size: 28px; }
 }
 
-@media (min-width: 1101px) {
+@media (min-width: 1100px) {
   .step-pane { overflow-y: auto; gap: 14px; padding: 16px 20px; }
   .player-bubble-grid { grid-template-columns: repeat(8, 1fr); gap: 14px 10px; }
   .bubble-avatar { width: 56px; height: 56px; font-size: 26px; }
@@ -876,5 +865,43 @@ function startGame() {
   .order-name { font-size: 13px; }
   .add-player-btn { align-self: flex-start; padding: 8px 20px; font-size: 14px; }
   .step-title { font-size: 22px; margin-bottom: 0; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+
+@media (hover: hover) and (pointer: fine) {
+  .game-type-pill:hover {
+  border-color: rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.08);
+}
+  .large-timer-btn:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.08); }
+  .ng-wild-row:hover { background: rgba(255, 180, 0, 0.12) !important; }
+  .advanced-toggle-btn:hover {
+  border-color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.04);
+}
+  .toggle-row:hover { background: rgba(255,255,255,0.08); }
+  .ct-opt-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+  .round-limit-btn:hover:not(:disabled) { background: rgba(255,255,255,0.12); }
+  .tab:hover { border-color: var(--pink); color: var(--pink); }
+  .theme-swatch:hover { border-color: rgba(255,255,255,0.4); transform: scale(1.08); }
+  .bg-fit-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+  .btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
 }
 </style>

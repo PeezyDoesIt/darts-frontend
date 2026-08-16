@@ -1110,7 +1110,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .rank-row {
   display: flex; align-items: center; gap: 12px;
   padding: 12px 16px; background: rgba(255,255,255,0.05);
-  border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
+   border: 2px solid rgba(255,255,255,0.1);
 }
 .rank-row.rank-winner { border-width: 2px; }
 .rank-place { font-size: 22px; width: 28px; text-align: center; color: rgba(255,255,255,0.4); }
@@ -1140,7 +1140,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   align-items: center;
   gap: 16px;
   padding: 14px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 2px solid rgba(255,255,255,0.08);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.15s;
@@ -1170,7 +1170,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   -webkit-overflow-scrolling: touch;
   flex-shrink: 0;
   background: rgba(0,0,0,0.5);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 2px solid rgba(255,255,255,0.06);
   scrollbar-width: none;
 }
 .player-tabs::-webkit-scrollbar { display: none; }
@@ -1191,7 +1191,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   overflow: hidden;
   min-width: 64px;
 }
-.player-tab:hover { color: rgba(255,255,255,0.7); }
+
 .tab-active { color: var(--pink); }
 .tab-current::after {
   content: '▶';
@@ -1211,7 +1211,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   flex-shrink: 0;
   padding: 24px 16px 20px;
   background: rgba(255,255,255,0.02);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 2px solid rgba(255,255,255,0.06);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1254,13 +1254,13 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 .die-wrap:active { transform: scale(0.92); }
 /* Gradient die themes — background applied via CSS var, SVG rect is transparent */
-[class*="die-theme-"] .die-svg { background: var(--die-face-bg, transparent); border-radius: 6px; }
+[class*="die-theme-"] .die-svg { background: var(--die-face-bg, transparent);  }
 [class*="die-theme-"].die-held .die-svg { box-shadow: 0 0 14px var(--held-color, var(--pink)), 0 0 4px var(--held-color, var(--pink)); }
 
 .die-svg {
   width: 62px;
   height: 62px;
-  border-radius: 8px;
+  
   box-shadow: 0 2px 8px rgba(0,0,0,0.5);
   transition: box-shadow 0.15s;
 }
@@ -1281,20 +1281,20 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 .dice-picker-panel {
   width: 100%; max-width: 680px; max-height: 80dvh;
-  background: #111; border-top: 1px solid rgba(255,255,255,0.12);
-  border-radius: 20px 20px 0 0;
+  background: #111; border-top: 2px solid rgba(255,255,255,0.12);
+  
   display: flex; flex-direction: column; overflow: hidden;
 }
 .dice-picker-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 24px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 2px solid rgba(255,255,255,0.08);
   flex-shrink: 0;
 }
 .dice-picker-title { font-size: 20px; letter-spacing: 0.12em; color: #fff; }
 .dice-picker-close {
   width: 32px; height: 32px; border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.7); font-size: 14px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
 }
@@ -1309,12 +1309,12 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .dp-btn {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 10px 14px; min-width: 80px;
-  border-radius: 10px; border: 2px solid rgba(255,255,255,0.12);
+   border: 2px solid rgba(255,255,255,0.12);
   background: rgba(255,255,255,0.05);
   cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
-.dp-btn:hover { border-color: rgba(255,255,255,0.3); transform: scale(1.04); }
+
 .dp-btn.active { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.3); transform: scale(1.06); }
 .dp-btn-icon { font-size: 20px; line-height: 1; }
 .dp-btn-label { font-size: 13px; font-weight: 800; font-family: system-ui, sans-serif; letter-spacing: 0.01em; color: #fff; white-space: nowrap; text-shadow: 0 1px 6px rgba(0,0,0,0.9); }
@@ -1325,13 +1325,13 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .dp-color-btn {
   display: flex; align-items: center; gap: 9px;
   padding: 7px 16px 7px 10px;
-  border-radius: 20px;
+  
   border: 2px solid rgba(255,255,255,0.15);
   background: rgba(255,255,255,0.06);
   cursor: pointer; transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-.dp-color-btn:hover { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.1); }
+
 .dp-color-btn.active { border-color: #fff; background: rgba(255,255,255,0.14); box-shadow: 0 0 10px rgba(255,255,255,0.25); }
 .dp-color-swatch {
   width: 18px; height: 18px; border-radius: 50%;
@@ -1358,7 +1358,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   justify-content: center;
   gap: 10px;
   padding: 8px 16px;
-  border-radius: 10px;
+  
   border: 2px solid;
   background: rgba(0,0,0,0.5);
   animation: yf-pulse 0.6s ease-in-out infinite alternate;
@@ -1405,7 +1405,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 .physical-step-btn {
   padding: 8px 16px;
-  border-radius: 8px;
+  
   border: 2px solid rgba(255,255,255,0.15);
   background: rgba(255,255,255,0.04);
   color: rgba(255,255,255,0.5);
@@ -1426,7 +1426,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   justify-content: space-between;
   padding: 10px 16px;
   background: rgba(255,212,0,0.08);
-  border-bottom: 1px solid rgba(255,212,0,0.2);
+  border-bottom: 2px solid rgba(255,212,0,0.2);
   font-size: 13px;
   color: rgba(255,255,255,0.7);
   gap: 12px;
@@ -1438,13 +1438,13 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .sc-ipad-btns { display: none; }
 .bet-header-btn {
   margin-left: auto; flex-shrink: 0;
-  padding: 2px 6px; border-radius: 4px;
-  border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
+  padding: 2px 6px; 
+  border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.65); font-size: 8px; font-weight: 900;
   letter-spacing: 0.06em; cursor: pointer; transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-.bet-header-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
 .bet-header-active { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.12); }
 
 /* BET PANEL */
@@ -1453,26 +1453,26 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .bet-input-row { display: flex; align-items: center; gap: 8px; }
 .bet-dollar { font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.5); }
 .bet-input {
-  flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 18px; font-weight: 700;
+  flex: 1; background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.15);
+   padding: 10px 14px; color: #fff; font-size: 18px; font-weight: 700;
   outline: none; min-width: 0;
 }
 .bet-input:focus { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
 .bet-input::placeholder { color: rgba(255,255,255,0.2); }
 .bet-set-btn {
-  padding: 10px 18px; border-radius: 8px; border: none;
+  padding: 10px 18px;  border: none;
   background: #f59e0b; color: #000; font-size: 13px; font-weight: 900;
   letter-spacing: 0.08em; cursor: pointer; flex-shrink: 0; transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-.bet-set-btn:hover { background: #fbbf24; }
+
 .bet-clear-btn {
-  padding: 10px 12px; border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06);
+  padding: 10px 12px; 
+  border: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.5); font-size: 14px; cursor: pointer; flex-shrink: 0;
   transition: all 0.15s; -webkit-tap-highlight-color: transparent;
 }
-.bet-clear-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
 .bet-active-badge { margin-top: 8px; font-size: 13px; color: #f59e0b; font-weight: 600; }
 .bet-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0 16px; }
 
@@ -1492,7 +1492,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   justify-content: space-between;
   gap: 16px;
   padding: 16px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 2px solid rgba(255,255,255,0.07);
 }
 .sc-settings-row:last-child { border-bottom: none; }
 .sc-settings-info {
@@ -1516,7 +1516,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .sc-settings-toggle {
   flex-shrink: 0;
   padding: 7px 22px;
-  border-radius: 20px;
+  
   border: 2px solid rgba(255,255,255,0.18);
   background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.35);
@@ -1536,17 +1536,17 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .sc-add-player-list {
   display: flex; flex-direction: column; gap: 4px;
   padding: 4px 0 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 2px solid rgba(255,255,255,0.07);
 }
 .sc-add-player-empty { font-size: 12px; color: rgba(255,255,255,0.35); padding: 8px 0; text-align: center; }
 .sc-add-player-row {
   display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px; border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03);
+  padding: 8px 10px; 
+  border: 2px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03);
   cursor: pointer; transition: background 0.12s; text-align: left;
   -webkit-tap-highlight-color: transparent;
 }
-.sc-add-player-row:hover { background: rgba(255,255,255,0.08); }
+
 .sc-add-avatar {
   width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; overflow: hidden;
@@ -1560,7 +1560,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 .sc-settings-quit-btn {
   padding: 11px 40px;
-  border-radius: 8px;
+  
   border: 2px solid rgba(255, 80, 80, 0.5);
   background: rgba(255, 60, 60, 0.12);
   color: #ff5555;
@@ -1571,10 +1571,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   cursor: pointer;
   transition: all 0.15s;
 }
-.sc-settings-quit-btn:hover {
-  background: rgba(255, 60, 60, 0.25);
-  border-color: #ff5555;
-}
+
 
 /* SCORECARD */
 .scorecard-scroll {
@@ -1593,8 +1590,8 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 
 .header-sc-btn {
   background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 6px;
+  border: 2px solid rgba(255,255,255,0.15);
+  
   padding: 3px 7px;
   font-size: 14px;
   cursor: pointer;
@@ -1603,7 +1600,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
-.header-sc-btn:hover { background: rgba(255,255,255,0.15); }
+
 .header-sc-btn-active { border-color: var(--pink) !important; background: rgba(255,45,120,0.15) !important; }
 .header-sc-btn-grey { color: rgba(255,255,255,0.4); filter: grayscale(1); }
 .header-sc-btn-grey.header-sc-btn-active { filter: none; }
@@ -1723,13 +1720,13 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .sc-dark .sc-header-row .sc-col-name { justify-content: flex-start; }
 .sc-dark .sc-header-row .sc-col-howto { justify-content: flex-start; padding-left: 2px; }
 .sc-dark .sc-section-title { font-size: 14px; color: rgba(255,255,255,0.85); letter-spacing: 0.08em; }
-.sc-dark .sc-col-name { border-right: 1px solid rgba(255,255,255,0.09); }
-.sc-dark .sc-col-howto { border-right: 1px solid rgba(255,255,255,0.09); }
+.sc-dark .sc-col-name { border-right: 2px solid rgba(255,255,255,0.09); }
+.sc-dark .sc-col-howto { border-right: 2px solid rgba(255,255,255,0.09); }
 .sc-dark .sc-col-box { border-left: 2px solid rgba(255,255,255,0.14); }
-.sc-dark .sc-row { border-bottom: 1px solid rgba(255,255,255,0.07); transition: background 0.12s; cursor: default; }
+.sc-dark .sc-row { border-bottom: 2px solid rgba(255,255,255,0.07); transition: background 0.12s; cursor: default; }
 .sc-dark .sc-row:nth-child(even) { background: rgba(255,255,255,0.02); }
 .sc-dark .sc-row-scoreable { cursor: pointer; }
-.sc-dark .sc-row-scoreable:hover { background: rgba(255,255,255,0.05) !important; }
+
 .sc-dark .sc-row-pending {
   background: color-mix(in srgb, var(--pending-color, var(--pink)) 32%, transparent) !important;
   border-left: 3px solid var(--pending-color, var(--pink)) !important;
@@ -1737,7 +1734,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   animation: sc-pending-flash 0.45s ease-in-out infinite;
 }
 .sc-dark .sc-row-filled { opacity: 0.72; }
-.sc-dark .sc-total-row { background: rgba(255,255,255,0.04); border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.06); }
+.sc-dark .sc-total-row { background: rgba(255,255,255,0.04); border-top: 2px solid rgba(255,255,255,0.1); border-bottom: 2px solid rgba(255,255,255,0.06); }
 .sc-dark .sc-section-total-row { border-bottom: 2px solid rgba(255,255,255,0.15); }
 .sc-dark .sc-grand-row { background: rgba(255,255,255,0.07); border-top: 2px solid rgba(255,255,255,0.2); }
 .sc-dark .sc-lower-header { background: #1c1c1c; border-top: 2px solid rgba(255,255,255,0.15); border-bottom: 2px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.65); }
@@ -1764,12 +1761,12 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .sc-light .sc-header-row .sc-col-name { justify-content: flex-start; }
 .sc-light .sc-header-row .sc-col-howto { justify-content: flex-start; padding-left: 2px; }
 .sc-light .sc-section-title { font-size: 14px; color: #222; letter-spacing: 0.08em; }
-.sc-light .sc-col-name { border-right: 1px solid #bbb; }
-.sc-light .sc-col-howto { border-right: 1px solid #bbb; }
-.sc-light .sc-row { border-bottom: 1px solid #ccc; transition: background 0.12s; cursor: default; }
+.sc-light .sc-col-name { border-right: 2px solid #bbb; }
+.sc-light .sc-col-howto { border-right: 2px solid #bbb; }
+.sc-light .sc-row { border-bottom: 2px solid #ccc; transition: background 0.12s; cursor: default; }
 .sc-light .sc-row:nth-child(even) { background: rgba(0,0,0,0.02); }
 .sc-light .sc-row-scoreable { cursor: pointer; }
-.sc-light .sc-row-scoreable:hover { background: rgba(0,0,0,0.05) !important; }
+
 .sc-light .sc-row-pending {
   background: color-mix(in srgb, var(--pending-color, var(--pink)) 28%, transparent) !important;
   border-left: 3px solid var(--pending-color, var(--pink)) !important;
@@ -1777,7 +1774,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   animation: sc-pending-flash 0.45s ease-in-out infinite;
 }
 .sc-light .sc-row-filled { opacity: 0.72; }
-.sc-light .sc-total-row { background: #ece6d8; border-top: 1px solid #aaa; border-bottom: 1px solid #bbb; }
+.sc-light .sc-total-row { background: #ece6d8; border-top: 2px solid #aaa; border-bottom: 2px solid #bbb; }
 .sc-light .sc-section-total-row { border-bottom: 2px solid #999; }
 .sc-light .sc-grand-row { background: #e0d8c8; border-top: 2px solid #888; }
 .sc-light .sc-lower-header { background: #e0d8c8; border-top: 2px solid #aaa; border-bottom: 2px solid #aaa; color: #333; }
@@ -1825,7 +1822,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 
 /* Tablet/iPad: compact everything to maximise scorecard space */
-@media (min-width: 768px) and (max-width: 1100px) {
+@media (min-width: 768px) and (max-width: 1099px) {
   .turn-header { padding: 5px 16px; padding-top: calc(5px + env(safe-area-inset-top)); }
   .header-sc-btn { font-size: 15px; padding: 4px 8px; }
   .player-banner { padding: 8px 16px; min-height: 52px; gap: 12px; }
@@ -1855,7 +1852,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   .sc-bonus-check { font-size: 15px; }
 }
 /* Tablet portrait: scorecard scrolls freely */
-@media (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
+@media (min-width: 768px) and (max-width: 1099px) and (orientation: portrait) {
   .scorecard-scroll { overflow-y: auto; }
   .sc-lower-header { display: flex; align-items: center; justify-content: center; }
   /* Bigger dice on portrait tablet — scrolling means space isn't an issue */
@@ -1896,13 +1893,13 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   .banner-total { font-size: 30px; }
 }
 /* Tablet landscape: scorecard fills page and scrolls if needed */
-@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+@media (min-width: 768px) and (max-width: 1099px) and (orientation: landscape) {
   .scorecard-scroll { display: flex; flex-direction: column; overflow-y: auto; }
   .sc-paper { flex: 1; }
 }
 
 /* Laptop / large desktop: scorecard fills the page without scrolling, larger text */
-@media (min-width: 1101px) {
+@media (min-width: 1100px) {
   /* Compact header + dice area to give scorecard maximum vertical space */
   .turn-header { padding: 5px 16px; padding-top: calc(5px + env(safe-area-inset-top)); position: relative; }
   .header-sc-btn { font-size: 14px; padding: 4px 8px; }
@@ -1918,7 +1915,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   }
   /* Taller player banner on laptop */
   .player-banner { padding: 16px 24px; min-height: 90px; gap: 20px; }
-  .banner-avatar { width: 130px; height: 82px; border-radius: 14px; font-size: 42px; }
+  .banner-avatar { width: 130px; height: 82px;  font-size: 42px; }
   .banner-name { font-size: clamp(36px, 5dvh, 64px); }
   .banner-total { font-size: 36px; }
   .banner-pts { font-size: 10px; }
@@ -2110,7 +2107,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 /* Animation toggle + style picker in dice picker */
 .dp-anim-styles {
   padding: 12px 4px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 2px solid rgba(255,255,255,0.08);
   margin-bottom: 14px;
 }
 .dp-anim-row {
@@ -2118,7 +2115,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   align-items: center;
   justify-content: space-between;
   padding: 10px 4px 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 2px solid rgba(255,255,255,0.08);
   margin-bottom: 14px;
 }
 .dp-anim-label {
@@ -2130,7 +2127,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 .dp-anim-btn {
   padding: 6px 20px;
-  border-radius: 20px;
+  
   border: 2px solid rgba(255,255,255,0.2);
   background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.4);
@@ -2154,7 +2151,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   position: relative;
   height: 28px;
   background: rgba(255,255,255,0.06);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 2px solid rgba(255,255,255,0.08);
   cursor: pointer;
   overflow: hidden;
   display: flex;
@@ -2197,7 +2194,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 .timer-ctrl-btn {
   padding: 5px 12px;
-  border-radius: 16px;
+  
   border: 2px solid rgba(255,255,255,0.15);
   background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.4);
@@ -2263,7 +2260,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .walkup-bar {
   width: 60%;
   height: 3px;
-  border-radius: 2px;
+  
 }
 .walkup-timer-bar {
   width: 90%;
@@ -2271,7 +2268,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   position: relative;
   height: 36px;
   background: rgba(255,255,255,0.08);
-  border-radius: 18px;
+  
   overflow: hidden;
   cursor: pointer;
   display: flex;
@@ -2282,7 +2279,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   position: absolute;
   left: 0; top: 0; bottom: 0;
   background: rgba(255,255,255,0.2);
-  border-radius: 18px;
+  
   transition: width 1s linear;
 }
 .walkup-timer-fill.urgent { background: rgba(239,68,68,0.45); }
@@ -2300,7 +2297,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .walkup-start-btn {
   margin-top: 8px;
   padding: 14px 48px;
-  border-radius: 40px;
+  
   border: none;
   background: var(--pink);
   color: #fff;
@@ -2322,7 +2319,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   color: rgba(255,255,255,0.3);
   padding: 10px 16px 4px;
   text-transform: uppercase;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 2px solid rgba(255,255,255,0.08);
   margin-top: 4px;
 }
 .sc-settings-bet-section {
@@ -2346,4 +2343,38 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .walkup-fade-enter-active { transition: opacity 0.25s ease; }
 .walkup-fade-leave-active { transition: opacity 0.2s ease; }
 .walkup-fade-enter-from, .walkup-fade-leave-to { opacity: 0; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+
+@media (hover: hover) and (pointer: fine) {
+  .player-tab:hover { color: rgba(255,255,255,0.7); }
+  .dp-btn:hover { border-color: rgba(255,255,255,0.3); transform: scale(1.04); }
+  .dp-color-btn:hover { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.1); }
+  .bet-header-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .bet-set-btn:hover { background: #fbbf24; }
+  .bet-clear-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .sc-add-player-row:hover { background: rgba(255,255,255,0.08); }
+  .sc-settings-quit-btn:hover {
+  background: rgba(255, 60, 60, 0.25);
+  border-color: #ff5555;
+}
+  .header-sc-btn:hover { background: rgba(255,255,255,0.15); }
+  .sc-dark .sc-row-scoreable:hover { background: rgba(255,255,255,0.05) !important; }
+  .sc-light .sc-row-scoreable:hover { background: rgba(0,0,0,0.05) !important; }
+}
 </style>

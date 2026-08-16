@@ -132,7 +132,7 @@ function goHome() { gameStore.endGame(); router.push('/') }
   position: relative; overflow: hidden;
 }
 .win-scroll {
-  width: 100%; height: 100vh; height: 100dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  width: 100%; height: 100dvh; height: 100dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -149,7 +149,7 @@ function goHome() { gameStore.endGame(); router.push('/') }
 .winner-sub { font-size: 14px; color: rgba(255,255,255,0.5); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
 
 .final-scores { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 380px; margin: 8px 0; }
-.final-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
+.final-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(255,255,255,0.05);  border: 2px solid rgba(255,255,255,0.1); }
 .final-row.winner { border-width: 2px; }
 .final-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
 .final-place { font-size: 13px; font-weight: 900; font-family: var(--font-display); color: rgba(255,255,255,0.5); min-width: 32px; }
@@ -158,8 +158,25 @@ function goHome() { gameStore.endGame(); router.push('/') }
 
 .win-actions { display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .winner-name { font-size: 52px; }
   .winner-avatar { width: 120px; height: 120px; font-size: 60px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
 </style>

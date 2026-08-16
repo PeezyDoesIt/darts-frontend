@@ -184,7 +184,7 @@
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════════
-           WIDESCREEN SIDEBAR — only visible at min-width: 1101px
+           WIDESCREEN SIDEBAR — only visible at min-width: 1100px
            To remove: delete this entire comment block + the CSS section
            marked "WIDESCREEN SIDEBAR" at the bottom of the style block
            ═══════════════════════════════════════════════════════════════ -->
@@ -1317,8 +1317,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .turn-header {
   display: flex; align-items: stretch; gap: 0;
   padding-top: env(safe-area-inset-top);
-  flex-shrink: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255,255,255,0.10); position: relative; z-index: 1; min-height: 90px; overflow: hidden;
+  flex-shrink: 0; background: rgba(0,0,0,0.85);
+  border-bottom: 2px solid rgba(255,255,255,0.10); position: relative; z-index: 1; min-height: 90px; overflow: hidden;
 }
 .turn-header::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--player-color, var(--pink)); box-shadow: 0 0 12px var(--player-color, var(--pink)); z-index: 1; }
 
@@ -1326,11 +1326,11 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .turn-left { flex: 1; display: flex; align-items: center; justify-content: flex-start; z-index: 1; }
 .turn-header-3btns .turn-left { align-items: flex-end; padding-bottom: 8px; }
 .header-avatar-btn { background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; margin-left: 16px; margin-right: 6px; -webkit-tap-highlight-color: transparent; flex-shrink: 0; position: relative; z-index: 2; }
-.header-avatar { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; overflow: hidden; border: 1.5px solid rgba(255,255,255,0.25); }
+.header-avatar { width: 38px; height: 38px;  display: flex; align-items: center; justify-content: center; font-size: 20px; overflow: hidden; border: 1.5px solid rgba(255,255,255,0.25); }
 .header-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .turn-name-wrap { position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); bottom: 0; display: flex; justify-content: center; align-items: stretch; pointer-events: none; z-index: 0; padding: 0 8px; }
-.turn-round-pill { font-size: clamp(50px, 6.8dvh, 74px); font-weight: 900; line-height: 1; letter-spacing: 0.08em; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 24px; color: rgba(255,255,255,0.8); white-space: nowrap; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; margin-left: 12px; }
-.turn-name { font-size: clamp(62px, 9dvh, 100px); line-height: 1; letter-spacing: 0.04em; font-weight: 900; background: rgba(0,0,0,0.90); border-radius: 0; padding: 0 14px; white-space: nowrap; max-width: 70vw; overflow: hidden; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px var(--player-color, var(--pink)), 0 0 3px var(--player-color, var(--pink)); text-shadow: 0 0 8px currentColor; }
+.turn-round-pill { font-size: clamp(50px, 6.8dvh, 74px); font-weight: 900; line-height: 1; letter-spacing: 0.08em; background: rgba(0,0,0,0.90);  padding: 0 24px; color: rgba(255,255,255,0.8); white-space: nowrap; display: flex; align-items: center; margin-left: 12px; }
+.turn-name { font-size: clamp(62px, 9dvh, 100px); line-height: 1; letter-spacing: 0.04em; font-weight: 900; background: rgba(0,0,0,0.90);  padding: 0 14px; white-space: nowrap; max-width: 70vw; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px var(--player-color, var(--pink)), 0 0 3px var(--player-color, var(--pink)); text-shadow: 0 0 8px currentColor; }
 .turn-name.turn-name-no-glow { box-shadow: none; text-shadow: none; }
 
 .turn-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding-right: 8px; z-index: 1; position: relative; }
@@ -1348,9 +1348,9 @@ watch(() => game.value?.currentPlayerIndex, () => {
   z-index: 10;
   pointer-events: none;
 }
-.header-quit-btn { width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: rgba(255,80,80,0.8); border: 1.5px solid rgba(255,80,80,0.35); border-radius: 6px; background: rgba(255,40,40,0.08); flex-shrink: 0; margin-left: 2px; }
-.header-quit-btn:hover { background: rgba(255,40,40,0.2); color: #ff5050; border-color: rgba(255,80,80,0.6); }
-.game-clock-badge { font-size: 13px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.08em; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.08); border-radius: 6px; padding: 3px 8px; }
+.header-quit-btn { width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: rgba(255,80,80,0.8); border: 1.5px solid rgba(255,80,80,0.35);  background: rgba(255,40,40,0.08); flex-shrink: 0; margin-left: 2px; }
+
+.game-clock-badge { font-size: 13px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.08em; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.08);  padding: 3px 8px; }
 .game-clock-badge.game-clock-low { color: #ff4444; background: rgba(255,68,68,0.12); animation: clock-pulse 1s ease-in-out infinite; }
 @keyframes clock-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
@@ -1371,11 +1371,11 @@ watch(() => game.value?.currentPlayerIndex, () => {
   font-weight: 900;
   letter-spacing: 0.12em;
   padding: 16px 36px;
-  border-radius: 10px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.55);
 }
 .submit-float-btn:disabled { opacity: 0.4; }
-.scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; height: 64px; padding: 0 40px; font-size: clamp(52px, 7.8dvh, 76px); font-weight: 900; font-family: var(--font-display); letter-spacing: 0.04em; border-radius: 8px; }
+.scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; height: 64px; padding: 0 40px; font-size: clamp(52px, 7.8dvh, 76px); font-weight: 900; font-family: var(--font-display); letter-spacing: 0.04em;  }
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; position: relative; z-index: 1; }
 
 .entry-bg-blur {
@@ -1388,9 +1388,9 @@ watch(() => game.value?.currentPlayerIndex, () => {
 /* Cricket marks grid strip */
 .cricket-strip {
   flex-shrink: 0; overflow-y: auto;
-  background: rgba(0,0,0,0.4); border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.4); border-bottom: 2px solid rgba(255,255,255,0.08);
   display: flex; flex-direction: column;
-  scrollbar-width: none; max-height: 45vh;
+  scrollbar-width: none; max-height: 45dvh;
   /* Touch scrolling, and kept to itself: without overscroll-behavior a drag inside
      this panel chains through to whatever is behind it, so the panel stays put and
      the page moves instead — which is what the coin modal was doing on an iPad. */
@@ -1400,7 +1400,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .cs-header {
   display: flex; align-items: center;
   padding: 4px 8px 2px;
-  background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03); border-bottom: 2px solid rgba(255,255,255,0.06);
   position: sticky; top: 0; z-index: 1;
 }
 .cs-name-col { width: 72px; flex-shrink: 0; }
@@ -1412,7 +1412,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .cs-row {
   display: flex; align-items: center;
   padding: 3px 8px; border-left: 3px solid transparent;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 2px solid rgba(255,255,255,0.05);
   transition: border-color 0.2s;
 }
 .cs-active { background: rgba(255,255,255,0.04); }
@@ -1439,7 +1439,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .cricket-strip-transposed { max-height: none; }
 .cst-header {
   display: flex; align-items: center; padding: 3px 8px 2px;
-  background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03); border-bottom: 2px solid rgba(255,255,255,0.06);
   position: sticky; top: 0; z-index: 1;
 }
 .cst-target-col { width: 28px; flex-shrink: 0; }
@@ -1451,7 +1451,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .cst-row {
   display: flex; align-items: center; padding: 3px 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 2px solid rgba(255,255,255,0.05);
 }
 .cst-target-label {
   width: 28px; flex-shrink: 0; font-size: 11px; font-weight: 900;
@@ -1474,7 +1474,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 /* Cricket marks right column */
 .cricket-col {
   width: 130px; flex-shrink: 0; display: flex; flex-direction: column;
-  border-left: 1px solid rgba(255,255,255,0.08);
+  border-left: 2px solid rgba(255,255,255,0.08);
   background: rgba(0,0,0,0.4); overflow-y: auto; scrollbar-width: none;
   /* Touch scrolling, and kept to itself: without overscroll-behavior a drag inside
      this panel chains through to whatever is behind it, so the panel stays put and
@@ -1485,7 +1485,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .cc-header {
   display: flex; flex-direction: row; align-items: center;
   padding: 6px 6px 4px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 2px solid rgba(255,255,255,0.06);
   background: rgba(255,255,255,0.03);
   position: sticky; top: 0; z-index: 1; flex-shrink: 0;
 }
@@ -1497,7 +1497,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .cc-target-row {
   display: flex; flex-direction: row; align-items: center;
-  padding: 5px 6px; border-bottom: 1px solid rgba(255,255,255,0.05); flex-shrink: 0;
+  padding: 5px 6px; border-bottom: 2px solid rgba(255,255,255,0.05); flex-shrink: 0;
 }
 .cc-target-label {
   width: 22px; flex-shrink: 0; text-align: center;
@@ -1548,8 +1548,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .lb-header {
   display: flex; align-items: center; justify-content: space-between; padding: 10px 16px;
   padding-top: calc(10px + env(safe-area-inset-top));
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0;
+  border-bottom: 2px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03); flex-shrink: 0;
 }
 .lb-header .btn { padding: 6px 16px; font-size: 13px; }
 .game-type-badge { font-size: 22px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pink); font-family: var(--font-display); line-height: 1; }
@@ -1560,20 +1560,20 @@ watch(() => game.value?.currentPlayerIndex, () => {
   flex: 1; min-height: 0; overflow: hidden;
   display: flex; align-items: center; gap: 10px; padding: 6px 16px;
   background: transparent; border: none; border-left: 6px solid transparent;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 2px solid rgba(255,255,255,0.06);
   transition: border-color 0.2s, background 0.2s; position: relative;
 }
 .lb-player-row.active { border-left-color: var(--active-color, var(--pink)); }
 .active-dot { display: none; }
-.lb-avatar { width: 40px; height: 40px; align-self: center; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); }
+.lb-avatar { width: 40px; height: 40px; align-self: center;  display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; overflow: hidden; border: 2px solid rgba(255,255,255,0.12); }
 .lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .lb-player-info { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .lb-player-name { font-size: 16px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px; color: #fff; }
-.throwing-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.12); border-radius: 3px; padding: 2px 5px; font-family: var(--font-body); }
-.finished-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); border-radius: 3px; padding: 2px 5px; font-family: var(--font-body); }
+.throwing-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.12);  padding: 2px 5px; font-family: var(--font-body); }
+.finished-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5);  padding: 2px 5px; font-family: var(--font-body); }
 .lb-player-row.ptc-finished { opacity: 0.45; }
 .cricket-mini { display: flex; flex-wrap: nowrap; gap: 4px; }
-.mini-target { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; min-width: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; padding: 4px 2px; }
+.mini-target { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; min-width: 0; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.12);  padding: 4px 2px; }
 .mini-label { font-size: 20px; font-weight: 800; color: rgba(255,255,255,0.9); letter-spacing: 0.02em; font-family: var(--font-display); }
 .mini-marks { display: flex; gap: 2px; }
 .mini-pip { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.65); background: rgba(255,255,255,0.18); transition: background 0.1s; flex-shrink: 0; }
@@ -1581,25 +1581,25 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .lb-score { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
 .lb-score-val { font-size: clamp(28px, 4.5dvh, 72px); font-weight: 900; font-family: var(--font-display); line-height: 1; color: #fff; }
 .lb-score-label { font-size: 13px; color: rgba(255,255,255,0.45); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-align: right; }
-.remove-player-btn { background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: rgba(255,255,255,0.3); cursor: pointer; font-size: 12px; padding: 4px 7px; flex-shrink: 0; transition: all 0.15s; align-self: flex-start; position: relative; overflow: hidden; }
-.remove-player-btn:hover { border-color: #ef4444; color: #ef4444; }
+.remove-player-btn { background: none; border: 2px solid rgba(255,255,255,0.1);  color: rgba(255,255,255,0.3); cursor: pointer; font-size: 12px; padding: 4px 7px; flex-shrink: 0; transition: all 0.15s; align-self: flex-start; position: relative; overflow: hidden; }
+
 
 /* Add player panel */
 .add-player-panel {
-  flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0; border-bottom: 2px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.03); display: flex; flex-direction: column;
 }
 .add-player-empty { padding: 16px 24px; font-size: 13px; color: var(--text-muted); }
 .add-player-row {
   display: flex; align-items: center; gap: 14px; padding: 12px 24px;
-  background: none; border: none; border-bottom: 1px solid rgba(255,255,255,0.05);
+  background: none; border: none; border-bottom: 2px solid rgba(255,255,255,0.05);
   cursor: pointer; text-align: left; width: 100%; transition: background 0.15s;
   -webkit-tap-highlight-color: transparent; position: relative; overflow: hidden;
 }
 .add-player-row:last-child { border-bottom: none; }
 .add-player-row:active { background: rgba(255,255,255,0.06); }
 .add-player-avatar {
-  width: 40px; height: 40px; border-radius: 6px; display: flex; align-items: center;
+  width: 40px; height: 40px;  display: flex; align-items: center;
   justify-content: center; font-size: 20px; flex-shrink: 0; overflow: hidden;
 }
 .add-player-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -1609,20 +1609,20 @@ watch(() => game.value?.currentPlayerIndex, () => {
 /* Closed-target display selector in scores overlay */
 .ct-display-row { display: flex; gap: 4px; }
 .ct-display-btn {
-  padding: 7px 14px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);
+  padding: 7px 14px;  border: 2px solid rgba(255,255,255,0.1);
   background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6);
   font-size: 13px; font-weight: 700; letter-spacing: 0.03em; cursor: pointer; transition: all 0.15s;
   position: relative; overflow: hidden; white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
 }
-.ct-display-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
 .ct-display-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.12); }
 .close-scores-btn { font-size: 22px; font-weight: 900; line-height: 1; }
 
 /* In-game timer controls */
 .timer-controls-row {
   display: flex; gap: 16px; flex-wrap: wrap;
-  padding: 10px 20px; border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: 10px 20px; border-bottom: 2px solid rgba(255,255,255,0.07);
   background: rgba(255,255,255,0.02); flex-shrink: 0;
 }
 .timer-control-group { display: flex; align-items: center; gap: 8px; }
@@ -1630,18 +1630,18 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .hot-seat-note { font-size: 12px; color: var(--gold, #f59e0b); letter-spacing: 0.02em; }
 .timer-control-btns { display: flex; gap: 4px; }
 .timer-ctrl-btn {
-  padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
+  padding: 5px 10px;  border: 2px solid rgba(255,255,255,0.1);
   background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6);
   font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;
   position: relative; overflow: hidden; white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
 }
-.timer-ctrl-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
 .timer-ctrl-btn.active { border-color: var(--blue); color: var(--blue); background: rgba(0,212,255,0.1); }
 
 .round-limit-control { display: flex; align-items: center; gap: 6px; }
-.round-limit-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: var(--text); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; position: relative; overflow: hidden; }
-.round-limit-btn:hover:not(:disabled) { background: rgba(255,255,255,0.12); }
+.round-limit-btn { width: 30px; height: 30px;  border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: var(--text); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; position: relative; overflow: hidden; }
+
 .round-limit-btn:disabled { opacity: 0.3; cursor: default; }
 .round-limit-val { min-width: 44px; text-align: center; font-size: 16px; font-weight: 900; font-family: var(--font-display); color: var(--gold); cursor: pointer; letter-spacing: 0.05em; }
 
@@ -1654,7 +1654,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .reveal-label {
   font-size: 13px; font-weight: 800; letter-spacing: 0.35em; text-transform: uppercase;
   color: #fff; font-family: var(--font-display);
-  background: #000; border-radius: 4px; padding: 4px 12px;
+  background: #000;  padding: 4px 12px;
 }
 .reveal-number {
   font-size: clamp(100px, 22dvh, 200px); font-family: var(--font-display);
@@ -1672,14 +1672,14 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .reveal-bust-tag {
   font-size: 22px; font-weight: 900; letter-spacing: 0.2em; color: #ef4444;
   background: rgba(239,68,68,0.15); border: 2px solid rgba(239,68,68,0.4);
-  border-radius: 6px; padding: 6px 18px; font-family: var(--font-display);
+   padding: 6px 18px; font-family: var(--font-display);
 }
 .score-reveal-enter-active, .score-reveal-leave-active { transition: opacity 0.25s; }
 .score-reveal-enter-from, .score-reveal-leave-to { opacity: 0; }
 
 /* Misc */
 .no-game { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; width: 100%; height: 100dvh; }
-.confirm-card { background: #1a1a1a; min-width: 300px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; }
+.confirm-card { background: #1a1a1a; min-width: 300px; border: 2px solid rgba(255,255,255,0.1);  }
 .confirm-card .q-card-actions { padding: 12px 16px 16px; gap: 10px; }
 
 /* Coin flip button */
@@ -1723,7 +1723,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   background: none; border: none; color: rgba(255,255,255,0.45); font-size: 22px;
   cursor: pointer; padding: 4px 8px; line-height: 1;
 }
-.coin-close-btn:hover { color: #fff; }
+
 
 .coin-arena {
   display: flex; flex-direction: column; align-items: center; gap: 18px;
@@ -1771,8 +1771,8 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .coin-customize {
   display: flex; align-items: center; gap: 20px;
   padding: 14px 20px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px; width: 100%;
+  background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.08);
+   width: 100%;
 }
 .coin-cust-side { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .coin-cust-label {
@@ -1786,14 +1786,14 @@ watch(() => game.value?.currentPlayerIndex, () => {
   overflow: hidden; transition: border-color 0.15s, background 0.15s;
   position: relative;
 }
-.coin-cust-btn:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
+
 .cust-preview { width: 100%; height: 100%; object-fit: cover; }
 .cust-placeholder { font-size: 11px; color: rgba(255,255,255,0.35); font-weight: 700; }
 .coin-cust-clear {
   background: none; border: none; color: rgba(255,80,80,0.65);
   font-size: 13px; cursor: pointer; padding: 2px 6px; line-height: 1;
 }
-.coin-cust-clear:hover { color: #ff4444; }
+
 .coin-cust-divider { width: 1px; height: 60px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
 
 .coin-fade-enter-active, .coin-fade-leave-active { transition: opacity 0.22s; }
@@ -1804,14 +1804,14 @@ watch(() => game.value?.currentPlayerIndex, () => {
 /* Series */
 .coin-series-modes { display: flex; gap: 8px; justify-content: center; width: 100%; }
 .coin-mode-btn {
-  flex: 1; padding: 7px 0; border-radius: 8px;
+  flex: 1; padding: 7px 0; 
   border: 2px solid rgba(255,255,255,0.2);
   background: rgba(255,255,255,0.05);
   color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 700;
   cursor: pointer; transition: all 0.15s;
   position: relative; overflow: hidden;
 }
-.coin-mode-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+
 .coin-mode-btn.active { border-color: #ffd700; color: #ffd700; background: rgba(255,215,0,0.1); }
 
 .coin-series-board {
@@ -1820,7 +1820,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 }
 .series-side {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
-  flex: 1; padding: 10px; border-radius: 10px;
+  flex: 1; padding: 10px; 
   border: 2px solid rgba(255,255,255,0.1);
   background: rgba(255,255,255,0.04);
   transition: all 0.3s;
@@ -1846,27 +1846,27 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .coin-series-winner { font-size: 28px; letter-spacing: 0.1em; color: #ffd700; filter: drop-shadow(0 0 12px rgba(255,215,0,0.6)); }
 
 .coin-reset-btn {
-  width: 100%; padding: 10px; border-radius: 8px;
+  width: 100%; padding: 10px; 
   border: 2px solid rgba(255,255,255,0.2);
   background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 700;
   cursor: pointer; transition: all 0.15s;
   position: relative; overflow: hidden;
 }
-.coin-reset-btn:hover { border-color: #ffd700; color: #ffd700; background: rgba(255,215,0,0.1); }
+
 
 /* Question feature */
 .coin-question-section { width: 100%; display: flex; flex-direction: column; align-items: center; }
 .coin-question-toggle {
-  background: none; border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px;
+  background: none; border: 1px dashed rgba(255,255,255,0.2); 
   color: rgba(255,255,255,0.35); font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
   padding: 7px 16px; cursor: pointer; width: 100%; transition: all 0.15s;
 }
-.coin-question-toggle:hover { border-color: rgba(255,215,0,0.4); color: rgba(255,215,0,0.6); }
+
 .coin-question-display {
   display: flex; align-items: center; gap: 10px; width: 100%;
-  background: rgba(255,215,0,0.07); border: 1px solid rgba(255,215,0,0.25);
-  border-radius: 10px; padding: 10px 14px;
+  background: rgba(255,215,0,0.07); border: 2px solid rgba(255,215,0,0.25);
+   padding: 10px 14px;
 }
 .coin-question-text {
   flex: 1; font-size: 15px; font-weight: 800; font-family: var(--font-display);
@@ -1877,25 +1877,25 @@ watch(() => game.value?.currentPlayerIndex, () => {
   background: none; border: none; color: rgba(255,215,0,0.5); font-size: 14px;
   cursor: pointer; padding: 2px 4px; flex-shrink: 0; line-height: 1;
 }
-.coin-question-clear:hover { color: #ff5555; }
+
 .coin-question-input-row {
   display: flex; align-items: center; gap: 6px; width: 100%;
 }
 .coin-question-input {
-  flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,215,0,0.3);
-  border-radius: 8px; color: #fff; font-size: 14px; font-weight: 600;
+  flex: 1; background: rgba(255,255,255,0.06); border: 2px solid rgba(255,215,0,0.3);
+   color: #fff; font-size: 14px; font-weight: 600;
   padding: 9px 12px; outline: none; font-family: inherit;
 }
 .coin-question-input::placeholder { color: rgba(255,255,255,0.3); }
 .coin-question-input:focus { border-color: rgba(255,215,0,0.6); }
 .coin-q-confirm, .coin-q-cancel {
-  flex-shrink: 0; width: 34px; height: 34px; border-radius: 8px; border: none;
+  flex-shrink: 0; width: 34px; height: 34px;  border: none;
   font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s;
 }
 .coin-q-confirm { background: rgba(255,215,0,0.15); color: #ffd700; }
-.coin-q-confirm:hover { background: rgba(255,215,0,0.3); }
+
 .coin-q-cancel { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.45); }
-.coin-q-cancel:hover { color: #ff5555; }
+
 
 @media (orientation: landscape) and (max-height: 900px) {
   .turn-header { min-height: 64px; }
@@ -1906,7 +1906,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
 
   /* Coin flip: two-column layout so everything fits without scrolling */
   .coin-overlay { padding: 12px 16px; }
-  .coin-modal { max-width: 700px; gap: 10px; }
+  .coin-modal { max-width: 767px; gap: 10px; }
   .coin-modal-title { font-size: 26px; }
   .coin-body { flex-direction: row; align-items: flex-start; gap: 20px; }
   .coin-left { flex-shrink: 0; gap: 6px; }
@@ -1929,7 +1929,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .coin-question-text { font-size: 12px; }
 }
 
-@media (min-width: 769px) and (max-width: 1100px) {
+@media (min-width: 768px) and (max-width: 1099px) {
   /* iPad: right-column marks — widen col and shrink pips so they don't overflow */
   .cricket-col { width: 160px; }
   .cc-pip { width: 9px; height: 9px; }
@@ -1939,14 +1939,14 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .mini-label { font-size: 24px; }
 }
 
-@media (min-width: 769px) and (max-width: 1100px) and (orientation: portrait) {
+@media (min-width: 768px) and (max-width: 1099px) and (orientation: portrait) {
   /* Prevent player name from overlapping the right-side buttons in portrait */
   .turn-name { max-width: 48vw; }
   /* Cricket: keep SCORES button sized at mid widths */
   .scores-btn.scores-btn-cricket { height: 48px; padding: 0 18px; font-size: 18px; margin: 0 4px 0 0; }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .game { position: fixed; inset: 0; }
   .entry-panel { flex: 1; min-height: 0; }
   .cricket-col { width: 100px; }
@@ -2013,14 +2013,14 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .ws-sidebar {
   display: none;
 }
-@media (min-width: 1101px) {
+@media (min-width: 1100px) {
   .ws-sidebar {
     display: flex;
     flex-direction: row;
     width: 300px;
     flex-shrink: 0;
     background: rgba(0,0,0,0.6);
-    border-left: 1px solid rgba(255,255,255,0.07);
+    border-left: 2px solid rgba(255,255,255,0.07);
     overflow: hidden;
     transition: width 0.2s ease;
   }
@@ -2033,7 +2033,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
     height: 100%;
     background: transparent;
     border: none;
-    border-right: 1px solid rgba(255,255,255,0.07);
+    border-right: 2px solid rgba(255,255,255,0.07);
     color: rgba(255,255,255,0.35);
     font-size: 11px;
     cursor: pointer;
@@ -2043,10 +2043,13 @@ watch(() => game.value?.currentPlayerIndex, () => {
     flex-shrink: 0;
     transition: color 0.15s, background 0.15s;
   }
+  @media (hover: hover) and (pointer: fine) {
   .ws-collapse-btn:hover {
     color: rgba(255,255,255,0.7);
     background: rgba(255,255,255,0.05);
   }
+  }
+
   .ws-sidebar-inner {
     flex: 1;
     display: flex;
@@ -2058,7 +2061,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
     display: flex;
     flex-direction: column;
     padding: 20px 16px 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.07);
+    border-bottom: 2px solid rgba(255,255,255,0.07);
     flex-shrink: 0;
   }
   .ws-game-type {
@@ -2083,7 +2086,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
     padding: 8px 0;
   }
   .ws-players::-webkit-scrollbar { width: 3px; }
-  .ws-players::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+  .ws-players::-webkit-scrollbar-thumb { background: #333;  }
   .ws-player-row {
     display: flex;
     align-items: flex-start;
@@ -2163,7 +2166,7 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .ws-pip.filled { background: rgba(255,255,255,0.5); }
   .ws-footer {
     padding: 12px 14px;
-    border-top: 1px solid rgba(255,255,255,0.07);
+    border-top: 2px solid rgba(255,255,255,0.07);
     flex-shrink: 0;
   }
   .ws-wild-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
@@ -2172,4 +2175,38 @@ watch(() => game.value?.currentPlayerIndex, () => {
   .ws-quit-btn { width: 100%; }
 }
 /* ═══════════════════ END WIDESCREEN SIDEBAR ═══════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+
+@media (hover: hover) and (pointer: fine) {
+  .header-quit-btn:hover { background: rgba(255,40,40,0.2); color: #ff5050; border-color: rgba(255,80,80,0.6); }
+  .remove-player-btn:hover { border-color: #ef4444; color: #ef4444; }
+  .ct-display-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .timer-ctrl-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .round-limit-btn:hover:not(:disabled) { background: rgba(255,255,255,0.12); }
+  .coin-close-btn:hover { color: #fff; }
+  .coin-cust-btn:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
+  .coin-cust-clear:hover { color: #ff4444; }
+  .coin-mode-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+  .coin-reset-btn:hover { border-color: #ffd700; color: #ffd700; background: rgba(255,215,0,0.1); }
+  .coin-question-toggle:hover { border-color: rgba(255,215,0,0.4); color: rgba(255,215,0,0.6); }
+  .coin-question-clear:hover { color: #ff5555; }
+  .coin-q-confirm:hover { background: rgba(255,215,0,0.3); }
+  .coin-q-cancel:hover { color: #ff5555; }
+}
 </style>

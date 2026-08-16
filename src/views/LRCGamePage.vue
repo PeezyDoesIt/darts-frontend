@@ -266,15 +266,15 @@ watch(
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 2px solid rgba(255,255,255,0.07);
   flex-shrink: 0;
   height: 48px;
   gap: 12px;
 }
 .quit-btn {
   background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.12);
+  
   color: rgba(255,255,255,0.55);
   font-size: 13px;
   font-weight: 700;
@@ -284,7 +284,7 @@ watch(
   position: relative;
   overflow: hidden;
 }
-.quit-btn:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
+
 .header-center { flex: 1; text-align: center; }
 .round-label {
   font-size: 12px;
@@ -299,8 +299,8 @@ watch(
   align-items: center;
   gap: 6px;
   background: rgba(255,215,0,0.08);
-  border: 1px solid rgba(255,215,0,0.2);
-  border-radius: 8px;
+  border: 2px solid rgba(255,215,0,0.2);
+  
   padding: 4px 12px;
 }
 .pot-label {
@@ -470,7 +470,7 @@ watch(
 .die {
   width: 76px;
   height: 76px;
-  border-radius: 14px;
+  
   display: flex;
   align-items: center;
   justify-content: center;
@@ -545,7 +545,7 @@ watch(
   flex-shrink: 0;
   height: 88px;
   background: rgba(255,255,255,0.03);
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 2px solid rgba(255,255,255,0.08);
   display: flex;
   align-items: center;
   padding: 0 16px;
@@ -628,19 +628,16 @@ watch(
   font-family: var(--font-display);
   letter-spacing: 0.15em;
   border: none;
-  border-radius: 14px;
+  
   cursor: pointer;
   background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
   color: #fff;
-  box-shadow: 0 0 28px rgba(255,45,120,0.4), 0 4px 16px rgba(0,0,0,0.5);
+  box-shadow: 5px 5px 0 rgba(0,0,0,0.6);
   transition: all 0.15s;
   position: relative;
   overflow: hidden;
 }
-.roll-btn:hover {
-  box-shadow: 0 0 48px rgba(255,45,120,0.6), 0 4px 20px rgba(0,0,0,0.5);
-  transform: translateY(-1px);
-}
+
 .next-btn {
   height: 56px;
   min-width: 140px;
@@ -649,19 +646,16 @@ watch(
   font-family: var(--font-display);
   letter-spacing: 0.1em;
   border: 2px solid rgba(255,255,255,0.3);
-  border-radius: 14px;
+  
   cursor: pointer;
   background: rgba(255,255,255,0.08);
   color: #fff;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.55);
   transition: all 0.15s;
   position: relative;
   overflow: hidden;
 }
-.next-btn:hover {
-  background: rgba(255,255,255,0.14);
-  border-color: rgba(255,255,255,0.5);
-}
+
 
 /* Winner overlay */
 .winner-overlay {
@@ -682,8 +676,8 @@ watch(
   align-items: center;
   gap: 16px;
   background: #111;
-  border: 1px solid rgba(255,215,0,0.3);
-  border-radius: 20px;
+  border: 2px solid rgba(255,215,0,0.3);
+  
   padding: 40px 48px;
   max-width: 360px;
   width: 100%;
@@ -745,4 +739,33 @@ watch(
 
 .winner-fade-enter-active, .winner-fade-leave-active { transition: opacity 0.35s; }
 .winner-fade-enter-from, .winner-fade-leave-to { opacity: 0; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+
+@media (hover: hover) and (pointer: fine) {
+  .quit-btn:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
+  .roll-btn:hover {
+  box-shadow: 7px 7px 0 rgba(0,0,0,0.6);
+  transform: translateY(-1px);
+}
+  .next-btn:hover {
+  background: rgba(255,255,255,0.14);
+  border-color: rgba(255,255,255,0.5);
+}
+}
 </style>

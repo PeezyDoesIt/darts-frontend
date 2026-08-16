@@ -417,14 +417,14 @@ function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/g
 
 
 .btn-ready {
-  padding: clamp(15px, 2.25dvh, 28px) 0; font-size: clamp(33px, 4.75dvh, 53px); font-weight: 900; border-radius: 999px; width: 100%; max-width: 600px;
+  padding: clamp(15px, 2.25dvh, 28px) 0; font-size: clamp(33px, 4.75dvh, 53px); font-weight: 900;  width: 100%; max-width: 600px;
   background: #dc2626; border: none; color: #fff;
   cursor: pointer; transition: all 0.15s; letter-spacing: 0.14em;
   font-family: var(--font-display); position: relative; overflow: hidden;
-  box-shadow: 0 4px 24px rgba(220,38,38,0.45);
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.55);
   flex-shrink: 0;
 }
-.btn-ready:hover { background: #ef4444; }
+
 .btn-ready:active { transform: scale(0.97); }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
@@ -434,15 +434,14 @@ function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/g
 .walkup-hold-btn {
   position: absolute; z-index: 4;
   top: calc(14px + env(safe-area-inset-top)); left: 14px;
-  padding: 8px 14px; border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.22);
+  padding: 8px 14px; 
+  border: 2px solid rgba(255,255,255,0.22);
   background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   color: rgba(255,255,255,0.8);
   font-size: 13px; font-weight: 800; letter-spacing: 0.06em;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
-.walkup-hold-btn:hover { color: #fff; border-color: rgba(255,255,255,0.45); }
+
 
 /* Same panel as the board's, so a hold looks like one thing across both screens. */
 .hold-overlay {
@@ -497,7 +496,7 @@ function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/g
   max-width: clamp(140px, 35vmin, 420px);
   object-fit: contain;
   /* Square against the screen edge it sits on, rounded on the side facing the content. */
-  border-radius: 0 12px 12px 0;
+  
 }
 .between-avatar-bg span {
   font-size: clamp(140px, 35vmin, 420px); line-height: 1;
@@ -525,9 +524,9 @@ function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/g
   z-index: 4;
   -webkit-tap-highlight-color: transparent;
   overflow: hidden;
-  box-shadow: 0 4px 32px rgba(220,38,38,0.55);
+  box-shadow: 5px 5px 0 rgba(0,0,0,0.6);
 }
-.btn-cricket-start:hover { background: #ef4444; }
+
 .btn-cricket-start:active { transform: scale(0.93); }
 
 /* Phone landscape only (max-width: 767px excludes tablets) */
@@ -561,5 +560,28 @@ function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/g
   .cricket-player-name { font-size: clamp(150px, 21dvh, 300px); }
   .btn-cricket-start { width: clamp(138px, 22vmin, 200px); height: clamp(138px, 22vmin, 200px); font-size: clamp(30px, 4.75dvh, 50px); }
   .walkup-timer-bar { height: clamp(60px, 9dvh, 90px); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-ready:hover { background: #ef4444; }
+  .walkup-hold-btn:hover { color: #fff; border-color: rgba(255,255,255,0.45); }
+  .btn-cricket-start:hover { background: #ef4444; }
 }
 </style>

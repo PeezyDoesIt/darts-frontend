@@ -200,10 +200,8 @@ function startGame() {
   justify-content: space-between;
   padding: 14px 20px;
   padding-top: calc(14px + env(safe-area-inset-top));
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 2px solid rgba(255,255,255,0.08);
   background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   flex-shrink: 0;
 }
 .header-back { min-width: 72px; }
@@ -232,15 +230,15 @@ function startGame() {
 .ng-section { display: flex; flex-direction: column; gap: 12px; }
 .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); }
 
-.order-section { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 4px; }
+.order-section { border-top: 2px solid rgba(255,255,255,0.06); padding-top: 4px; }
 .order-list { display: flex; flex-direction: column; gap: 8px; }
 .order-row {
   display: flex; align-items: center; gap: 14px;
   padding: 12px 16px;
   background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.08);
   border-left: 3px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
+  
 }
 .order-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; overflow: hidden; }
 .order-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -260,7 +258,7 @@ function startGame() {
   align-items: center;
   gap: 6px;
   padding: 20px 12px;
-  border-radius: 12px;
+  
   border: 2px solid rgba(255,255,255,0.12);
   background: rgba(255,255,255,0.04);
   cursor: pointer;
@@ -269,7 +267,7 @@ function startGame() {
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
-.dice-mode-btn:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.07); }
+
 .dice-mode-btn.active {
   border-color: var(--pink);
   background: rgba(255,45,120,0.12);
@@ -290,15 +288,13 @@ function startGame() {
   flex-shrink: 0;
   padding: 16px 20px;
   padding-bottom: calc(16px + env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 2px solid rgba(255,255,255,0.08);
   background: rgba(0,0,0,0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
 }
 .start-btn { width: 88%; height: 52px; font-size: 18px; font-weight: 900; font-family: var(--font-display); display: block; margin: 0 auto; }
 .btn-blocked { opacity: 0.5; }
 .btn-outline { color: #ffffff !important; font-weight: 700 !important; border: 2px solid #ffffff !important; }
-.btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
+
 
 @media (max-width: 480px) {
   .player-bubble-grid { grid-template-columns: repeat(3, 1fr); gap: 16px 8px; }
@@ -313,10 +309,32 @@ function startGame() {
   margin: 6px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--gold);
 }
 
-@media (min-width: 1101px) {
+@media (min-width: 1100px) {
   .setup-title { font-size: 52px; font-weight: 900; letter-spacing: 0.18em; }
   .dice-mode-btns { justify-content: center; }
   .dice-mode-btn { flex: none; width: 18%; }
   .start-btn { width: 66%; height: 64px; font-size: 32px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+
+@media (hover: hover) and (pointer: fine) {
+  .dice-mode-btn:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.07); }
+  .btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
 }
 </style>
