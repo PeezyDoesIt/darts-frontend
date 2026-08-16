@@ -213,8 +213,8 @@ function start() {
 .setup-page { display: flex; flex-direction: column; width: 100vw; height: 100dvh; overflow: hidden; background: #0a0a0a; }
 .setup-header {
   display: flex; align-items: center; justify-content: space-between; padding: 14px 20px;
-  padding-top: calc(14px + env(safe-area-inset-top)); border-bottom: 1px solid rgba(255,255,255,0.08);
-  background: rgba(0,0,0,0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0;
+  padding-top: calc(14px + env(safe-area-inset-top)); border-bottom: 2px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.6); flex-shrink: 0;
 }
 .header-back, .header-spacer { min-width: 72px; }
 .setup-title {
@@ -233,8 +233,8 @@ function start() {
 .seats { display: flex; flex-direction: column; gap: 8px; }
 .seat {
   display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 10px;
-  padding: 10px 12px; border-radius: 8px; background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08); border-left: 4px solid;
+  padding: 10px 12px;  background: rgba(255,255,255,0.04);
+  border: 2px solid rgba(255,255,255,0.08); border-left: 4px solid;
 }
 .seat.team-0 { border-left-color: #7ee68a; }
 .seat.team-1 { border-left-color: #5fd0ff; }
@@ -250,10 +250,10 @@ function start() {
    rather than a form. */
 .seat-name-input {
   width: 100%; min-width: 0; min-height: 44px; padding: 4px 8px;
-  background: transparent; border: 1px solid transparent; border-radius: 8px;
+  background: transparent; border: 2px solid transparent; 
   color: var(--text); font-family: inherit; text-align: center;
 }
-.seat-name-input:hover { border-color: rgba(255,255,255,0.18); }
+
 .seat-name-input:focus {
   outline: none; background: rgba(255,255,255,0.07); border-color: var(--gold);
 }
@@ -271,7 +271,7 @@ function start() {
 }
 .variant-btns { display: flex; gap: 10px; }
 .variant-btn {
-  flex: 1; min-height: 62px; border-radius: 10px; display: flex; flex-direction: column;
+  flex: 1; min-height: 62px;  display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 3px; padding: 8px;
   background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.12);
   color: var(--text); cursor: pointer;
@@ -285,7 +285,7 @@ function start() {
    rather than a variation on the deck picker below it. */
 .mode-btns { display: flex; flex-direction: column; gap: 10px; }
 .mode-btn {
-  min-height: 62px; border-radius: 10px; display: flex; flex-direction: column;
+  min-height: 62px;  display: flex; flex-direction: column;
   align-items: flex-start; justify-content: center; gap: 3px; padding: 12px 14px;
   background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.12);
   color: var(--text); cursor: pointer; text-align: left;
@@ -296,16 +296,36 @@ function start() {
 
 .joker-preview {
   display: flex; align-items: center; gap: 12px; padding: 12px;
-  background: rgba(255,255,255,0.04); border-radius: 10px; flex-wrap: wrap;
+  background: rgba(255,255,255,0.04);  flex-wrap: wrap;
 }
 .jp-note { flex: 1; min-width: 170px; font-size: 12.5px; color: var(--text-muted); margin: 0; line-height: 1.45; }
 .jp-note strong { color: var(--gold); }
 
 .setup-footer {
   flex-shrink: 0; padding: 14px 16px; padding-bottom: calc(14px + env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-top: 2px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
 }
 .start-btn { width: 100%; min-height: 56px; }
 .start-btn:disabled { opacity: 0.45; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+
+@media (hover: hover) and (pointer: fine) {
+  .seat-name-input:hover { border-color: rgba(255,255,255,0.18); }
+}
 </style>

@@ -157,8 +157,8 @@ onMounted(() => {
 .bj-round { font-size: 20px; letter-spacing: 0.1em; }
 
 .dealer {
-  border-radius: 14px; padding: 10px 12px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+   padding: 10px 12px;
+  background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.1);
 }
 
 .seat-label { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
@@ -174,9 +174,9 @@ onMounted(() => {
 
 .seats { display: flex; flex-direction: column; gap: 8px; }
 .seat {
-  border-radius: 12px; padding: 10px 12px; border-left: 4px solid transparent;
-  background: rgba(255,255,255,0.04); border-top: 1px solid rgba(255,255,255,0.08);
-  border-right: 1px solid rgba(255,255,255,0.08); border-bottom: 1px solid rgba(255,255,255,0.08);
+   padding: 10px 12px; border-left: 4px solid transparent;
+  background: rgba(255,255,255,0.04); border-top: 2px solid rgba(255,255,255,0.08);
+  border-right: 2px solid rgba(255,255,255,0.08); border-bottom: 2px solid rgba(255,255,255,0.08);
 }
 /* The active seat has to be obvious across a table, not just to whoever holds the phone. */
 .seat.active { background: rgba(255,200,87,0.12); border-color: var(--gold); }
@@ -184,8 +184,8 @@ onMounted(() => {
 
 .bet-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .bet-btn {
-  min-width: 44px; min-height: 44px; border-radius: 10px; cursor: pointer;
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16);
+  min-width: 44px; min-height: 44px;  cursor: pointer;
+  background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.16);
   color: var(--text); font-size: 20px; font-weight: 900;
 }
 .bet-btn:disabled { opacity: 0.35; }
@@ -206,4 +206,21 @@ onMounted(() => {
 .action-row { display: flex; gap: 10px; }
 .action-row .btn { flex: 1; min-height: 56px; }
 .wide { width: 100%; min-height: 56px; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
 </style>

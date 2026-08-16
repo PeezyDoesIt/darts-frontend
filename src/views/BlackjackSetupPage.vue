@@ -84,7 +84,7 @@ function start() {
 
 .chip-opts { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip-opt {
-  min-width: 68px; min-height: 48px; border-radius: 12px; cursor: pointer;
+  min-width: 68px; min-height: 48px;  cursor: pointer;
   background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.14);
   color: var(--text); font-family: var(--font-display); font-size: 18px; font-weight: 900;
 }
@@ -94,4 +94,21 @@ function start() {
 .rules li { font-size: 13px; color: var(--text-muted); line-height: 1.45; }
 
 .ng-hint { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
 </style>

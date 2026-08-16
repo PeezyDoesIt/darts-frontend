@@ -218,7 +218,7 @@ function handleStart() {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 2px solid rgba(255,255,255,0.08);
   gap: 12px;
   flex-shrink: 0;
 }
@@ -270,7 +270,7 @@ function handleStart() {
 }
 .panel::-webkit-scrollbar { display: none; }
 .panel-left {
-  border-right: 1px solid rgba(255,255,255,0.08);
+  border-right: 2px solid rgba(255,255,255,0.08);
   max-width: 380px;
   min-width: 220px;
 }
@@ -326,7 +326,7 @@ function handleStart() {
 
 /* Guest section */
 .guest-section {
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 2px solid rgba(255,255,255,0.08);
   padding-top: 16px;
   margin-top: 4px;
 }
@@ -338,8 +338,8 @@ function handleStart() {
 .emoji-cycler {
   width: 44px;
   height: 44px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.15);
+  
+  border: 2px solid rgba(255,255,255,0.15);
   background: rgba(255,255,255,0.06);
   font-size: 22px;
   cursor: pointer;
@@ -351,12 +351,12 @@ function handleStart() {
   position: relative;
   overflow: hidden;
 }
-.emoji-cycler:hover { background: rgba(255,255,255,0.12); }
+
 .guest-input {
   flex: 1;
   background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.15);
+  
   color: #fff;
   font-size: 14px;
   font-weight: 600;
@@ -393,8 +393,8 @@ function handleStart() {
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.08);
+  
+  border: 2px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.04);
 }
 .seat-num {
@@ -423,8 +423,8 @@ function handleStart() {
 .order-btn {
   width: 28px;
   height: 28px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.12);
+  
+  border: 2px solid rgba(255,255,255,0.12);
   background: rgba(255,255,255,0.05);
   color: rgba(255,255,255,0.6);
   font-size: 11px;
@@ -434,12 +434,12 @@ function handleStart() {
   overflow: hidden;
 }
 .order-btn:disabled { opacity: 0.2; cursor: default; }
-.order-btn:not(:disabled):hover { background: rgba(255,255,255,0.12); color: #fff; }
+
 .remove-btn {
   width: 28px;
   height: 28px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,80,80,0.2);
+  
+  border: 2px solid rgba(255,80,80,0.2);
   background: rgba(255,80,80,0.05);
   color: rgba(255,100,100,0.7);
   font-size: 12px;
@@ -448,11 +448,11 @@ function handleStart() {
   position: relative;
   overflow: hidden;
 }
-.remove-btn:hover { background: rgba(255,80,80,0.15); color: #ff5555; border-color: rgba(255,80,80,0.4); }
+
 
 /* Dice style */
 .dice-style-section {
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 2px solid rgba(255,255,255,0.08);
   padding-top: 16px;
   margin-top: 4px;
 }
@@ -467,7 +467,7 @@ function handleStart() {
   align-items: center;
   gap: 6px;
   padding: 10px 14px;
-  border-radius: 10px;
+  
   border: 2px solid rgba(255,255,255,0.1);
   background: rgba(255,255,255,0.04);
   cursor: pointer;
@@ -479,10 +479,7 @@ function handleStart() {
   border-color: var(--pink, #ff2d78);
   background: rgba(255,45,120,0.1);
 }
-.dice-style-btn:hover:not(.active) {
-  border-color: rgba(255,255,255,0.25);
-  background: rgba(255,255,255,0.08);
-}
+
 .style-name {
   font-size: 11px;
   font-weight: 800;
@@ -496,7 +493,7 @@ function handleStart() {
 .die-preview {
   width: 28px;
   height: 28px;
-  border-radius: 5px;
+  
   display: flex;
   align-items: center;
   justify-content: center;
@@ -546,7 +543,7 @@ function handleStart() {
   }
   .panel-left {
     border-right: none;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 2px solid rgba(255,255,255,0.08);
   }
   .setup-header {
     padding: 12px 14px;
@@ -558,5 +555,32 @@ function handleStart() {
     font-size: 12px;
     padding: 7px 10px;
   }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+
+@media (hover: hover) and (pointer: fine) {
+  .emoji-cycler:hover { background: rgba(255,255,255,0.12); }
+  .order-btn:not(:disabled):hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .remove-btn:hover { background: rgba(255,80,80,0.15); color: #ff5555; border-color: rgba(255,80,80,0.4); }
+  .dice-style-btn:hover:not(.active) {
+  border-color: rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.08);
+}
 }
 </style>

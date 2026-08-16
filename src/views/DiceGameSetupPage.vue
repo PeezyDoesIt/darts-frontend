@@ -184,8 +184,7 @@ function start() {
 .setup-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 20px; padding-top: calc(14px + env(safe-area-inset-top));
-  border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0;
+  border-bottom: 2px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6); flex-shrink: 0;
 }
 .header-back, .header-spacer { min-width: 72px; }
 .setup-title {
@@ -211,8 +210,8 @@ function start() {
 .order-list { display: flex; flex-direction: column; gap: 8px; }
 .order-row {
   display: flex; align-items: center; gap: 12px; padding: 10px 12px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-  border-left: 3px solid; border-radius: 8px;
+  background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.08);
+  border-left: 3px solid; 
 }
 .order-num { font-size: 18px; min-width: 20px; }
 .order-avatar {
@@ -227,8 +226,8 @@ function start() {
 
 .target-btns { display: flex; gap: 10px; flex-wrap: wrap; }
 .target-btn {
-  flex: 1; min-width: 84px; min-height: 48px; border-radius: 10px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+  flex: 1; min-width: 84px; min-height: 48px; 
+  background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.12);
   color: var(--text); font-weight: 800; font-size: 15px; cursor: pointer;
   font-family: var(--font-display); letter-spacing: 0.04em;
 }
@@ -242,9 +241,25 @@ function start() {
 .setup-footer {
   flex-shrink: 0; padding: 14px 16px;
   padding-bottom: calc(14px + env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-top: 2px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
 }
 .start-btn { width: 100%; min-height: 56px; }
 .start-btn:disabled { opacity: 0.45; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
 </style>

@@ -108,7 +108,7 @@ onMounted(load)
 .hist-header {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 14px 16px; padding-top: calc(14px + env(safe-area-inset-top));
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 2px solid rgba(255,255,255,0.08);
 }
 .hist-title { font-size: 22px; letter-spacing: 0.12em; margin: 0; color: #fff; }
 .hist-spacer { width: 64px; }
@@ -126,7 +126,7 @@ onMounted(load)
 
 .hist-row {
   display: flex; align-items: center; justify-content: space-between; gap: 14px;
-  padding: 13px 15px; border-radius: 14px;
+  padding: 13px 15px; 
 }
 .hist-row-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .hist-game { font-size: 17px; letter-spacing: 0.05em; color: #fff; }
@@ -141,4 +141,21 @@ onMounted(load)
 }
 .hist-note { margin: 0; font-size: 16px; font-weight: 700; color: #fff; }
 .hist-sub { margin: 0; font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; max-width: 380px; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
 </style>

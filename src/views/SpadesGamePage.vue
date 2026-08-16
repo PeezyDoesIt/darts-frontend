@@ -669,8 +669,7 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .sp-header {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 12px 14px; padding-top: calc(12px + env(safe-area-inset-top));
-  border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0;
+  border-bottom: 2px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6); flex-shrink: 0;
 }
 .sp-title-wrap { display: flex; flex-direction: column; align-items: center; }
 .sp-title {
@@ -683,7 +682,7 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .teams { display: flex; gap: 8px; padding: 10px 14px; flex-shrink: 0; }
 .team {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px;
-  padding: 8px; border-radius: 10px; background: rgba(255,255,255,0.04); border-left: 4px solid;
+  padding: 8px;  background: rgba(255,255,255,0.04); border-left: 4px solid;
 }
 .team.t0 { border-left-color: #7ee68a; }
 .team.t1 { border-left-color: #5fd0ff; }
@@ -725,14 +724,14 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 
 .bid-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .bid-btn {
-  min-height: 48px; border-radius: 10px; background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.12); color: var(--text); font-weight: 800;
+  min-height: 48px;  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.12); color: var(--text); font-weight: 800;
   font-size: 16px; cursor: pointer; font-family: var(--font-display);
 }
-.bid-btn:hover { background: rgba(255,255,255,0.1); }
+
 .bid-btn.nil { grid-column: span 2; color: var(--gold); letter-spacing: 0.1em; }
 .bid-btn:disabled { opacity: 0.28; cursor: default; }
-.bid-btn:disabled:hover { background: rgba(255,255,255,0.05); }
+
 .board-note { font-size: 12.5px; color: var(--text-muted); margin: 0; line-height: 1.45; text-align: center; }
 .team-sets { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; }
 .team-sets.danger { color: #ff5fa2; }
@@ -740,7 +739,7 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .bids-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .bid-chip {
   flex: 1 1 auto; min-width: 72px; display: flex; flex-direction: column; align-items: center;
-  padding: 6px 8px; border-radius: 8px; background: rgba(255,255,255,0.04);
+  padding: 6px 8px;  background: rgba(255,255,255,0.04);
   border: 2px solid transparent;
 }
 .bid-chip.turn { border-color: var(--gold); background: rgba(255,255,255,0.09); }
@@ -753,8 +752,8 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .tc-name { font-size: 11px; color: var(--text-muted); overflow-wrap: anywhere; max-width: 94px; text-align: center; }
 .tc-void {
   font-size: 9px; font-weight: 800; letter-spacing: 0.06em; color: var(--gold);
-  background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.3);
-  border-radius: 5px; padding: 1px 5px; white-space: nowrap;
+  background: rgba(255,215,0,0.12); border: 2px solid rgba(255,215,0,0.3);
+   padding: 1px 5px; white-space: nowrap;
 }
 .book-hint { font-size: 13px; color: var(--text-muted); margin: 0; text-align: center; }
 .book-won { font-size: 14px; font-weight: 800; color: var(--gold); margin: 0; }
@@ -767,8 +766,7 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .sp-footer {
   flex-shrink: 0; display: flex; gap: 10px; padding: 12px 14px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-top: 2px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
 }
 .wide { width: 100%; min-height: 56px; }
 /* Two buttons share the footer once a hand is over: review keeps its natural width so the
@@ -788,7 +786,7 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
   width: 100%; max-width: 460px; max-height: 86dvh; overflow-y: auto;
   -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
   display: flex; flex-direction: column; gap: 12px;
-  padding: 20px 18px; border-radius: 16px;
+  padding: 20px 18px; 
 }
 .review-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .review-title { font-size: 20px; margin: 0; color: var(--gold); letter-spacing: 0.1em; }
@@ -800,8 +798,8 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 
 .review-book {
   display: flex; flex-direction: column; gap: 6px;
-  padding: 10px 12px; border-radius: 12px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 12px; 
+  background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.08);
 }
 .rb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .rb-num { font-size: 13px; letter-spacing: 0.12em; color: rgba(255,255,255,0.75); }
@@ -811,7 +809,7 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .rb-cards { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
 .rb-card {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
-  flex-shrink: 0; padding: 4px; border-radius: 8px; border: 2px solid transparent;
+  flex-shrink: 0; padding: 4px;  border: 2px solid transparent;
 }
 .rb-card.won { border-color: var(--gold); background: rgba(255,200,87,0.1); }
 .rb-name { font-size: 9.5px; font-weight: 700; max-width: 52px; text-align: center; overflow-wrap: anywhere; }
@@ -825,7 +823,7 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .rules-card {
   width: 100%; max-width: 420px; max-height: 82dvh; overflow-y: auto;
   display: flex; flex-direction: column; align-items: center; gap: 12px;
-  padding: 26px 22px; border-radius: 16px; text-align: center;
+  padding: 26px 22px;  text-align: center;
 }
 .rules-title { font-size: 19px; margin: 0; color: var(--gold); }
 .rules-list {
@@ -840,8 +838,8 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .sort-label { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); text-align: left; }
 .suit-rows { display: flex; flex-direction: column; gap: 6px; }
 .suit-row {
-  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px;
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; 
+  background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1);
 }
 .suit-pos { font-size: 11px; font-weight: 800; color: var(--text-muted); width: 12px; }
 .suit-sym { font-size: 20px; line-height: 1; }
@@ -849,15 +847,15 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .sr-black { color: #8fdcff; }
 .suit-name { flex: 1; text-align: left; font-size: 13px; font-weight: 700; text-transform: capitalize; }
 .move-btn {
-  width: 34px; height: 34px; flex-shrink: 0; border-radius: 8px; cursor: pointer;
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16);
+  width: 34px; height: 34px; flex-shrink: 0;  cursor: pointer;
+  background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.16);
   color: #fff; font-size: 14px; position: relative; overflow: hidden;
 }
 .move-btn:disabled { opacity: 0.3; cursor: default; }
 .seg { display: flex; gap: 8px; }
 .seg-btn {
-  flex: 1; min-height: 44px; border-radius: 10px; cursor: pointer;
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14);
+  flex: 1; min-height: 44px;  cursor: pointer;
+  background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.14);
   color: rgba(255,255,255,0.65); font-size: 13px; font-weight: 800;
   position: relative; overflow: hidden;
 }
@@ -865,14 +863,14 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .seg-btn:disabled { opacity: 0.35; cursor: default; }
 .deck-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
 .deck-btn {
-  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; 
   cursor: pointer; background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.7);
+  border: 2px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.7);
   font-size: 14px; font-weight: 700; text-align: left;
   position: relative; overflow: hidden;
 }
 .deck-btn.on { border-color: var(--gold); color: #fff; background: rgba(255,215,0,0.1); }
-.deck-swatch { width: 22px; height: 30px; border-radius: 4px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.3); }
+.deck-swatch { width: 22px; height: 30px;  flex-shrink: 0; border: 2px solid rgba(255,255,255,0.3); }
 .deck-name { flex: 1; }
 .deck-hint { font-size: 11px; color: var(--text-muted); line-height: 1.5; text-align: left; }
 .empty-state {
@@ -908,8 +906,8 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 }
 .ho-side {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 16px 14px; border-radius: 12px; background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1); border-top: 4px solid;
+  padding: 16px 14px;  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.1); border-top: 4px solid;
 }
 .ho-side.t0 { border-top-color: #7ee68a; }
 .ho-side.t1 { border-top-color: #5fd0ff; }
@@ -936,15 +934,15 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .ho-seat-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .ho-seat {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  min-width: 82px; padding: 8px 12px; border-radius: 10px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+  min-width: 82px; padding: 8px 12px; 
+  background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.09);
 }
 .hp-name { font-size: 11px; color: var(--text-muted); overflow-wrap: anywhere; }
 .hp-val { font-size: 22px; line-height: 1; }
 .hp-of { font-family: var(--font-body, Inter, system-ui, sans-serif); font-size: 11px; font-weight: 600; color: var(--text-muted); margin: 0 4px; }
 
 /* iPad and desktop have the room for larger cards, so the rows that hold them grow too. */
-@media (min-width: 700px) {
+@media (min-width: 768px) {
   .hand-row { gap: 8px; padding: 16px 4px 18px; }
   .book-area { min-height: 240px; }
   .book-cards { gap: 12px; }
@@ -959,5 +957,27 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
   .book-area { min-height: 290px; }
   .tc-name { font-size: 14px; max-width: 148px; }
   .team-score { font-size: 36px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET TREATMENT — identical block in every view. Flat printed panels
+   instead of glass: no blur, square corners, 2px rules, hard offset
+   shadows, halftone grain. Adds only what the sweep cannot infer.
+   Lift this into src/style.css once the look is settled.
+   ══════════════════════════════════════════════════════════════════════ */
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
+.glass-panel::before, .panel::before, .card::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
+.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+
+@media (hover: hover) and (pointer: fine) {
+  .bid-btn:hover { background: rgba(255,255,255,0.1); }
+  .bid-btn:disabled:hover { background: rgba(255,255,255,0.05); }
 }
 </style>
