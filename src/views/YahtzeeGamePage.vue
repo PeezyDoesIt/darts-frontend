@@ -121,6 +121,8 @@
               <DiceFace
                 class="die-svg"
                 :face="val"
+                :roll="dieRoll[i] ?? 0"
+                :spinning="spinning && !game.held[i]"
                 :face-bg="dieFaceBg(!!game.held[i])"
                 :pip-color="diePipFill(!!game.held[i])"
                 :edge-color="dieFaceStroke(!!game.held[i])"
@@ -143,10 +145,10 @@
             <button
               v-ripple
               class="btn btn-spray roll-btn-side"
-              :disabled="game.rollCount >= 3"
+              :disabled="game.rollCount >= 3 && !spinning"
               @click="doRoll"
             >
-              {{ game.rollCount === 0 ? 'ROLL' : game.rollCount >= 3 ? 'DONE' : 'ROLL↺' }}
+              {{ spinning ? 'STOP' : game.rollCount === 0 ? 'ROLL' : game.rollCount >= 3 ? 'DONE' : 'ROLL↺' }}
             </button>
           </div>
         </div>
@@ -462,6 +464,13 @@
                 {{ rollAnimEnabled ? 'ON' : 'OFF' }}
               </button>
             </div>
+            <!-- Tap to stop -->
+            <div class="dp-anim-row">
+              <span class="dp-anim-label">Tap to Stop</span>
+              <button class="dp-anim-btn" :class="{ active: tapToStop }" @click="tapToStop = !tapToStop">
+                {{ tapToStop ? 'ON' : 'OFF' }}
+              </button>
+            </div>
             <!-- Animation style picker -->
             <div v-if="rollAnimEnabled" class="dp-anim-styles">
               <div class="dp-group-grid">
@@ -561,6 +570,20 @@ const rollAnimEnabled = ref(localStorage.getItem('yahtzee_roll_anim') === 'true'
 const rollAnimStyle = ref(localStorage.getItem('yahtzee_roll_anim_style') ?? '3d')
 const diceAnimating = ref(false)
 let animTimer: ReturnType<typeof setTimeout> | null = null
+
+/*
+ * Tap-to-stop: the first press sets the dice spinning and the second decides them. The values
+ * are rolled at the moment of the stop, not at the start, so the press is the throw rather
+ * than a reveal of something already settled.
+ */
+const tapToStop = ref(localStorage.getItem('yahtzee_tap_to_stop') === 'true')
+watch(tapToStop, v => localStorage.setItem('yahtzee_tap_to_stop', String(v)))
+const spinning = ref(false)
+/*
+ * One counter per die, bumped only for the dice that actually rolled. A single shared counter
+ * animates the held dice too — they are not re-rolled, so tumbling them says they were.
+ */
+const dieRoll = ref<number[]>([])
 watch(rollAnimEnabled, v => localStorage.setItem('yahtzee_roll_anim', String(v)))
 watch(rollAnimStyle, v => localStorage.setItem('yahtzee_roll_anim_style', v))
 
@@ -578,7 +601,22 @@ const ANIM_DURATIONS: Record<string, number> = {
   '3d': 720, bounce: 820, spin: 630, shake: 720, wobble: 780, pop: 380, glitch: 520, slot: 430,
 }
 
+/**
+ * The button. With tap-to-stop on, the first press only starts the spin — nothing is rolled
+ * until the second press. Bots never spin: they go straight to performRoll, or the dice would
+ * turn forever with nobody to stop them.
+ */
 function doRoll() {
+  if (!game.value) return
+  if (spinning.value) { spinning.value = false; performRoll(); return }
+  if (game.value.rollCount >= 3) return
+  if (tapToStop.value && !currentIsBot.value) { spinning.value = true; return }
+  performRoll()
+}
+
+function performRoll() {
+  const rolling = game.value
+  if (rolling) dieRoll.value = rolling.dice.map((_, i) => (dieRoll.value[i] ?? 0) + (rolling.held[i] ? 0 : 1))
   if (rollAnimEnabled.value) {
     diceAnimating.value = false
     if (animTimer) clearTimeout(animTimer)
@@ -616,6 +654,9 @@ const scorecardBgStyle = computed(() => {
 
 watch(() => game.value?.currentPlayerIndex, (idx) => {
   if (idx !== undefined) viewingIndex.value = idx
+  // A spin belongs to the player who started it; handing over mid-spin would strand the next
+  // player with dice already turning.
+  spinning.value = false
 })
 
 onMounted(() => {
@@ -984,14 +1025,14 @@ function botStep() {
   const sc = g.playerStates[g.currentPlayerIndex]?.scorecard
   if (!sc) return
 
-  if (g.rollCount === 0) { doRoll(); return }
+  if (g.rollCount === 0) { performRoll(); return }
   if (g.rollCount >= 3) { afterScore(chooseCategory(g.dice, sc)); return }
 
   const want = chooseKeeps(g.dice, sc, 3 - g.rollCount)
   const alreadyHeld = want.every((w, i) => w === g.held[i])
   if (!alreadyHeld) { yahtzeeStore.setHolds(want); return }
 
-  doRoll()
+  performRoll()
 }
 
 function scheduleBot() {
