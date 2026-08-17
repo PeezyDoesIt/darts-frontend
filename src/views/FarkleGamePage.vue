@@ -41,6 +41,7 @@
             v-for="(d, i) in game.dice"
             :key="i"
             :face="d"
+            :roll="rollNonce"
             :selectable="game.phase === 'rolled'"
             :selected="!!game.selected[i]"
             @click="game.phase === 'rolled' && farkle.toggleDie(i)"
@@ -144,8 +145,12 @@ const selectionCount = computed(() => game.value?.selected.filter(Boolean).lengt
 const selectionValue = computed(() => farkle.selectionValue())
 const selectionInvalid = computed(() => selectionCount.value > 0 && selectionValue.value === null)
 
+/** Bumped on every roll so a die that lands on the number it was already showing still tumbles. */
+const rollNonce = ref(0)
+
 function rollWithSound() {
   unlockAudio()
+  rollNonce.value++
   farkle.rollDice()
   // The store has already resolved the roll, so this reports what actually happened
   // rather than guessing ahead of it.

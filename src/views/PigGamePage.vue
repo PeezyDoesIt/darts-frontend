@@ -31,7 +31,7 @@
       </div>
 
       <div class="dice-area">
-        <DiceFace v-if="game.die !== null" :face="game.die" />
+        <DiceFace v-if="game.die !== null" :face="game.die" :roll="rollNonce" />
         <div v-else class="die-placeholder">🎲</div>
 
         <p v-if="game.phase === 'busted'" class="bust-msg display">PIGGED!</p>
@@ -103,8 +103,12 @@ const showRules = ref(false)
 const currentPlayer = computed(() => game.value!.players[game.value!.currentPlayerIndex]!)
 const winner = computed(() => game.value?.players.find(p => p.id === game.value?.winnerId))
 
+/** Bumped on every roll so a die that lands on the number it was already showing still tumbles. */
+const rollNonce = ref(0)
+
 function rollWithSound() {
   unlockAudio()
+  rollNonce.value++
   pig.rollDie()
   playTurnResultSound(game.value?.phase === 'busted')
 }

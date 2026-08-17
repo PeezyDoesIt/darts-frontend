@@ -45,7 +45,7 @@
             Roll for your ship — you need a 6 before anything else counts.
           </p>
           <div v-else class="dice-row">
-            <DiceFace v-for="(d, i) in game.dice" :key="i" :face="d" />
+            <DiceFace v-for="(d, i) in game.dice" :key="i" :face="d" :roll="rollNonce" />
           </div>
 
           <p v-if="game.lastAction" class="last-action">{{ game.lastAction }}</p>
@@ -153,8 +153,12 @@ const isLastPlayer = computed(
   () => !!game.value && game.value.currentPlayerIndex === game.value.players.length - 1
 )
 
+/** Bumped on every roll so a die that lands on the number it was already showing still tumbles. */
+const rollNonce = ref(0)
+
 function rollWithSound() {
   unlockAudio()
+  rollNonce.value++
   const before = game.value?.stage ?? 0
   scc.rollDice()
   // Claiming something is the good outcome; a roll that advances nothing is the bad one.

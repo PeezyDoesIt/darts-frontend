@@ -76,6 +76,7 @@
           :key="i"
           class="die"
           :face="lrcFaceIndex(face, i)"
+          :roll="rollNonce"
           :glyphs="LRC_GLYPHS"
           :face-bg="lrcStyle.face"
           :edge-color="lrcStyle.edge"
@@ -113,7 +114,7 @@
         </div>
       </div>
       <div class="bar-right">
-        <button v-if="game.phase === 'idle'" v-ripple class="roll-btn" @click="lrcStore.rollDice()">ROLL</button>
+        <button v-if="game.phase === 'idle'" v-ripple class="roll-btn" @click="rollDice()">ROLL</button>
         <span v-else-if="game.phase === 'rolling'" class="bar-rolling">Rolling…</span>
         <button v-else-if="game.phase === 'result'" v-ripple class="next-btn" @click="lrcStore.nextTurn()">NEXT →</button>
       </div>
@@ -157,6 +158,13 @@ import DiceFace from '../components/DiceFace.vue'
 
 const router = useRouter()
 const lrcStore = useLRCStore()
+
+/** Bumped on every roll so a die that lands on the number it was already showing still tumbles. */
+const rollNonce = ref(0)
+function rollDice() {
+  rollNonce.value++
+  lrcStore.rollDice()
+}
 const playersStore = usePlayersStore()
 
 const game = computed(() => lrcStore.game)
