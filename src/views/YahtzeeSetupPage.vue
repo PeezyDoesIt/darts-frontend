@@ -9,7 +9,7 @@
     </div>
 
     <div class="setup-body">
-      <section class="ng-section">
+      <section class="ng-section players-section">
         <span class="label">SELECT PLAYERS</span>
 
         <PlayerPicker
@@ -38,7 +38,7 @@
         </div>
       </section>
 
-      <section class="ng-section">
+      <section class="ng-section bots-section">
         <span class="label">COMPUTER PLAYERS</span>
         <p class="ng-hint">They roll and score themselves. Add up to three.</p>
         <div class="bot-row">
@@ -55,7 +55,7 @@
         </p>
       </section>
 
-      <section class="ng-section">
+      <section class="ng-section mode-section">
         <span class="label">DICE MODE</span>
         <div class="dice-mode-btns">
           <button
@@ -309,10 +309,30 @@ function startGame() {
   margin: 6px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--gold);
 }
 
+/*
+ * Desktop and iPad landscape put the four sections in two columns. Stacked, the setup runs
+ * past the fold on a laptop while half the width sits empty — and setup is the one screen
+ * where you want the whole thing in view before committing to a game.
+ *
+ * Placed explicitly rather than by auto-flow: Play Order only exists once a player is
+ * picked, so anything positional reshuffles the moment you tap someone.
+ */
 @media (min-width: 1100px) {
   .setup-title { font-size: 52px; font-weight: 900; letter-spacing: 0.18em; }
-  .dice-mode-btns { justify-content: center; }
-  .dice-mode-btn { flex: none; width: 18%; }
+  .setup-body {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    align-content: start;
+    column-gap: 36px;
+    row-gap: 22px;
+    padding: 20px 28px;
+  }
+  .players-section { grid-column: 1; }
+  .order-section   { grid-column: 1; }
+  .bots-section    { grid-column: 2; }
+  .mode-section    { grid-column: 2; }
+  /* The 18% width was measured against the full page; in half of it the tiles collapse. */
+  .dice-mode-btn { flex: 1; width: auto; padding: 16px 12px; }
   .start-btn { width: 66%; height: 64px; font-size: 32px; }
 }
 

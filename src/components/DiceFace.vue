@@ -61,6 +61,14 @@ const props = withDefaults(defineProps<{
   glyphs?: string[]
   glyphColors?: string[]
   glyphGlow?: (string | undefined)[]
+  /**
+   * Bump on every roll. A die that re-rolls the number it is already showing produces no
+   * change in `face`, so without this it sits still while the others tumble — which reads
+   * as a broken die rather than a repeated number.
+   */
+  roll?: number
+  /** Free-spinning until the player stops it. The value is not decided until it lands. */
+  spinning?: boolean
 }>(), {
   selectable: false, selected: false, held: false,
   faceBg: '#f6f4ee', pipColor: '#101014', edgeColor: '#101014',
@@ -93,9 +101,34 @@ const ry = ref(start[1])
 const lift = ref(0)
 const tween = ref('none')
 let dropTimer: ReturnType<typeof setTimeout> | undefined
+let spinTimer: ReturnType<typeof setInterval> | undefined
 
-watch(() => props.face, (v) => {
-  const [tx, ty] = SHOW[v] ?? SHOW[1]
+/** One leg of a free spin, in ms. Each leg is a whole number of turns, so it never jitters. */
+const SPIN_MS = 700
+
+/*
+ * The spin rides the same rx/ry the throw uses rather than a CSS keyframe. Two transform
+ * sources on one element fight each other, and the landing has to be able to carry on from
+ * wherever the spin got to.
+ */
+function spinStep() {
+  rx.value += 360
+  ry.value += 720
+  tween.value = `transform ${SPIN_MS}ms linear`
+}
+
+watch(() => props.spinning, (on) => {
+  clearInterval(spinTimer)
+  spinTimer = undefined
+  if (!on) return
+  clearTimeout(dropTimer)
+  lift.value = 1
+  spinStep()
+  spinTimer = setInterval(spinStep, SPIN_MS)
+})
+
+watch(() => [props.face, props.roll] as const, () => {
+  const [tx, ty] = SHOW[props.face] ?? SHOW[1]
   // Whole turns are added on top of the landing angle so the cube always spins forward and
   // never snaps backwards to reach a face it happens to be showing already.
   rx.value = Math.ceil((rx.value - tx) / 360) * 360 + tx + 360 * (1 + Math.floor(Math.random() * 2))
@@ -110,7 +143,7 @@ watch(() => props.face, (v) => {
     tween.value = 'transform 0.22s cubic-bezier(0.5, 0, 0.9, 0.55)'
   }, 400)
 })
-onBeforeUnmount(() => clearTimeout(dropTimer))
+onBeforeUnmount(() => { clearTimeout(dropTimer); clearInterval(spinTimer) })
 
 /*
  * Everything geometric is expressed against --die-size rather than a number, so a caller can
