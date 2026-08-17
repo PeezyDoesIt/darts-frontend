@@ -87,7 +87,7 @@ const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !=
   display: flex; align-items: center; justify-content: space-between; padding: 18px 40px;
   padding-top: calc(18px + env(safe-area-inset-top));
   border-bottom: 2px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.03); flex-shrink: 0;
+  background: #141419; flex-shrink: 0;
 }
 .page-title { font-size: 28px; letter-spacing: 0.12em; background: linear-gradient(135deg, var(--gold), var(--orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .btn-outline { color: #ffffff !important; font-weight: 700 !important; border: 2px solid #ffffff !important; }
@@ -118,7 +118,7 @@ const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !=
 .lb-table-header { display: grid; grid-template-columns: 44px 1fr 80px 80px 80px; padding: 8px 16px; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
 .lb-table-row {
   display: grid; grid-template-columns: 44px 1fr 80px 80px 80px; align-items: center; padding: 14px 16px;
-  background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.08); border-left: 3px solid rgba(255,255,255,0.08); 
+  background: #16161c; border: 2px solid rgba(255,255,255,0.08); border-left: 3px solid rgba(255,255,255,0.08); 
   font-size: 14px; font-weight: 600; transition: background 0.15s; margin-bottom: 6px;
 }
 
@@ -161,6 +161,6 @@ const sorted = computed(() => [...playersStore.players].sort((a, b) => b.wins !=
 
 @media (hover: hover) and (pointer: fine) {
   .btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
-  .lb-table-row:hover { background: rgba(255,255,255,0.07); }
+  .lb-table-row:hover { background: #1c1c22; }
 }
 </style>

@@ -35,7 +35,7 @@
         <!-- Ship / Captain / Crew progress -->
         <div class="claim-track">
           <div v-for="(c, i) in CLAIMS" :key="c.face" class="claim" :class="{ got: game.stage > i }">
-            <DiceFace :face="c.face" :size="38" :held="game.stage > i" />
+            <DiceFace :face="c.face" :held="game.stage > i" />
             <span class="claim-label">{{ c.label }}</span>
           </div>
         </div>
@@ -45,7 +45,7 @@
             Roll for your ship — you need a 6 before anything else counts.
           </p>
           <div v-else class="dice-row">
-            <DiceFace v-for="(d, i) in game.dice" :key="i" :face="d" :size="52" />
+            <DiceFace v-for="(d, i) in game.dice" :key="i" :face="d" />
           </div>
 
           <p v-if="game.lastAction" class="last-action">{{ game.lastAction }}</p>
@@ -217,27 +217,27 @@ watch(() => game.value?.phase, phase => { if (phase === 'game_over') playStartCh
 .score-chip {
   flex: 1 1 auto; min-width: 92px; display: flex; flex-direction: column; align-items: center;
   gap: 1px; padding: 8px 10px;  border: 2px solid transparent;
-  background: rgba(255,255,255,0.04);
+  background: #16161c;
 }
-.score-chip.active { background: rgba(255,255,255,0.09); }
+.score-chip.active { background: #202027; }
 .sc-name { font-size: 11px; font-weight: 600; color: var(--text-muted); overflow-wrap: anywhere; }
 .sc-score { font-size: 20px; }
 .sc-cargo { font-size: 10px; color: var(--text-muted); }
 
 .turn-banner {
   display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
-  padding: 10px 14px;  border-left: 4px solid; background: rgba(255,255,255,0.05);
+  padding: 10px 14px;  border-left: 4px solid; background: #17171d;
 }
 .tb-name { font-size: 16px; font-weight: 800; overflow-wrap: anywhere; }
 .tb-rolls { font-size: 13px; color: var(--text-muted); }
 
 .claim-track { display: flex; justify-content: center; gap: 18px; }
-.claim { display: flex; flex-direction: column; align-items: center; gap: 5px; opacity: 0.4; }
+.claim { display: flex; flex-direction: column; align-items: center; gap: 5px; opacity: 0.4; --die-size: 38px; }
 .claim.got { opacity: 1; }
 .claim-label { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
 
 .dice-area { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 8px 0; }
-.dice-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; min-height: 52px; }
+.dice-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; min-height: 52px; --die-size: 52px; }
 .dice-hint { color: var(--text-muted); font-size: 14px; text-align: center; margin: 16px 0; max-width: 300px; }
 .last-action { font-size: 14px; color: var(--gold); font-weight: 700; margin: 0; text-align: center; }
 .need-msg, .cargo-msg { font-size: 13px; color: var(--text-muted); margin: 0; }
@@ -249,9 +249,9 @@ watch(() => game.value?.phase, phase => { if (phase === 'game_over') playStartCh
 .rs-list { width: 100%; display: flex; flex-direction: column; gap: 6px; }
 .rs-row {
   display: flex; justify-content: space-between; padding: 10px 14px; 
-  background: rgba(255,255,255,0.04); font-size: 14px;
+  background: #16161c; font-size: 14px;
 }
-.rs-row.won { background: rgba(255,255,255,0.1); box-shadow: inset 3px 0 0 var(--gold); }
+.rs-row.won { background: #222229; box-shadow: inset 3px 0 0 var(--gold); }
 .rs-name { font-weight: 700; overflow-wrap: anywhere; }
 .rs-cargo { color: var(--text-muted); }
 
@@ -285,6 +285,52 @@ watch(() => game.value?.phase, phase => { if (phase === 'game_over') playStartCh
 .empty-state {
   height: 100dvh; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 16px; color: var(--text-muted);
+}
+
+/* ── iPad ─────────────────────────────────────────────────────────────
+   This screen was built at one size and carried no responsive rules at all.
+   Played off a stand a couple of metres away, the 10–13px labels were
+   unreadable and a phone-width column ran the full 1194px. From the tablet
+   band up everything steps up and the body keeps a centred measure. iPad
+   portrait (834) and landscape (1194) both land here; phones are untouched.
+   ─────────────────────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .gp-header { padding: 18px 26px; padding-top: calc(18px + env(safe-area-inset-top)); }
+  .gp-title { font-size: 32px; }
+  .gp-target { font-size: 14px; }
+  .gp-body { padding: 28px; gap: 22px; align-items: center; }
+  .gp-body > * { width: 100%; max-width: 940px; }
+  .scoreboard { gap: 12px; }
+  .score-chip { min-width: 128px; padding: 14px 16px; gap: 4px; }
+  .sc-name { font-size: 15px; }
+  .sc-score { font-size: 30px; }
+  .turn-banner { padding: 16px 22px; border-left-width: 6px; }
+  .tb-name { font-size: 26px; }
+  .gp-footer { padding: 16px 26px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  .gp-footer .btn { min-height: 70px; font-size: 20px; }
+  .win-card, .rules-card { max-width: 620px; padding: 34px 30px; gap: 16px; }
+  .win-label { font-size: 14px; }
+  .win-name { font-size: 44px; }
+  .rules-list { font-size: 17px; gap: 11px; }
+  .gp-title { font-size: 26px; }
+  .gp-target { font-size: 13px; }
+  .tb-rolls { font-size: 17px; }
+  .sc-cargo { font-size: 14px; }
+  .claim-track { gap: 34px; }
+  .claim { --die-size: 56px; }
+  .claim-label { font-size: 14px; }
+  .dice-area { gap: 18px; padding: 16px 0; }
+  .dice-row { gap: 20px; min-height: 96px; --die-size: 80px; }
+  .dice-hint { font-size: 18px; max-width: 460px; margin: 22px 0; }
+  .last-action { font-size: 19px; }
+  .need-msg, .cargo-msg { font-size: 17px; }
+  .need-msg strong, .cargo-msg strong { font-size: 21px; }
+  .round-summary { gap: 16px; }
+  .rs-title { font-size: 34px; }
+  .rs-line { font-size: 17px; }
+  .rs-row { font-size: 18px; padding: 13px 18px; }
+  .win-score { font-size: 48px; }
+  .rules-title { font-size: 28px; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════

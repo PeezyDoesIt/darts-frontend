@@ -118,36 +118,13 @@
               :style="{ '--held-color': currentPlayer?.color ?? 'var(--pink)', ...dieGradientStyle(!!game.held[i]) }"
               @click="onDieTap(i)"
             >
-              <svg class="die-svg" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-                <defs v-if="dieTheme === 'metallic'">
-                  <linearGradient :id="`mg-${i}`" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%"   :stop-color="game.held[i] ? '#dcdce8' : '#c8c8d8'" />
-                    <stop offset="50%"  :stop-color="game.held[i] ? '#9090a4' : '#787890'" />
-                    <stop offset="100%" :stop-color="game.held[i] ? '#404050' : '#383848'" />
-                  </linearGradient>
-                </defs>
-                <rect x="0" y="0" width="36" height="36"
-                  :rx="dieFaceRx()"
-                  :fill="dieTheme === 'metallic' ? `url(#mg-${i})` : dieFaceFill(!!game.held[i])"
-                  :stroke="dieFaceStroke(!!game.held[i])"
-                  :stroke-width="dieTheme === 'default' ? 0 : 1.5"
-                />
-                <g v-if="dieTheme === 'wooden'">
-                  <line v-for="ly in [7, 13, 20, 27]" :key="ly"
-                    x1="1" :y1="ly" x2="35" :y2="ly"
-                    stroke="#4a2008" stroke-width="0.7" opacity="0.3" />
-                </g>
-                <rect v-if="dieTheme === 'vintage'" x="2" y="2" width="32" height="32" rx="4"
-                  fill="none" stroke="#c0a870" stroke-width="0.6" opacity="0.6" />
-                <circle
-                  v-for="(dot, di) in dotPositions[val - 1]" :key="di"
-                  :cx="dot[0]" :cy="dot[1]" r="3.2"
-                  :fill="diePipFill(!!game.held[i])"
-                  :style="dieTheme === 'neon'
-                    ? { filter: `drop-shadow(0 0 4px ${currentPlayer?.color ?? '#ff2d78'}) drop-shadow(0 0 2px ${currentPlayer?.color ?? '#ff2d78'})` }
-                    : {}"
-                />
-              </svg>
+              <DiceFace
+                class="die-svg"
+                :face="val"
+                :face-bg="dieFaceBg(!!game.held[i])"
+                :pip-color="diePipFill(!!game.held[i])"
+                :edge-color="dieFaceStroke(!!game.held[i])"
+              />
               <span v-if="game.diceMode === 'physical'" class="die-tap-hint">tap to cycle</span>
               <span v-if="game.held[i]" class="held-label" :style="{ color: currentPlayer?.color }">HELD</span>
             </div>
@@ -561,6 +538,7 @@ import { chooseCategory, chooseKeeps } from '../lib/yahtzeeBot'
 import { useYahtzeeStore, grandTotal, upperTotal, upperBonus, lowerTotal, calcScore, YAHTZEE_CATEGORIES } from '../stores/yahtzee'
 import { usePlayersStore } from '../stores/players'
 import type { YahtzeeCategory } from '../stores/yahtzee'
+import DiceFace from '../components/DiceFace.vue'
 import { DICE_THEMES, DIE_GRADIENTS, GRADIENT_DIE_THEMES, type DiceTheme } from '../types/index'
 import { useNarrator } from '../composables/useNarrator'
 import { recordGameResult } from '../api/gameResults'
@@ -778,14 +756,6 @@ function dieFaceStroke(held: boolean): string {
     default:         return 'transparent'
   }
 }
-function dieFaceRx(): number {
-  switch (dieTheme.value) {
-    case 'casino':   return 4
-    case 'metallic': return 3
-    case 'wooden':   return 5
-    default:         return 6
-  }
-}
 function diePipFill(held: boolean): string {
   if (isGradient(dieTheme.value)) return held ? '#ffffff' : 'rgba(255,255,255,0.85)'
   const p = currentPlayer.value?.color ?? '#ff2d78'
@@ -797,6 +767,30 @@ function diePipFill(held: boolean): string {
     case 'vintage':  return '#6c4218'
     default:         return held ? p : '#ffffff'
   }
+}
+
+/**
+ * The whole face as a CSS background, which is what the cube needs — the old SVG built its
+ * face from a rect fill plus, for metallic, a linearGradient in defs. Both collapse to this.
+ */
+function dieFaceBg(held: boolean): string {
+  if (isGradient(dieTheme.value)) {
+    const grad = DIE_GRADIENTS[dieTheme.value]
+    if (grad) return held ? grad.replace('135deg', '155deg') : grad
+  }
+  if (dieTheme.value === 'metallic') {
+    return held
+      ? 'linear-gradient(135deg, #dcdce8 0%, #9090a4 50%, #404050 100%)'
+      : 'linear-gradient(135deg, #c8c8d8 0%, #787890 50%, #383848 100%)'
+  }
+  if (dieTheme.value === 'wooden') {
+    // The grain was four drawn lines inside the SVG; repeating-linear-gradient is the same
+    // four lines and survives being mapped onto six faces.
+    return held
+      ? 'repeating-linear-gradient(180deg, #8b5e2c 0 6px, #7d5326 6px 7px)'
+      : 'repeating-linear-gradient(180deg, #a0742e 0 6px, #8f6626 6px 7px)'
+  }
+  return dieFaceFill(held)
 }
 
 function dieGradientStyle(held: boolean): Record<string, string> {
@@ -1109,7 +1103,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 .rank-row {
   display: flex; align-items: center; gap: 12px;
-  padding: 12px 16px; background: rgba(255,255,255,0.05);
+  padding: 12px 16px; background: #17171d;
    border: 2px solid rgba(255,255,255,0.1);
 }
 .rank-row.rank-winner { border-width: 2px; }
@@ -1210,7 +1204,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .dice-area {
   flex-shrink: 0;
   padding: 24px 16px 20px;
-  background: rgba(255,255,255,0.02);
+  background: #131318;
   border-bottom: 2px solid rgba(255,255,255,0.06);
   display: flex;
   flex-direction: column;
@@ -1253,23 +1247,16 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   transition: transform 0.1s;
 }
 .die-wrap:active { transform: scale(0.92); }
-/* Gradient die themes — background applied via CSS var, SVG rect is transparent */
-[class*="die-theme-"] .die-svg { background: var(--die-face-bg, transparent);  }
 [class*="die-theme-"].die-held .die-svg { box-shadow: 0 0 14px var(--held-color, var(--pink)), 0 0 4px var(--held-color, var(--pink)); }
 
 .die-svg {
-  width: 62px;
-  height: 62px;
+  /* The cube reads every dimension off this, so the breakpoints below only set the one. */
+  --die-size: 62px;
   
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
   transition: box-shadow 0.15s;
 }
 .die-held .die-svg { box-shadow: 0 0 12px var(--held-color, var(--pink)); }
 .die-theme-neon.die-held .die-svg { box-shadow: 0 0 18px var(--held-color, var(--pink)), 0 0 6px var(--held-color, var(--pink)); }
-.die-theme-casino .die-svg { box-shadow: 0 3px 8px rgba(0,0,0,0.6); }
-.die-theme-metallic .die-svg { box-shadow: 0 2px 10px rgba(0,0,0,0.7), inset 0 1px 2px rgba(255,255,255,0.2); }
-.die-theme-wooden .die-svg { box-shadow: 0 3px 8px rgba(0,0,0,0.6); }
-.die-theme-vintage .die-svg { box-shadow: 2px 3px 8px rgba(0,0,0,0.5), -1px -1px 4px rgba(255,255,255,0.05); }
 .held-label { font-size: 9px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.08em; }
 .die-tap-hint { font-size: 8px; color: rgba(255,255,255,0.3); letter-spacing: 0.05em; }
 
@@ -1294,7 +1281,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .dice-picker-title { font-size: 20px; letter-spacing: 0.12em; color: #fff; }
 .dice-picker-close {
   width: 32px; height: 32px; border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(255,255,255,0.2); background: #1a1a20;
   color: rgba(255,255,255,0.7); font-size: 14px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
 }
@@ -1310,12 +1297,12 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 10px 14px; min-width: 80px;
    border: 2px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.05);
+  background: #17171d;
   cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
 
-.dp-btn.active { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.3); transform: scale(1.06); }
+.dp-btn.active { border-color: #fff; box-shadow: 3px 3px 0 rgba(0,0,0,0.55); transform: scale(1.06); }
 .dp-btn-icon { font-size: 20px; line-height: 1; }
 .dp-btn-label { font-size: 13px; font-weight: 800; font-family: system-ui, sans-serif; letter-spacing: 0.01em; color: #fff; white-space: nowrap; text-shadow: 0 1px 6px rgba(0,0,0,0.9); }
 
@@ -1327,16 +1314,16 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   padding: 7px 16px 7px 10px;
   
   border: 2px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.06);
+  background: #1a1a20;
   cursor: pointer; transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 
-.dp-color-btn.active { border-color: #fff; background: rgba(255,255,255,0.14); box-shadow: 0 0 10px rgba(255,255,255,0.25); }
+.dp-color-btn.active { border-color: #fff; background: #2a2a32; box-shadow: 3px 3px 0 rgba(0,0,0,0.55); }
 .dp-color-swatch {
   width: 18px; height: 18px; border-radius: 50%;
   flex-shrink: 0;
-  border: 1.5px solid rgba(255,255,255,0.25);
+  border: 2px solid rgba(255,255,255,0.25);
 }
 .dp-color-name {
   font-size: 13px; font-weight: 800;
@@ -1392,7 +1379,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.15);
+  background: #2c2c34;
   transition: background 0.2s, box-shadow 0.2s;
 }
 .pip-done { box-shadow: 0 0 6px currentColor; }
@@ -1407,7 +1394,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   padding: 8px 16px;
   
   border: 2px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.04);
+  background: #16161c;
   color: rgba(255,255,255,0.5);
   font-size: 13px;
   font-weight: 800;
@@ -1439,7 +1426,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .bet-header-btn {
   margin-left: auto; flex-shrink: 0;
   padding: 2px 6px; 
-  border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(255,255,255,0.2); background: #1a1a20;
   color: rgba(255,255,255,0.65); font-size: 8px; font-weight: 900;
   letter-spacing: 0.06em; cursor: pointer; transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
@@ -1453,11 +1440,11 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .bet-input-row { display: flex; align-items: center; gap: 8px; }
 .bet-dollar { font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.5); }
 .bet-input {
-  flex: 1; background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.15);
+  flex: 1; background: #1c1c22; border: 2px solid rgba(255,255,255,0.15);
    padding: 10px 14px; color: #fff; font-size: 18px; font-weight: 700;
   outline: none; min-width: 0;
 }
-.bet-input:focus { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
+.bet-input:focus { border-color: rgba(255,255,255,0.4); background: #222229; }
 .bet-input::placeholder { color: rgba(255,255,255,0.2); }
 .bet-set-btn {
   padding: 10px 18px;  border: none;
@@ -1468,13 +1455,13 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 
 .bet-clear-btn {
   padding: 10px 12px; 
-  border: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(255,255,255,0.15); background: #1a1a20;
   color: rgba(255,255,255,0.5); font-size: 14px; cursor: pointer; flex-shrink: 0;
   transition: all 0.15s; -webkit-tap-highlight-color: transparent;
 }
 
 .bet-active-badge { margin-top: 8px; font-size: 13px; color: #f59e0b; font-weight: 600; }
-.bet-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0 16px; }
+.bet-divider { height: 1px; background: #1e1e25; margin: 4px 0 16px; }
 
 /* SETTINGS PANEL */
 .sc-settings-list {
@@ -1518,7 +1505,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   padding: 7px 22px;
   
   border: 2px solid rgba(255,255,255,0.18);
-  background: rgba(255,255,255,0.06);
+  background: #1a1a20;
   color: rgba(255,255,255,0.35);
   font-size: 13px;
   font-weight: 900;
@@ -1531,7 +1518,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   border-color: var(--pink);
   background: rgba(255,45,120,0.18);
   color: var(--pink);
-  box-shadow: 0 0 10px rgba(255,45,120,0.25);
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
 }
 .sc-add-player-list {
   display: flex; flex-direction: column; gap: 4px;
@@ -1542,7 +1529,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .sc-add-player-row {
   display: flex; align-items: center; gap: 10px;
   padding: 8px 10px; 
-  border: 2px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03);
+  border: 2px solid rgba(255,255,255,0.07); background: #141419;
   cursor: pointer; transition: background 0.12s; text-align: left;
   -webkit-tap-highlight-color: transparent;
 }
@@ -1589,7 +1576,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .header-quit-btn { margin-right: auto; flex-shrink: 0; }
 
 .header-sc-btn {
-  background: rgba(255,255,255,0.08);
+  background: #1e1e25;
   border: 2px solid rgba(255,255,255,0.15);
   
   padding: 3px 7px;
@@ -1724,7 +1711,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .sc-dark .sc-col-howto { border-right: 2px solid rgba(255,255,255,0.09); }
 .sc-dark .sc-col-box { border-left: 2px solid rgba(255,255,255,0.14); }
 .sc-dark .sc-row { border-bottom: 2px solid rgba(255,255,255,0.07); transition: background 0.12s; cursor: default; }
-.sc-dark .sc-row:nth-child(even) { background: rgba(255,255,255,0.02); }
+.sc-dark .sc-row:nth-child(even) { background: #131318; }
 .sc-dark .sc-row-scoreable { cursor: pointer; }
 
 .sc-dark .sc-row-pending {
@@ -1734,9 +1721,9 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   animation: sc-pending-flash 0.45s ease-in-out infinite;
 }
 .sc-dark .sc-row-filled { opacity: 0.72; }
-.sc-dark .sc-total-row { background: rgba(255,255,255,0.04); border-top: 2px solid rgba(255,255,255,0.1); border-bottom: 2px solid rgba(255,255,255,0.06); }
+.sc-dark .sc-total-row { background: #16161c; border-top: 2px solid rgba(255,255,255,0.1); border-bottom: 2px solid rgba(255,255,255,0.06); }
 .sc-dark .sc-section-total-row { border-bottom: 2px solid rgba(255,255,255,0.15); }
-.sc-dark .sc-grand-row { background: rgba(255,255,255,0.07); border-top: 2px solid rgba(255,255,255,0.2); }
+.sc-dark .sc-grand-row { background: #1c1c22; border-top: 2px solid rgba(255,255,255,0.2); }
 .sc-dark .sc-lower-header { background: #1c1c1c; border-top: 2px solid rgba(255,255,255,0.15); border-bottom: 2px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.65); }
 .sc-dark .sc-die-bg { fill: rgba(255,255,255,0.08); stroke: rgba(255,255,255,0.35); stroke-width: 1; }
 .sc-dark .sc-die-pip { fill: #fff; }
@@ -1806,13 +1793,13 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
     gap: clamp(4px, 2.2vw, 12px);
   }
   .die-wrap { flex: 1 1 0; min-width: 0; max-width: 62px; }
-  .die-svg { width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: 62px; }
+  .die-svg { --die-size: min(100%, 62px); }
   .roll-right { flex: 1 1 100%; justify-content: center; padding-right: 0; }
   .roll-btn-side { flex: 1; min-height: 52px; font-size: 16px; }
 }
 
 @media (max-width: 380px) {
-  .die-svg { width: 48px; height: 48px; }
+  .die-svg { --die-size: 48px; }
   .dice-row { gap: 7px; }
   .sc-header-row,
   .sc-row,
@@ -1832,7 +1819,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   .banner-pts { font-size: 8px; }
   /* Dice area as compact as possible */
   .dice-area { padding: 18px 16px 6px; gap: 2px; }
-  .die-svg { width: 50px; height: 50px; }
+  .die-svg { --die-size: 50px; }
   .dice-row { gap: 8px; }
   .roll-btn-side { padding: 10px 12px; font-size: 13px; min-width: 68px; }
   .roll-pip { width: 15px; height: 15px; }
@@ -1856,7 +1843,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   .scorecard-scroll { overflow-y: auto; }
   .sc-lower-header { display: flex; align-items: center; justify-content: center; }
   /* Bigger dice on portrait tablet — scrolling means space isn't an issue */
-  .die-svg { width: 70px; height: 70px; }
+  .die-svg { --die-size: 70px; }
   .dice-row { gap: 16px; }
   .roll-pip { width: 20px; height: 20px; }
   .roll-btn-side { padding: 14px 18px; font-size: 16px; min-width: 90px; }
@@ -1920,7 +1907,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   .banner-total { font-size: 36px; }
   .banner-pts { font-size: 10px; }
   .dice-area { padding: 8px 16px 4px; gap: 4px; }
-  .die-svg { width: 62px; height: 62px; }
+  .die-svg { --die-size: 62px; }
   .dice-row { gap: 10px; }
   .roll-pip { width: 16px; height: 16px; }
   .roll-btn-side { padding: 10px 12px; font-size: 13px; min-width: 68px; }
@@ -2129,7 +2116,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   padding: 6px 20px;
   
   border: 2px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.06);
+  background: #1a1a20;
   color: rgba(255,255,255,0.4);
   font-size: 13px;
   font-weight: 900;
@@ -2142,7 +2129,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   border-color: var(--pink);
   background: rgba(255,45,120,0.18);
   color: var(--pink);
-  box-shadow: 0 0 12px rgba(255,45,120,0.3);
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
 }
 
 /* SCORESHEET TIMER BAR */
@@ -2150,7 +2137,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   flex-shrink: 0;
   position: relative;
   height: 28px;
-  background: rgba(255,255,255,0.06);
+  background: #1a1a20;
   border-bottom: 2px solid rgba(255,255,255,0.08);
   cursor: pointer;
   overflow: hidden;
@@ -2162,7 +2149,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .sc-timer-fill {
   position: absolute;
   left: 0; top: 0; bottom: 0;
-  background: rgba(255,255,255,0.15);
+  background: #2c2c34;
   transition: width 1s linear;
 }
 .sc-timer-fill.urgent { background: rgba(239,68,68,0.35); }
@@ -2196,7 +2183,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   padding: 5px 12px;
   
   border: 2px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.06);
+  background: #1a1a20;
   color: rgba(255,255,255,0.4);
   font-size: 12px;
   font-weight: 900;
@@ -2267,7 +2254,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   max-width: 320px;
   position: relative;
   height: 36px;
-  background: rgba(255,255,255,0.08);
+  background: #1e1e25;
   
   overflow: hidden;
   cursor: pointer;
@@ -2306,7 +2293,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   font-family: var(--font-display);
   letter-spacing: 0.15em;
   cursor: pointer;
-  box-shadow: 0 0 30px rgba(255,45,120,0.4);
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.6);
   transition: opacity 0.15s;
 }
 .walkup-start-btn:active { opacity: 0.8; }
@@ -2364,17 +2351,17 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 @media (hover: hover) and (pointer: fine) {
   .player-tab:hover { color: rgba(255,255,255,0.7); }
   .dp-btn:hover { border-color: rgba(255,255,255,0.3); transform: scale(1.04); }
-  .dp-color-btn:hover { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.1); }
-  .bet-header-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .dp-color-btn:hover { border-color: rgba(255,255,255,0.35); background: #222229; }
+  .bet-header-btn:hover { background: #26262e; color: #fff; }
   .bet-set-btn:hover { background: #fbbf24; }
-  .bet-clear-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
-  .sc-add-player-row:hover { background: rgba(255,255,255,0.08); }
+  .bet-clear-btn:hover { background: #26262e; color: #fff; }
+  .sc-add-player-row:hover { background: #1e1e25; }
   .sc-settings-quit-btn:hover {
   background: rgba(255, 60, 60, 0.25);
   border-color: #ff5555;
 }
-  .header-sc-btn:hover { background: rgba(255,255,255,0.15); }
-  .sc-dark .sc-row-scoreable:hover { background: rgba(255,255,255,0.05) !important; }
+  .header-sc-btn:hover { background: #2c2c34; }
+  .sc-dark .sc-row-scoreable:hover { background: #17171d !important; }
   .sc-light .sc-row-scoreable:hover { background: rgba(0,0,0,0.05) !important; }
 }
 </style>

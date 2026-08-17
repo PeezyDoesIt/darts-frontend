@@ -340,7 +340,7 @@ function handleStart() {
   height: 44px;
   
   border: 2px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.06);
+  background: #1a1a20;
   font-size: 22px;
   cursor: pointer;
   display: flex;
@@ -354,7 +354,7 @@ function handleStart() {
 
 .guest-input {
   flex: 1;
-  background: rgba(255,255,255,0.06);
+  background: #1a1a20;
   border: 2px solid rgba(255,255,255,0.15);
   
   color: #fff;
@@ -395,7 +395,7 @@ function handleStart() {
   padding: 8px 12px;
   
   border: 2px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.04);
+  background: #16161c;
 }
 .seat-num {
   font-size: 12px;
@@ -425,7 +425,7 @@ function handleStart() {
   height: 28px;
   
   border: 2px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.05);
+  background: #17171d;
   color: rgba(255,255,255,0.6);
   font-size: 11px;
   cursor: pointer;
@@ -469,7 +469,7 @@ function handleStart() {
   padding: 10px 14px;
   
   border: 2px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.04);
+  background: #16161c;
   cursor: pointer;
   transition: all 0.15s;
   position: relative;
@@ -503,23 +503,23 @@ function handleStart() {
 }
 .die-neon {
   background: #0d0d2e;
-  border: 1.5px solid rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.2);
   color: #00d4ff;
   text-shadow: 0 0 8px #00d4ff, 0 0 16px #00d4ff;
 }
 .die-casino {
   background: #f8f4e8;
-  border: 1.5px solid #333;
+  border: 2px solid #333;
   color: #1a1a1a;
 }
 .die-retro {
   background: #d4b896;
-  border: 1.5px solid #7a4e2d;
+  border: 2px solid #7a4e2d;
   color: #2c1810;
 }
 .die-wood {
   background: linear-gradient(135deg, #8b5e3c, #6b4226);
-  border: 1.5px solid #3d1f0a;
+  border: 2px solid #3d1f0a;
   color: #ffe4b5;
 }
 
@@ -575,12 +575,12 @@ function handleStart() {
 .toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
 
 @media (hover: hover) and (pointer: fine) {
-  .emoji-cycler:hover { background: rgba(255,255,255,0.12); }
-  .order-btn:not(:disabled):hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .emoji-cycler:hover { background: #26262e; }
+  .order-btn:not(:disabled):hover { background: #26262e; color: #fff; }
   .remove-btn:hover { background: rgba(255,80,80,0.15); color: #ff5555; border-color: rgba(255,80,80,0.4); }
   .dice-style-btn:hover:not(.active) {
   border-color: rgba(255,255,255,0.25);
-  background: rgba(255,255,255,0.08);
+  background: #1e1e25;
 }
 }
 </style>

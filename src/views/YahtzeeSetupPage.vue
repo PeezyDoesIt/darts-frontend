@@ -235,7 +235,7 @@ function startGame() {
 .order-row {
   display: flex; align-items: center; gap: 14px;
   padding: 12px 16px;
-  background: rgba(255,255,255,0.04);
+  background: #16161c;
   border: 2px solid rgba(255,255,255,0.08);
   border-left: 3px solid rgba(255,255,255,0.1);
   
@@ -260,7 +260,7 @@ function startGame() {
   padding: 20px 12px;
   
   border: 2px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.04);
+  background: #16161c;
   cursor: pointer;
   transition: all 0.15s;
   position: relative;
@@ -271,7 +271,7 @@ function startGame() {
 .dice-mode-btn.active {
   border-color: var(--pink);
   background: rgba(255,45,120,0.12);
-  box-shadow: 0 0 16px rgba(255,45,120,0.2);
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
 }
 .dice-mode-icon { font-size: 32px; }
 .dice-mode-label {
@@ -334,7 +334,7 @@ function startGame() {
 .toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
 
 @media (hover: hover) and (pointer: fine) {
-  .dice-mode-btn:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.07); }
+  .dice-mode-btn:hover { border-color: rgba(255,255,255,0.3); background: #1c1c22; }
   .btn-outline:hover { color: var(--pink) !important; border-color: var(--pink) !important; }
 }
 </style>

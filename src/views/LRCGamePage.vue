@@ -71,15 +71,17 @@
         v-if="game.phase === 'rolling' || game.phase === 'result'"
         class="dice-row"
       >
-        <div
+        <DiceFace
           v-for="(face, i) in game.diceResults"
           :key="i"
           class="die"
-          :class="[`die-${game.diceStyle}`, game.phase === 'rolling' ? 'die-rolling' : '']"
-          :style="game.phase === 'rolling' ? { animationDelay: `${i * 120}ms` } : {}"
-        >
-          <span class="die-face" :class="`die-face-${face}-${game.diceStyle}`">{{ face }}</span>
-        </div>
+          :face="lrcFaceIndex(face, i)"
+          :glyphs="LRC_GLYPHS"
+          :face-bg="lrcStyle.face"
+          :edge-color="lrcStyle.edge"
+          :glyph-colors="lrcStyle.glyphs"
+          :glyph-glow="lrcStyle.glow"
+        />
       </div>
 
     </div>
@@ -151,12 +153,53 @@ import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { useLRCStore } from '../stores/lrc'
 import { usePlayersStore } from '../stores/players'
 import { recordGameResult } from '../api/gameResults'
+import DiceFace from '../components/DiceFace.vue'
 
 const router = useRouter()
 const lrcStore = useLRCStore()
 const playersStore = usePlayersStore()
 
 const game = computed(() => lrcStore.game)
+
+/*
+ * LRC's die is marked, not pipped: L, C, R and three dots — which is exactly six faces, so it
+ * rides the same cube as every other game. Face 1 is L, 2 is C, 3 is R, and 4/5/6 are the
+ * dots; a rolled dot picks a different one of the three per die so five dice showing dots do
+ * not all land in the same attitude.
+ */
+const LRC_GLYPHS = ['L', 'C', 'R', '●', '●', '●']
+function lrcFaceIndex(face: string, i: number): number {
+  if (face === 'L') return 1
+  if (face === 'C') return 2
+  if (face === 'R') return 3
+  return 4 + (i % 3)
+}
+
+/** The four dice styles, unchanged — the same faces, edges and inks, now on six sides. */
+const LRC_STYLES: Record<string, { face: string; edge: string; glyphs: string[]; glow?: (string | undefined)[] }> = {
+  neon: {
+    face: 'linear-gradient(145deg, #1e2060, #0d0d2e)',
+    edge: 'rgba(255,255,255,0.15)',
+    glyphs: ['#00d4ff', '#ffd700', '#ff2d78', 'rgba(255,255,255,0.9)', 'rgba(255,255,255,0.9)', 'rgba(255,255,255,0.9)'],
+    glow: ['0 0 14px #00d4ff', '0 0 14px #ffd700', '0 0 14px #ff2d78', undefined, undefined, undefined],
+  },
+  casino: {
+    face: '#f8f4e8',
+    edge: '#222',
+    glyphs: ['#111', '#cc0000', '#111', '#111', '#111', '#111'],
+  },
+  retro: {
+    face: 'linear-gradient(145deg, #d4b896, #c9a87c)',
+    edge: '#7a4e2d',
+    glyphs: ['#2c1810', '#8b1a1a', '#2c1810', '#2c1810', '#2c1810', '#2c1810'],
+  },
+  wood: {
+    face: 'linear-gradient(145deg, #9b6b3a, #6b4226)',
+    edge: '#3d1f0a',
+    glyphs: ['#ffe4b5', '#ff9944', '#ffe4b5', '#ffe4b5', '#ffe4b5', '#ffe4b5'],
+  },
+}
+const lrcStyle = computed(() => LRC_STYLES[game.value?.diceStyle ?? 'neon'] ?? LRC_STYLES.neon)
 
 onMounted(() => {
   if (!lrcStore.game) {
@@ -272,7 +315,7 @@ watch(
   gap: 12px;
 }
 .quit-btn {
-  background: rgba(255,255,255,0.06);
+  background: #1a1a20;
   border: 2px solid rgba(255,255,255,0.12);
   
   color: rgba(255,255,255,0.55);
@@ -467,71 +510,14 @@ watch(
   align-items: center;
 }
 
-.die {
-  width: 76px;
-  height: 76px;
-  
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* The cube reads every dimension off this. */
+.die { --die-size: 76px; }
+/* This screen had no breakpoints at all; on a stand the dice were the thing that suffered. */
+@media (min-width: 768px) {
+  .die { --die-size: 116px; }
 }
 
-/* Neon style */
-.die-neon {
-  background: linear-gradient(145deg, #1e2060, #0d0d2e);
-  border: 2px solid rgba(255,255,255,0.15);
-  box-shadow: 4px 4px 12px rgba(0,0,0,0.7), inset 1px 1px 0 rgba(255,255,255,0.08);
-}
-.die-face-L-neon { color: #00d4ff; text-shadow: 0 0 14px #00d4ff; }
-.die-face-R-neon { color: #ff2d78; text-shadow: 0 0 14px #ff2d78; }
-.die-face-C-neon { color: #ffd700; text-shadow: 0 0 14px #ffd700; }
-.die-face-●-neon { color: rgba(255,255,255,0.9); font-size: 28px !important; }
 
-/* Casino style */
-.die-casino {
-  background: #f8f4e8;
-  border: 2px solid #222;
-  box-shadow: 3px 3px 6px rgba(0,0,0,0.5);
-}
-.die-face-L-casino { color: #111; }
-.die-face-R-casino { color: #111; }
-.die-face-C-casino { color: #cc0000; }
-.die-face-●-casino { color: #111; font-size: 28px !important; }
-
-/* Retro style */
-.die-retro {
-  background: linear-gradient(145deg, #d4b896, #c9a87c);
-  border: 2px solid #7a4e2d;
-  box-shadow: 3px 3px 8px rgba(0,0,0,0.5);
-}
-.die-face-L-retro { color: #2c1810; }
-.die-face-R-retro { color: #2c1810; }
-.die-face-C-retro { color: #8b1a1a; }
-.die-face-●-retro { color: #2c1810; font-size: 28px !important; }
-
-/* Wood style */
-.die-wood {
-  background: linear-gradient(145deg, #9b6b3a, #6b4226);
-  border: 2px solid #3d1f0a;
-  box-shadow: 4px 4px 12px rgba(0,0,0,0.6), 0 0 10px rgba(180,100,30,0.25);
-}
-.die-face-L-wood { color: #ffe4b5; }
-.die-face-R-wood { color: #ffe4b5; }
-.die-face-C-wood { color: #ff9944; }
-.die-face-●-wood { color: #ffe4b5; font-size: 28px !important; }
-
-.die-face {
-  font-size: 32px;
-  font-weight: 900;
-  font-family: var(--font-display);
-  line-height: 1;
-  user-select: none;
-}
-
-/* Rolling animation */
-.die-rolling {
-  animation: tumble 1.1s ease-in-out forwards;
-}
 @keyframes tumble {
   0%   { transform: rotate(0deg) scale(1) translateY(0); }
   25%  { transform: rotate(-30deg) scale(0.85) translateY(-6px); }
@@ -544,7 +530,7 @@ watch(
 .action-bar {
   flex-shrink: 0;
   height: 88px;
-  background: rgba(255,255,255,0.03);
+  background: #141419;
   border-top: 2px solid rgba(255,255,255,0.08);
   display: flex;
   align-items: center;
@@ -648,7 +634,7 @@ watch(
   border: 2px solid rgba(255,255,255,0.3);
   
   cursor: pointer;
-  background: rgba(255,255,255,0.08);
+  background: #1e1e25;
   color: #fff;
   box-shadow: 4px 4px 0 rgba(0,0,0,0.55);
   transition: all 0.15s;
@@ -681,7 +667,7 @@ watch(
   padding: 40px 48px;
   max-width: 360px;
   width: 100%;
-  box-shadow: 0 0 60px rgba(255,215,0,0.15);
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.6);
 }
 .winner-trophy {
   font-size: 64px;
@@ -764,7 +750,7 @@ watch(
   transform: translateY(-1px);
 }
   .next-btn:hover {
-  background: rgba(255,255,255,0.14);
+  background: #2a2a32;
   border-color: rgba(255,255,255,0.5);
 }
 }

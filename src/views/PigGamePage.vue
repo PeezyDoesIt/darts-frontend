@@ -31,7 +31,7 @@
       </div>
 
       <div class="dice-area">
-        <DiceFace v-if="game.die !== null" :face="game.die" :size="96" />
+        <DiceFace v-if="game.die !== null" :face="game.die" />
         <div v-else class="die-placeholder">🎲</div>
 
         <p v-if="game.phase === 'busted'" class="bust-msg display">PIGGED!</p>
@@ -167,21 +167,21 @@ function quit() { pig.endGame(); goBack(router, '/') }
 .score-chip {
   flex: 1 1 auto; min-width: 92px; display: flex; flex-direction: column; align-items: center;
   gap: 2px; padding: 8px 10px;  border: 2px solid transparent;
-  background: rgba(255,255,255,0.04);
+  background: #16161c;
 }
-.score-chip.active { background: rgba(255,255,255,0.09); }
+.score-chip.active { background: #202027; }
 .sc-name { font-size: 11px; font-weight: 600; color: var(--text-muted); overflow-wrap: anywhere; }
 .sc-score { font-size: 20px; }
 
 .turn-banner {
   display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
-  padding: 10px 14px;  border-left: 4px solid; background: rgba(255,255,255,0.05);
+  padding: 10px 14px;  border-left: 4px solid; background: #17171d;
 }
 .tb-name { font-size: 16px; font-weight: 800; overflow-wrap: anywhere; }
 .tb-turn { font-size: 13px; color: var(--text-muted); }
 .tb-turn strong { color: var(--gold); font-size: 17px; }
 
-.dice-area { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 18px 0; }
+.dice-area { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 18px 0; --die-size: 96px; }
 .die-placeholder { font-size: 82px; opacity: 0.25; line-height: 1; }
 .bust-msg { font-size: 34px; color: var(--pink); letter-spacing: 0.08em; margin: 0; }
 .last-action { font-size: 18px; color: var(--gold); font-weight: 800; margin: 0; }
@@ -217,6 +217,42 @@ function quit() { pig.endGame(); goBack(router, '/') }
 .empty-state {
   height: 100dvh; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 16px; color: var(--text-muted);
+}
+
+/* ── iPad ─────────────────────────────────────────────────────────────
+   This screen was built at one size and carried no responsive rules at all.
+   Played off a stand a couple of metres away, the 10–13px labels were
+   unreadable and a phone-width column ran the full 1194px. From the tablet
+   band up everything steps up and the body keeps a centred measure. iPad
+   portrait (834) and landscape (1194) both land here; phones are untouched.
+   ─────────────────────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .gp-header { padding: 18px 26px; padding-top: calc(18px + env(safe-area-inset-top)); }
+  .gp-title { font-size: 32px; }
+  .gp-target { font-size: 14px; }
+  .gp-body { padding: 28px; gap: 22px; align-items: center; }
+  .gp-body > * { width: 100%; max-width: 940px; }
+  .scoreboard { gap: 12px; }
+  .score-chip { min-width: 128px; padding: 14px 16px; gap: 4px; }
+  .sc-name { font-size: 15px; }
+  .sc-score { font-size: 30px; }
+  .turn-banner { padding: 16px 22px; border-left-width: 6px; }
+  .tb-name { font-size: 26px; }
+  .gp-footer { padding: 16px 26px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  .gp-footer .btn { min-height: 70px; font-size: 20px; }
+  .win-card, .rules-card { max-width: 620px; padding: 34px 30px; gap: 16px; }
+  .win-label { font-size: 14px; }
+  .win-name { font-size: 44px; }
+  .rules-list { font-size: 17px; gap: 11px; }
+  .tb-turn { font-size: 17px; }
+  .tb-turn strong { font-size: 26px; }
+  .dice-area { gap: 26px; padding: 30px 0; --die-size: 150px; }
+  .die-placeholder { font-size: 124px; }
+  .bust-msg { font-size: 50px; }
+  .last-action { font-size: 24px; }
+  .risk-hint { font-size: 16px; }
+  .win-score { font-size: 62px; }
+  .rules-title { font-size: 32px; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════

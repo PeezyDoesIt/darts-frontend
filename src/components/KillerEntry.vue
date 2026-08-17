@@ -101,8 +101,8 @@ defineExpose({ reset })
 
 .own {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  padding: 10px 12px;  background: #17171d;
+  border: 2px solid rgba(255,255,255,0.1);
 }
 .own.armed { border-color: var(--gold); background: rgba(255,200,87,0.12); }
 .own-left { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -115,8 +115,8 @@ defineExpose({ reset })
 .targets { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px; }
 
 .num-btn {
-  position: relative; min-height: 64px; min-width: 64px; border-radius: 12px;
-  background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.14);
+  position: relative; min-height: 64px; min-width: 64px; 
+  background: #17171d; border: 2px solid rgba(255,255,255,0.14);
   color: var(--text); cursor: pointer; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 2px; padding: 8px 6px;
   font-family: var(--font-display);

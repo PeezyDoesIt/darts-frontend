@@ -233,7 +233,7 @@ function start() {
 .seats { display: flex; flex-direction: column; gap: 8px; }
 .seat {
   display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 10px;
-  padding: 10px 12px;  background: rgba(255,255,255,0.04);
+  padding: 10px 12px;  background: #16161c;
   border: 2px solid rgba(255,255,255,0.08); border-left: 4px solid;
 }
 .seat.team-0 { border-left-color: #7ee68a; }
@@ -255,7 +255,7 @@ function start() {
 }
 
 .seat-name-input:focus {
-  outline: none; background: rgba(255,255,255,0.07); border-color: var(--gold);
+  outline: none; background: #1c1c22; border-color: var(--gold);
 }
 .seat.bot { opacity: 0.82; border-style: dashed; }
 .bot-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.12em; color: var(--text-muted); }
@@ -273,7 +273,7 @@ function start() {
 .variant-btn {
   flex: 1; min-height: 62px;  display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 3px; padding: 8px;
-  background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.12);
+  background: #17171d; border: 2px solid rgba(255,255,255,0.12);
   color: var(--text); cursor: pointer;
 }
 .variant-btn.active { border-color: var(--gold); background: rgba(255,200,87,0.14); }
@@ -287,7 +287,7 @@ function start() {
 .mode-btn {
   min-height: 62px;  display: flex; flex-direction: column;
   align-items: flex-start; justify-content: center; gap: 3px; padding: 12px 14px;
-  background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.12);
+  background: #17171d; border: 2px solid rgba(255,255,255,0.12);
   color: var(--text); cursor: pointer; text-align: left;
 }
 .mode-btn.active { border-color: var(--gold); background: rgba(255,200,87,0.14); }
@@ -296,7 +296,7 @@ function start() {
 
 .joker-preview {
   display: flex; align-items: center; gap: 12px; padding: 12px;
-  background: rgba(255,255,255,0.04);  flex-wrap: wrap;
+  background: #16161c;  flex-wrap: wrap;
 }
 .jp-note { flex: 1; min-width: 170px; font-size: 12.5px; color: var(--text-muted); margin: 0; line-height: 1.45; }
 .jp-note strong { color: var(--gold); }

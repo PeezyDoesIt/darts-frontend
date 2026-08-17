@@ -690,14 +690,14 @@ function save() {
 
 <style scoped>
 .page { display: flex; flex-direction: column; width: 100vw; height: 100dvh; height: 100dvh; overflow: hidden; }
-.name-input { width: 100%; background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.2);  padding: 12px 16px; color: #fff; font-size: 20px; font-family: inherit; outline: none; box-sizing: border-box; -webkit-appearance: none; }
+.name-input { width: 100%; background: #1c1c22; border: 2px solid rgba(255,255,255,0.2);  padding: 12px 16px; color: #fff; font-size: 20px; font-family: inherit; outline: none; box-sizing: border-box; -webkit-appearance: none; }
 .name-input:focus { border-color: var(--pink); }
 .name-input::placeholder { color: rgba(255,255,255,0.35); }
 .page-header {
   display: flex; align-items: center; justify-content: space-between; padding: 18px 32px;
   padding-top: calc(18px + env(safe-area-inset-top));
   border-bottom: 2px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.03); flex-shrink: 0;
+  background: #141419; flex-shrink: 0;
 }
 .page-title { font-size: 26px; letter-spacing: 0.1em; background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 
@@ -725,8 +725,8 @@ function save() {
 .color-dropdown-btn {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 16px; 
-  border: 1.5px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(255,255,255,0.2);
+  background: #1a1a20;
   color: #fff; font-size: 16px; font-weight: 700;
   cursor: pointer; transition: border-color 0.15s;
   width: 100%; text-align: left;
@@ -754,9 +754,9 @@ function save() {
 .color-swatch-active { box-shadow: 0 0 0 3px #fff, 0 0 10px rgba(255,255,255,0.4) !important; transform: scale(1.12); }
 
 .emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; touch-action: pan-y; }
-.emoji-btn { width: 50px; height: 50px;  border: 2px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-size: 24px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; touch-action: pan-y; }
+.emoji-btn { width: 50px; height: 50px;  border: 2px solid rgba(255,255,255,0.08); background: #16161c; font-size: 24px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; touch-action: pan-y; }
 
-.emoji-btn.active { border-color: var(--pink); box-shadow: 0 0 12px rgba(255,45,120,0.4); }
+.emoji-btn.active { border-color: var(--pink); box-shadow: 3px 3px 0 rgba(0,0,0,0.5); }
 .emoji-none-btn { color: rgba(255,255,255,0.4); font-size: 18px; font-weight: 700; }
 
 .photo-area { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
@@ -780,13 +780,13 @@ function save() {
 .existing-section { display: flex; flex-direction: column; gap: 10px; flex: 1; overflow: hidden; }
 .existing-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 .existing-list { display: flex; flex-direction: column; gap: 6px; }
-.existing-row { display: flex; align-items: center; gap: 6px; padding: 10px 8px; background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.08);  cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
+.existing-row { display: flex; align-items: center; gap: 6px; padding: 10px 8px; background: #16161c; border: 2px solid rgba(255,255,255,0.08);  cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden; }
 
 .existing-row.pinned { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.06); }
 .row-actions { display: flex; gap: 4px; flex-shrink: 0; align-items: center; }
 .row-btn {
   width: 32px; height: 32px;  border: 2px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.04); font-size: 14px; cursor: pointer;
+  background: #16161c; font-size: 14px; cursor: pointer;
   transition: all 0.15s; display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; padding: 0; position: relative; overflow: hidden;
   filter: grayscale(1);
@@ -865,8 +865,8 @@ function save() {
 .dice-dropdown-item {
   display: flex; align-items: center; gap: 7px;
   padding: 8px 10px; 
-  border: 1.5px solid transparent;
-  background: rgba(255,255,255,0.04);
+  border: 2px solid transparent;
+  background: #16161c;
   cursor: pointer; transition: all 0.12s;
   -webkit-tap-highlight-color: transparent;
 }
@@ -875,7 +875,7 @@ function save() {
 /* Square, not round: it stands for a die face, and a circle read as a colour picker. */
 .dice-dropdown-item-swatch {
   width: 20px; height: 20px;  flex-shrink: 0;
-  border: 1.5px solid rgba(255,255,255,0.28);
+  border: 2px solid rgba(255,255,255,0.28);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.22);
 }
 .dice-dropdown-item-label { font-size: 12px; font-weight: 800; font-family: var(--font-display); letter-spacing: 0.04em; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1026,11 +1026,11 @@ function save() {
   .color-dropdown-btn:hover { border-color: rgba(255,255,255,0.4); }
   .color-swatch-sm:hover { transform: scale(1.12); }
   .emoji-btn:hover { border-color: rgba(255,255,255,0.2); transform: scale(1.1); }
-  .existing-row:hover { background: rgba(255,255,255,0.07); }
+  .existing-row:hover { background: #1c1c22; }
   .row-btn:hover { filter: none; opacity: 0.85; }
   .row-btn-danger:hover { background: rgba(220,50,50,0.25); border-color: rgba(220,50,50,0.6); }
   .unpin-btn:hover { border-color: #f59e0b; }
-  .dice-dropdown-item:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+  .dice-dropdown-item:hover { background: #222229; border-color: rgba(255,255,255,0.2); }
   .ct-player-btn:hover { border-color: var(--pink); background: rgba(255,45,120,0.08); }
   .bgfit-btn:hover { border-color: var(--pink); background: rgba(255,45,120,0.08); }
   .pipstyle-btn:hover { border-color: var(--pink); background: rgba(255,45,120,0.08); }

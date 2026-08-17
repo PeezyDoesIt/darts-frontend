@@ -173,7 +173,7 @@ function submit() {
   justify-content: space-between;
   padding: 10px 20px;
   background: rgba(0,0,0,0.5);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 2px solid rgba(255,255,255,0.08);
   gap: 16px;
 }
 .strip-round {
@@ -258,7 +258,7 @@ function submit() {
 .horse-choice-btn {
   flex: 1;
   height: clamp(60px, 10dvh, 110px);
-  border-radius: 14px;
+  
   border: none;
   font-family: var(--font-display);
   font-size: clamp(22px, 4dvh, 42px);
@@ -274,15 +274,15 @@ function submit() {
 .horse-made {
   background: linear-gradient(160deg, #16a34a 0%, #15803d 100%);
   color: #fff;
-  box-shadow: 0 0 28px #16a34a80, 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 4px 4px 0 #16a34a;
 }
-.horse-made:hover { box-shadow: 0 0 40px #16a34aaa, 0 4px 12px rgba(0,0,0,0.4); }
+
 .horse-missed {
   background: linear-gradient(160deg, #dc2626 0%, #b91c1c 100%);
   color: #fff;
-  box-shadow: 0 0 28px #dc262680, 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 4px 4px 0 #dc2626;
 }
-.horse-missed:hover { box-shadow: 0 0 40px #dc2626aa, 0 4px 12px rgba(0,0,0,0.4); }
+
 
 /* Timer row for non-setter */
 .horse-timer-row {
@@ -299,10 +299,8 @@ function submit() {
 
 /* HORSE submit row styling */
 .submit-row-horse {
-  border-top: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.03);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  border-top: 2px solid rgba(255,255,255,0.08);
+  background: #141419;
   padding: 10px 16px;
   padding-bottom: calc(10px + env(safe-area-inset-bottom));
   gap: 12px;
@@ -312,12 +310,12 @@ function submit() {
 .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
 .numpad-horse { max-width: 320px; align-self: center; padding: 0 16px; box-sizing: border-box; }
 .key {
-  height: clamp(72px, 10dvh, 110px); border-radius: 12px; border: 1px solid var(--border); background: var(--bg-card);
+  height: clamp(72px, 10dvh, 110px);  border: 2px solid var(--border); background: var(--bg-card);
   color: var(--text); font-size: clamp(36px, 5.5dvh, 64px); font-weight: 700; cursor: pointer;
   transition: background 0.1s, transform 0.1s; display: flex; align-items: center; justify-content: center;
   -webkit-tap-highlight-color: transparent; position: relative; overflow: hidden;
 }
-.key:hover { background: var(--bg-surface); }
+
 .key:active { transform: scale(0.93); }
 .key.double { grid-column: span 2; }
 
@@ -351,7 +349,7 @@ function submit() {
 .score-entered { font-size: 52px; font-weight: 900; min-width: 100px; text-align: center; font-family: var(--font-display); }
 
 /* ── Mobile ── */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .simple-wrap { padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); gap: 14px; }
   .key { height: 72px; font-size: 36px; }
   .score-entered { font-size: 40px; }
@@ -369,7 +367,7 @@ function submit() {
   .horse-arcade-focus {
     flex: 0 0 42%;
     padding: 8px 10px;
-    border-right: 1px solid rgba(255,255,255,0.06);
+    border-right: 2px solid rgba(255,255,255,0.06);
   }
   .arcade-number { font-size: clamp(44px, 12dvh, 80px); }
   .arcade-label { font-size: 9px; }
@@ -377,7 +375,7 @@ function submit() {
 
   .horse-action-col { flex: 1; min-width: 0; }
   .horse-choice-row { padding: 6px 10px; gap: 8px; }
-  .horse-choice-btn { height: clamp(44px, 8dvh, 68px); font-size: clamp(16px, 3dvh, 24px); border-radius: 10px; }
+  .horse-choice-btn { height: clamp(44px, 8dvh, 68px); font-size: clamp(16px, 3dvh, 24px);  }
   .horse-timer-row { height: clamp(34px, 5dvh, 48px); }
   .submit-row-horse { padding: 6px 10px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
   .numpad-horse { max-width: none; padding: 4px 8px; }
@@ -385,5 +383,11 @@ function submit() {
   .submit-row-horse .submit-btn { height: clamp(38px, 6dvh, 52px) !important; font-size: clamp(24px, 4dvh, 36px) !important; }
   .horse-timer-row, .numpad-footer-horse .throw-timer { --throw-timer-size: clamp(22px, 3.8dvh, 32px); }
   .numpad-footer-horse .throw-timer { height: clamp(32px, 4.5dvh, 42px); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .horse-made:hover { box-shadow: 6px 6px 0 #16a34a; }
+  .horse-missed:hover { box-shadow: 6px 6px 0 #dc2626; }
+  .key:hover { background: var(--bg-surface); }
 }
 </style>
