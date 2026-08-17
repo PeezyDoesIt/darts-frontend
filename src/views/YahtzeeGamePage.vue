@@ -109,23 +109,22 @@
 
         <!-- DICE ROW + ROLL BUTTON (side by side) -->
         <div class="dice-and-ctrl">
-          <div class="dice-row" :class="{ 'dice-animating': diceAnimating }">
+          <div class="dice-row">
             <div
               v-for="(val, i) in game.dice"
               :key="i"
               class="die-wrap"
-              :class="{ 'die-held': game.held[i], [`die-rolling-${rollAnimStyle}`]: diceAnimating && !game.held[i], [`die-theme-${dieTheme}`]: true }"
-              :style="{ '--held-color': currentPlayer?.color ?? 'var(--pink)', ...dieGradientStyle(!!game.held[i]) }"
+              :class="{ 'die-held': game.held[i], [`die-theme-${dieTheme}`]: true }"
+              :style="{ '--held-color': currentPlayer?.color ?? 'var(--pink)' }"
               @click="onDieTap(i)"
             >
               <DiceFace
-                class="die-svg"
+                class="die"
                 :face="val"
-                :roll="dieRoll[i] ?? 0"
-                :spinning="spinning && !game.held[i]"
-                :face-bg="dieFaceBg(!!game.held[i])"
+                :face-bg="dieCubeFace(!!game.held[i])"
                 :pip-color="diePipFill(!!game.held[i])"
                 :edge-color="dieFaceStroke(!!game.held[i])"
+                :rolling="diceRolling && !game.held[i]"
               />
               <span v-if="game.diceMode === 'physical'" class="die-tap-hint">tap to cycle</span>
               <span v-if="game.held[i]" class="held-label" :style="{ color: currentPlayer?.color }">HELD</span>
@@ -145,10 +144,10 @@
             <button
               v-ripple
               class="btn btn-spray roll-btn-side"
-              :disabled="game.rollCount >= 3 && !spinning"
-              @click="doRoll"
+              :disabled="game.rollCount >= 3 && !diceRolling"
+              @click="diceRolling ? stopRoll() : doRoll()"
             >
-              {{ spinning ? 'STOP' : game.rollCount === 0 ? 'ROLL' : game.rollCount >= 3 ? 'DONE' : 'ROLL↺' }}
+              {{ diceRolling ? 'STOP' : game.rollCount === 0 ? 'ROLL' : game.rollCount >= 3 ? 'DONE' : 'ROLL↺' }}
             </button>
           </div>
         </div>
@@ -457,32 +456,23 @@
             <button class="dice-picker-close" @click="showDicePicker = false">✕</button>
           </div>
           <div class="dice-picker-scroll">
-            <!-- Roll animation toggle -->
+            <!--
+              How the roll ends. The eight animation styles are gone: they were ways of moving a
+              flat square around, and the dice are real cubes now — there is one way a thrown die
+              behaves. What is left is the only choice that changes play: do the dice stop
+              themselves, or does the player stop them.
+            -->
             <div class="dp-anim-row">
-              <span class="dp-anim-label">Roll Animation</span>
-              <button class="dp-anim-btn" :class="{ active: rollAnimEnabled }" @click="rollAnimEnabled = !rollAnimEnabled">
-                {{ rollAnimEnabled ? 'ON' : 'OFF' }}
-              </button>
-            </div>
-            <!-- Tap to stop -->
-            <div class="dp-anim-row">
-              <span class="dp-anim-label">Tap to Stop</span>
-              <button class="dp-anim-btn" :class="{ active: tapToStop }" @click="tapToStop = !tapToStop">
-                {{ tapToStop ? 'ON' : 'OFF' }}
-              </button>
-            </div>
-            <!-- Animation style picker -->
-            <div v-if="rollAnimEnabled" class="dp-anim-styles">
+              <span class="dp-anim-label">Rolling</span>
               <div class="dp-group-grid">
                 <button
-                  v-for="style in ROLL_ANIM_STYLES"
-                  :key="style.value"
+                  v-for="opt in ROLL_STOP_MODES" :key="opt.value"
                   class="dp-btn"
-                  :class="{ active: rollAnimStyle === style.value }"
-                  @click="rollAnimStyle = style.value"
+                  :class="{ active: rollStop === opt.value }"
+                  @click="rollStop = opt.value"
                 >
-                  <span class="dp-btn-icon">{{ style.icon }}</span>
-                  <span class="dp-btn-label">{{ style.label }}</span>
+                  <span class="dp-btn-icon">{{ opt.icon }}</span>
+                  <span class="dp-btn-label">{{ opt.label }}</span>
                 </button>
               </div>
             </div>
@@ -547,10 +537,10 @@ import { chooseCategory, chooseKeeps } from '../lib/yahtzeeBot'
 import { useYahtzeeStore, grandTotal, upperTotal, upperBonus, lowerTotal, calcScore, YAHTZEE_CATEGORIES } from '../stores/yahtzee'
 import { usePlayersStore } from '../stores/players'
 import type { YahtzeeCategory } from '../stores/yahtzee'
-import DiceFace from '../components/DiceFace.vue'
 import { DICE_THEMES, DIE_GRADIENTS, GRADIENT_DIE_THEMES, type DiceTheme } from '../types/index'
 import { useNarrator } from '../composables/useNarrator'
 import { recordGameResult } from '../api/gameResults'
+import DiceFace from '../components/DiceFace.vue'
 
 const router = useRouter()
 const { narrateAsync } = useNarrator()
@@ -566,79 +556,59 @@ const yahtzeeFlash = ref(false)
 const yahtzeeAutoScored = ref(false)
 let yahtzeeFlashTimer: ReturnType<typeof setTimeout> | null = null
 
-const rollAnimEnabled = ref(localStorage.getItem('yahtzee_roll_anim') === 'true')
-const rollAnimStyle = ref(localStorage.getItem('yahtzee_roll_anim_style') ?? '3d')
-const diceAnimating = ref(false)
-let animTimer: ReturnType<typeof setTimeout> | null = null
-
 /*
- * Tap-to-stop: the first press sets the dice spinning and the second decides them. The values
- * are rolled at the moment of the stop, not at the start, so the press is the throw rather
- * than a reveal of something already settled.
+ * Auto: one press and the dice roll and settle themselves. Manual: they keep going until the
+ * player presses STOP, which is how a shaken cup feels — the table decides when the dice land.
  */
-const tapToStop = ref(localStorage.getItem('yahtzee_tap_to_stop') === 'true')
-watch(tapToStop, v => localStorage.setItem('yahtzee_tap_to_stop', String(v)))
-const spinning = ref(false)
-/*
- * One counter per die, bumped only for the dice that actually rolled. A single shared counter
- * animates the held dice too — they are not re-rolled, so tumbling them says they were.
- */
-const dieRoll = ref<number[]>([])
-watch(rollAnimEnabled, v => localStorage.setItem('yahtzee_roll_anim', String(v)))
-watch(rollAnimStyle, v => localStorage.setItem('yahtzee_roll_anim_style', v))
-
-const ROLL_ANIM_STYLES = [
-  { value: '3d',     label: '3D Tumble',    icon: '🎲' },
-  { value: 'bounce', label: 'Bounce',       icon: '↕️' },
-  { value: 'spin',   label: 'Spin',         icon: '🌀' },
-  { value: 'shake',  label: 'Shake',        icon: '📳' },
-  { value: 'wobble', label: 'Wobble',       icon: '↔️' },
-  { value: 'pop',    label: 'Pop',          icon: '💥' },
-  { value: 'glitch', label: 'Glitch',       icon: '⚡' },
-  { value: 'slot',   label: 'Slot Machine', icon: '🎰' },
+type RollStop = 'auto' | 'manual'
+const ROLL_STOP_MODES: { value: RollStop; label: string; icon: string }[] = [
+  { value: 'auto', label: 'Stops itself', icon: '🎲' },
+  { value: 'manual', label: 'I press stop', icon: '✋' },
 ]
-const ANIM_DURATIONS: Record<string, number> = {
-  '3d': 720, bounce: 820, spin: 630, shake: 720, wobble: 780, pop: 380, glitch: 520, slot: 430,
-}
+const rollStop = ref<RollStop>(localStorage.getItem('yahtzee_roll_stop') === 'manual' ? 'manual' : 'auto')
+watch(rollStop, v => localStorage.setItem('yahtzee_roll_stop', v))
 
-/**
- * The button. With tap-to-stop on, the first press only starts the spin — nothing is rolled
- * until the second press. Bots never spin: they go straight to performRoll, or the dice would
- * turn forever with nobody to stop them.
+const diceRolling = ref(false)
+let animTimer: ReturnType<typeof setTimeout> | null = null
+const AUTO_ROLL_MS = 850
+
+
+/*
+ * THE TAP IS THE THROW. The dice are decided when the roll ENDS, not when it starts: pressing
+ * the button starts the cubes tumbling, and the values are drawn at the moment they land —
+ * whether that moment comes from the player pressing STOP or from the dice stopping themselves.
+ * This is the behaviour already shipped, and the reason the cube spins before it has a value.
+ *
+ * A bot always stops itself: it has no thumb to press STOP with.
  */
 function doRoll() {
-  if (!game.value) return
-  if (spinning.value) { spinning.value = false; performRoll(); return }
-  if (game.value.rollCount >= 3) return
-  if (tapToStop.value && !currentIsBot.value) { spinning.value = true; return }
-  performRoll()
+  if (diceRolling.value) return
+  if (animTimer) clearTimeout(animTimer)
+  yahtzeeFlash.value = false
+  yahtzeeAutoScored.value = false
+  diceRolling.value = true
+  if (rollStop.value === 'auto' || currentIsBot.value) {
+    animTimer = setTimeout(stopRoll, AUTO_ROLL_MS)
+  }
 }
 
-function performRoll() {
-  const rolling = game.value
-  if (rolling) dieRoll.value = rolling.dice.map((_, i) => (dieRoll.value[i] ?? 0) + (rolling.held[i] ? 0 : 1))
-  if (rollAnimEnabled.value) {
-    diceAnimating.value = false
-    if (animTimer) clearTimeout(animTimer)
-  }
+function stopRoll() {
+  if (animTimer) { clearTimeout(animTimer); animTimer = null }
+  if (!diceRolling.value) return
+  // Rolled first, then landed, in that order and in one tick: the die is told its value before
+  // it is told to stop, so it lands on the new number rather than settling on the old one and
+  // flipping again.
   yahtzeeStore.rollDice()
+  diceRolling.value = false
   nextTick(() => {
-    if (rollAnimEnabled.value) {
-      diceAnimating.value = true
-      animTimer = setTimeout(() => { diceAnimating.value = false }, ANIM_DURATIONS[rollAnimStyle.value] ?? 720)
-    }
     if (!game.value) return
-    const dice = game.value.dice
-    const isYahtzee = new Set(dice).size === 1
+    const isYahtzee = new Set(game.value.dice).size === 1
     if (isYahtzee) {
       if (yahtzeeFlashTimer) clearTimeout(yahtzeeFlashTimer)
       yahtzeeFlash.value = true
       yahtzeeAutoScored.value = true
       yahtzeeStore.autoScoreYahtzee()
       yahtzeeFlashTimer = setTimeout(() => { yahtzeeFlash.value = false }, 4000)
-    } else {
-      yahtzeeFlash.value = false
-      yahtzeeAutoScored.value = false
     }
   })
 }
@@ -654,9 +624,9 @@ const scorecardBgStyle = computed(() => {
 
 watch(() => game.value?.currentPlayerIndex, (idx) => {
   if (idx !== undefined) viewingIndex.value = idx
-  // A spin belongs to the player who started it; handing over mid-spin would strand the next
-  // player with dice already turning.
-  spinning.value = false
+  // A held roll belongs to the seat that threw it: if the turn moves on, the dice come down.
+  if (animTimer) { clearTimeout(animTimer); animTimer = null }
+  diceRolling.value = false
 })
 
 onMounted(() => {
@@ -774,7 +744,7 @@ function isGradient(theme: DiceTheme): boolean {
 }
 
 function dieFaceFill(held: boolean): string {
-  if (isGradient(dieTheme.value)) return 'none'
+  if (isGradient(dieTheme.value)) return 'transparent'
   const p = currentPlayer.value?.color ?? '#ff2d78'
   switch (dieTheme.value) {
     case 'casino':   return held ? '#e4e4e4' : '#ffffff'
@@ -797,6 +767,32 @@ function dieFaceStroke(held: boolean): string {
     default:         return 'transparent'
   }
 }
+/*
+ * One background for the cube's faces, covering all thirty-four themes. The gradients pass
+ * straight through; metallic's three-stop sheen and wooden's grain lines were SVG before and are
+ * plain CSS backgrounds now, so nothing about the picker or the theme list had to change.
+ * Corner radius is gone from here — the cube's pillow corner belongs to the die, not the theme.
+ */
+function dieCubeFace(held: boolean): string {
+  if (isGradient(dieTheme.value)) {
+    const grad = DIE_GRADIENTS[dieTheme.value]
+    if (grad) return held ? grad.replace('135deg', '155deg') : grad
+  }
+  if (dieTheme.value === 'metallic') {
+    return held
+      ? 'linear-gradient(135deg, #dcdce8, #9090a4 50%, #404050)'
+      : 'linear-gradient(135deg, #c8c8d8, #787890 50%, #383848)'
+  }
+  if (dieTheme.value === 'wooden') {
+    const stock = held ? '#8b5e2c' : '#a0742e'
+    return `repeating-linear-gradient(180deg, rgba(74,32,8,0.30) 0 1px, transparent 1px 17%), ${stock}`
+  }
+  if (dieTheme.value === 'vintage') {
+    const stock = held ? '#d8d0b8' : '#f0e8d0'
+    return `linear-gradient(0deg, rgba(192,168,112,0.55), rgba(192,168,112,0.55)) padding-box, ${stock}`
+  }
+  return dieFaceFill(held)
+}
 function diePipFill(held: boolean): string {
   if (isGradient(dieTheme.value)) return held ? '#ffffff' : 'rgba(255,255,255,0.85)'
   const p = currentPlayer.value?.color ?? '#ff2d78'
@@ -808,37 +804,6 @@ function diePipFill(held: boolean): string {
     case 'vintage':  return '#6c4218'
     default:         return held ? p : '#ffffff'
   }
-}
-
-/**
- * The whole face as a CSS background, which is what the cube needs — the old SVG built its
- * face from a rect fill plus, for metallic, a linearGradient in defs. Both collapse to this.
- */
-function dieFaceBg(held: boolean): string {
-  if (isGradient(dieTheme.value)) {
-    const grad = DIE_GRADIENTS[dieTheme.value]
-    if (grad) return held ? grad.replace('135deg', '155deg') : grad
-  }
-  if (dieTheme.value === 'metallic') {
-    return held
-      ? 'linear-gradient(135deg, #dcdce8 0%, #9090a4 50%, #404050 100%)'
-      : 'linear-gradient(135deg, #c8c8d8 0%, #787890 50%, #383848 100%)'
-  }
-  if (dieTheme.value === 'wooden') {
-    // The grain was four drawn lines inside the SVG; repeating-linear-gradient is the same
-    // four lines and survives being mapped onto six faces.
-    return held
-      ? 'repeating-linear-gradient(180deg, #8b5e2c 0 6px, #7d5326 6px 7px)'
-      : 'repeating-linear-gradient(180deg, #a0742e 0 6px, #8f6626 6px 7px)'
-  }
-  return dieFaceFill(held)
-}
-
-function dieGradientStyle(held: boolean): Record<string, string> {
-  if (!isGradient(dieTheme.value)) return {}
-  const grad = DIE_GRADIENTS[dieTheme.value]
-  if (!grad) return {}
-  return { '--die-face-bg': held ? grad.replace('135deg', '155deg') : grad }
 }
 
 interface CatDef { key: YahtzeeCategory; label: string; dieValue?: number; howTo: string }
@@ -1022,17 +987,19 @@ let botTimer: ReturnType<typeof setTimeout> | null = null
 function botStep() {
   const g = game.value
   if (!g || g.status !== 'playing') return
+  // Never mid-throw: the bot waits for its own dice to land before deciding anything.
+  if (diceRolling.value) return
   const sc = g.playerStates[g.currentPlayerIndex]?.scorecard
   if (!sc) return
 
-  if (g.rollCount === 0) { performRoll(); return }
+  if (g.rollCount === 0) { doRoll(); return }
   if (g.rollCount >= 3) { afterScore(chooseCategory(g.dice, sc)); return }
 
   const want = chooseKeeps(g.dice, sc, 3 - g.rollCount)
   const alreadyHeld = want.every((w, i) => w === g.held[i])
   if (!alreadyHeld) { yahtzeeStore.setHolds(want); return }
 
-  performRoll()
+  doRoll()
 }
 
 function scheduleBot() {
@@ -1144,8 +1111,8 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 .rank-row {
   display: flex; align-items: center; gap: 12px;
-  padding: 12px 16px; background: #17171d;
-   border: 2px solid rgba(255,255,255,0.1);
+  padding: 12px 16px; background: rgba(255,255,255,0.05);
+  border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
 }
 .rank-row.rank-winner { border-width: 2px; }
 .rank-place { font-size: 22px; width: 28px; text-align: center; color: rgba(255,255,255,0.4); }
@@ -1175,7 +1142,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   align-items: center;
   gap: 16px;
   padding: 14px 20px;
-  border-bottom: 2px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.15s;
@@ -1205,7 +1172,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   -webkit-overflow-scrolling: touch;
   flex-shrink: 0;
   background: rgba(0,0,0,0.5);
-  border-bottom: 2px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
   scrollbar-width: none;
 }
 .player-tabs::-webkit-scrollbar { display: none; }
@@ -1226,7 +1193,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   overflow: hidden;
   min-width: 64px;
 }
-
+.player-tab:hover { color: rgba(255,255,255,0.7); }
 .tab-active { color: var(--pink); }
 .tab-current::after {
   content: '▶';
@@ -1245,8 +1212,8 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .dice-area {
   flex-shrink: 0;
   padding: 24px 16px 20px;
-  background: #131318;
-  border-bottom: 2px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1260,7 +1227,9 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   flex: 1;
   display: flex;
   justify-content: center;
-  gap: 12px;
+  /* Thrown dice sit apart, the same spacing the other dice games use — a tight row reads as a
+     strip of tiles rather than five cubes that landed. */
+  gap: 22px;
   padding-left: 48px;
 }
 .roll-right {
@@ -1288,16 +1257,11 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   transition: transform 0.1s;
 }
 .die-wrap:active { transform: scale(0.92); }
-[class*="die-theme-"].die-held .die-svg { box-shadow: 0 0 14px var(--held-color, var(--pink)), 0 0 4px var(--held-color, var(--pink)); }
-
-.die-svg {
-  /* The cube reads every dimension off this, so the breakpoints below only set the one. */
-  --die-size: 62px;
-  
-  transition: box-shadow 0.15s;
-}
-.die-held .die-svg { box-shadow: 0 0 12px var(--held-color, var(--pink)); }
-.die-theme-neon.die-held .die-svg { box-shadow: 0 0 18px var(--held-color, var(--pink)), 0 0 6px var(--held-color, var(--pink)); }
+/* The cube takes its size from here, so it can grow at every breakpoint below. */
+.die-wrap .die { --die-size: 62px; }
+/* Held is a light on the die, not a change to the theme's own face. */
+.die-held .die { filter: drop-shadow(0 0 10px var(--held-color, var(--pink))); }
+.die-theme-neon.die-held .die { filter: drop-shadow(0 0 14px var(--held-color, var(--pink))); }
 .held-label { font-size: 9px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.08em; }
 .die-tap-hint { font-size: 8px; color: rgba(255,255,255,0.3); letter-spacing: 0.05em; }
 
@@ -1309,20 +1273,20 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 .dice-picker-panel {
   width: 100%; max-width: 680px; max-height: 80dvh;
-  background: #111; border-top: 2px solid rgba(255,255,255,0.12);
-  
+  background: #111; border-top: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px 20px 0 0;
   display: flex; flex-direction: column; overflow: hidden;
 }
 .dice-picker-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 24px 12px;
-  border-bottom: 2px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   flex-shrink: 0;
 }
 .dice-picker-title { font-size: 20px; letter-spacing: 0.12em; color: #fff; }
 .dice-picker-close {
   width: 32px; height: 32px; border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.2); background: #1a1a20;
+  border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.7); font-size: 14px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
 }
@@ -1337,13 +1301,13 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .dp-btn {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 10px 14px; min-width: 80px;
-   border: 2px solid rgba(255,255,255,0.12);
-  background: #17171d;
+  border-radius: 10px; border: 2px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
   cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
-
-.dp-btn.active { border-color: #fff; box-shadow: 3px 3px 0 rgba(0,0,0,0.55); transform: scale(1.06); }
+.dp-btn:hover { border-color: rgba(255,255,255,0.3); transform: scale(1.04); }
+.dp-btn.active { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.3); transform: scale(1.06); }
 .dp-btn-icon { font-size: 20px; line-height: 1; }
 .dp-btn-label { font-size: 13px; font-weight: 800; font-family: system-ui, sans-serif; letter-spacing: 0.01em; color: #fff; white-space: nowrap; text-shadow: 0 1px 6px rgba(0,0,0,0.9); }
 
@@ -1353,18 +1317,18 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .dp-color-btn {
   display: flex; align-items: center; gap: 9px;
   padding: 7px 16px 7px 10px;
-  
+  border-radius: 20px;
   border: 2px solid rgba(255,255,255,0.15);
-  background: #1a1a20;
+  background: rgba(255,255,255,0.06);
   cursor: pointer; transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-
-.dp-color-btn.active { border-color: #fff; background: #2a2a32; box-shadow: 3px 3px 0 rgba(0,0,0,0.55); }
+.dp-color-btn:hover { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.1); }
+.dp-color-btn.active { border-color: #fff; background: rgba(255,255,255,0.14); box-shadow: 0 0 10px rgba(255,255,255,0.25); }
 .dp-color-swatch {
   width: 18px; height: 18px; border-radius: 50%;
   flex-shrink: 0;
-  border: 2px solid rgba(255,255,255,0.25);
+  border: 1.5px solid rgba(255,255,255,0.25);
 }
 .dp-color-name {
   font-size: 13px; font-weight: 800;
@@ -1386,7 +1350,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   justify-content: center;
   gap: 10px;
   padding: 8px 16px;
-  
+  border-radius: 10px;
   border: 2px solid;
   background: rgba(0,0,0,0.5);
   animation: yf-pulse 0.6s ease-in-out infinite alternate;
@@ -1420,7 +1384,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #2c2c34;
+  background: rgba(255,255,255,0.15);
   transition: background 0.2s, box-shadow 0.2s;
 }
 .pip-done { box-shadow: 0 0 6px currentColor; }
@@ -1433,9 +1397,9 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 .physical-step-btn {
   padding: 8px 16px;
-  
+  border-radius: 8px;
   border: 2px solid rgba(255,255,255,0.15);
-  background: #16161c;
+  background: rgba(255,255,255,0.04);
   color: rgba(255,255,255,0.5);
   font-size: 13px;
   font-weight: 800;
@@ -1454,7 +1418,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   justify-content: space-between;
   padding: 10px 16px;
   background: rgba(255,212,0,0.08);
-  border-bottom: 2px solid rgba(255,212,0,0.2);
+  border-bottom: 1px solid rgba(255,212,0,0.2);
   font-size: 13px;
   color: rgba(255,255,255,0.7);
   gap: 12px;
@@ -1466,13 +1430,13 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .sc-ipad-btns { display: none; }
 .bet-header-btn {
   margin-left: auto; flex-shrink: 0;
-  padding: 2px 6px; 
-  border: 2px solid rgba(255,255,255,0.2); background: #1a1a20;
+  padding: 2px 6px; border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.65); font-size: 8px; font-weight: 900;
   letter-spacing: 0.06em; cursor: pointer; transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-
+.bet-header-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
 .bet-header-active { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.12); }
 
 /* BET PANEL */
@@ -1481,28 +1445,28 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .bet-input-row { display: flex; align-items: center; gap: 8px; }
 .bet-dollar { font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.5); }
 .bet-input {
-  flex: 1; background: #1c1c22; border: 2px solid rgba(255,255,255,0.15);
-   padding: 10px 14px; color: #fff; font-size: 18px; font-weight: 700;
+  flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 18px; font-weight: 700;
   outline: none; min-width: 0;
 }
-.bet-input:focus { border-color: rgba(255,255,255,0.4); background: #222229; }
+.bet-input:focus { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
 .bet-input::placeholder { color: rgba(255,255,255,0.2); }
 .bet-set-btn {
-  padding: 10px 18px;  border: none;
+  padding: 10px 18px; border-radius: 8px; border: none;
   background: #f59e0b; color: #000; font-size: 13px; font-weight: 900;
   letter-spacing: 0.08em; cursor: pointer; flex-shrink: 0; transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-
+.bet-set-btn:hover { background: #fbbf24; }
 .bet-clear-btn {
-  padding: 10px 12px; 
-  border: 2px solid rgba(255,255,255,0.15); background: #1a1a20;
+  padding: 10px 12px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.5); font-size: 14px; cursor: pointer; flex-shrink: 0;
   transition: all 0.15s; -webkit-tap-highlight-color: transparent;
 }
-
+.bet-clear-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
 .bet-active-badge { margin-top: 8px; font-size: 13px; color: #f59e0b; font-weight: 600; }
-.bet-divider { height: 1px; background: #1e1e25; margin: 4px 0 16px; }
+.bet-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0 16px; }
 
 /* SETTINGS PANEL */
 .sc-settings-list {
@@ -1520,7 +1484,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   justify-content: space-between;
   gap: 16px;
   padding: 16px 0;
-  border-bottom: 2px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
 }
 .sc-settings-row:last-child { border-bottom: none; }
 .sc-settings-info {
@@ -1544,9 +1508,9 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .sc-settings-toggle {
   flex-shrink: 0;
   padding: 7px 22px;
-  
+  border-radius: 20px;
   border: 2px solid rgba(255,255,255,0.18);
-  background: #1a1a20;
+  background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.35);
   font-size: 13px;
   font-weight: 900;
@@ -1559,22 +1523,22 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   border-color: var(--pink);
   background: rgba(255,45,120,0.18);
   color: var(--pink);
-  box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+  box-shadow: 0 0 10px rgba(255,45,120,0.25);
 }
 .sc-add-player-list {
   display: flex; flex-direction: column; gap: 4px;
   padding: 4px 0 8px;
-  border-bottom: 2px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
 }
 .sc-add-player-empty { font-size: 12px; color: rgba(255,255,255,0.35); padding: 8px 0; text-align: center; }
 .sc-add-player-row {
   display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px; 
-  border: 2px solid rgba(255,255,255,0.07); background: #141419;
+  padding: 8px 10px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03);
   cursor: pointer; transition: background 0.12s; text-align: left;
   -webkit-tap-highlight-color: transparent;
 }
-
+.sc-add-player-row:hover { background: rgba(255,255,255,0.08); }
 .sc-add-avatar {
   width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; overflow: hidden;
@@ -1588,7 +1552,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 .sc-settings-quit-btn {
   padding: 11px 40px;
-  
+  border-radius: 8px;
   border: 2px solid rgba(255, 80, 80, 0.5);
   background: rgba(255, 60, 60, 0.12);
   color: #ff5555;
@@ -1599,7 +1563,10 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   cursor: pointer;
   transition: all 0.15s;
 }
-
+.sc-settings-quit-btn:hover {
+  background: rgba(255, 60, 60, 0.25);
+  border-color: #ff5555;
+}
 
 /* SCORECARD */
 .scorecard-scroll {
@@ -1617,9 +1584,9 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .header-quit-btn { margin-right: auto; flex-shrink: 0; }
 
 .header-sc-btn {
-  background: #1e1e25;
-  border: 2px solid rgba(255,255,255,0.15);
-  
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
   padding: 3px 7px;
   font-size: 14px;
   cursor: pointer;
@@ -1628,7 +1595,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
-
+.header-sc-btn:hover { background: rgba(255,255,255,0.15); }
 .header-sc-btn-active { border-color: var(--pink) !important; background: rgba(255,45,120,0.15) !important; }
 .header-sc-btn-grey { color: rgba(255,255,255,0.4); filter: grayscale(1); }
 .header-sc-btn-grey.header-sc-btn-active { filter: none; }
@@ -1748,13 +1715,13 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .sc-dark .sc-header-row .sc-col-name { justify-content: flex-start; }
 .sc-dark .sc-header-row .sc-col-howto { justify-content: flex-start; padding-left: 2px; }
 .sc-dark .sc-section-title { font-size: 14px; color: rgba(255,255,255,0.85); letter-spacing: 0.08em; }
-.sc-dark .sc-col-name { border-right: 2px solid rgba(255,255,255,0.09); }
-.sc-dark .sc-col-howto { border-right: 2px solid rgba(255,255,255,0.09); }
+.sc-dark .sc-col-name { border-right: 1px solid rgba(255,255,255,0.09); }
+.sc-dark .sc-col-howto { border-right: 1px solid rgba(255,255,255,0.09); }
 .sc-dark .sc-col-box { border-left: 2px solid rgba(255,255,255,0.14); }
-.sc-dark .sc-row { border-bottom: 2px solid rgba(255,255,255,0.07); transition: background 0.12s; cursor: default; }
-.sc-dark .sc-row:nth-child(even) { background: #131318; }
+.sc-dark .sc-row { border-bottom: 1px solid rgba(255,255,255,0.07); transition: background 0.12s; cursor: default; }
+.sc-dark .sc-row:nth-child(even) { background: rgba(255,255,255,0.02); }
 .sc-dark .sc-row-scoreable { cursor: pointer; }
-
+.sc-dark .sc-row-scoreable:hover { background: rgba(255,255,255,0.05) !important; }
 .sc-dark .sc-row-pending {
   background: color-mix(in srgb, var(--pending-color, var(--pink)) 32%, transparent) !important;
   border-left: 3px solid var(--pending-color, var(--pink)) !important;
@@ -1762,9 +1729,9 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   animation: sc-pending-flash 0.45s ease-in-out infinite;
 }
 .sc-dark .sc-row-filled { opacity: 0.72; }
-.sc-dark .sc-total-row { background: #16161c; border-top: 2px solid rgba(255,255,255,0.1); border-bottom: 2px solid rgba(255,255,255,0.06); }
+.sc-dark .sc-total-row { background: rgba(255,255,255,0.04); border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.06); }
 .sc-dark .sc-section-total-row { border-bottom: 2px solid rgba(255,255,255,0.15); }
-.sc-dark .sc-grand-row { background: #1c1c22; border-top: 2px solid rgba(255,255,255,0.2); }
+.sc-dark .sc-grand-row { background: rgba(255,255,255,0.07); border-top: 2px solid rgba(255,255,255,0.2); }
 .sc-dark .sc-lower-header { background: #1c1c1c; border-top: 2px solid rgba(255,255,255,0.15); border-bottom: 2px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.65); }
 .sc-dark .sc-die-bg { fill: rgba(255,255,255,0.08); stroke: rgba(255,255,255,0.35); stroke-width: 1; }
 .sc-dark .sc-die-pip { fill: #fff; }
@@ -1789,12 +1756,12 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .sc-light .sc-header-row .sc-col-name { justify-content: flex-start; }
 .sc-light .sc-header-row .sc-col-howto { justify-content: flex-start; padding-left: 2px; }
 .sc-light .sc-section-title { font-size: 14px; color: #222; letter-spacing: 0.08em; }
-.sc-light .sc-col-name { border-right: 2px solid #bbb; }
-.sc-light .sc-col-howto { border-right: 2px solid #bbb; }
-.sc-light .sc-row { border-bottom: 2px solid #ccc; transition: background 0.12s; cursor: default; }
+.sc-light .sc-col-name { border-right: 1px solid #bbb; }
+.sc-light .sc-col-howto { border-right: 1px solid #bbb; }
+.sc-light .sc-row { border-bottom: 1px solid #ccc; transition: background 0.12s; cursor: default; }
 .sc-light .sc-row:nth-child(even) { background: rgba(0,0,0,0.02); }
 .sc-light .sc-row-scoreable { cursor: pointer; }
-
+.sc-light .sc-row-scoreable:hover { background: rgba(0,0,0,0.05) !important; }
 .sc-light .sc-row-pending {
   background: color-mix(in srgb, var(--pending-color, var(--pink)) 28%, transparent) !important;
   border-left: 3px solid var(--pending-color, var(--pink)) !important;
@@ -1802,7 +1769,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   animation: sc-pending-flash 0.45s ease-in-out infinite;
 }
 .sc-light .sc-row-filled { opacity: 0.72; }
-.sc-light .sc-total-row { background: #ece6d8; border-top: 2px solid #aaa; border-bottom: 2px solid #bbb; }
+.sc-light .sc-total-row { background: #ece6d8; border-top: 1px solid #aaa; border-bottom: 1px solid #bbb; }
 .sc-light .sc-section-total-row { border-bottom: 2px solid #999; }
 .sc-light .sc-grand-row { background: #e0d8c8; border-top: 2px solid #888; }
 .sc-light .sc-lower-header { background: #e0d8c8; border-top: 2px solid #aaa; border-bottom: 2px solid #aaa; color: #333; }
@@ -1831,17 +1798,17 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
     flex: 1 1 100%;
     padding-left: 0;          /* was a 48px hack to offset the side button */
     min-width: 0;
-    gap: clamp(4px, 2.2vw, 12px);
+    gap: clamp(7px, 3vw, 16px);
   }
   .die-wrap { flex: 1 1 0; min-width: 0; max-width: 62px; }
-  .die-svg { --die-size: min(100%, 62px); }
+  .die-wrap .die { --die-size: min(62px, 15vw); }
   .roll-right { flex: 1 1 100%; justify-content: center; padding-right: 0; }
   .roll-btn-side { flex: 1; min-height: 52px; font-size: 16px; }
 }
 
 @media (max-width: 380px) {
-  .die-svg { --die-size: 48px; }
-  .dice-row { gap: 7px; }
+  .die-wrap .die { --die-size: 48px; }
+  .dice-row { gap: 10px; }
   .sc-header-row,
   .sc-row,
   .sc-total-row { grid-template-columns: 96px 1fr 60px; }
@@ -1850,7 +1817,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 
 /* Tablet/iPad: compact everything to maximise scorecard space */
-@media (min-width: 768px) and (max-width: 1099px) {
+@media (min-width: 768px) and (max-width: 1100px) {
   .turn-header { padding: 5px 16px; padding-top: calc(5px + env(safe-area-inset-top)); }
   .header-sc-btn { font-size: 15px; padding: 4px 8px; }
   .player-banner { padding: 8px 16px; min-height: 52px; gap: 12px; }
@@ -1860,8 +1827,8 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   .banner-pts { font-size: 8px; }
   /* Dice area as compact as possible */
   .dice-area { padding: 18px 16px 6px; gap: 2px; }
-  .die-svg { --die-size: 50px; }
-  .dice-row { gap: 8px; }
+  .die-wrap .die { --die-size: 50px; }
+  .dice-row { gap: 12px; }
   .roll-btn-side { padding: 10px 12px; font-size: 13px; min-width: 68px; }
   .roll-pip { width: 15px; height: 15px; }
   /* Hide hint text — saves a full line of height */
@@ -1880,12 +1847,12 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   .sc-bonus-check { font-size: 15px; }
 }
 /* Tablet portrait: scorecard scrolls freely */
-@media (min-width: 768px) and (max-width: 1099px) and (orientation: portrait) {
+@media (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
   .scorecard-scroll { overflow-y: auto; }
   .sc-lower-header { display: flex; align-items: center; justify-content: center; }
   /* Bigger dice on portrait tablet — scrolling means space isn't an issue */
-  .die-svg { --die-size: 70px; }
-  .dice-row { gap: 16px; }
+  .die-wrap .die { --die-size: 96px; }
+  .dice-row { gap: 30px; }
   .roll-pip { width: 20px; height: 20px; }
   .roll-btn-side { padding: 14px 18px; font-size: 16px; min-width: 90px; }
   /* Wider columns — PTS column widened ~half inch to the left */
@@ -1921,13 +1888,13 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   .banner-total { font-size: 30px; }
 }
 /* Tablet landscape: scorecard fills page and scrolls if needed */
-@media (min-width: 768px) and (max-width: 1099px) and (orientation: landscape) {
+@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
   .scorecard-scroll { display: flex; flex-direction: column; overflow-y: auto; }
   .sc-paper { flex: 1; }
 }
 
 /* Laptop / large desktop: scorecard fills the page without scrolling, larger text */
-@media (min-width: 1100px) {
+@media (min-width: 1101px) {
   /* Compact header + dice area to give scorecard maximum vertical space */
   .turn-header { padding: 5px 16px; padding-top: calc(5px + env(safe-area-inset-top)); position: relative; }
   .header-sc-btn { font-size: 14px; padding: 4px 8px; }
@@ -1943,13 +1910,13 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   }
   /* Taller player banner on laptop */
   .player-banner { padding: 16px 24px; min-height: 90px; gap: 20px; }
-  .banner-avatar { width: 130px; height: 82px;  font-size: 42px; }
+  .banner-avatar { width: 130px; height: 82px; border-radius: 14px; font-size: 42px; }
   .banner-name { font-size: clamp(36px, 5dvh, 64px); }
   .banner-total { font-size: 36px; }
   .banner-pts { font-size: 10px; }
   .dice-area { padding: 8px 16px 4px; gap: 4px; }
-  .die-svg { --die-size: 62px; }
-  .dice-row { gap: 10px; }
+  .die-wrap .die { --die-size: 86px; }
+  .dice-row { gap: 22px; }
   .roll-pip { width: 16px; height: 16px; }
   .roll-btn-side { padding: 10px 12px; font-size: 13px; min-width: 68px; }
   .score-hint { display: none; }
@@ -1992,158 +1959,30 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   .sc-light .sc-header-row .sc-col-howto { font-size: 11px; }
 }
 
-/* ===== DICE ROLL ANIMATIONS (GPU compositor only — transform/opacity only) ===== */
+/*
+ * The eight roll animations are gone with the flat die. They were eight ways of moving a
+ * square around: tumble, bounce, spin, shake, wobble, pop, glitch, slot. A cube tumbles on
+ * its own axes and there is only one way a thrown die behaves, so the choice that replaced
+ * them is about the throw itself — whether the dice stop themselves or the player stops them.
+ */
 
-/* A: 3D Tumble */
-@keyframes die-rolling-3d {
-  0%   { transform: perspective(160px) rotateX(0deg)    rotateY(0deg)    scale(1);    }
-  10%  { transform: perspective(160px) rotateX(-55deg)  rotateY(75deg)   scale(1.07); }
-  22%  { transform: perspective(160px) rotateX(135deg)  rotateY(-95deg)  scale(0.93); }
-  36%  { transform: perspective(160px) rotateX(225deg)  rotateY(165deg)  scale(1.08); }
-  50%  { transform: perspective(160px) rotateX(295deg)  rotateY(255deg)  scale(0.95); }
-  63%  { transform: perspective(160px) rotateX(342deg)  rotateY(325deg)  scale(1.03); }
-  76%  { transform: perspective(160px) rotateX(364deg)  rotateY(370deg)  scale(0.99); }
-  89%  { transform: perspective(160px) rotateX(356deg)  rotateY(352deg)  scale(1.01); }
-  100% { transform: perspective(160px) rotateX(360deg)  rotateY(360deg)  scale(1);    }
-}
-.die-rolling-3d {
-  animation: die-rolling-3d 0.72s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-  will-change: transform;
-}
-
-/* B: Bounce */
-@keyframes die-rolling-bounce {
-  0%   { transform: translateY(-40px) scale(1.1);  }
-  28%  { transform: translateY(8px)   scale(0.92); }
-  45%  { transform: translateY(-18px) scale(1.05); }
-  60%  { transform: translateY(4px)   scale(0.97); }
-  73%  { transform: translateY(-7px)  scale(1.02); }
-  84%  { transform: translateY(2px)   scale(0.99); }
-  92%  { transform: translateY(-2px)  scale(1.005); }
-  100% { transform: translateY(0px)   scale(1);    }
-}
-.die-rolling-bounce {
-  animation: die-rolling-bounce 0.82s cubic-bezier(0.23, 1, 0.32, 1) both;
-  will-change: transform;
-}
-
-/* C: Spin */
-@keyframes die-rolling-spin {
-  0%   { transform: rotate(0deg)   scale(1);    }
-  15%  { transform: rotate(120deg) scale(1.1);  }
-  40%  { transform: rotate(260deg) scale(0.9);  }
-  65%  { transform: rotate(330deg) scale(1.05); }
-  82%  { transform: rotate(355deg) scale(0.98); }
-  100% { transform: rotate(360deg) scale(1);    }
-}
-.die-rolling-spin {
-  animation: die-rolling-spin 0.63s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-  will-change: transform;
-}
-
-/* D: Shake */
-@keyframes die-rolling-shake {
-  0%   { transform: translate(0, 0)      rotate(0deg);  }
-  10%  { transform: translate(-6px, 3px) rotate(-8deg); }
-  20%  { transform: translate(6px, -3px) rotate(8deg);  }
-  30%  { transform: translate(-5px, 5px) rotate(-6deg); }
-  40%  { transform: translate(5px, -2px) rotate(7deg);  }
-  50%  { transform: translate(-4px, 4px) rotate(-5deg); }
-  60%  { transform: translate(4px, -4px) rotate(5deg);  }
-  70%  { transform: translate(-2px, 2px) rotate(-3deg); }
-  80%  { transform: translate(2px, -2px) rotate(3deg);  }
-  90%  { transform: translate(-1px, 1px) rotate(-1deg); }
-  100% { transform: translate(0, 0)      rotate(0deg);  }
-}
-.die-rolling-shake {
-  animation: die-rolling-shake 0.72s ease-in-out both;
-  will-change: transform;
-}
-
-/* E: Wobble */
-@keyframes die-rolling-wobble {
-  0%   { transform: rotate(0deg)   scaleX(1);    }
-  12%  { transform: rotate(-18deg) scaleX(0.88); }
-  25%  { transform: rotate(16deg)  scaleX(1.12); }
-  38%  { transform: rotate(-12deg) scaleX(0.92); }
-  50%  { transform: rotate(10deg)  scaleX(1.08); }
-  63%  { transform: rotate(-6deg)  scaleX(0.96); }
-  75%  { transform: rotate(4deg)   scaleX(1.04); }
-  88%  { transform: rotate(-2deg)  scaleX(0.99); }
-  100% { transform: rotate(0deg)   scaleX(1);    }
-}
-.die-rolling-wobble {
-  animation: die-rolling-wobble 0.78s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-  will-change: transform;
-}
-
-/* F: Pop */
-@keyframes die-rolling-pop {
-  0%   { transform: scale(1);    }
-  30%  { transform: scale(1.45); }
-  55%  { transform: scale(0.88); }
-  75%  { transform: scale(1.12); }
-  90%  { transform: scale(0.97); }
-  100% { transform: scale(1);    }
-}
-.die-rolling-pop {
-  animation: die-rolling-pop 0.38s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-  will-change: transform;
-}
-
-/* G: Glitch */
-@keyframes die-rolling-glitch {
-  0%   { transform: translate(0, 0)      skewX(0deg);    }
-  10%  { transform: translate(-4px, 0)   skewX(6deg);    }
-  20%  { transform: translate(4px, -2px) skewX(-8deg);   }
-  30%  { transform: translate(-2px, 2px) skewX(4deg);    }
-  40%  { transform: translate(3px, 0)    skewX(-6deg);   }
-  50%  { transform: translate(-3px, 1px) skewX(5deg);    }
-  60%  { transform: translate(2px, -1px) skewX(-3deg);   }
-  70%  { transform: translate(-1px, 0)   skewX(2deg);    }
-  80%  { transform: translate(1px, 1px)  skewX(-1deg);   }
-  90%  { transform: translate(-1px, 0)   skewX(0.5deg);  }
-  100% { transform: translate(0, 0)      skewX(0deg);    }
-}
-.die-rolling-glitch {
-  animation: die-rolling-glitch 0.52s steps(3, end) both;
-  will-change: transform;
-}
-
-/* H: Slot Machine */
-@keyframes die-rolling-slot {
-  0%   { transform: translateY(0)     scale(1);    }
-  15%  { transform: translateY(-30px) scale(1.05); }
-  30%  { transform: translateY(30px)  scale(0.95); }
-  45%  { transform: translateY(-20px) scale(1.03); }
-  60%  { transform: translateY(15px)  scale(0.97); }
-  75%  { transform: translateY(-8px)  scale(1.01); }
-  88%  { transform: translateY(3px)   scale(0.99); }
-  100% { transform: translateY(0)     scale(1);    }
-}
-.die-rolling-slot {
-  animation: die-rolling-slot 0.43s cubic-bezier(0.12, 0.9, 0.38, 1) both;
-  will-change: transform;
-}
-
-.dice-animating .die-held {
-  transform: scale(0.6);
-  opacity: 0.7;
-  transition: transform 0.25s ease, opacity 0.25s ease;
-}
+/* Held dice sit out of the throw: down on the table while the live ones are up. */
+.die-wrap.die-held .die { transform: scale(0.9); transition: transform 0.25s ease; }
 
 /* Animation toggle + style picker in dice picker */
 .dp-anim-styles {
   padding: 12px 4px 16px;
-  border-bottom: 2px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   margin-bottom: 14px;
 }
 .dp-anim-row {
   display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   align-items: center;
   justify-content: space-between;
   padding: 10px 4px 14px;
-  border-bottom: 2px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   margin-bottom: 14px;
 }
 .dp-anim-label {
@@ -2155,9 +1994,9 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 .dp-anim-btn {
   padding: 6px 20px;
-  
+  border-radius: 20px;
   border: 2px solid rgba(255,255,255,0.2);
-  background: #1a1a20;
+  background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.4);
   font-size: 13px;
   font-weight: 900;
@@ -2170,7 +2009,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   border-color: var(--pink);
   background: rgba(255,45,120,0.18);
   color: var(--pink);
-  box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+  box-shadow: 0 0 12px rgba(255,45,120,0.3);
 }
 
 /* SCORESHEET TIMER BAR */
@@ -2178,8 +2017,8 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   flex-shrink: 0;
   position: relative;
   height: 28px;
-  background: #1a1a20;
-  border-bottom: 2px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   cursor: pointer;
   overflow: hidden;
   display: flex;
@@ -2190,7 +2029,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .sc-timer-fill {
   position: absolute;
   left: 0; top: 0; bottom: 0;
-  background: #2c2c34;
+  background: rgba(255,255,255,0.15);
   transition: width 1s linear;
 }
 .sc-timer-fill.urgent { background: rgba(239,68,68,0.35); }
@@ -2222,9 +2061,9 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 .timer-ctrl-btn {
   padding: 5px 12px;
-  
+  border-radius: 16px;
   border: 2px solid rgba(255,255,255,0.15);
-  background: #1a1a20;
+  background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.4);
   font-size: 12px;
   font-weight: 900;
@@ -2288,15 +2127,15 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .walkup-bar {
   width: 60%;
   height: 3px;
-  
+  border-radius: 2px;
 }
 .walkup-timer-bar {
   width: 90%;
   max-width: 320px;
   position: relative;
   height: 36px;
-  background: #1e1e25;
-  
+  background: rgba(255,255,255,0.08);
+  border-radius: 18px;
   overflow: hidden;
   cursor: pointer;
   display: flex;
@@ -2307,7 +2146,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   position: absolute;
   left: 0; top: 0; bottom: 0;
   background: rgba(255,255,255,0.2);
-  
+  border-radius: 18px;
   transition: width 1s linear;
 }
 .walkup-timer-fill.urgent { background: rgba(239,68,68,0.45); }
@@ -2325,7 +2164,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .walkup-start-btn {
   margin-top: 8px;
   padding: 14px 48px;
-  
+  border-radius: 40px;
   border: none;
   background: var(--pink);
   color: #fff;
@@ -2334,7 +2173,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   font-family: var(--font-display);
   letter-spacing: 0.15em;
   cursor: pointer;
-  box-shadow: 8px 8px 0 rgba(0,0,0,0.6);
+  box-shadow: 0 0 30px rgba(255,45,120,0.4);
   transition: opacity 0.15s;
 }
 .walkup-start-btn:active { opacity: 0.8; }
@@ -2347,7 +2186,7 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   color: rgba(255,255,255,0.3);
   padding: 10px 16px 4px;
   text-transform: uppercase;
-  border-top: 2px solid rgba(255,255,255,0.08);
+  border-top: 1px solid rgba(255,255,255,0.08);
   margin-top: 4px;
 }
 .sc-settings-bet-section {
@@ -2371,38 +2210,4 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .walkup-fade-enter-active { transition: opacity 0.25s ease; }
 .walkup-fade-leave-active { transition: opacity 0.2s ease; }
 .walkup-fade-enter-from, .walkup-fade-leave-to { opacity: 0; }
-
-/* ══════════════════════════════════════════════════════════════════════
-   STREET TREATMENT — identical block in every view. Flat printed panels
-   instead of glass: no blur, square corners, 2px rules, hard offset
-   shadows, halftone grain. Adds only what the sweep cannot infer.
-   Lift this into src/style.css once the look is settled.
-   ══════════════════════════════════════════════════════════════════════ */
-.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
-.glass-panel::before, .panel::before, .card::before {
-  content: '';
-  position: absolute; inset: 0; pointer-events: none; z-index: 0;
-  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
-  background-size: 5px 5px;
-  opacity: 0.5;
-}
-.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
-.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
-
-@media (hover: hover) and (pointer: fine) {
-  .player-tab:hover { color: rgba(255,255,255,0.7); }
-  .dp-btn:hover { border-color: rgba(255,255,255,0.3); transform: scale(1.04); }
-  .dp-color-btn:hover { border-color: rgba(255,255,255,0.35); background: #222229; }
-  .bet-header-btn:hover { background: #26262e; color: #fff; }
-  .bet-set-btn:hover { background: #fbbf24; }
-  .bet-clear-btn:hover { background: #26262e; color: #fff; }
-  .sc-add-player-row:hover { background: #1e1e25; }
-  .sc-settings-quit-btn:hover {
-  background: rgba(255, 60, 60, 0.25);
-  border-color: #ff5555;
-}
-  .header-sc-btn:hover { background: #2c2c34; }
-  .sc-dark .sc-row-scoreable:hover { background: #17171d !important; }
-  .sc-light .sc-row-scoreable:hover { background: rgba(0,0,0,0.05) !important; }
-}
 </style>

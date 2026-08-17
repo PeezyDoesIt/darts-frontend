@@ -203,7 +203,8 @@ watch(() => game.value?.phase, phase => { if (phase === 'game_over') playStartCh
 .gp-header {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 12px 14px; padding-top: calc(12px + env(safe-area-inset-top));
-  border-bottom: 2px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6); flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0;
 }
 .gp-title-wrap { display: flex; flex-direction: column; align-items: center; min-width: 0; }
 .gp-title {
@@ -220,28 +221,35 @@ watch(() => game.value?.phase, phase => { if (phase === 'game_over') playStartCh
 .scoreboard { display: flex; flex-wrap: wrap; gap: 8px; }
 .score-chip {
   flex: 1 1 auto; min-width: 92px; display: flex; flex-direction: column; align-items: center;
-  gap: 1px; padding: 8px 10px;  border: 2px solid transparent;
-  background: #16161c;
+  gap: 1px; padding: 8px 10px; border-radius: 10px; border: 2px solid transparent;
+  background: rgba(255,255,255,0.04);
 }
-.score-chip.active { background: #202027; }
+.score-chip.active { background: rgba(255,255,255,0.09); }
 .sc-name { font-size: 11px; font-weight: 600; color: var(--text-muted); overflow-wrap: anywhere; }
 .sc-score { font-size: 20px; }
 .sc-cargo { font-size: 10px; color: var(--text-muted); }
 
 .turn-banner {
   display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
-  padding: 10px 14px;  border-left: 4px solid; background: #17171d;
+  padding: 10px 14px; border-radius: 10px; border-left: 4px solid; background: rgba(255,255,255,0.05);
 }
 .tb-name { font-size: 16px; font-weight: 800; overflow-wrap: anywhere; }
 .tb-rolls { font-size: 13px; color: var(--text-muted); }
 
-.claim-track { display: flex; justify-content: center; gap: 18px; }
-.claim { display: flex; flex-direction: column; align-items: center; gap: 5px; opacity: 0.4; --die-size: 38px; }
+/* Both rows size from CSS so the iPad gets a bigger cube than a phone. */
+.claim-track { --die-size: 42px; }
+.dice-row { --die-size: 56px; }
+@media (min-width: 768px) {
+  .claim-track { --die-size: 56px; gap: 34px; }
+  .dice-row { --die-size: 80px; gap: 30px; }
+}
+.claim-track { display: flex; justify-content: center; gap: 26px; }
+.claim { display: flex; flex-direction: column; align-items: center; gap: 5px; opacity: 0.4; }
 .claim.got { opacity: 1; }
 .claim-label { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
 
 .dice-area { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 8px 0; }
-.dice-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; min-height: 52px; --die-size: 52px; }
+.dice-row { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; min-height: 52px; }
 .dice-hint { color: var(--text-muted); font-size: 14px; text-align: center; margin: 16px 0; max-width: 300px; }
 .last-action { font-size: 14px; color: var(--gold); font-weight: 700; margin: 0; text-align: center; }
 .need-msg, .cargo-msg { font-size: 13px; color: var(--text-muted); margin: 0; }
@@ -252,17 +260,18 @@ watch(() => game.value?.phase, phase => { if (phase === 'game_over') playStartCh
 .rs-line { font-size: 14px; color: var(--text); text-align: center; margin: 0; }
 .rs-list { width: 100%; display: flex; flex-direction: column; gap: 6px; }
 .rs-row {
-  display: flex; justify-content: space-between; padding: 10px 14px; 
-  background: #16161c; font-size: 14px;
+  display: flex; justify-content: space-between; padding: 10px 14px; border-radius: 8px;
+  background: rgba(255,255,255,0.04); font-size: 14px;
 }
-.rs-row.won { background: #222229; box-shadow: inset 3px 0 0 var(--gold); }
+.rs-row.won { background: rgba(255,255,255,0.1); box-shadow: inset 3px 0 0 var(--gold); }
 .rs-name { font-weight: 700; overflow-wrap: anywhere; }
 .rs-cargo { color: var(--text-muted); }
 
 .gp-footer {
   flex-shrink: 0; display: flex; gap: 10px; padding: 12px 14px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
-  border-top: 2px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
+  border-top: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
 }
 .gp-footer .btn { flex: 1; min-height: 56px; }
 .gp-footer .btn:disabled { opacity: 0.4; }
@@ -276,7 +285,7 @@ watch(() => game.value?.phase, phase => { if (phase === 'game_over') playStartCh
 .win-card, .rules-card {
   width: 100%; max-width: 420px; max-height: 82dvh; overflow-y: auto;
   display: flex; flex-direction: column; align-items: center; gap: 12px;
-  padding: 26px 22px;  text-align: center;
+  padding: 26px 22px; border-radius: 16px; text-align: center;
 }
 .win-label { font-size: 11px; letter-spacing: 0.2em; color: var(--text-muted); }
 .win-name { font-size: 32px; margin: 0; overflow-wrap: anywhere; }
@@ -290,67 +299,4 @@ watch(() => game.value?.phase, phase => { if (phase === 'game_over') playStartCh
   height: 100dvh; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 16px; color: var(--text-muted);
 }
-
-/* ── iPad ─────────────────────────────────────────────────────────────
-   This screen was built at one size and carried no responsive rules at all.
-   Played off a stand a couple of metres away, the 10–13px labels were
-   unreadable and a phone-width column ran the full 1194px. From the tablet
-   band up everything steps up and the body keeps a centred measure. iPad
-   portrait (834) and landscape (1194) both land here; phones are untouched.
-   ─────────────────────────────────────────────────────────────────── */
-@media (min-width: 768px) {
-  .gp-header { padding: 18px 26px; padding-top: calc(18px + env(safe-area-inset-top)); }
-  .gp-title { font-size: 32px; }
-  .gp-target { font-size: 14px; }
-  .gp-body { padding: 28px; gap: 22px; align-items: center; }
-  .gp-body > * { width: 100%; max-width: 940px; }
-  .scoreboard { gap: 12px; }
-  .score-chip { min-width: 128px; padding: 14px 16px; gap: 4px; }
-  .sc-name { font-size: 15px; }
-  .sc-score { font-size: 30px; }
-  .turn-banner { padding: 16px 22px; border-left-width: 6px; }
-  .tb-name { font-size: 26px; }
-  .gp-footer { padding: 16px 26px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
-  .gp-footer .btn { min-height: 70px; font-size: 20px; }
-  .win-card, .rules-card { max-width: 620px; padding: 34px 30px; gap: 16px; }
-  .win-label { font-size: 14px; }
-  .win-name { font-size: 44px; }
-  .rules-list { font-size: 17px; gap: 11px; }
-  .gp-title { font-size: 26px; }
-  .gp-target { font-size: 13px; }
-  .tb-rolls { font-size: 17px; }
-  .sc-cargo { font-size: 14px; }
-  .claim-track { gap: 34px; }
-  .claim { --die-size: 56px; }
-  .claim-label { font-size: 14px; }
-  .dice-area { gap: 18px; padding: 16px 0; }
-  .dice-row { gap: 20px; min-height: 96px; --die-size: 80px; }
-  .dice-hint { font-size: 18px; max-width: 460px; margin: 22px 0; }
-  .last-action { font-size: 19px; }
-  .need-msg, .cargo-msg { font-size: 17px; }
-  .need-msg strong, .cargo-msg strong { font-size: 21px; }
-  .round-summary { gap: 16px; }
-  .rs-title { font-size: 34px; }
-  .rs-line { font-size: 17px; }
-  .rs-row { font-size: 18px; padding: 13px 18px; }
-  .win-score { font-size: 48px; }
-  .rules-title { font-size: 28px; }
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   STREET TREATMENT — identical block in every view. Flat printed panels
-   instead of glass: no blur, square corners, 2px rules, hard offset
-   shadows, halftone grain. Adds only what the sweep cannot infer.
-   Lift this into src/style.css once the look is settled.
-   ══════════════════════════════════════════════════════════════════════ */
-.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
-.glass-panel::before, .panel::before, .card::before {
-  content: '';
-  position: absolute; inset: 0; pointer-events: none; z-index: 0;
-  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
-  background-size: 5px 5px;
-  opacity: 0.5;
-}
-.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
-.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
 </style>

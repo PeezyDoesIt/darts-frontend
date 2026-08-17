@@ -7,11 +7,11 @@
     :aria-label="ariaLabel"
   >
     <span class="die-shadow" :style="shadowStyle" />
-    <div class="die-cube" :style="cubeStyle">
+    <div class="die-cube" :class="{ tumbling: rolling }" :style="cubeStyle">
       <!--
-        The ink core. Rounding the corners of six flat planes opens a small triangular gap at
-        every corner of the cube; a slightly smaller solid cube behind them fills those gaps so
-        the corner reads as a bevel instead of a hole punched through the die.
+        An inked inner cube, slightly smaller than the outer one. The pillow corners leave a
+        gap at every corner of the die; without something solid behind them you see straight
+        through the cube and it reads as broken rather than as a bevelled casino die.
       -->
       <div v-for="f in FACES" :key="`core-${f.v}`" class="die-core" :style="coreStyle(f)" />
       <div v-for="f in FACES" :key="f.v" class="die-face" :style="faceStyle(f)">
@@ -24,7 +24,7 @@
           <span
             v-for="(p, i) in f.pips" :key="i"
             class="pip"
-            :style="{ left: `${p[0]}%`, top: `${p[1]}%`, ...beadStyle }"
+            :style="pipStyle(p)"
           />
         </template>
       </div>
@@ -47,9 +47,8 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
  * own flat stock, ink pips and a hard rule on every edge. No halftone: Street prints it on
  * panels, but at die size the 6px dot grid sits on top of the pips and reads as dirt.
  *
- * The corners are pillowed (casino-soft, 24% of the face) and the pips are raised beads rather
- * than flat ink — chosen over a chamfered corner and over drilled holes. Both are geometry, so
- * they cost the themes nothing: the surface is still whatever the caller paints on.
+ * The shape is casino: pillow corners at ~24% of the face over an inked inner cube, and pips
+ * raised off the face as beads rather than printed flat or drilled in as holes.
  */
 const props = withDefaults(defineProps<{
   face: number
@@ -59,6 +58,14 @@ const props = withDefaults(defineProps<{
   selected?: boolean
   /** Claimed/locked die — styled distinctly from a live selection. */
   held?: boolean
+  /**
+   * Keep tumbling. A cube that turns until it is told to stop is the honest version of "the
+   * dice are still going": while this is true the die spins on both axes and shows no settled
+   * value, and the moment it goes false it lands on `face` with the usual throw — which is what
+   * lets a caller decide the value AT the stop rather than before the spin. A caller that never
+   * sets it gets the single throw per value change, which is what the other games use.
+   */
+  rolling?: boolean
   /** Any CSS background: a flat colour or one of the gradient themes. */
   faceBg?: string
   pipColor?: string
@@ -72,20 +79,13 @@ const props = withDefaults(defineProps<{
   glyphColors?: string[]
   glyphGlow?: (string | undefined)[]
   /**
-   * Bump on every roll. A die that re-rolls the number it is already showing produces no
-   * change in `face`, so without this it sits still while the others tumble — which reads
-   * as a broken die rather than a repeated number.
+   * Bump on every roll. Farkle, Pig, SCC and LRC throw without ever setting `rolling`, so
+   * `face` is all they change — and a die that re-rolls the number it was already showing
+   * would sit still while the others tumble. Games that drive `rolling` do not need this.
    */
   roll?: number
-  /** Free-spinning until the player stops it. The value is not decided until it lands. */
-  spinning?: boolean
-  /**
-   * Force the bead shading for dark stock. Normally inferred from `faceBg`; pass it when the
-   * background is something unparseable (an image, a named colour) and the beads look muddy.
-   */
-  darkFace?: boolean
 }>(), {
-  selectable: false, selected: false, held: false,
+  selectable: false, selected: false, held: false, rolling: false,
   faceBg: '#f6f4ee', pipColor: '#101014', edgeColor: '#101014',
 })
 
@@ -116,34 +116,9 @@ const ry = ref(start[1])
 const lift = ref(0)
 const tween = ref('none')
 let dropTimer: ReturnType<typeof setTimeout> | undefined
-let spinTimer: ReturnType<typeof setInterval> | undefined
 
-/** One leg of a free spin, in ms. Each leg is a whole number of turns, so it never jitters. */
-const SPIN_MS = 700
-
-/*
- * The spin rides the same rx/ry the throw uses rather than a CSS keyframe. Two transform
- * sources on one element fight each other, and the landing has to be able to carry on from
- * wherever the spin got to.
- */
-function spinStep() {
-  rx.value += 360
-  ry.value += 720
-  tween.value = `transform ${SPIN_MS}ms linear`
-}
-
-watch(() => props.spinning, (on) => {
-  clearInterval(spinTimer)
-  spinTimer = undefined
-  if (!on) return
-  clearTimeout(dropTimer)
-  lift.value = 1
-  spinStep()
-  spinTimer = setInterval(spinStep, SPIN_MS)
-})
-
-watch(() => [props.face, props.roll] as const, () => {
-  const [tx, ty] = SHOW[props.face] ?? SHOW[1]
+function land(v: number) {
+  const [tx, ty] = SHOW[v] ?? SHOW[1]
   // Whole turns are added on top of the landing angle so the cube always spins forward and
   // never snaps backwards to reach a face it happens to be showing already.
   rx.value = Math.ceil((rx.value - tx) / 360) * 360 + tx + 360 * (1 + Math.floor(Math.random() * 2))
@@ -157,8 +132,13 @@ watch(() => [props.face, props.roll] as const, () => {
     lift.value = 0
     tween.value = 'transform 0.22s cubic-bezier(0.5, 0, 0.9, 0.55)'
   }, 400)
-})
-onBeforeUnmount(() => { clearTimeout(dropTimer); clearInterval(spinTimer) })
+}
+
+// While a die is rolling its value is meaningless, so a value change is ignored until it stops
+// — otherwise the cube would try to land mid-spin every time the numbers were re-rolled.
+watch(() => [props.face, props.roll] as const, () => { if (!props.rolling) land(props.face) })
+watch(() => props.rolling, (isRolling) => { if (!isRolling) land(props.face) })
+onBeforeUnmount(() => clearTimeout(dropTimer))
 
 /*
  * Everything geometric is expressed against --die-size rather than a number, so a caller can
@@ -168,21 +148,23 @@ onBeforeUnmount(() => { clearTimeout(dropTimer); clearInterval(spinTimer) })
 const stageStyle = computed(() => (
   props.size == null ? {} : { '--die-size': `${props.size}px` }
 ))
-const cubeStyle = computed(() => ({
-  transform: `translateY(calc(var(--die-size, 56px) * -0.44 * ${lift.value})) `
-    + `rotateX(${rx.value}deg) rotateY(${ry.value}deg)`,
-  transition: tween.value,
-}))
-const shadowStyle = computed(() => ({
-  transform: `translateX(-50%) scale(${1 - 0.4 * lift.value})`,
-  opacity: String(1 - 0.55 * lift.value),
-}))
-function coreStyle(f: { rot: string }) {
+const cubeStyle = computed(() => {
+  // A spinning cube is driven by the keyframes below, so no inline transform is set — an
+  // inline one would win and the die would sit still.
+  if (props.rolling) return {}
   return {
-    transform: `${f.rot} translateZ(calc(var(--die-size, 56px) / 2 - var(--die-size, 56px) * 0.032))`,
-    background: props.edgeColor === 'transparent' ? '#101014' : props.edgeColor,
+    transform: `translateY(calc(var(--die-size, 56px) * -0.44 * ${lift.value})) `
+      + `rotateX(${rx.value}deg) rotateY(${ry.value}deg)`,
+    transition: tween.value,
   }
-}
+})
+const shadowStyle = computed(() => {
+  const up = props.rolling ? 0.65 : lift.value
+  return {
+    transform: `translateX(-50%) scale(${1 - 0.4 * up})`,
+    opacity: String(1 - 0.55 * up),
+  }
+})
 function faceStyle(f: { rot: string }) {
   return {
     transform: `${f.rot} translateZ(calc(var(--die-size, 56px) / 2))`,
@@ -191,43 +173,48 @@ function faceStyle(f: { rot: string }) {
     borderColor: props.edgeColor === 'transparent' ? 'rgba(0,0,0,0.45)' : props.edgeColor,
   }
 }
+/** Same six rotations, pulled in far enough to fill the corners the pillow radius opens up. */
+function coreStyle(f: { rot: string }) {
+  return {
+    transform: `${f.rot} translateZ(calc(var(--die-size, 56px) / 2 - var(--die-inset)))`,
+    background: props.edgeColor === 'transparent' ? '#101014' : props.edgeColor,
+  }
+}
+
+/**
+ * Is the stock dark? The bead shading is drawn for light stock — a white top highlight and a
+ * dark underside. On a near-black face that highlight is the brightest thing on the die and
+ * the beads go muddy, so dark themes get the opposite: a dark rim and a much fainter top.
+ * Read off the first hex in the background, which covers both flat colours and the gradients.
+ */
+const faceIsDark = computed(() => {
+  const hex = /#([0-9a-f]{6}|[0-9a-f]{3})/i.exec(props.faceBg ?? '')?.[1]
+  if (!hex) return false
+  const full = hex.length === 3 ? hex.split('').map(ch => ch + ch).join('') : hex
+  const r = parseInt(full.slice(0, 2), 16)
+  const g = parseInt(full.slice(2, 4), 16)
+  const b = parseInt(full.slice(4, 6), 16)
+  return (0.299 * r + 0.587 * g + 0.114 * b) < 120
+})
 
 /*
- * Pips are beads sitting on the stock, not ink printed into it: a highlight where the light
- * falls, a shaded underside, and a small shadow cast on the face. Everything is expressed
- * against --die-size so a bead at 46px and one at 150px are the same object, not the same
- * numbers.
- *
- * Light and dark stock need opposite treatment. On cream, the bead reads by its own drop
- * shadow. On neon or any of the gradients that shadow is invisible, so the bead needs a light
- * rim instead or it dissolves into the face.
+ * A pip as a bead sitting on the face, not ink printed into it and not a drilled hole: a
+ * sphere lit from the top left, its own small drop shadow underneath, and a rim that reads as
+ * the bead meeting the stock.
  */
-const HEX = /#([0-9a-f]{3}|[0-9a-f]{6})\b/gi
-/** Mean luminance of every colour named in a background — a flat hex or a whole gradient. */
-function bgIsDark(bg: string): boolean {
-  const hits = bg.match(HEX)
-  if (!hits?.length) return false
-  const lum = hits.map((h) => {
-    let s = h.slice(1)
-    if (s.length === 3) s = s.split('').map(c => c + c).join('')
-    const n = parseInt(s, 16)
-    // Rec. 601 weights: close enough for "does a shadow show up on this", and cheap.
-    return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255
-  })
-  return lum.reduce((a, b) => a + b, 0) / lum.length < 0.45
-}
-const onDark = computed(() => props.darkFace ?? bgIsDark(props.faceBg))
-const beadStyle = computed(() => {
-  const u = 'var(--die-size, 56px)'
-  const drop = `0 calc(${u} * 0.026) calc(${u} * 0.04) rgba(0,0,0,0.5)`
-  const rim = `0 0 0 calc(${u} * 0.013) rgba(255,255,255,0.4)`
-  const under = `inset 0 calc(${u} * -0.028) calc(${u} * 0.04) rgba(0,0,0,0.5)`
-  const top = `inset 0 calc(${u} * 0.026) calc(${u} * 0.032) rgba(255,255,255,0.26)`
+function pipStyle(p: [number, number]) {
+  const lit = `color-mix(in srgb, ${props.pipColor} 68%, #ffffff)`
   return {
-    background: `radial-gradient(circle at 33% 27%, rgba(255,255,255,0.4), rgba(255,255,255,0) 58%), ${props.pipColor}`,
-    boxShadow: onDark.value ? `${rim}, ${under}, ${top}` : `${drop}, ${under}, ${top}`,
+    left: `${p[0]}%`,
+    top: `${p[1]}%`,
+    background: `radial-gradient(circle at 33% 27%, ${lit}, ${props.pipColor} 62%)`,
+    boxShadow: faceIsDark.value
+      ? '0 0 0 1px rgba(0,0,0,0.55), 0 2px 3px rgba(0,0,0,0.6),'
+        + ' inset 0 -2px 3px rgba(0,0,0,0.55), inset 0 2px 2px rgba(255,255,255,0.10)'
+      : '0 2px 3px rgba(0,0,0,0.5),'
+        + ' inset 0 -2px 3px rgba(0,0,0,0.5), inset 0 2px 2px rgba(255,255,255,0.22)',
   }
-})
+}
 
 const ariaLabel = computed(() => {
   const state = props.held ? ', held' : props.selected ? ', selected' : ''
@@ -239,6 +226,8 @@ const ariaLabel = computed(() => {
 .die-stage {
   position: relative;
   flex-shrink: 0;
+  /* How far the inner cube is pulled in behind the pillow corners. */
+  --die-inset: calc(var(--die-size, 56px) * 0.032);
   width: var(--die-size, 56px);
   height: var(--die-size, 56px);
   perspective: calc(var(--die-size, 56px) * 8);
@@ -265,33 +254,44 @@ const ariaLabel = computed(() => {
   width: 100%; height: 100%;
   transform-style: preserve-3d;
 }
+/* Both axes, and not a whole number of turns per cycle, so it never looks like it is repeating. */
+.die-cube.tumbling { animation: die-tumble 0.72s linear infinite; }
+@keyframes die-tumble {
+  from { transform: translateY(calc(var(--die-size, 56px) * -0.16)) rotateX(0deg) rotateY(0deg); }
+  to   { transform: translateY(calc(var(--die-size, 56px) * -0.16)) rotateX(360deg) rotateY(720deg); }
+}
+.die-core {
+  position: absolute;
+  inset: var(--die-inset);
+  backface-visibility: hidden;
+}
 .die-face {
   position: absolute; inset: 0;
   box-sizing: border-box;
   border: 2px solid #101014;
-  /* Percentage radius so the corner keeps its proportion at every size the games ask for. */
+  /* Casino pillow corner. Squaring it would be wrong here: a die is a physical object, and the
+     Street treatment squares panels, not dice. */
   border-radius: 24%;
+  box-shadow: inset 0 0 16px rgba(150,138,110,0.22);
   backface-visibility: hidden;
-}
-.die-core {
-  position: absolute; inset: 3.2%;
-  background: #101014;
+  display: flex; align-items: center; justify-content: center;
 }
 .glyph {
+  position: relative;
+  z-index: 1;
   font-size: calc(var(--die-size, 56px) * 0.46);
   font-weight: 900;
   font-family: var(--font-display, system-ui);
   line-height: 1;
   user-select: none;
 }
-.die-face { display: flex; align-items: center; justify-content: center; }
 .pip {
   position: absolute;
-  width: 17%; height: 17%;
-  margin: -8.5% 0 0 -8.5%;
+  z-index: 1;
+  width: 19%; height: 19%;
+  margin: -9.5% 0 0 -9.5%;
   border-radius: 50%;
 }
-.glyph { position: relative; z-index: 1; }
 
 /* Selection and hold are rings on the whole die, never a colour change to the face: the face
    is the theme's, and the games run several themes at once on a shared screen. The ring sits
