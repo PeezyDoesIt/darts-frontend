@@ -8,6 +8,12 @@
   >
     <span class="die-shadow" :style="shadowStyle" />
     <div class="die-cube" :style="cubeStyle">
+      <!--
+        The ink core. Rounding the corners of six flat planes opens a small triangular gap at
+        every corner of the cube; a slightly smaller solid cube behind them fills those gaps so
+        the corner reads as a bevel instead of a hole punched through the die.
+      -->
+      <div v-for="f in FACES" :key="`core-${f.v}`" class="die-core" :style="coreStyle(f)" />
       <div v-for="f in FACES" :key="f.v" class="die-face" :style="faceStyle(f)">
         <span
           v-if="glyphs"
@@ -18,7 +24,7 @@
           <span
             v-for="(p, i) in f.pips" :key="i"
             class="pip"
-            :style="{ left: `${p[0]}%`, top: `${p[1]}%`, background: pipColor }"
+            :style="{ left: `${p[0]}%`, top: `${p[1]}%`, ...beadStyle }"
           />
         </template>
       </div>
@@ -40,6 +46,10 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
  * the same cube — geometry here, colour from the caller. The defaults are "Cast": the app's
  * own flat stock, ink pips and a hard rule on every edge. No halftone: Street prints it on
  * panels, but at die size the 6px dot grid sits on top of the pips and reads as dirt.
+ *
+ * The corners are pillowed (casino-soft, 24% of the face) and the pips are raised beads rather
+ * than flat ink — chosen over a chamfered corner and over drilled holes. Both are geometry, so
+ * they cost the themes nothing: the surface is still whatever the caller paints on.
  */
 const props = withDefaults(defineProps<{
   face: number
@@ -69,6 +79,11 @@ const props = withDefaults(defineProps<{
   roll?: number
   /** Free-spinning until the player stops it. The value is not decided until it lands. */
   spinning?: boolean
+  /**
+   * Force the bead shading for dark stock. Normally inferred from `faceBg`; pass it when the
+   * background is something unparseable (an image, a named colour) and the beads look muddy.
+   */
+  darkFace?: boolean
 }>(), {
   selectable: false, selected: false, held: false,
   faceBg: '#f6f4ee', pipColor: '#101014', edgeColor: '#101014',
@@ -162,6 +177,12 @@ const shadowStyle = computed(() => ({
   transform: `translateX(-50%) scale(${1 - 0.4 * lift.value})`,
   opacity: String(1 - 0.55 * lift.value),
 }))
+function coreStyle(f: { rot: string }) {
+  return {
+    transform: `${f.rot} translateZ(calc(var(--die-size, 56px) / 2 - var(--die-size, 56px) * 0.032))`,
+    background: props.edgeColor === 'transparent' ? '#101014' : props.edgeColor,
+  }
+}
 function faceStyle(f: { rot: string }) {
   return {
     transform: `${f.rot} translateZ(calc(var(--die-size, 56px) / 2))`,
@@ -170,6 +191,43 @@ function faceStyle(f: { rot: string }) {
     borderColor: props.edgeColor === 'transparent' ? 'rgba(0,0,0,0.45)' : props.edgeColor,
   }
 }
+
+/*
+ * Pips are beads sitting on the stock, not ink printed into it: a highlight where the light
+ * falls, a shaded underside, and a small shadow cast on the face. Everything is expressed
+ * against --die-size so a bead at 46px and one at 150px are the same object, not the same
+ * numbers.
+ *
+ * Light and dark stock need opposite treatment. On cream, the bead reads by its own drop
+ * shadow. On neon or any of the gradients that shadow is invisible, so the bead needs a light
+ * rim instead or it dissolves into the face.
+ */
+const HEX = /#([0-9a-f]{3}|[0-9a-f]{6})\b/gi
+/** Mean luminance of every colour named in a background — a flat hex or a whole gradient. */
+function bgIsDark(bg: string): boolean {
+  const hits = bg.match(HEX)
+  if (!hits?.length) return false
+  const lum = hits.map((h) => {
+    let s = h.slice(1)
+    if (s.length === 3) s = s.split('').map(c => c + c).join('')
+    const n = parseInt(s, 16)
+    // Rec. 601 weights: close enough for "does a shadow show up on this", and cheap.
+    return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255
+  })
+  return lum.reduce((a, b) => a + b, 0) / lum.length < 0.45
+}
+const onDark = computed(() => props.darkFace ?? bgIsDark(props.faceBg))
+const beadStyle = computed(() => {
+  const u = 'var(--die-size, 56px)'
+  const drop = `0 calc(${u} * 0.026) calc(${u} * 0.04) rgba(0,0,0,0.5)`
+  const rim = `0 0 0 calc(${u} * 0.013) rgba(255,255,255,0.4)`
+  const under = `inset 0 calc(${u} * -0.028) calc(${u} * 0.04) rgba(0,0,0,0.5)`
+  const top = `inset 0 calc(${u} * 0.026) calc(${u} * 0.032) rgba(255,255,255,0.26)`
+  return {
+    background: `radial-gradient(circle at 33% 27%, rgba(255,255,255,0.4), rgba(255,255,255,0) 58%), ${props.pipColor}`,
+    boxShadow: onDark.value ? `${rim}, ${under}, ${top}` : `${drop}, ${under}, ${top}`,
+  }
+})
 
 const ariaLabel = computed(() => {
   const state = props.held ? ', held' : props.selected ? ', selected' : ''
@@ -211,7 +269,13 @@ const ariaLabel = computed(() => {
   position: absolute; inset: 0;
   box-sizing: border-box;
   border: 2px solid #101014;
+  /* Percentage radius so the corner keeps its proportion at every size the games ask for. */
+  border-radius: 24%;
   backface-visibility: hidden;
+}
+.die-core {
+  position: absolute; inset: 3.2%;
+  background: #101014;
 }
 .glyph {
   font-size: calc(var(--die-size, 56px) * 0.46);
@@ -227,6 +291,7 @@ const ariaLabel = computed(() => {
   margin: -8.5% 0 0 -8.5%;
   border-radius: 50%;
 }
+.glyph { position: relative; z-index: 1; }
 
 /* Selection and hold are rings on the whole die, never a colour change to the face: the face
    is the theme's, and the games run several themes at once on a shared screen. The ring sits
