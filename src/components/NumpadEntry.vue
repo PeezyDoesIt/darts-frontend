@@ -149,18 +149,18 @@ function submit() {
 /* Remaining */
 .remaining-display { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
 .remaining-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; color: #fff; text-transform: uppercase; }
-.remaining-val { font-size: 72px; font-family: var(--font-display); color: #fff; line-height: 1; transition: color 0.2s; background: rgba(0,0,0,0.72); border-radius: 10px; padding: 4px 20px; }
+.remaining-val { font-size: 72px; font-family: var(--font-display); color: #fff; line-height: 1; transition: color 0.2s; background: rgba(0,0,0,0.72);  padding: 4px 20px; }
 .remaining-val.bust { color: #ef4444; }
 
 /* Dart slots */
 .dart-slots { display: flex; gap: 12px; width: 100%; flex-shrink: 0; }
 .dart-slot {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 10px 8px; border-radius: 10px; cursor: pointer;
+  padding: 10px 8px;  cursor: pointer;
   border: 2px solid rgba(255,255,255,0.15); background: #000;
   transition: all 0.15s; -webkit-tap-highlight-color: transparent;
 }
-.dart-slot.active { border-color: var(--blue); background: rgba(0,212,255,0.08); box-shadow: 0 0 16px rgba(0,212,255,0.2); }
+.dart-slot.active { border-color: var(--blue); background: rgba(0,212,255,0.08); box-shadow: 3px 3px 0 rgba(0,0,0,0.5); }
 .dart-slot.filled { border-color: rgba(255,255,255,0.25); }
 .dart-slot.active.filled { border-color: var(--blue); }
 .dart-slot-label { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #fff; }
@@ -171,11 +171,11 @@ function submit() {
 .mult-badge { font-size: 14px; font-weight: 900; font-family: var(--font-display); color: #f59e0b; margin-bottom: 4px; }
 
 /* Total */
-.total-row { display: flex; align-items: center; gap: 10px; flex-shrink: 0; background: #000; border-radius: 6px; padding: 6px 12px; }
+.total-row { display: flex; align-items: center; gap: 10px; flex-shrink: 0; background: #000;  padding: 6px 12px; }
 .total-label { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #fff; }
 .total-val { font-size: 32px; font-weight: 900; font-family: var(--font-display); color: #fff; line-height: 1; }
 .total-val.bust { color: #ef4444; }
-.bust-tag { font-size: 11px; font-weight: 900; letter-spacing: 0.12em; color: #ef4444; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); border-radius: 4px; padding: 2px 6px; }
+.bust-tag { font-size: 11px; font-weight: 900; letter-spacing: 0.12em; color: #ef4444; background: rgba(239,68,68,0.15); border: 2px solid rgba(239,68,68,0.4);  padding: 2px 6px; }
 
 /* Numpad */
 /*
@@ -196,8 +196,8 @@ function submit() {
   container-type: size;
 }
 .key {
-  height: auto; min-height: 0; border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.15); background: #000;
+  height: auto; min-height: 0; 
+  border: 2px solid rgba(255,255,255,0.15); background: #000;
   /* Capped against the grid's own height so a squeezed row cannot clip its digit: one row of
      four is 25cqh, so 16cqh leaves the number comfortably inside it. */
   color: #fff; font-size: min(clamp(44px, 6.5dvh, 72px), 16cqh); font-weight: 700; cursor: pointer;
@@ -205,22 +205,22 @@ function submit() {
   font-family: var(--font-display); -webkit-tap-highlight-color: transparent;
   position: relative; overflow: hidden;
 }
-.key:hover { background: #111; border-color: var(--blue); color: var(--blue); }
+
 .key:active { transform: scale(0.91); }
 .key.double { grid-column: span 2; }
 
 /* Multiplier row */
 .mult-row { display: flex; gap: 10px; width: 100%; flex-shrink: 0; }
 .mult-btn {
-  flex: 1; padding: 10px 0; border-radius: 10px;
+  flex: 1; padding: 10px 0; 
   border: 2px solid rgba(255,255,255,0.15); background: #000;
   color: #fff; font-size: clamp(26px, 4dvh, 38px);
   font-weight: 900; font-family: var(--font-display); letter-spacing: 0.05em;
   cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
-.mult-btn:hover:not(.disabled) { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.08); }
-.mult-btn.active { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.15); box-shadow: 0 0 16px rgba(245,158,11,0.3); }
+
+.mult-btn.active { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.15); box-shadow: 3px 3px 0 rgba(0,0,0,0.5); }
 .mult-btn.disabled { opacity: 0.3; cursor: default; }
 .mult-btn:active:not(.disabled) { transform: scale(0.95); }
 
@@ -248,7 +248,7 @@ function submit() {
   }
   .remaining-val { font-size: clamp(56px, 8.5dvh, 120px); }
   .dart-slots { gap: 16px; }
-  .dart-slot { padding: clamp(6px, 1dvh, 14px) 12px; border-radius: 14px; }
+  .dart-slot { padding: clamp(6px, 1dvh, 14px) 12px;  }
   .dart-slot-label { font-size: 11px; }
   .dart-slot-val { font-size: clamp(32px, 4.6dvh, 60px); }
   .total-row { padding: clamp(4px, 0.7dvh, 8px) 12px; }
@@ -272,5 +272,10 @@ function submit() {
      avoid, and a 727px-tall phone was spilling the ⌫ row 12px past the grid. */
   .key { font-size: min(36px, 16cqh); }
   .mult-btn { font-size: 22px; padding: 8px 0; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .key:hover { background: #111; border-color: var(--blue); color: var(--blue); }
+  .mult-btn:hover:not(.disabled) { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.08); }
 }
 </style>

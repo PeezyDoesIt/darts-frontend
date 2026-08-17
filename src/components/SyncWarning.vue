@@ -64,9 +64,9 @@ async function retry() {
 .sync-warn {
   display: flex; align-items: flex-start; gap: 10px;
   padding: 10px 14px;
-  border: 1px solid rgba(245,158,11,0.45);
+  border: 2px solid rgba(245,158,11,0.45);
   border-left: 3px solid var(--gold, #f59e0b);
-  border-radius: 8px;
+  
   background: rgba(245,158,11,0.10);
 }
 .sync-warn-icon { font-size: 16px; line-height: 1.3; color: var(--gold, #f59e0b); flex-shrink: 0; }

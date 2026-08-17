@@ -158,7 +158,7 @@ onMounted(() => {
 
 .dealer {
    padding: 10px 12px;
-  background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.1);
+  background: #16161c; border: 2px solid rgba(255,255,255,0.1);
 }
 
 .seat-label { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
@@ -175,7 +175,7 @@ onMounted(() => {
 .seats { display: flex; flex-direction: column; gap: 8px; }
 .seat {
    padding: 10px 12px; border-left: 4px solid transparent;
-  background: rgba(255,255,255,0.04); border-top: 2px solid rgba(255,255,255,0.08);
+  background: #16161c; border-top: 2px solid rgba(255,255,255,0.08);
   border-right: 2px solid rgba(255,255,255,0.08); border-bottom: 2px solid rgba(255,255,255,0.08);
 }
 /* The active seat has to be obvious across a table, not just to whoever holds the phone. */
@@ -185,7 +185,7 @@ onMounted(() => {
 .bet-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .bet-btn {
   min-width: 44px; min-height: 44px;  cursor: pointer;
-  background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.16);
+  background: #1a1a20; border: 2px solid rgba(255,255,255,0.16);
   color: var(--text); font-size: 20px; font-weight: 900;
 }
 .bet-btn:disabled { opacity: 0.35; }
@@ -206,6 +206,42 @@ onMounted(() => {
 .action-row { display: flex; gap: 10px; }
 .action-row .btn { flex: 1; min-height: 56px; }
 .wide { width: 100%; min-height: 56px; }
+
+/* ── iPad ─────────────────────────────────────────────────────────────
+   Built at one size with no responsive rules, so on a stand the 12px seat
+   labels and the 58px cards were unreadable across a table. From the tablet
+   band up the page keeps a centred measure, the seats go two-across to use
+   the width instead of running one long column, and the cards grow — their
+   size is a px prop, so overriding width and height is the only way up, and
+   the faces are laid out in container units so they scale with it.
+   ─────────────────────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .bj-page { width: 100%; max-width: 1060px; margin: 0 auto; gap: 16px; padding: 18px 24px 30px; }
+  .bj-round { font-size: 30px; }
+  .dealer { padding: 16px 18px; }
+  .seat-name { font-size: 15px; }
+  .seat-total { font-size: 25px; }
+  .chips { font-size: 15px; }
+  .hand { gap: 10px; min-height: 56px; margin-top: 12px; }
+  .empty-hand { font-size: 20px; }
+  .last-action { font-size: 17px; min-height: 24px; }
+  .seats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .seat { padding: 14px 16px; border-left-width: 6px; }
+  .bet-row { gap: 12px; margin-top: 12px; }
+  .bet-btn { min-width: 56px; min-height: 56px; font-size: 26px; }
+  .bet-amount { min-width: 68px; font-size: 26px; }
+  .bet-tag { font-size: 15px; }
+  .outcome { font-size: 15px; margin-top: 10px; }
+  .turn-of { font-size: 17px; }
+  .action-row { gap: 14px; }
+  .action-row .btn, .wide { min-height: 68px; font-size: 20px; }
+  .dealer :deep(.card) { width: 98px !important; height: 142px !important; }
+  .seat :deep(.card) { width: 82px !important; height: 119px !important; }
+}
+/* Portrait has no room for two seat columns once the cards are this size. */
+@media (min-width: 768px) and (max-width: 1099px) and (orientation: portrait) {
+  .seats { grid-template-columns: 1fr; }
+}
 
 /* ══════════════════════════════════════════════════════════════════════
    STREET TREATMENT — identical block in every view. Flat printed panels

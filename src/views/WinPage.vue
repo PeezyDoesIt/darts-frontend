@@ -149,7 +149,7 @@ function goHome() { gameStore.endGame(); router.push('/') }
 .winner-sub { font-size: 14px; color: rgba(255,255,255,0.5); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
 
 .final-scores { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 380px; margin: 8px 0; }
-.final-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(255,255,255,0.05);  border: 2px solid rgba(255,255,255,0.1); }
+.final-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #17171d;  border: 2px solid rgba(255,255,255,0.1); }
 .final-row.winner { border-width: 2px; }
 .final-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
 .final-place { font-size: 13px; font-weight: 900; font-family: var(--font-display); color: rgba(255,255,255,0.5); min-width: 32px; }

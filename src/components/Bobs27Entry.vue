@@ -124,19 +124,19 @@ defineExpose({ doSubmit })
 }
 .hit-btn {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 4px; padding: 14px 8px; border-radius: 10px;
-  background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.15);
+  gap: 4px; padding: 14px 8px; 
+  background: #1a1a20; border: 2px solid rgba(255,255,255,0.15);
   cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent;
   min-height: 80px;
 }
 .hit-btn:active { transform: scale(0.96); }
 .hit-btn.active {
   background: rgba(255,45,120,0.2); border-color: var(--pink);
-  box-shadow: 0 0 20px rgba(255,45,120,0.3);
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
 }
 .hit-btn.miss.active {
   background: rgba(239,68,68,0.2); border-color: #ef4444;
-  box-shadow: 0 0 20px rgba(239,68,68,0.3);
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
 }
 .hit-num {
   font-size: clamp(28px, 5dvh, 52px); font-weight: 900;
@@ -169,19 +169,19 @@ defineExpose({ doSubmit })
 /* Submit */
 .submit-row {
   padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03);
+  border-top: 2px solid rgba(255,255,255,0.08); background: #141419;
   flex-shrink: 0; min-height: 90px; display: flex; align-items: center;
 }
 .submit-btn {
   width: 100%; height: 64px; font-size: 22px; font-weight: 900;
   font-family: var(--font-display); letter-spacing: 0.12em;
-  border: none; border-radius: 8px; cursor: pointer;
+  border: none;  cursor: pointer;
   background: linear-gradient(135deg, var(--pink), var(--purple), var(--blue));
-  color: #fff; box-shadow: 0 0 24px rgba(255,45,120,0.4);
+  color: #fff; box-shadow: 5px 5px 0 rgba(0,0,0,0.55);
   transition: all 0.15s; -webkit-tap-highlight-color: transparent;
 }
 .submit-btn:disabled {
-  background: rgba(255,255,255,0.08); box-shadow: none; color: rgba(255,255,255,0.3); cursor: default;
+  background: #1e1e25; box-shadow: none; color: rgba(255,255,255,0.3); cursor: default;
 }
 .submit-btn:not(:disabled):active { transform: scale(0.97); opacity: 0.9; }
 

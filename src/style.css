@@ -54,7 +54,7 @@ html, body, #app {
 .scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 .scroll::-webkit-scrollbar { width: 3px; }
 .scroll::-webkit-scrollbar-track { background: transparent; }
-.scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+.scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 0; }
 
 /* ── Buttons ── */
 .btn {
@@ -63,7 +63,6 @@ html, body, #app {
   justify-content: center;
   gap: 8px;
   padding: 12px 24px;
-  border-radius: 4px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
@@ -79,31 +78,28 @@ html, body, #app {
 .btn-primary {
   background: var(--pink);
   color: #fff;
-  box-shadow: 0 0 20px rgba(255,45,120,0.4);
+  border: 2px solid var(--pink);
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.55);
 }
-.btn-primary:hover { box-shadow: 0 0 30px rgba(255,45,120,0.6); }
 
 /* Gradient multi-color button */
 .btn-spray {
   background: linear-gradient(135deg, var(--pink), var(--purple), var(--blue));
   color: #fff;
-  box-shadow: 0 0 24px rgba(191,95,255,0.4);
+  border: 2px solid rgba(255,255,255,0.3); box-shadow: 4px 4px 0 rgba(0,0,0,0.55);
 }
-.btn-spray:hover { box-shadow: 0 0 40px rgba(191,95,255,0.7); opacity: 0.95; }
 
 .btn-surface {
   background: var(--bg-card);
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
 }
-.btn-surface:hover { border-color: #444; }
 
 .btn-outline {
   background: transparent;
   color: var(--text-muted);
-  border: 1px solid #333;
+  border: 2px solid #333;
 }
-.btn-outline:hover { border-color: var(--pink); color: var(--pink); }
 
 .btn-danger {
   background: #ff2d2d;
@@ -115,40 +111,47 @@ html, body, #app {
 .btn-xl  { padding: 18px 48px; font-size: 20px; letter-spacing: 0.05em; }
 
 /* Legacy alias */
-.btn-gold { background: var(--gold); color: #000; font-weight: 900; box-shadow: 0 0 24px rgba(234,179,8,0.6), 0 0 8px rgba(234,179,8,0.3), 0 2px 8px rgba(0,0,0,0.4); }
-.btn-gold:hover { opacity: 0.9; box-shadow: 0 0 36px rgba(234,179,8,0.8), 0 0 12px rgba(234,179,8,0.4), 0 2px 8px rgba(0,0,0,0.4); }
+.btn-gold { background: var(--gold); color: #101014; font-weight: 900; border: 2px solid var(--gold); box-shadow: 4px 4px 0 rgba(0,0,0,0.55); }
+
+/* Hover is a mouse affordance. On a touch screen :hover latches after a tap and
+   stays lit until you tap elsewhere, so every one of these sits behind the guard. */
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover { background: #fff; border-color: #fff; color: #101014; transform: translateY(-2px); box-shadow: 6px 6px 0 rgba(0,0,0,0.55); }
+  .btn-spray:hover { transform: translateY(-2px); box-shadow: 6px 6px 0 rgba(0,0,0,0.55); border-color: #fff; }
+  .btn-surface:hover { border-color: #444; }
+  .btn-outline:hover { border-color: var(--pink); color: var(--pink); }
+  .btn-gold:hover { background: #fff; border-color: #fff; transform: translateY(-2px); box-shadow: 6px 6px 0 rgba(0,0,0,0.55); }
+}
 
 /* ── Cards ── */
 .card {
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  background: #101014;
+  border: 2px solid rgba(255,255,255,0.14);
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.6);
   padding: 20px;
 }
 
 /* ── Glassmorphism surfaces ── */
 .glass {
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.08);
+  position: relative;
+  background: #101014;
+  border: 2px solid rgba(255,255,255,0.14);
 }
 
 .glass-strong {
-  background: rgba(255,255,255,0.07);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255,255,255,0.12);
+  position: relative;
+  background: #14141a;
+  border: 2px solid rgba(255,255,255,0.2);
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.6);
 }
 
 /* ── Inputs ── */
 .input {
   width: 100%;
   background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
+  border: 2px solid var(--border);
   padding: 12px 16px;
   color: var(--text);
   font-size: 15px;
@@ -156,7 +159,7 @@ html, body, #app {
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
-.input:focus { border-color: var(--pink); box-shadow: 0 0 0 2px rgba(255,45,120,0.15); }
+.input:focus { border-color: var(--pink); box-shadow: 3px 3px 0 rgba(255,45,120,0.35); }
 .input::placeholder { color: var(--text-muted); }
 
 /* ── Labels ── */
@@ -171,7 +174,7 @@ html, body, #app {
 }
 
 /* ── Divider ── */
-.divider { border: none; border-top: 1px solid var(--border); }
+.divider { border: none; border-top: 2px solid var(--border); }
 
 /* ── Paint drip bar ── */
 .drip-bar {
@@ -199,9 +202,19 @@ html, body, #app {
 }
 
 /* ── Neon glow utilities ── */
-.glow-pink   { box-shadow: 0 0 20px rgba(255,45,120,0.5); }
-.glow-blue   { box-shadow: 0 0 20px rgba(0,212,255,0.5); }
-.glow-purple { box-shadow: 0 0 20px rgba(191,95,255,0.5); }
+.glow-pink   { box-shadow: 4px 4px 0 rgba(255,45,120,0.5); }
+.glow-blue   { box-shadow: 4px 4px 0 rgba(0,212,255,0.5); }
+.glow-purple { box-shadow: 4px 4px 0 rgba(191,95,255,0.5); }
 
 /* ── Display font util ── */
-.display { font-family: var(--font-display); letter-spacing: 0.05em; }
+.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); font-family: var(--font-display); letter-spacing: 0.05em; }
+
+/* ── Street: halftone grain on the shared surfaces ──────────────────── */
+.card::before, .glass-strong::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+.card > *, .glass-strong > * { position: relative; z-index: 1; }

@@ -85,7 +85,7 @@ function start() {
 .chip-opts { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip-opt {
   min-width: 68px; min-height: 48px;  cursor: pointer;
-  background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.14);
+  background: #17171d; border: 2px solid rgba(255,255,255,0.14);
   color: var(--text); font-family: var(--font-display); font-size: 18px; font-weight: 900;
 }
 .chip-opt.active { border-color: var(--gold); background: rgba(255,200,87,0.18); }
@@ -94,6 +94,20 @@ function start() {
 .rules li { font-size: 13px; color: var(--text-muted); line-height: 1.45; }
 
 .ng-hint { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+/* ── iPad ─────────────────────────────────────────────────────────────
+   No responsive rules at all before this: the rules list sat at 13px and the
+   hint at 12px, both under the readable floor on a stand, and the form ran
+   the full width of the screen.
+   ─────────────────────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .setup-body { width: 100%; max-width: 760px; margin: 0 auto; gap: 26px; padding: 0 24px 40px; }
+  .chip-opts { gap: 12px; }
+  .chip-opt { min-width: 92px; min-height: 60px; font-size: 24px; }
+  .rules { gap: 8px; padding-left: 22px; }
+  .rules li { font-size: 16px; line-height: 1.5; }
+  .ng-hint { font-size: 15px; }
+}
 
 /* ══════════════════════════════════════════════════════════════════════
    STREET TREATMENT — identical block in every view. Flat printed panels

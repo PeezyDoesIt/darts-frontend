@@ -36,12 +36,11 @@
         <p v-if="game.dice.length === 0 && game.phase === 'idle'" class="dice-hint">
           {{ game.turnScore > 0 ? 'Hot dice — roll all six again' : 'Roll to start your turn' }}
         </p>
-        <div v-else class="dice-row">
+        <div v-else class="dice-row" :class="{ few: game.dice.length <= 4 }">
           <DiceFace
             v-for="(d, i) in game.dice"
             :key="i"
             :face="d"
-            :size="dieSize"
             :selectable="game.phase === 'rolled'"
             :selected="!!game.selected[i]"
             @click="game.phase === 'rolled' && farkle.toggleDie(i)"
@@ -145,9 +144,6 @@ const selectionCount = computed(() => game.value?.selected.filter(Boolean).lengt
 const selectionValue = computed(() => farkle.selectionValue())
 const selectionInvalid = computed(() => selectionCount.value > 0 && selectionValue.value === null)
 
-// Six dice have to fit a narrow phone without wrapping into an unreadable pile.
-const dieSize = computed(() => (game.value && game.value.dice.length > 4 ? 46 : 58))
-
 function rollWithSound() {
   unlockAudio()
   farkle.rollDice()
@@ -221,23 +217,26 @@ function quit() {
 .score-chip {
   flex: 1 1 auto; min-width: 92px; display: flex; flex-direction: column; align-items: center;
   gap: 2px; padding: 8px 10px;  border: 2px solid transparent;
-  background: rgba(255,255,255,0.04);
+  background: #16161c;
 }
-.score-chip.active { background: rgba(255,255,255,0.09); }
+.score-chip.active { background: #202027; }
 .sc-name { font-size: 11px; font-weight: 600; color: var(--text-muted); overflow-wrap: anywhere; }
 .sc-score { font-size: 20px; }
 
 .turn-banner {
   display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
   padding: 10px 14px;  border-left: 4px solid;
-  background: rgba(255,255,255,0.05);
+  background: #17171d;
 }
 .tb-name { font-size: 16px; font-weight: 800; overflow-wrap: anywhere; }
 .tb-turn { font-size: 13px; color: var(--text-muted); }
 .tb-turn strong { color: var(--gold); font-size: 17px; }
 
 .dice-area { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 8px 0; }
-.dice-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+/* Six dice have to fit a narrow phone without wrapping into an unreadable pile; four or
+   fewer can afford to be bigger. Sized from CSS so the iPad block below can simply grow it. */
+.dice-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; --die-size: 46px; }
+.dice-row.few { --die-size: 58px; }
 .dice-hint { color: var(--text-muted); font-size: 14px; text-align: center; margin: 20px 0; }
 .farkle-msg { font-size: 34px; color: var(--pink); letter-spacing: 0.08em; margin: 4px 0; }
 .last-action { font-size: 14px; color: var(--gold); font-weight: 700; margin: 0; }
@@ -276,6 +275,45 @@ function quit() {
 .empty-state {
   height: 100dvh; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 16px; color: var(--text-muted);
+}
+
+/* ── iPad ─────────────────────────────────────────────────────────────
+   This screen was built at one size and carried no responsive rules at all.
+   Played off a stand a couple of metres away, the 10–13px labels were
+   unreadable and a phone-width column ran the full 1194px. From the tablet
+   band up everything steps up and the body keeps a centred measure. iPad
+   portrait (834) and landscape (1194) both land here; phones are untouched.
+   ─────────────────────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .gp-header { padding: 18px 26px; padding-top: calc(18px + env(safe-area-inset-top)); }
+  .gp-title { font-size: 32px; }
+  .gp-target { font-size: 14px; }
+  .gp-body { padding: 28px; gap: 22px; align-items: center; }
+  .gp-body > * { width: 100%; max-width: 940px; }
+  .scoreboard { gap: 12px; }
+  .score-chip { min-width: 128px; padding: 14px 16px; gap: 4px; }
+  .sc-name { font-size: 15px; }
+  .sc-score { font-size: 30px; }
+  .turn-banner { padding: 16px 22px; border-left-width: 6px; }
+  .tb-name { font-size: 26px; }
+  .gp-footer { padding: 16px 26px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  .gp-footer .btn { min-height: 70px; font-size: 20px; }
+  .win-card, .rules-card { max-width: 620px; padding: 34px 30px; gap: 16px; }
+  .win-label { font-size: 14px; }
+  .win-name { font-size: 44px; }
+  .rules-list { font-size: 17px; gap: 11px; }
+  .tb-turn { font-size: 17px; }
+  .tb-turn strong { font-size: 26px; }
+  .dice-area { gap: 18px; padding: 16px 0; }
+  .dice-row { gap: 20px; --die-size: 86px; }
+  .dice-row.few { --die-size: 104px; }
+  .dice-hint { font-size: 18px; margin: 28px 0; }
+  .farkle-msg { font-size: 50px; }
+  .last-action { font-size: 19px; }
+  .selection-msg { font-size: 17px; }
+  .selection-msg strong { font-size: 21px; }
+  .win-score { font-size: 62px; }
+  .rules-title { font-size: 32px; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════

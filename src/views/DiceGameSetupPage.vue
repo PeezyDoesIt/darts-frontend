@@ -210,7 +210,7 @@ function start() {
 .order-list { display: flex; flex-direction: column; gap: 8px; }
 .order-row {
   display: flex; align-items: center; gap: 12px; padding: 10px 12px;
-  background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.08);
+  background: #16161c; border: 2px solid rgba(255,255,255,0.08);
   border-left: 3px solid; 
 }
 .order-num { font-size: 18px; min-width: 20px; }
@@ -227,7 +227,7 @@ function start() {
 .target-btns { display: flex; gap: 10px; flex-wrap: wrap; }
 .target-btn {
   flex: 1; min-width: 84px; min-height: 48px; 
-  background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.12);
+  background: #16161c; border: 2px solid rgba(255,255,255,0.12);
   color: var(--text); font-weight: 800; font-size: 15px; cursor: pointer;
   font-family: var(--font-display); letter-spacing: 0.04em;
 }

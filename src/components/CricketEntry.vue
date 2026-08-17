@@ -217,7 +217,7 @@ defineExpose({ submit, submitted })
 .board-tile {
   display: flex; align-items: stretch; width: 100%; padding: 8px 24px; gap: 0;
   flex: 1; min-height: 48px; position: relative;
-  background: rgba(0,0,0,0.72); border: 2px solid rgba(255,255,255,0.35); border-radius: 8px;
+  background: rgba(0,0,0,0.72); border: 2px solid rgba(255,255,255,0.35);
   cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent; text-align: left;
   position: relative; overflow: hidden;
 }
@@ -228,7 +228,7 @@ defineExpose({ submit, submitted })
 .target-label { font-size: clamp(120px, 20dvh, 220px); font-family: var(--font-display); letter-spacing: 0.05em; width: clamp(150px, 20dvh, 240px); flex-shrink: 0; display: flex; align-items: center; overflow: hidden; }
 .target-label-bull { font-size: clamp(150px, 26dvh, 280px); }
 .pips-wrap { display: flex; align-items: stretch; gap: 20px; flex: 1; padding: 14px 0; margin-left: 24px; }
-.pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: clamp(28px, 5dvh, 60px); font-weight: 900; font-family: var(--font-display); color: rgba(0,0,0,0.6); line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.pip { flex: 1; min-width: 0; border-radius: 10px; border: 3px solid rgba(255,255,255,0.35); background: #1e1e25; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: clamp(28px, 5dvh, 60px); font-weight: 900; font-family: var(--font-display); color: rgba(0,0,0,0.6); line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .pip.existing { background: var(--pip); border-color: var(--pip); box-shadow: 0 0 20px color-mix(in srgb, var(--pip) 85%, transparent), 0 0 40px color-mix(in srgb, var(--pip) 45%, transparent); }
 .pip.round { background: var(--pip); border-color: var(--pip); box-shadow: 0 0 16px color-mix(in srgb, var(--pip) 60%, transparent); }
 
@@ -268,7 +268,7 @@ defineExpose({ submit, submitted })
   content: '';
   width: 42%; aspect-ratio: 1;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.14);
+  background: #2a2a32;
   transition: background 0.2s, box-shadow 0.2s;
 }
 .pips-dots .pip.existing::after,
@@ -312,8 +312,7 @@ defineExpose({ submit, submitted })
 .submit-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 8px 20px; padding-bottom: calc(8px + env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); flex-shrink: 0; gap: 16px;
+  border-top: 2px solid rgba(255,255,255,0.08); background: #141419; flex-shrink: 0; gap: 16px;
   position: relative; z-index: 1;
 }
 .hits-text { color: var(--pink); font-weight: 700; font-size: 15px; }
@@ -324,10 +323,10 @@ defineExpose({ submit, submitted })
   height: 54px;
   padding: 0 36px;
   font-size: clamp(42px, 6.2dvh, 62px); font-weight: 900; font-family: var(--font-display);
-  letter-spacing: 0.08em; text-transform: uppercase; border-radius: 8px; cursor: pointer;
+  letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
   position: relative; overflow: hidden;
   background: #dc2626 !important; color: #fff !important; border: none !important;
-  box-shadow: 0 2px 12px rgba(220,38,38,0.4);
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
 }
 .submit-inline-btn:disabled { opacity: 0.4; }
 
@@ -345,7 +344,7 @@ defineExpose({ submit, submitted })
   .submit-inline-btn { height: 48px; padding: 0 20px; font-size: 26px; }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .cricket-board { padding: 5px 8px; gap: 5px; }
   .board-tile { padding: 6px 12px; min-height: 56px; }
   .target-label { font-size: clamp(70px, 13dvh, 120px); width: clamp(100px, 14dvh, 150px); }

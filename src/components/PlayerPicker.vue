@@ -91,7 +91,7 @@ const available = computed(() =>
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.2s;
 }
-.player-bubble:hover:not(:disabled) { transform: scale(1.05); }
+
 .player-bubble:disabled { opacity: 0.35; cursor: default; }
 .player-bubble:focus-visible {
   outline: none;
@@ -115,7 +115,7 @@ const available = computed(() =>
 }
 .bubble-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .add-bubble-avatar {
-  background: rgba(255, 255, 255, 0.06);
+  background: #1a1a20;
   border: 2px dashed rgba(255, 255, 255, 0.25);
   color: var(--text-muted);
 }
@@ -138,7 +138,7 @@ const available = computed(() =>
   .player-bubble-grid { grid-template-columns: repeat(3, 1fr); gap: 16px 8px; }
   .bubble-avatar { width: 60px; height: 60px; font-size: 28px; }
 }
-@media (min-width: 1101px) {
+@media (min-width: 1100px) {
   .player-bubble-grid { grid-template-columns: repeat(8, 1fr); gap: 14px 10px; }
   .bubble-avatar { width: 56px; height: 56px; font-size: 26px; }
   .bubble-name { font-size: 11px; }
@@ -161,5 +161,9 @@ const available = computed(() =>
   cursor: pointer;
   min-height: 44px;
   padding: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .player-bubble:hover:not(:disabled) { transform: scale(1.05); }
 }
 </style>

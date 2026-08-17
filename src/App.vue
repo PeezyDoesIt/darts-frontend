@@ -31,13 +31,23 @@ onMounted(() => {
 .app-shell {
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: 100dvh;
   height: 100dvh;
   overflow: hidden;
   background: #0a0a0a;
   /* stop iOS rubber-band dragging the fixed shell away from the viewport */
   overscroll-behavior: none;
   -webkit-text-size-adjust: 100%;
+  /* The notch and the home-indicator bar are handled once here rather than in every
+     screen — eleven screens had no allowance for them at all, so their top row sat
+     under the notch and their bottom row under the swipe bar. Screens that already
+     add their own insets still work: this only reserves the area, it does not
+     double up on anything measured from inside. */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  box-sizing: border-box;
 }
 
 .blob {
@@ -75,7 +85,7 @@ onMounted(() => {
 
 /* On a phone the blobs are wider than the screen; without this they add
    horizontal scroll and the layout drifts sideways under your thumb. */
-@media (max-width: 700px) {
+@media (max-width: 767px) {
   .blob-pink { width: 340px; height: 340px; top: -120px; left: -80px; }
   .blob-blue { width: 300px; height: 300px; bottom: -110px; right: -80px; }
   .blob-purple { width: 260px; height: 260px; }

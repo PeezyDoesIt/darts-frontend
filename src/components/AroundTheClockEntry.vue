@@ -266,7 +266,7 @@ function submit() {
   gap: 16px;
   padding: 10px 20px 12px;
   background: rgba(0,0,0,0.45);
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 2px solid rgba(255,255,255,0.07);
 }
 .atc-focus-left {
   display: flex;
@@ -302,13 +302,13 @@ function submit() {
 .atc-progress-bar-wrap {
   width: 100%;
   height: 5px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 3px;
+  background: #1e1e25;
+  
   overflow: hidden;
 }
 .atc-progress-bar {
   height: 100%;
-  border-radius: 3px;
+  
   transition: width 0.3s ease;
 }
 .atc-prog-count {
@@ -326,9 +326,9 @@ function submit() {
 }
 .atc-mode-btn {
   padding: 3px 10px;
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.04);
+  
+  border: 2px solid rgba(255,255,255,0.15);
+  background: #16161c;
   color: rgba(255,255,255,0.35);
   font-size: 11px;
   font-weight: 700;
@@ -365,8 +365,8 @@ function submit() {
 .atc-board {
   width: 100%;
   height: 100%;
-  max-width: min(80vw, 62vh);
-  max-height: min(80vw, 62vh);
+  max-width: min(80vw, 62dvh);
+  max-height: min(80vw, 62dvh);
   display: block;
   filter: drop-shadow(0 4px 24px rgba(0,0,0,0.7));
 }
@@ -399,7 +399,7 @@ function submit() {
   flex-direction: column;
   padding: 8px 6px;
   background: rgba(0,0,0,0.35);
-  border-left: 1px solid rgba(255,255,255,0.07);
+  border-left: 2px solid rgba(255,255,255,0.07);
   gap: 4px;
   overflow-y: auto;
 }
@@ -424,9 +424,9 @@ function submit() {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.03);
+  
+  border: 2px solid rgba(255,255,255,0.08);
+  background: #141419;
   font-size: 11px;
   font-weight: 700;
   font-family: var(--font-display);
@@ -462,7 +462,7 @@ function submit() {
   gap: 10px;
   padding: 10px 16px;
   padding-bottom: calc(10px + env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(255,255,255,0.07);
+  border-top: 2px solid rgba(255,255,255,0.07);
   background: rgba(0,0,0,0.3);
 }
 
@@ -473,7 +473,7 @@ function submit() {
   font-size: clamp(14px, 2dvh, 20px);
   font-weight: 900;
   letter-spacing: 0.08em;
-  border-radius: 10px;
+  
   margin-left: auto;
 }
 
@@ -492,7 +492,7 @@ function submit() {
 @media (min-width: 768px) {
   .atc-focus-banner { padding: 12px 28px 14px; gap: 24px; }
   .atc-focus-number { font-size: clamp(56px, 9dvh, 96px); }
-  .atc-board { max-width: min(72vw, 60vh); max-height: min(72vw, 60vh); }
+  .atc-board { max-width: min(72vw, 60dvh); max-height: min(72vw, 60dvh); }
   .atc-footer { padding: 12px 28px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
   .atc-next-btn { flex: 0 0 100px; font-size: 18px; }
   .atc-num-list { width: 80px; }
