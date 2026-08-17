@@ -27,7 +27,7 @@
           <div class="field">
             <label class="label">Avatar</label>
             <div class="photo-area">
-              <div class="photo-preview" :style="{ background: color, boxShadow: `0 0 20px ${color}60` }">
+              <div class="photo-preview" :style="{ background: color, boxShadow: '4px 4px 0 rgba(0,0,0,0.5)' }">
                 <img v-if="photoPreview" :src="photoPreview" alt="avatar" />
               </div>
               <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
@@ -298,7 +298,7 @@
           <div class="existing-scroll">
             <div class="existing-list">
               <div v-for="p in sortedPlayers" :key="p.id" class="existing-row" :class="{ pinned: p.pinned, editing: editingId === p.id }">
-                <div class="roster-avatar" :style="{ background: p.color, boxShadow: `0 0 8px ${p.color}60` }">
+                <div class="roster-avatar" :style="{ background: p.color, boxShadow: '3px 3px 0 rgba(0,0,0,0.5)' }">
                   <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
                   <span v-else>{{ avatarGlyph(p) }}</span>
                 </div>

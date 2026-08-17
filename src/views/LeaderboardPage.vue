@@ -16,7 +16,7 @@
 
       <div v-if="sorted.length >= 2" class="podium">
         <div v-if="sorted[1]" class="podium-slot second">
-          <div class="pod-avatar" :style="{ background: sorted[1].color, boxShadow: `0 0 20px ${sorted[1].color}80` }">
+          <div class="pod-avatar" :style="{ background: sorted[1].color, boxShadow: '4px 4px 0 rgba(0,0,0,0.55)' }">
             <img v-if="isPhoto(sorted[1].avatarUrl)" :src="sorted[1].avatarUrl!" alt="" />
             <span v-else>{{ avatarGlyph(sorted[1]) }}</span>
           </div>
@@ -26,7 +26,7 @@
         </div>
         <div v-if="sorted[0]" class="podium-slot first">
           <div class="pod-crown">👑</div>
-          <div class="pod-avatar large" :style="{ background: sorted[0].color, boxShadow: `0 0 30px ${sorted[0].color}` }">
+          <div class="pod-avatar large" :style="{ background: sorted[0].color, boxShadow: '6px 6px 0 rgba(0,0,0,0.6)' }">
             <img v-if="isPhoto(sorted[0].avatarUrl)" :src="sorted[0].avatarUrl!" alt="" />
             <span v-else>{{ avatarGlyph(sorted[0]) }}</span>
           </div>
@@ -35,7 +35,7 @@
           <div class="pod-base first-base">1ST</div>
         </div>
         <div v-if="sorted[2]" class="podium-slot third">
-          <div class="pod-avatar" :style="{ background: sorted[2].color, boxShadow: `0 0 16px ${sorted[2].color}60` }">
+          <div class="pod-avatar" :style="{ background: sorted[2].color, boxShadow: '4px 4px 0 rgba(0,0,0,0.5)' }">
             <img v-if="isPhoto(sorted[2].avatarUrl)" :src="sorted[2].avatarUrl!" alt="" />
             <span v-else>{{ avatarGlyph(sorted[2]) }}</span>
           </div>
@@ -53,7 +53,7 @@
           :style="i < 3 ? { borderLeftColor: p.color } : {}">
           <span class="rank display" :style="i < 3 ? { color: p.color } : {}">{{ i + 1 }}</span>
           <div class="player-cell">
-            <div class="cell-avatar" :style="{ background: p.color, boxShadow: `0 0 10px ${p.color}60` }">
+            <div class="cell-avatar" :style="{ background: p.color, boxShadow: '3px 3px 0 rgba(0,0,0,0.5)' }">
               <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
               <span v-else>{{ avatarGlyph(p) }}</span>
             </div>
