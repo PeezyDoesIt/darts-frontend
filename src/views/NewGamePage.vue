@@ -279,7 +279,7 @@
         <div
           v-for="p in selectedPlayers.slice(0, 6)" :key="p.id"
           class="footer-avatar"
-          :style="{ background: p.color, boxShadow: `0 0 8px ${p.color}80` }"
+          :style="{ background: p.color, boxShadow: '2px 2px 0 rgba(0,0,0,0.5)' }"
         >
           <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
           <span v-else style="font-size:14px">{{ avatarGlyph(p) }}</span>

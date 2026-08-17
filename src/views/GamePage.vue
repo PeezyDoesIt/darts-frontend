@@ -9,7 +9,7 @@
           <!-- Left: round pill centered in left space -->
           <div class="turn-left">
             <button class="header-avatar-btn" @click="router.push({ path: '/player-setup', query: { edit: currentPlayer.id } })" title="Edit player">
-              <div class="header-avatar" :style="{ background: currentPlayer.color, boxShadow: `0 0 8px ${currentPlayer.color}80` }">
+              <div class="header-avatar" :style="{ background: currentPlayer.color, boxShadow: '3px 3px 0 rgba(0,0,0,0.5)' }">
                 <img v-if="isPhoto(currentPlayer.avatarUrl)" :src="currentPlayer.avatarUrl!" alt="" />
                 <span v-else>{{ avatarGlyph(currentPlayer) }}</span>
               </div>
@@ -517,7 +517,7 @@
             :style="p.id === currentPlayer.id ? { '--active-color': p.color, background: p.color + '12', boxShadow: `0 0 20px ${p.color}20` } : {}"
           >
             <div class="active-dot" :style="{ background: p.color, opacity: p.id === currentPlayer.id ? 1 : 0 }" />
-            <div class="lb-avatar" :style="{ background: p.color, boxShadow: p.id === currentPlayer.id ? `0 0 14px ${p.color}99` : '0 0 0 transparent' }">
+            <div class="lb-avatar" :style="{ background: p.color, boxShadow: p.id === currentPlayer.id ? '3px 3px 0 rgba(0,0,0,0.55)' : 'none' }">
               <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" />
               <span v-else>{{ avatarGlyph(p) }}</span>
             </div>

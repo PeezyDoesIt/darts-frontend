@@ -6,7 +6,7 @@
       <div class="win-inner">
         <div class="winner-label display">WINNER</div>
 
-        <div class="winner-avatar" :style="{ background: winner?.color, boxShadow: `0 0 60px ${winner?.color}` }">
+        <div class="winner-avatar" :style="{ background: winner?.color, boxShadow: '6px 6px 0 rgba(0,0,0,0.6)' }">
           <img v-if="isPhoto(winner?.avatarUrl)" :src="winner!.avatarUrl!" alt="" />
           <span v-else>{{ avatarGlyph(winner) }}</span>
         </div>
@@ -26,7 +26,7 @@
             :class="{ winner: p.id === winner?.id }"
             :style="p.id === winner?.id ? { borderColor: p.color, background: `${p.color}20` } : {}">
             <span v-if="game?.playToCompletion" class="final-place" :style="i === 0 ? { color: p.color } : {}">{{ ordinal(i + 1) }}</span>
-            <div class="final-avatar" :style="{ background: p.color, boxShadow: `0 0 10px ${p.color}80` }">
+            <div class="final-avatar" :style="{ background: p.color, boxShadow: '3px 3px 0 rgba(0,0,0,0.5)' }">
               <img v-if="isPhoto(p.avatarUrl)" :src="p.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
               <span v-else>{{ avatarGlyph(p) }}</span>
             </div>
