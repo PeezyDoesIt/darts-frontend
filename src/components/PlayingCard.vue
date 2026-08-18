@@ -3,8 +3,8 @@
     v-if="card"
     class="card"
     :class="[
-      isJoker ? (jokerKind === 'big' ? 'joker-high' : 'joker-low') : suitClass,
-      { playable, dimmed: !playable && interactive, faceDown },
+      isJoker ? 'joker' : suitClass,
+      { playable, dimmed: !playable && interactive, faceDown, selected },
       interactive ? `oop-${outOfPlay}` : null,
     ]"
     :style="rootStyle"
@@ -16,31 +16,19 @@
       <span class="back-mark">♠</span>
     </template>
 
-    <!-- The two jokers must be distinguishable at a glance across a table. Bellot draws them
-         as a red and a black jester, which separates them but says nothing about which one
-         WINS — so the drawn card carries a HIGH / LOW tape label. It sits bottom-left because
-         Bellot prints "JOKER" top-left and again bottom-right upside down, and the jester
-         fills the middle: there is nowhere else on the card that is empty.
-         Decks that cannot show artwork keep the star and the word. -->
+    <!-- The deck prints the SAME figure on both jokers — its only difference is the ink of
+         the printed corner word, which is invisible at hand size. So the low one is drained
+         and both carry a tape label: colour for the glance, word for the check. The tape is
+         bottom-left because the card prints JOKER top-left and bottom-right. -->
     <template v-else-if="isJoker">
-      <template v-if="jokerArtSrc">
-        <div class="art-stock" />
-        <img class="joker-art" :src="jokerArtSrc" alt="" />
-        <span class="joker-tape" :class="jokerKind === 'big' ? 'joker-tape-high' : 'joker-tape-low'">
-          {{ jokerKind === 'big' ? 'HIGH' : 'LOW' }}
-        </span>
-      </template>
-      <template v-else>
-        <span class="corner tl">{{ label }}</span>
-        <span class="joker-face">★</span>
-        <span class="joker-word">{{ jokerKind === 'big' ? 'HIGH' : 'LOW' }}</span>
-        <span class="corner br">{{ label }}</span>
-      </template>
+      <div class="art-stock" />
+      <img class="joker-art" :class="{ drained: jokerKind !== 'big' }" :src="jokerArt" alt="" />
+      <span class="joker-tape" :class="jokerKind === 'big' ? 'tape-high' : 'tape-low'">
+        {{ jokerKind === 'big' ? 'HIGH' : 'LOW' }}
+      </span>
     </template>
 
     <template v-else>
-      <div v-if="theme === 'vintage' || theme === 'slate'" class="frame" />
-
       <!-- Corner index, drawn twice — the second turned upside down like a printed card.
            Suppressed under artwork, which prints its own. -->
       <div v-for="rot in HALVES" v-show="!artSrc" :key="rot" class="layer" :style="rot ? ROT180 : undefined">
@@ -90,22 +78,21 @@
 
 <script lang="ts">
 // Exports live in a plain script block — <script setup> may not contain ES exports.
-// 'neon' was removed from the card decks — Spades is Bellot's traditional deck, and neon
-// competed with it. The full theme definition is parked in "Parked Card Decks.dc.html" so it
-// can be brought back for a different game; nothing here needs to keep carrying it.
-export type CardTheme = 'classic' | 'vintage' | 'bold' | 'ink' | 'midnight' | 'slate'
-/** How a card you cannot play is marked. Neither one fades: fading was the original fault. */
+export type CardTheme = 'classic' | 'bold'
+
+/** How a card that cannot legally be played is shown. Never a fade: see the CSS note. */
 export type OutOfPlay = 'sunk' | 'taped'
 /** Only what the component actually draws — a name here that has no branch below
  *  silently falls through to the index treatment. */
 export type CourtStyle = 'index' | 'medallion' | 'suit'
 
 /**
- * Decks that can show the traditional court artwork. Two are deliberately excluded:
- * vintage, whose aged stock and serif ink read as a different century from Bellot's flat
- * colour, and ink, which is an occasional novelty deck and is meant to stay wholly itself.
+ * Every remaining deck prints on light stock and can carry the traditional artwork, so this
+ * is now a formality — kept because the deck picker still asks before switching the courts
+ * on, and a future deck may not be able to. The five that could not (or read wrong against
+ * Bellot's flat colour) are parked, not deleted.
  */
-export const ART_CAPABLE: CardTheme[] = ['classic', 'bold', 'midnight', 'slate']
+export const ART_CAPABLE: CardTheme[] = ['classic', 'bold']
 </script>
 
 <script setup lang="ts">
@@ -121,13 +108,20 @@ const props = withDefaults(defineProps<{
   artCourts?: boolean
   /** Emits `play` and renders disabled styling when not playable. */
   interactive?: boolean
-  playable?: boolean
+  /**
+   * Picked out of the hand but not yet played. On a phone thirteen cards can only overlap to
+   * a ~24px sliver each, which is under the 44px target minimum — so a tap lifts the card
+   * clear of its neighbours first and the second tap plays it. Nothing is ever played blind.
+   */
+  selected?: boolean
   /** 'sunk' (default) lifts the playable cards; 'taped' strikes the rest instead. */
   outOfPlay?: OutOfPlay
+  playable?: boolean
   faceDown?: boolean
 }>(), {
-  width: 84, theme: 'ink', courtStyle: 'suit', artCourts: false,
-  interactive: false, playable: true, faceDown: false, outOfPlay: 'sunk',
+  // Bellot is the deck: classic stock with the traditional courts already on.
+  width: 84, theme: 'classic', courtStyle: 'suit', artCourts: true,
+  interactive: false, playable: true, faceDown: false, selected: false, outOfPlay: 'sunk',
 })
 
 const SUIT_FILE: Record<string, string> = {
@@ -150,14 +144,6 @@ const THEMES: Record<CardTheme, Record<string, string>> = {
     red: '#d1122c', black: '#17171b',
     idxRank: '19cqw', idxSuit: '21cqw', glowRed: 'none', glowBlack: 'none',
   },
-  vintage: {
-    face: 'linear-gradient(160deg,#f8f1de,#e6d9bd)', faceSolid: '#f0e9d5',
-    border: '1px solid rgba(80,60,30,0.5)',
-    radius: '5%/3.5%',
-    font: 'Georgia, "Times New Roman", serif',
-    red: '#a8202a', black: '#2b2118',
-    idxRank: '17cqw', idxSuit: '19cqw', glowRed: 'none', glowBlack: 'none',
-  },
   bold: {
     face: '#ffffff', faceSolid: '#ffffff',
     border: '1px solid rgba(0,0,0,0.3)',
@@ -167,30 +153,6 @@ const THEMES: Record<CardTheme, Record<string, string>> = {
     // Bebas is condensed, so Bold's index has to run larger than Vintage's serif to
     // carry the same weight on the card.
     idxRank: '30cqw', idxSuit: '25cqw', idxLeft: '14.5%', glowRed: 'none', glowBlack: 'none',
-  },
-  ink: {
-    face: 'linear-gradient(160deg,#141a2b,#0b0e18)', faceSolid: '#0f1422',
-    border: '1px solid rgba(255,255,255,0.16)',
-    radius: '8%/5.5%',
-    font: "var(--font-display, system-ui)",
-    red: '#ff7f9c', black: '#8fdcff',
-    idxRank: '20cqw', idxSuit: '21cqw', glowRed: 'none', glowBlack: 'none',
-  },
-  midnight: {
-    face: 'linear-gradient(160deg,#1e2333,#12151f)', faceSolid: '#181c29',
-    border: '1px solid rgba(255,255,255,0.2)',
-    radius: '7%/5%',
-    font: "var(--font-display, system-ui)",
-    red: '#ff8b93', black: '#e3e9f7',
-    idxRank: '20cqw', idxSuit: '21cqw', glowRed: 'none', glowBlack: 'none',
-  },
-  slate: {
-    face: 'linear-gradient(160deg,#262a31,#16181d)', faceSolid: '#1e2127',
-    border: '1px solid rgba(255,255,255,0.18)',
-    radius: '6%/4%',
-    font: "var(--font-display, system-ui)",
-    red: '#f2946b', black: '#ece2c8',
-    idxRank: '19cqw', idxSuit: '21cqw', glowRed: 'none', glowBlack: 'none',
   },
 }
 
@@ -230,17 +192,10 @@ const artSrc = computed(() => {
   const suit = SUIT_FILE[c.suit], rank = COURT_FILE[c.rank]
   return suit && rank ? `/cards/${suit}_${rank}.png` : null
 })
-/**
- * Bellot's drawn jokers, on the same terms as the courts: only when the caller asked for
- * artwork and only on decks that can carry it. Red is the high joker, black the low one,
- * which is how the physical deck is ordered.
- */
-const jokerArtSrc = computed(() => {
-  if (!props.artCourts || !isJoker.value) return null
-  if (!ART_CAPABLE.includes(props.theme)) return null
-  return jokerKind.value === 'big' ? '/cards/joker_red.png' : '/cards/joker_black.png'
-})
-
+/** Both jokers carry the same drawing; only the printed corner word's ink differs. */
+const jokerArt = computed(() =>
+  jokerKind.value === 'big' ? '/cards/joker_red.png' : '/cards/joker_black.png'
+)
 const isRed = computed(() => {
   const c = props.card
   return c?.kind === 'pip' && (c.suit === 'hearts' || c.suit === 'diamonds')
@@ -308,7 +263,7 @@ const ariaLabel = computed(() => {
   flex-shrink: 0;
   container-type: inline-size;
   border-radius: var(--radius, 6%/4%);
-  border: var(--bd, 2px solid rgba(0,0,0,0.35));
+  border: var(--bd, 1px solid rgba(0,0,0,0.35));
   background: var(--face, linear-gradient(160deg, #fffefb, #eceae4));
   box-shadow: 0 2px 6px rgba(0,0,0,0.45);
   padding: 0;
@@ -318,24 +273,35 @@ const ariaLabel = computed(() => {
   transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
 }
 .card.playable { cursor: pointer; }
-
+.card.playable:focus-visible {
+  transform: translateY(-14px);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.55);
+  outline: none;
+  z-index: 2;
+}
+/* Hover is a mouse idea — on the iPad it must never be the only way to see something. */
+@media (hover: hover) and (pointer: fine) {
+  .card.playable:hover {
+    transform: translateY(-14px);
+    box-shadow: 0 10px 18px rgba(0,0,0,0.55);
+    outline: none;
+    z-index: 2;
+  }
+}
+/* Picked, not yet played: the same lift the Sunk treatment uses, reused as a selection. */
+.card.selected {
+  transform: translateY(-26px);
+  outline: 3px solid #aaff00;
+  outline-offset: -1px;
+  box-shadow: 0 12px 20px rgba(0,0,0,0.6);
+  z-index: 3;
+}
 .card.playable:focus-visible { box-shadow: 0 0 0 3px var(--gold), 0 10px 18px rgba(0,0,0,0.55); }
+/* An illegal card stays visible but is clearly out of play, so the rule teaches itself. */
 /*
- * An illegal card stays visible but is clearly out of play, so the rule teaches itself.
- *
- * It has to stay *readable* to teach anything, and it did not. At 0.34 on a near-black
- * table the pips went to black — a hand of hearts and diamonds looked like a row of empty
- * slots, so you could not see what you were holding, only what you could play. Dimmer than
- * playable is the point; invisible is not.
- *
- * Nothing fades and nothing is drained. Two treatments, chosen in the deck panel:
- *
- * SUNK (default) — the cards you can play rise out of the hand with a lime edge and the rest
- * stay down. Position carries the meaning, so every card keeps full colour against every
- * deck, and it is the same gesture as lifting a card off a real table.
- *
- * TAPED (option) — everything sits level and the cards you cannot play get a strip struck
- * across them. Louder: it states the answer rather than letting you read it off the row.
+ * Nothing fades. A 34% fade on a dark deck collapsed the card into the table and lost its
+ * edge, which is the fault this replaced: an unplayable card should read as DOWN, not as
+ * absent. Playable cards lift out of the hand instead, or the rest get taped.
  */
 .card.dimmed { opacity: 1; filter: none; }
 .card.oop-sunk.playable {
@@ -363,7 +329,7 @@ const ariaLabel = computed(() => {
 .back-mark { color: rgba(255,255,255,0.4); font-size: 20px; }
 
 .frame {
-  position: absolute; inset: 3% 4.5%; border: 2px solid currentColor;
+  position: absolute; inset: 3% 4.5%; border: 1px solid currentColor;
   opacity: 0.28; border-radius: 2%; pointer-events: none;
 }
 .layer { position: absolute; inset: 0; }
@@ -418,54 +384,20 @@ const ariaLabel = computed(() => {
 .red  { color: #d1122c; }
 .black { color: #17171b; }
 
-/* High joker — full colour. */
-.joker-high {
-  background: linear-gradient(150deg, #ffd166, #ff5fa2 55%, #6f5cff);
-  color: #1a0f2e;
-  border-color: rgba(255,255,255,0.5);
-}
-/* Low joker — deliberately greyscale, matching the physical card. */
-.joker-low {
-  background: linear-gradient(150deg, #fbfbfb, #b9b9b9);
-  color: #17171b;
-}
-/* The artwork is a whole printed card, so it gets its own stock and does not inherit the
-   joker-high / joker-low background. */
+/* Both jokers print on the deck's own light stock — the drawing is the card. */
+.joker { border-color: rgba(0,0,0,0.35); }
 .joker-art {
-  position: absolute; inset: 4%;
-  width: 92%; height: 92%;
-  object-fit: contain;
+  position: absolute; inset: 4%; width: 92%; height: 92%; object-fit: contain;
 }
-/* Bottom-left is the only empty area on Bellot's joker. Squared and hard-shadowed, the same
-   taped-label device used elsewhere in the app. */
+/* The low joker is the same figure as the high one, so it loses its colour: a difference
+   you catch without reading. Solid, not faded — the card keeps full contrast. */
+.joker-art.drained { filter: saturate(0) contrast(1.06); }
 .joker-tape {
-  position: absolute; bottom: 5%; left: 5%; z-index: 2;
-  padding: 2px 7px 1px;
-  font-family: var(--font-display);
-  font-size: clamp(8px, 15cqw, 13px);
-  letter-spacing: 0.1em;
-  color: #fff;
-  box-shadow: 2px 2px 0 rgba(0,0,0,0.45);
+  position: absolute; left: 5%; bottom: 4.5%; transform: rotate(-3deg);
+  padding: 2px 7px 1px; background: #101014;
+  font-size: clamp(9px, 13cqw, 18px); font-weight: 400; letter-spacing: 0.1em;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
 }
-.joker-tape-high { background: #ff2d78; transform: rotate(-2deg); }
-.joker-tape-low { background: #2a2a34; transform: rotate(1.6deg); }
-
-.joker-face {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-size: clamp(18px, 40cqw, 28px);
-}
-.joker-word {
-  position: absolute; bottom: 21%; left: 0; right: 0; text-align: center;
-  font-size: clamp(7px, 15cqw, 10px); font-weight: 900; letter-spacing: 0.12em;
-  opacity: 0.85;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .card.playable:hover, .card.playable:focus-visible {
-  transform: translateY(-14px);
-  box-shadow: 0 10px 18px rgba(0,0,0,0.55);
-  outline: none;
-  z-index: 2;
-}
-}
+.tape-high { color: #aaff00; }
+.tape-low { color: rgba(255,255,255,0.9); }
 </style>

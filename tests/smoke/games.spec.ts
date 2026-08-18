@@ -1,5 +1,32 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 import { pickBubble, seedRoster } from './helpers'
+
+/**
+ * Play the first legal card in the hand.
+ *
+ * Two things make this more than a click. The hand is a fan, so each card shows only a sliver
+ * — about 24px on a phone — and the rest is under its neighbour: a click on the default
+ * centre point lands on the wrong card, or is refused as intercepted. So the tap is aimed at
+ * the left edge, which is the part actually showing.
+ *
+ * And below 768 a tap LIFTS the card; a second one plays it. That is a property of the
+ * viewport at the moment of the tap, not of the project, so a test that resizes mid-run would
+ * change its own answer. Reading `.selected` back rather than branching on width stays right
+ * either way: if the card rose, it is waiting for the second tap. On a wider screen the first
+ * tap plays it and the element is gone, which the catch reads as "not lifted".
+ */
+async function tapCard(card: Locator) {
+  await card.click({ position: { x: 10, y: 40 }, timeout: 5_000 }).catch(() => {})
+  const lifted = await card
+    .evaluate(el => el.classList.contains('selected'))
+    .catch(() => false)
+  if (lifted) await card.click({ position: { x: 10, y: 40 }, timeout: 5_000 }).catch(() => {})
+}
+
+/** The first card that is legal to play right now, if there is one. */
+function firstLegal(page: Page): Locator {
+  return page.locator('.hand-row .card.playable:not([disabled])').first()
+}
 
 /**
  * One test per game, each asserting the same contract: the setup screen accepts players,
@@ -96,9 +123,9 @@ test('spades: solo vs bots skips the pass-the-device screen', async ({ page }) =
   await expect(page.locator('.bid-grid')).toHaveCount(0)
 
   // Playing a card has to work, not just render.
-  const card = page.locator('.hand-row .card.playable').first()
+  const card = firstLegal(page)
   await expect(card).toBeEnabled({ timeout: 15_000 })
-  await card.click()
+  await tapCard(card)
   await expect(page.locator('.book-card')).not.toHaveCount(0)
 })
 
@@ -162,8 +189,8 @@ test('spades: a finished hand can be read back book by book', async ({ page }) =
     const p = await phase()
     if (p === 'hand_over' || p === 'game_over') break
 
-    const card = page.locator('.hand-row .card.playable:not([disabled])').first()
-    if (await card.count() > 0) { await card.click({ timeout: 5_000 }).catch(() => {}); continue }
+    const card = firstLegal(page)
+    if (await card.count() > 0) { await tapCard(card); continue }
 
     const next = page.locator('.sp-footer button', { hasText: /Next book|Score the hand/ })
     if (await next.count() > 0) { await next.click({ timeout: 5_000 }).catch(() => {}); continue }
