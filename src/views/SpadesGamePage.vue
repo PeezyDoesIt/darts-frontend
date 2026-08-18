@@ -18,30 +18,51 @@
     <!-- Side scores: two in a partnership game, four when everyone is on their own -->
     <div class="teams" :class="{ solo: game.mode === 'solo' }">
       <div v-for="s in sides" :key="s.side" class="team" :class="`t${s.side}`">
-        <span class="team-names">{{ s.names }}</span>
+        <div class="team-lines">
+          <span class="team-names">{{ s.names }}</span>
+          <span class="team-bags">
+            {{ s.bags }} {{ s.bags === 1 ? 'bag' : 'bags' }}<template v-if="s.bid !== null"> · bid {{ s.bid }}</template>
+          </span>
+        </div>
         <span class="team-score display">{{ s.score }}</span>
-        <span class="team-bags">{{ s.bags }} {{ s.bags === 1 ? 'bag' : 'bags' }}</span>
         <!-- Three sets lose the game in Wild Style, so the count cannot live only on the
              end-of-hand screen. -->
         <span v-if="s.setLabel" class="team-sets" :class="{ danger: s.setDanger }">{{ s.setLabel }}</span>
       </div>
     </div>
 
-    <div class="sp-body">
+    <!--
+      During play the screen FITS instead of scrolling. A laptop window is wide but short, and
+      the stack (bids, book, seat strip, hand) came to more than its height: the hand ended up
+      below the fold with the page refusing to scroll to it, so the cards you were meant to
+      play were the one thing you could not see. The book area gives up its room instead.
+    -->
+    <div class="sp-body" :class="{ fit: game.phase === 'playing' || game.phase === 'book_end' }">
       <!-- ── Privacy screen ─────────────────────────────── -->
       <div v-if="game.phase === 'pass'" class="pass-screen">
-        <span class="pass-label">PASS THE DEVICE TO</span>
-        <div class="pass-avatar" :style="{ background: seated.color }">
-          <img v-if="isPhoto(seated.avatarUrl)" :src="seated.avatarUrl!" alt="" />
-          <span v-else>{{ avatarGlyph(seated) }}</span>
+        <!--
+          One printed card carries the whole handoff. It used to be six items stacked down the
+          middle of an otherwise empty screen at 10-13px, which read as a loading state rather
+          than an instruction. The player's colour is on the card edge and the avatar ring; the
+          name is white with a hard shadow, because a name set in a player's own dark blue was
+          unreadable at this size on a black panel.
+        -->
+        <div class="pass-card" :style="{ borderColor: seated.color }">
+          <span class="pass-label" :style="{ background: seated.color }">PASS THE DEVICE TO</span>
+          <div class="pass-avatar" :style="{ background: seated.color }">
+            <img v-if="isPhoto(seated.avatarUrl)" :src="seated.avatarUrl!" alt="" />
+            <span v-else>{{ avatarGlyph(seated) }}</span>
+          </div>
+          <div class="pass-copy">
+            <h2 class="pass-name display">{{ seated.name }}</h2>
+            <p class="pass-note">
+              {{ needsBid ? 'Everyone else, look away — you are bidding.' : 'Everyone else, look away.' }}
+            </p>
+            <button v-ripple class="pass-btn" @click="spades.reveal()">
+              I'm {{ seated.name }} — show my hand
+            </button>
+          </div>
         </div>
-        <h2 class="pass-name display" :style="{ color: seated.color }">{{ seated.name }}</h2>
-        <p class="pass-note">
-          {{ needsBid ? 'Everyone else, look away — you are bidding.' : 'Everyone else, look away.' }}
-        </p>
-        <button v-ripple class="btn btn-spray btn-lg pass-btn" @click="spades.reveal()">
-          I'm {{ seated.name }} — show my hand
-        </button>
       </div>
 
       <!-- ── Bidding ────────────────────────────────────── -->
@@ -52,13 +73,17 @@
         </div>
         <!-- A bot's hand is never rendered — showing it would hand the table its cards. -->
         <div v-if="seatedIsBot" class="bot-thinking">
-          <div class="hand-row fanned">
-            <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :out-of-play="deck.outOfPlay" v-for="i in 13" :key="i" :card="{ kind: 'joker', joker: 'big' }" :width="cardWidth" faceDown />
+          <div class="hand-row fanned" :style="{ '--n': 13, '--fan-lap': fanLap }">
+            <span v-for="i in 13" :key="i" class="fan-slot" :style="{ '--i': i - 1 }">
+              <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :card="{ kind: 'joker', joker: 'big' }" :width="cardWidth" faceDown />
+            </span>
           </div>
           <span class="bt-note">{{ seated.name }} is looking at their hand</span>
         </div>
-        <div v-else class="hand-row fanned">
-          <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :out-of-play="deck.outOfPlay" v-for="c in sortedHand" :key="cardId(c)" :card="c" :width="cardWidth" />
+        <div v-else class="hand-row fanned" :style="{ '--n': sortedHand.length, '--fan-lap': fanLap }">
+          <span v-for="(c, i) in sortedHand" :key="cardId(c)" class="fan-slot" :style="{ '--i': i }">
+            <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :card="c" :width="cardWidth" />
+          </span>
         </div>
         <div v-if="!seatedIsBot" class="bid-grid">
           <button
@@ -97,7 +122,7 @@
           </p>
           <div class="book-cards">
             <div v-for="(t, i) in game.currentBook" :key="t.seat" class="book-card">
-              <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :out-of-play="deck.outOfPlay" :card="t.card" :width="bookCardWidth" />
+              <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :card="t.card" :width="bookCardWidth" />
               <span class="tc-name">{{ game.players[t.seat]?.name }}</span>
               <!-- Following suit is enforced, so an off-suit card can only mean a void.
                    Saying so stops it reading as the game letting someone cheat. -->
@@ -115,26 +140,31 @@
             <span class="ss-note">{{ seatedIsBot ? 'is thinking…' : `${legalCount} playable` }}</span>
           </div>
           <div v-if="seatedIsBot" class="bot-thinking">
-            <div class="hand-row fanned">
-              <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :out-of-play="deck.outOfPlay"
+            <div class="hand-row fanned" :style="{ '--n': game.hands[game.turnIndex]?.length ?? 0, '--fan-lap': fanLap }">
+              <span
                 v-for="i in (game.hands[game.turnIndex]?.length ?? 0)"
                 :key="i"
-                :card="{ kind: 'joker', joker: 'big' }"
-                :width="cardWidth"
-                faceDown
-              />
+                class="fan-slot"
+                :style="{ '--i': i - 1 }"
+              >
+                <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts"
+                  :card="{ kind: 'joker', joker: 'big' }"
+                  :width="cardWidth"
+                  faceDown
+                />
+              </span>
             </div>
           </div>
-          <div v-else class="hand-row fanned">
-            <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :out-of-play="deck.outOfPlay"
-              v-for="c in sortedHand"
-              :key="cardId(c)"
-              :card="c"
-              :width="cardWidth"
-              interactive
-              :playable="spades.isLegal(c)"
-              @play="onPlay"
-            />
+          <div v-else class="hand-row fanned" :style="{ '--n': sortedHand.length, '--fan-lap': fanLap }">
+            <span v-for="(c, i) in sortedHand" :key="cardId(c)" class="fan-slot" :style="{ '--i': i }">
+              <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts"
+                :card="c"
+                :width="cardWidth"
+                interactive
+                :playable="spades.isLegal(c)"
+                @play="onPlay"
+              />
+            </span>
           </div>
         </template>
       </template>
@@ -239,6 +269,18 @@
         <p class="sort-note">Display only — it never changes what you are allowed to play.</p>
 
         <div class="sort-block">
+          <span class="sort-label">Spades on</span>
+          <div class="seg">
+            <button v-ripple class="seg-btn" :class="{ on: spadesSide === 'left' }" @click="setSpadesSide('left')">Left</button>
+            <button v-ripple class="seg-btn" :class="{ on: spadesSide === 'right' }" @click="setSpadesSide('right')">Right</button>
+          </div>
+          <span class="deck-hint">
+            Trumps at the end of the hand you reach for, with the jokers outside them. The other
+            suits keep the order you set below.
+          </span>
+        </div>
+
+        <div class="sort-block">
           <span class="sort-label">Suit order, left to right</span>
           <div class="suit-rows">
             <div v-for="(s, i) in sortPrefs.suitOrder" :key="s" class="suit-row">
@@ -264,7 +306,7 @@
         <div v-if="game.variant === 'wild'" class="sort-block">
           <span class="sort-label">Jokers</span>
           <div class="seg">
-            <button v-ripple class="seg-btn" :class="{ on: sortPrefs.jokersLast }" @click="sortPrefs.jokersLast = true">Far right</button>
+            <button v-ripple class="seg-btn" :class="{ on: sortPrefs.jokersLast }" @click="sortPrefs.jokersLast = true">{{ spadesSide === 'left' ? 'Far left' : 'Far right' }}</button>
             <button v-ripple class="seg-btn" :class="{ on: !sortPrefs.jokersLast }" @click="sortPrefs.jokersLast = false">With spades</button>
           </div>
         </div>
@@ -323,8 +365,8 @@
         <h2 class="rules-title display">SPADES — {{ VARIANT_LABELS[game.variant].toUpperCase() }}</h2>
         <ul class="rules-list"><li v-for="(r, i) in rules" :key="i">{{ r }}</li></ul>
         <div v-if="game.variant === 'wild'" class="joker-row">
-          <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :out-of-play="deck.outOfPlay" :card="{ kind: 'joker', joker: 'big' }" :width="84" />
-          <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :out-of-play="deck.outOfPlay" :card="{ kind: 'joker', joker: 'little' }" :width="84" />
+          <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :card="{ kind: 'joker', joker: 'big' }" :width="84" />
+          <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :card="{ kind: 'joker', joker: 'little' }" :width="84" />
         </div>
         <button v-ripple class="btn btn-spray wide" @click="showRules = false">Got it</button>
       </div>
@@ -341,7 +383,7 @@
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
-import PlayingCard, { ART_CAPABLE, type CardTheme, type OutOfPlay } from '../components/PlayingCard.vue'
+import PlayingCard, { ART_CAPABLE, type CardTheme } from '../components/PlayingCard.vue'
 import { useSpadesStore } from '../stores/spades'
 import { usePlayersStore } from '../stores/players'
 import {
@@ -377,32 +419,20 @@ const DECKS = [
 ] as const
 
 /*
- * Bellot's traditional artwork IS the Spades deck. It was being treated as an option two
- * switches deep: the default was ink with themed courts, and ink is excluded from
- * ART_CAPABLE, so the artwork could not appear until the player left ink AND flipped courts
- * to Traditional. The settled joker markers sat behind the same two switches and fell back
- * to the star and word. Classic is the stock the artwork was drawn for, so that is the
- * default now; ink stays selectable as the novelty it was meant to be.
- *
- * The key is versioned because devices already carry a saved "ink / themed" from before
- * this, and a stored preference would otherwise keep overriding the new default forever.
+ * Versioned key. Devices hold a saved "ink / themed courts" from before Bellot was settled,
+ * and an old value would keep overriding the new default forever — which is how the agreed
+ * deck stayed invisible on the one iPad that matters.
  */
 const DECK_KEY = 'spades_deck_v2'
-type DeckPrefs = { theme: CardTheme; artCourts: boolean; outOfPlay: OutOfPlay }
-const OUT_OF_PLAY: OutOfPlay[] = ['sunk', 'taped']
-const DEFAULT_DECK: DeckPrefs = { theme: 'classic', artCourts: true, outOfPlay: 'sunk' }
-function loadDeck(): DeckPrefs {
+const DEFAULT_DECK = { theme: 'classic' as CardTheme, artCourts: true }
+function loadDeck(): { theme: CardTheme; artCourts: boolean } {
   try {
     const raw = localStorage.getItem(DECK_KEY)
     if (!raw) return { ...DEFAULT_DECK }
-    const p = JSON.parse(raw) as Partial<DeckPrefs>
+    const p = JSON.parse(raw) as { theme?: CardTheme; artCourts?: boolean }
     const theme = DECKS.some(d => d.id === p.theme) ? p.theme! : DEFAULT_DECK.theme
     // A stored "traditional" from before a switch to vintage would have nothing to draw.
-    return {
-      theme,
-      artCourts: !!p.artCourts && ART_CAPABLE.includes(theme),
-      outOfPlay: OUT_OF_PLAY.includes(p.outOfPlay!) ? p.outOfPlay! : DEFAULT_DECK.outOfPlay,
-    }
+    return { theme, artCourts: !!p.artCourts && ART_CAPABLE.includes(theme) }
   } catch { return { ...DEFAULT_DECK } }
 }
 const deck = ref(loadDeck())
@@ -414,7 +444,7 @@ watch(deck, (d) => {
 function setTheme(theme: CardTheme) {
   // Switching to a deck without artwork has to drop the art choice, or the courts would
   // silently fall back to the themed mark while the control still said "Traditional".
-  deck.value = { theme, artCourts: deck.value.artCourts && ART_CAPABLE.includes(theme), outOfPlay: deck.value.outOfPlay }
+  deck.value = { theme, artCourts: deck.value.artCourts && ART_CAPABLE.includes(theme) }
 }
 
 /**
@@ -446,6 +476,28 @@ function moveSuit(i: number, delta: number) {
   if (j < 0 || j >= order.length) return
   ;[order[i], order[j]] = [order[j]!, order[i]!]
   sortPrefs.value = { ...sortPrefs.value, suitOrder: order }
+}
+/*
+ * Which end the trumps sit at, as one tap. The suit rows below can express this too, but the
+ * hand a player reaches for is a left-or-right decision, not a four-row sort — and the jokers
+ * follow the spades automatically, so "spades right, low to high, jokers on the end" is one
+ * control rather than three.
+ */
+const spadesSide = computed<'left' | 'right'>(() =>
+  sortPrefs.value.suitOrder[0] === 'spades' ? 'left' : 'right')
+function setSpadesSide(side: 'left' | 'right') {
+  const others = sortPrefs.value.suitOrder.filter(su => su !== 'spades')
+  /*
+   * Flipping the side mirrors the hand rather than only moving the spade block: ranks run
+   * toward the trumps either way, so the strongest cards stay at the outer edge you reach for
+   * and the high joker stays the outermost card. Within-a-suit direction can still be
+   * overridden below — this only sets the sensible one for the side just chosen.
+   */
+  sortPrefs.value = {
+    ...sortPrefs.value,
+    suitOrder: side === 'left' ? ['spades', ...others] : [...others, 'spades'],
+    ascending: side === 'right',
+  }
 }
 function resetSort() { sortPrefs.value = { ...DEFAULT_HAND_SORT, suitOrder: [...DEFAULT_HAND_SORT.suitOrder] } }
 
@@ -546,24 +598,65 @@ const showFooter = computed(() =>
  * on the client, and onUnmounted below is what matters for cleanup.
  */
 const viewportWidth = ref(window.innerWidth)
-function onViewportResize() { viewportWidth.value = window.innerWidth }
+const viewportHeight = ref(window.innerHeight)
+function onViewportResize() {
+  viewportWidth.value = window.innerWidth
+  viewportHeight.value = window.innerHeight
+}
 window.addEventListener('resize', onViewportResize)
 onUnmounted(() => window.removeEventListener('resize', onViewportResize))
 
 const sizeTier = computed<'phone' | 'tablet' | 'desktop'>(() =>
-  viewportWidth.value >= 1100 ? 'desktop' : viewportWidth.value >= 700 ? 'tablet' : 'phone'
+  viewportWidth.value >= 1100 ? 'desktop' : viewportWidth.value >= 768 ? 'tablet' : 'phone'
 )
 
-const cardWidth = computed(() => {
-  const crowded = sortedHand.value.length > 9
-  if (sizeTier.value === 'desktop') return crowded ? 148 : 172
-  if (sizeTier.value === 'tablet') return crowded ? 124 : 146
-  return crowded ? 94 : 112
+/*
+ * Width alone decided card size before this, which is why a laptop got the biggest cards in
+ * the shortest window — a 1149 x 860 browser counted as "desktop" and asked for 172px cards
+ * (~240px tall) on top of a 290px book area. Height now scales them down: full size from
+ * 1000px of window up, never below 62%, so the hand always has somewhere to sit.
+ */
+const heightFit = computed(() => {
+  const h = viewportHeight.value
+  if (h >= 1000) return 1
+  return Math.max(0.62, Math.min(1, 0.62 + ((h - 520) / 480) * 0.38))
 })
+const fitted = (px: number) => Math.round(px * heightFit.value)
+
+const baseCardWidth = computed(() => {
+  const crowded = sortedHand.value.length > 9
+  if (sizeTier.value === 'desktop') return fitted(crowded ? 148 : 172)
+  if (sizeTier.value === 'tablet') return fitted(crowded ? 124 : 146)
+  return fitted(crowded ? 94 : 112)
+})
+
+/*
+ * The whole hand in one row, every time — no sideways scrolling to find a card. The overlap is
+ * worked out from the room there actually is rather than fixed in CSS: thirteen cards tuck
+ * further under each other than five do. Cards only shrink when overlap alone cannot fit them,
+ * and never past the point where the corner index is readable.
+ */
+const FAN_SWING = 150
+const MIN_SLICE = 30
+/* The hand sits a little tighter than the room strictly allows — filling the row edge to edge
+   read as a spread-out layout rather than a hand gathered in two hands. */
+const TIGHTEN = 0.86
+
+const handFan = computed(() => {
+  const n = Math.max(1, sortedHand.value.length)
+  const room = Math.max(300, viewportWidth.value - FAN_SWING)
+  let w = baseCardWidth.value
+  const widestThatFits = room - (n - 1) * MIN_SLICE
+  if (n > 1 && w > widestThatFits) w = Math.max(62, widestThatFits)
+  const slice = n > 1 ? Math.min(w - 10, ((room - w) / (n - 1)) * TIGHTEN) : w
+  return { width: Math.round(w), lap: Math.max(0, Math.round(w - slice)) }
+})
+const cardWidth = computed(() => handFan.value.width)
+const fanLap = computed(() => `${handFan.value.lap}px`)
 
 /** The four cards on the table have no crowding problem, so they simply scale up. */
 const bookCardWidth = computed(() =>
-  sizeTier.value === 'desktop' ? 148 : sizeTier.value === 'tablet' ? 124 : 94
+  fitted(sizeTier.value === 'desktop' ? 148 : sizeTier.value === 'tablet' ? 124 : 94)
 )
 
 /** The suit that was actually led this book, for the void tag. */
@@ -686,26 +779,42 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .sp-header {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 12px 14px; padding-top: calc(12px + env(safe-area-inset-top));
-  border-bottom: 2px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6); flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0;
 }
 .sp-title-wrap { display: flex; flex-direction: column; align-items: center; }
+/* The wordmark is a taped label now, not a gradient wash. */
 .sp-title {
-  font-size: 21px; letter-spacing: 0.14em; margin: 0;
-  background: linear-gradient(135deg, #cfd4ff, #8f7bff);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  font-size: 22px; letter-spacing: 0.16em; margin: 0; color: #101014;
+  background: #f6f4ee; padding: 3px 14px 2px; transform: rotate(-1deg);
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.6);
 }
-.sp-sub { font-size: 10px; color: var(--text-muted); letter-spacing: 0.08em; }
+.sp-sub { font-size: 15px; color: var(--text-muted); letter-spacing: 0.08em; }
 
-.teams { display: flex; gap: 8px; padding: 10px 14px; flex-shrink: 0; }
+/*
+ * Score panels. The colour used to be a 4px sliver down the left edge of a translucent tint —
+ * the one place a printed panel should not put it. It is the whole border now, and the panel
+ * is solid, so the two sides are told apart from across the table.
+ */
+.teams { display: flex; gap: 10px; padding: 10px 14px; flex-shrink: 0; }
 .team {
-  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px;
-  padding: 8px;  background: #16161c; border-left: 4px solid;
+  flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 14px; background: #141419; border: 2px solid;
+  box-shadow: 5px 5px 0 rgba(0,0,0,0.55);
 }
-.team.t0 { border-left-color: #7ee68a; }
-.team.t1 { border-left-color: #5fd0ff; }
-.team-names { font-size: 11px; font-weight: 600; color: var(--text-muted); text-align: center; overflow-wrap: anywhere; }
-.team-score { font-size: 22px; }
-.team-bags { font-size: 10px; color: var(--text-muted); }
+.team-lines { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.team.t0 { border-color: #7ee68a; }
+.team.t1 { border-color: #5fd0ff; }
+.team.t0 .team-names { color: #7ee68a; }
+.team.t1 .team-names { color: #5fd0ff; }
+.team.t2 .team-names { color: #ffd700; }
+.team.t3 .team-names { color: #ff5fa2; }
+.team-names {
+  font-family: var(--font-display); font-size: 19px; letter-spacing: 0.07em;
+  overflow-wrap: anywhere;
+}
+.team-score { font-size: 38px; line-height: 0.85; color: #fff; text-shadow: 2px 2px 0 rgba(0,0,0,0.7); }
+.team-bags { font-size: 15px; color: var(--text-muted); }
 
 .sp-body {
   flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
@@ -713,13 +822,45 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
   flex-direction: column; gap: 12px;
 }
 
-.pass-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 20px 0; }
-.pass-label { font-size: 10px; letter-spacing: 0.2em; color: var(--text-muted); }
-.pass-avatar { width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 38px; overflow: hidden; }
+.pass-screen { flex: 1; display: flex; align-items: center; justify-content: center; padding: 14px 0 20px; }
+.pass-card {
+  position: relative; display: flex; align-items: center; gap: 22px;
+  width: 100%; max-width: 940px; padding: 26px 22px;
+  background: #101014; border: 2px solid; box-shadow: 10px 10px 0 rgba(0,0,0,0.65);
+}
+/* Street's halftone, on the panel rather than on the avatar or the type. */
+.pass-card::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,0.11) 0.7px, transparent 0.7px);
+  background-size: 5px 5px; opacity: 0.55;
+}
+.pass-label {
+  position: absolute; left: -8px; top: -14px; transform: rotate(-2deg);
+  padding: 4px 13px 3px; color: #101014;
+  font-family: var(--font-display); font-size: 17px; letter-spacing: 0.12em;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.6); white-space: nowrap;
+}
+/* An avatar is a face, so it stays a circle — the same exception the cards and dice get. */
+.pass-avatar {
+  position: relative; width: 104px; height: 104px; flex-shrink: 0; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 46px;
+  overflow: hidden; border: 3px solid #101014; box-shadow: 5px 5px 0 rgba(0,0,0,0.6);
+}
 .pass-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.pass-name { font-size: 30px; margin: 0; overflow-wrap: anywhere; }
-.pass-note { font-size: 13px; color: var(--text-muted); margin: 0; }
-.pass-btn { margin-top: 8px; min-height: 56px; padding: 0 22px; }
+.pass-copy { position: relative; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.pass-name {
+  font-size: clamp(52px, 11vw, 96px); line-height: 0.84; margin: 0; color: #fff;
+  text-shadow: 5px 5px 0 rgba(0,0,0,0.75); overflow-wrap: anywhere;
+}
+.pass-note { font-size: 16px; line-height: 1.4; color: var(--text-muted); margin: 0; }
+.pass-btn {
+  align-self: flex-start; min-height: 60px; padding: 14px 26px 11px;
+  background: #aaff00; border: 2px solid #101014; box-shadow: 5px 5px 0 rgba(0,0,0,0.65);
+  color: #141c00; font-family: var(--font-display); font-size: 25px; letter-spacing: 0.08em;
+  cursor: pointer; position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.pass-btn:active { transform: translate(2px, 2px); box-shadow: 3px 3px 0 rgba(0,0,0,0.65); }
 
 .seat-strip { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .ss-name { font-size: 16px; font-weight: 800; overflow-wrap: anywhere; }
@@ -733,22 +874,48 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 }
 /* Overlap rather than shrink: a bigger card with its corner showing beats a whole card
    too small to read. Extra right padding leaves room for the last card's hover lift. */
-.hand-row.fanned { gap: 0; padding-right: 14px; }
-.hand-row.fanned > * + * { margin-left: -40px; }
+.hand-row.fanned {
+  gap: 0; align-items: flex-end;
+  /* The side padding is the swing: an outer card turns about a pivot below the row, so it
+     travels sideways as well as round, and without this it lands outside the row and gets
+     clipped — which is the same "cannot see your hand" fault as before, by another route. */
+  padding: 26px 62px 10px;
+  --fan-step: 1.8deg;
+}
+/* Room under the cards for the horizontal scrollbar, which otherwise lies across them. */
+.hand-row { scrollbar-width: thin; padding-bottom: 18px; }
+.hand-row.fanned { overflow: visible; justify-content: center; }
+.hand-row.fanned > * + * { margin-left: calc(var(--fan-lap, 44px) * -1); }
+
+/*
+ * A hand being HELD, not dealt out flat. Each card turns about a pivot well below the row —
+ * roughly where a thumb would be — so the fan rises into an arc on its own instead of being
+ * positioned card by card. The turn lives on this wrapper rather than on the card, because the
+ * card keeps its own lift on hover and press: on the wrapper the two compose, so pulling a
+ * card out lifts it along the angle it is already sitting at.
+ */
+.fan-slot {
+  display: block; flex-shrink: 0;
+  /* Just under twice the card height below its centre — a real hand's pivot, and close enough
+     that thirteen cards fan without the ends swinging out of the row. A distant pivot looked
+     right on three cards and threw the outer ones ~190px sideways on a full hand. */
+  transform-origin: 50% 190%;
+  transform: rotate(calc((var(--i, 0) - (var(--n, 1) - 1) / 2) * var(--fan-step)));
+}
 
 .bot-thinking { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .bt-note { font-size: 12px; color: var(--text-muted); }
 
 .bid-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .bid-btn {
-  min-height: 48px;  background: #17171d;
-  border: 2px solid rgba(255,255,255,0.12); color: var(--text); font-weight: 800;
+  min-height: 48px; border-radius: 10px; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12); color: var(--text); font-weight: 800;
   font-size: 16px; cursor: pointer; font-family: var(--font-display);
 }
-
+.bid-btn:hover { background: rgba(255,255,255,0.1); }
 .bid-btn.nil { grid-column: span 2; color: var(--gold); letter-spacing: 0.1em; }
 .bid-btn:disabled { opacity: 0.28; cursor: default; }
-
+.bid-btn:disabled:hover { background: rgba(255,255,255,0.05); }
 .board-note { font-size: 12.5px; color: var(--text-muted); margin: 0; line-height: 1.45; text-align: center; }
 .team-sets { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; }
 .team-sets.danger { color: #ff5fa2; }
@@ -756,21 +923,30 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .bids-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .bid-chip {
   flex: 1 1 auto; min-width: 72px; display: flex; flex-direction: column; align-items: center;
-  padding: 6px 8px;  background: #16161c;
+  padding: 6px 8px; border-radius: 8px; background: rgba(255,255,255,0.04);
   border: 2px solid transparent;
 }
-.bid-chip.turn { border-color: var(--gold); background: #202027; }
+.bid-chip.turn { border-color: var(--gold); background: rgba(255,255,255,0.09); }
 .bc-name { font-size: 10px; color: var(--text-muted); overflow-wrap: anywhere; }
 .bc-val { font-size: 15px; font-weight: 800; }
 
 .book-area { display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 182px; justify-content: center; }
+
+/*
+ * Fit mode: nothing scrolls, the book area absorbs whatever is spare, and the hand keeps its
+ * full height at the bottom. min-height: 0 is what lets the book area shrink past its own
+ * content — without it a flex child refuses to go below it and pushes the hand out again.
+ */
+.sp-body.fit { overflow-y: hidden; }
+.sp-body.fit .book-area { flex: 1 1 auto; min-height: 0; }
+.sp-body.fit .hand-row, .sp-body.fit .bot-thinking, .sp-body.fit .seat-strip, .sp-body.fit .bids-row { flex-shrink: 0; }
 .book-cards { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .book-card { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .tc-name { font-size: 11px; color: var(--text-muted); overflow-wrap: anywhere; max-width: 94px; text-align: center; }
 .tc-void {
   font-size: 9px; font-weight: 800; letter-spacing: 0.06em; color: var(--gold);
-  background: rgba(255,215,0,0.12); border: 2px solid rgba(255,215,0,0.3);
-   padding: 1px 5px; white-space: nowrap;
+  background: rgba(255,215,0,0.12); border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 5px; padding: 1px 5px; white-space: nowrap;
 }
 .book-hint { font-size: 13px; color: var(--text-muted); margin: 0; text-align: center; }
 .book-won { font-size: 14px; font-weight: 800; color: var(--gold); margin: 0; }
@@ -783,7 +959,8 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .sp-footer {
   flex-shrink: 0; display: flex; gap: 10px; padding: 12px 14px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
-  border-top: 2px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
+  border-top: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
 }
 .wide { width: 100%; min-height: 56px; }
 /* Two buttons share the footer once a hand is over: review keeps its natural width so the
@@ -803,7 +980,7 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
   width: 100%; max-width: 460px; max-height: 86dvh; overflow-y: auto;
   -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
   display: flex; flex-direction: column; gap: 12px;
-  padding: 20px 18px; 
+  padding: 20px 18px; border-radius: 16px;
 }
 .review-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .review-title { font-size: 20px; margin: 0; color: var(--gold); letter-spacing: 0.1em; }
@@ -815,8 +992,8 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 
 .review-book {
   display: flex; flex-direction: column; gap: 6px;
-  padding: 10px 12px; 
-  background: #16161c; border: 2px solid rgba(255,255,255,0.08);
+  padding: 10px 12px; border-radius: 12px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
 }
 .rb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .rb-num { font-size: 13px; letter-spacing: 0.12em; color: rgba(255,255,255,0.75); }
@@ -826,7 +1003,7 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .rb-cards { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
 .rb-card {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
-  flex-shrink: 0; padding: 4px;  border: 2px solid transparent;
+  flex-shrink: 0; padding: 4px; border-radius: 8px; border: 2px solid transparent;
 }
 .rb-card.won { border-color: var(--gold); background: rgba(255,200,87,0.1); }
 .rb-name { font-size: 9.5px; font-weight: 700; max-width: 52px; text-align: center; overflow-wrap: anywhere; }
@@ -840,7 +1017,7 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .rules-card {
   width: 100%; max-width: 420px; max-height: 82dvh; overflow-y: auto;
   display: flex; flex-direction: column; align-items: center; gap: 12px;
-  padding: 26px 22px;  text-align: center;
+  padding: 26px 22px; border-radius: 16px; text-align: center;
 }
 .rules-title { font-size: 19px; margin: 0; color: var(--gold); }
 .rules-list {
@@ -855,8 +1032,8 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .sort-label { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); text-align: left; }
 .suit-rows { display: flex; flex-direction: column; gap: 6px; }
 .suit-row {
-  display: flex; align-items: center; gap: 10px; padding: 8px 10px; 
-  background: #17171d; border: 2px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
 }
 .suit-pos { font-size: 11px; font-weight: 800; color: var(--text-muted); width: 12px; }
 .suit-sym { font-size: 20px; line-height: 1; }
@@ -864,15 +1041,15 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .sr-black { color: #8fdcff; }
 .suit-name { flex: 1; text-align: left; font-size: 13px; font-weight: 700; text-transform: capitalize; }
 .move-btn {
-  width: 34px; height: 34px; flex-shrink: 0;  cursor: pointer;
-  background: #1a1a20; border: 2px solid rgba(255,255,255,0.16);
+  width: 34px; height: 34px; flex-shrink: 0; border-radius: 8px; cursor: pointer;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16);
   color: #fff; font-size: 14px; position: relative; overflow: hidden;
 }
 .move-btn:disabled { opacity: 0.3; cursor: default; }
 .seg { display: flex; gap: 8px; }
 .seg-btn {
-  flex: 1; min-height: 44px;  cursor: pointer;
-  background: #17171d; border: 2px solid rgba(255,255,255,0.14);
+  flex: 1; min-height: 44px; border-radius: 10px; cursor: pointer;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14);
   color: rgba(255,255,255,0.65); font-size: 13px; font-weight: 800;
   position: relative; overflow: hidden;
 }
@@ -880,14 +1057,14 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .seg-btn:disabled { opacity: 0.35; cursor: default; }
 .deck-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
 .deck-btn {
-  display: flex; align-items: center; gap: 10px; padding: 10px 12px; 
-  cursor: pointer; background: #17171d;
-  border: 2px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.7);
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
+  cursor: pointer; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.7);
   font-size: 14px; font-weight: 700; text-align: left;
   position: relative; overflow: hidden;
 }
 .deck-btn.on { border-color: var(--gold); color: #fff; background: rgba(255,215,0,0.1); }
-.deck-swatch { width: 22px; height: 30px;  flex-shrink: 0; border: 2px solid rgba(255,255,255,0.3); }
+.deck-swatch { width: 22px; height: 30px; border-radius: 4px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.3); }
 .deck-name { flex: 1; }
 .deck-hint { font-size: 11px; color: var(--text-muted); line-height: 1.5; text-align: left; }
 .empty-state {
@@ -923,8 +1100,8 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 }
 .ho-side {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 16px 14px;  background: #17171d;
-  border: 2px solid rgba(255,255,255,0.1); border-top: 4px solid;
+  padding: 16px 14px; border-radius: 12px; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1); border-top: 4px solid;
 }
 .ho-side.t0 { border-top-color: #7ee68a; }
 .ho-side.t1 { border-top-color: #5fd0ff; }
@@ -951,8 +1128,8 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 .ho-seat-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .ho-seat {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  min-width: 82px; padding: 8px 12px; 
-  background: #16161c; border: 2px solid rgba(255,255,255,0.09);
+  min-width: 82px; padding: 8px 12px; border-radius: 10px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
 }
 .hp-name { font-size: 11px; color: var(--text-muted); overflow-wrap: anywhere; }
 .hp-val { font-size: 22px; line-height: 1; }
@@ -960,8 +1137,22 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 
 /* iPad and desktop have the room for larger cards, so the rows that hold them grow too. */
 @media (min-width: 768px) {
+  .pass-card { gap: 34px; padding: 34px 40px; }
+  .pass-label { font-size: 21px; padding: 5px 15px 4px; left: -14px; top: -16px; }
+  .pass-avatar { width: 168px; height: 168px; font-size: 74px; box-shadow: 7px 7px 0 rgba(0,0,0,0.6); }
+  .pass-note { font-size: 19px; }
+  .pass-btn { min-height: 72px; font-size: 33px; padding: 20px 38px 16px; }
+  .sp-title { font-size: 31px; }
+  .sp-sub { font-size: 18px; }
+  .team { padding: 14px 18px; box-shadow: 6px 6px 0 rgba(0,0,0,0.55); }
+  .team-names { font-size: 26px; }
+  .team-bags { font-size: 18px; }
+  .team-score { font-size: 60px; }
+
   .hand-row { gap: 8px; padding: 16px 4px 18px; }
-  .book-area { min-height: 240px; }
+  /* A bigger table holds a wider sweep, and a wider sweep needs deeper overlap to pay for it. */
+  .hand-row.fanned { --fan-step: 2.2deg; padding: 30px 72px 12px; }
+  .book-area { min-height: min(240px, 22vh); }
   .book-cards { gap: 12px; }
   .tc-name { font-size: 13px; max-width: 124px; }
   .team-score { font-size: 30px; }
@@ -971,30 +1162,8 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 }
 @media (min-width: 1100px) {
   .hand-row { gap: 10px; justify-content: center; }
-  .book-area { min-height: 290px; }
+  .book-area { min-height: min(290px, 24vh); }
   .tc-name { font-size: 14px; max-width: 148px; }
   .team-score { font-size: 36px; }
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   STREET TREATMENT — identical block in every view. Flat printed panels
-   instead of glass: no blur, square corners, 2px rules, hard offset
-   shadows, halftone grain. Adds only what the sweep cannot infer.
-   Lift this into src/style.css once the look is settled.
-   ══════════════════════════════════════════════════════════════════════ */
-.display { text-shadow: 2px 2px 0 rgba(0,0,0,0.55); }
-.glass-panel::before, .panel::before, .card::before {
-  content: '';
-  position: absolute; inset: 0; pointer-events: none; z-index: 0;
-  background-image: radial-gradient(rgba(255,255,255,0.13) 0.7px, transparent 0.7px);
-  background-size: 5px 5px;
-  opacity: 0.5;
-}
-.glass-panel > *, .panel > *, .card > * { position: relative; z-index: 1; }
-.toggle-thumb { border-radius: 0; box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
-
-@media (hover: hover) and (pointer: fine) {
-  .bid-btn:hover { background: #222229; }
-  .bid-btn:disabled:hover { background: #17171d; }
 }
 </style>

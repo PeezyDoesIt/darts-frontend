@@ -406,7 +406,10 @@ export function sortHand(hand: Card[], prefs: HandSortPrefs = DEFAULT_HAND_SORT)
   const order = prefs.suitOrder?.length === SUITS.length ? prefs.suitOrder : DEFAULT_HAND_SORT.suitOrder
   const group = (c: Card) => {
     // Jokers play as spades, but they are their own block when asked for.
-    if (prefs.jokersLast && c.kind === 'joker') return order.length
+    // "Last" means at the spades END, not the far end of the row: with spades led the joker
+    // block sits before the first suit, otherwise after the last. Jokers are spades, so they
+    // belong against the trumps either way.
+    if (prefs.jokersLast && c.kind === 'joker') return order[0] === 'spades' ? -1 : order.length
     return order.indexOf(effectiveSuit(c))
   }
   const dir = prefs.ascending ? 1 : -1
