@@ -7,7 +7,7 @@
     :aria-label="ariaLabel"
   >
     <span class="die-shadow" :style="shadowStyle" />
-    <div class="die-cube" :class="{ tumbling: rolling }" :style="cubeStyle">
+    <div ref="cubeEl" class="die-cube" :class="{ tumbling: rolling }" :style="cubeStyle">
       <!--
         An inked inner cube, slightly smaller than the outer one. The pillow corners leave a
         gap at every corner of the die; without something solid behind them you see straight
@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 /**
  * A die as a real cube — six built faces, tumbling on both axes and landing on the value.
@@ -136,8 +136,54 @@ function land(v: number) {
 
 // While a die is rolling its value is meaningless, so a value change is ignored until it stops
 // — otherwise the cube would try to land mid-spin every time the numbers were re-rolled.
-watch(() => [props.face, props.roll] as const, () => { if (!props.rolling) land(props.face) })
-watch(() => props.rolling, (isRolling) => { if (!isRolling) land(props.face) })
+const cubeEl = ref<HTMLElement | null>(null)
+/** The angle the keyframe actually reached, held for one frame while the spin hands over. */
+const frozen = ref<string | null>(null)
+/** True for the tick in which a roll ended, so the face watcher does not land it twice. */
+let landing = false
+
+/*
+ * Coming off the spin.
+ *
+ * While `rolling` the cube carries no inline transform — the tumble is a keyframe, and an
+ * inline one would win. Applying the landing transform in the same frame the animation is
+ * removed does not transition: the browser has no before-value to interpolate from, so the die
+ * stops turning and snaps onto its face. Whichever way it went was a frame race, which is why
+ * it looked like some dice rolled and others did not rather than one die always failing.
+ *
+ * So the handover takes two frames. First the cube is pinned to the angle the keyframe left it
+ * at, with no transition. Then, a frame later, it is told where to land — and now there is a
+ * real before-value, so the throw runs from where the die actually was.
+ */
+function landFromSpin() {
+  const el = cubeEl.value
+  if (!el) { land(props.face); return }
+  frozen.value = getComputedStyle(el).transform
+  tween.value = 'none'
+  requestAnimationFrame(() => {
+    frozen.value = null
+    land(props.face)
+  })
+}
+
+/*
+ * Declared before the face watcher on purpose: both fire in the tick that ends a roll, because
+ * the store is given the new value and the flag is cleared together. Landing here first, and
+ * flagging it, keeps one throw per roll — otherwise a die whose number CHANGED was thrown twice
+ * and one whose number REPEATED was thrown once, which is two different behaviours for what a
+ * player sees as the same roll.
+ */
+watch(() => props.rolling, (isRolling) => {
+  if (isRolling) return
+  landing = true
+  landFromSpin()
+  void nextTick(() => { landing = false })
+})
+
+watch(() => [props.face, props.roll] as const, () => {
+  if (props.rolling || landing) return
+  land(props.face)
+})
 onBeforeUnmount(() => clearTimeout(dropTimer))
 
 /*
@@ -152,6 +198,8 @@ const cubeStyle = computed(() => {
   // A spinning cube is driven by the keyframes below, so no inline transform is set — an
   // inline one would win and the die would sit still.
   if (props.rolling) return {}
+  // The one frame between the spin stopping and the throw starting: hold the angle it reached.
+  if (frozen.value) return { transform: frozen.value, transition: 'none' }
   return {
     transform: `translateY(calc(var(--die-size, 56px) * -0.44 * ${lift.value})) `
       + `rotateX(${rx.value}deg) rotateY(${ry.value}deg)`,

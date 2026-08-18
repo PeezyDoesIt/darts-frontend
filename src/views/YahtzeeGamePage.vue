@@ -1852,7 +1852,14 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   .sc-lower-header { display: flex; align-items: center; justify-content: center; }
   /* Bigger dice on portrait tablet — scrolling means space isn't an issue */
   .die-wrap .die { --die-size: 96px; }
-  .dice-row { gap: 30px; }
+  /*
+   * ...but the ROW still has to fit beside ROLL, and it stopped fitting when the dice grew:
+   * five 96px cubes at 30px apart is 600px, and the 48px left padding — an offset that only
+   * ever existed to centre the dice against the side button — pushed the total past the
+   * width, so ROLL was sliced off the right edge. The dice keep their size; the space
+   * between them and the offset pay for it.
+   */
+  .dice-row { gap: 22px; padding-left: 0; min-width: 0; }
   .roll-pip { width: 20px; height: 20px; }
   .roll-btn-side { padding: 14px 18px; font-size: 16px; min-width: 90px; }
   /* Wider columns — PTS column widened ~half inch to the left */
