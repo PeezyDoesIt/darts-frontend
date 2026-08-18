@@ -34,6 +34,10 @@ export default defineConfigWithVueTs(
       '**/*-debug.log*',
       '.idea/**',
       '.vscode/**',
+      // Handoff bundles are dropped in the repo root to be diffed against, not built. They
+      // are deliberately partial and often written from an older snapshot, so linting them
+      // fails CI over code that was never applied — which is how aug17 broke a green run.
+      'handoff-*/**',
     ],
   },
 
