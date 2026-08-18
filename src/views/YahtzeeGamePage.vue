@@ -1923,9 +1923,14 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   .banner-pts { font-size: 10px; }
   .dice-area { padding: 8px 16px 4px; gap: 4px; }
   .die-wrap .die { --die-size: 86px; }
-  .dice-row { gap: 22px; }
-  .roll-pip { width: 16px; height: 16px; }
-  .roll-btn-side { padding: 10px 12px; font-size: 13px; min-width: 68px; }
+  /* Five 86px dice and ROLL leave hundreds of pixels spare on a laptop, so the row was
+     spending none of it: at 22px the cubes read as a strip of tiles rather than five dice
+     that landed apart. */
+  .dice-row { gap: 44px; }
+  /* The pips are a turn counter read from across a room, not a footnote. */
+  .roll-pip { width: 24px; height: 24px; }
+  /* ROLL is the only control on this screen, so it gets the width to look like one. */
+  .roll-btn-side { padding: 16px 34px; font-size: 18px; min-width: 150px; }
   .score-hint { display: none; }
 
   /* Scorecard fills remaining height with no scroll */
