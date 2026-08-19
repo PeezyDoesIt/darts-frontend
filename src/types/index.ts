@@ -86,6 +86,7 @@ export type Player = {
   playerBackgroundPosition: string | null
   /** How far in the photo is pushed, 100-210 percent. Null is 100, i.e. no zoom. */
   playerBackgroundZoom: number | null
+
   playerBackgroundFill: 'black' | 'blur' | null
   /**
    * Per-screen overrides for the two places a player's background is actually seen.
@@ -95,12 +96,23 @@ export type Player = {
    * screen are read at different distances and for different reasons — one is "you are up
    * next", the other is the board you are aiming at — and one image rarely suits both.
    *
-   * No size or position siblings on purpose: the ones on playerBackground have never been
-   * written as anything but null, so adding six more dead columns would be inventing
-   * settings nothing sets.
+   * Each carries its own framing. That was argued against while nothing could set the
+   * default's either — six columns nothing wrote would have been six settings that did not
+   * exist. The drag placer changed that: these are separate photos, and a face framed to
+   * clear the score on the throw screen is framed wrong behind a name on the walk-up.
+   *
+   * A screen with no photo of its own falls back to the default photo AND to the default's
+   * framing, since that is the picture actually being shown.
+   *
+   * Crop-or-fit and the fill behind a fitted photo stay player-wide: they are how this
+   * player likes photos handled, not facts about one image.
    */
   throwBackground: string | null
+  throwBackgroundPosition?: string | null
+  throwBackgroundZoom?: number | null
   walkupBackground: string | null
+  walkupBackgroundPosition?: string | null
+  walkupBackgroundZoom?: number | null
   targetLabelColor: string | null
   /** Colour of the cricket mark pips. Null keeps the app's pink, which is what they were. */
   pipColor: string | null

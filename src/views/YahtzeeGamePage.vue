@@ -476,26 +476,12 @@
                 </button>
               </div>
             </div>
-            <!-- Dice color toggle -->
-            <div class="dp-anim-row">
-              <span class="dp-anim-label">Dice Color</span>
-              <button class="dp-anim-btn" :class="{ active: showColorPicker }" @click="showColorPicker = !showColorPicker">
-                {{ showColorPicker ? 'HIDE' : 'SHOW' }}
-              </button>
-            </div>
-            <div v-if="showColorPicker" class="dp-color-section">
-              <div class="dp-color-grid">
-                <button
-                  v-for="t in DICE_THEMES" :key="t.value"
-                  class="dp-color-btn"
-                  :class="{ active: dieTheme === t.value }"
-                  @click="setDiceTheme(t.value)"
-                >
-                  <span class="dp-color-swatch" :style="DIE_GRADIENTS[t.value] ? { background: DIE_GRADIENTS[t.value] } : { background: '#fff' }"></span>
-                  <span class="dp-color-name">{{ t.label }}</span>
-                </button>
-              </div>
-            </div>
+            <!--
+              The dice colour picker used to sit here — thirty-four swatches, mid-game, on the
+              screen you are throwing on. It belongs to the player, not to the throw: it is set
+              on the player screen and it is read from there, so having it here only meant a
+              panel of choices between you and the board.
+            -->
           </div>
         </div>
       </div>
@@ -537,7 +523,7 @@ import { chooseCategory, chooseKeeps } from '../lib/yahtzeeBot'
 import { useYahtzeeStore, grandTotal, upperTotal, upperBonus, lowerTotal, calcScore, YAHTZEE_CATEGORIES } from '../stores/yahtzee'
 import { usePlayersStore } from '../stores/players'
 import type { YahtzeeCategory } from '../stores/yahtzee'
-import { DICE_THEMES, DIE_GRADIENTS, GRADIENT_DIE_THEMES, type DiceTheme } from '../types/index'
+import { DIE_GRADIENTS, GRADIENT_DIE_THEMES, type DiceTheme } from '../types/index'
 import { useNarrator } from '../composables/useNarrator'
 import { recordGameResult } from '../api/gameResults'
 import DiceFace from '../components/DiceFace.vue'
@@ -709,7 +695,6 @@ const dotPositions: [number, number][][] = [
 
 const dieTheme = computed<DiceTheme>(() => currentPlayer.value?.diceTheme ?? 'casino')
 const showDicePicker = ref(false)
-const showColorPicker = ref(false)
 const showSettings = ref(false)
 const showAddPlayer = ref(false)
 
@@ -732,11 +717,6 @@ function setRoundBet() {
 function setGameBet() {
   const val = parseFloat(gameBetInput.value)
   if (!isNaN(val) && val > 0) { gameBetActive.value = val; gameBetInput.value = '' }
-}
-
-function setDiceTheme(theme: DiceTheme) {
-  if (!currentPlayer.value) return
-  playersStore.updatePlayer(currentPlayer.value.id, { diceTheme: theme })
 }
 
 function isGradient(theme: DiceTheme): boolean {
@@ -1310,33 +1290,6 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .dp-btn.active { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.3); transform: scale(1.06); }
 .dp-btn-icon { font-size: 20px; line-height: 1; }
 .dp-btn-label { font-size: 13px; font-weight: 800; font-family: system-ui, sans-serif; letter-spacing: 0.01em; color: #fff; white-space: nowrap; text-shadow: 0 1px 6px rgba(0,0,0,0.9); }
-
-/* Dice color pills */
-.dp-color-section { margin-top: 4px; }
-.dp-color-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.dp-color-btn {
-  display: flex; align-items: center; gap: 9px;
-  padding: 7px 16px 7px 10px;
-  border-radius: 20px;
-  border: 2px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.06);
-  cursor: pointer; transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.dp-color-btn:hover { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.1); }
-.dp-color-btn.active { border-color: #fff; background: rgba(255,255,255,0.14); box-shadow: 0 0 10px rgba(255,255,255,0.25); }
-.dp-color-swatch {
-  width: 18px; height: 18px; border-radius: 50%;
-  flex-shrink: 0;
-  border: 1.5px solid rgba(255,255,255,0.25);
-}
-.dp-color-name {
-  font-size: 13px; font-weight: 800;
-  font-family: system-ui, sans-serif;
-  letter-spacing: 0.01em;
-  color: #fff;
-  white-space: nowrap;
-}
 
 .dp-fade-enter-active, .dp-fade-leave-active { transition: opacity 0.2s; }
 .dp-fade-enter-from, .dp-fade-leave-to { opacity: 0; }

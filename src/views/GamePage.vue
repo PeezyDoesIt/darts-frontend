@@ -1269,11 +1269,20 @@ const entryPhotoStyle = computed(() => {
   if (!(bg.startsWith('data:') || bg.startsWith('http'))) return null
   const p = currentPlayer.value
   const contained = p.playerBackgroundSize === 'contain'
-  const zoom = contained ? 100 : Math.min(210, Math.max(100, p.playerBackgroundZoom ?? 100))
+  /*
+   * A throw photo of its own is framed on its own terms. Falling back to the default photo
+   * means falling back to the default's framing too, because that is the picture on screen —
+   * borrowing the throw slot's framing for someone else's photo would frame it by numbers
+   * chosen against an image that is not being shown.
+   */
+  const own = !!p.throwBackground
+  const position = (own ? p.throwBackgroundPosition : p.playerBackgroundPosition) ?? 'center'
+  const saved = own ? p.throwBackgroundZoom : p.playerBackgroundZoom
+  const zoom = contained ? 100 : Math.min(210, Math.max(100, saved ?? 100))
   return {
     backgroundImage: `url(${bg})`,
     backgroundSize: contained ? 'contain' : 'cover',
-    backgroundPosition: p.playerBackgroundPosition ?? 'center',
+    backgroundPosition: position,
     transform: zoom === 100 ? undefined : `scale(${zoom / 100})`,
   }
 })
