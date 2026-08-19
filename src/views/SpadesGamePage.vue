@@ -377,7 +377,7 @@ function loadDeck(): { theme: CardTheme; artCourts: boolean } {
 const deck = ref(loadDeck())
 const artAvailable = computed(() => ART_CAPABLE.includes(deck.value.theme))
 watch(deck, (d) => {
-  try { localStorage.setItem(DECK_KEY, JSON.stringify(d)) } catch {}
+  try { localStorage.setItem(DECK_KEY, JSON.stringify(d)) } catch { /* best effort: storage can be full, or unavailable in private mode */ }
 }, { deep: true })
 
 /** A deck entry carries both halves of the choice: Bellot is classic stock with the courts on. */
@@ -417,7 +417,7 @@ function openFromMenu(which: 'deck' | 'sort' | 'rules') {
 
 const sortPrefs = ref<HandSortPrefs>(loadSortPrefs())
 watch(sortPrefs, (p) => {
-  try { localStorage.setItem(SORT_KEY, JSON.stringify(p)) } catch {}
+  try { localStorage.setItem(SORT_KEY, JSON.stringify(p)) } catch { /* best effort: a lost sort preference is not worth breaking the hand over */ }
 }, { deep: true })
 
 /*
