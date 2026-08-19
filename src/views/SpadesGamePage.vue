@@ -106,7 +106,7 @@
       </template>
 
       <!-- ── Playing ────────────────────────────────────── -->
-      <template v-else-if="game.phase === 'playing' || game.phase === 'trick_end'">
+      <template v-else-if="game.phase === 'playing' || game.phase === 'book_end'">
         <!-- Round the table. Every seat carries its own name and its own books-of-bid, sitting
              where that person sits, with the card they played beside it — so the individual
              bids are on the table all hand instead of appearing at scoring time. A phone has
@@ -118,7 +118,7 @@
               <span class="sp-books">{{ v.books }}<span class="sp-of">of</span>{{ bidLabel(v.bid) }}</span>
             </div>
             <div class="seat-card">
-              <PlayingCard v-if="v.card" :theme="deck.theme" :art-courts="deck.artCourts" :card="v.card" :width="trickCardWidth" />
+              <PlayingCard v-if="v.card" :theme="deck.theme" :art-courts="deck.artCourts" :card="v.card" :width="bookCardWidth" />
               <div v-else class="seat-slot" />
               <!-- Following suit is enforced, so an off-suit card can only mean a void.
                    Saying so stops it reading as the game letting someone cheat. -->
@@ -136,8 +136,8 @@
             <span v-else class="led-tape">YOU LEAD</span>
           </div>
 
-          <p v-if="game.phase === 'trick_end'" class="trick-won">
-            {{ game.players[game.lastTrickWinnerSeat!]?.name }} takes it
+          <p v-if="game.phase === 'book_end'" class="book-won">
+            {{ game.players[game.lastBookWinnerSeat!]?.name }} takes it
           </p>
         </div>
 
@@ -214,8 +214,8 @@
     </div>
 
     <footer v-if="showFooter" class="sp-footer">
-      <button v-if="game.phase === 'trick_end'" v-ripple class="btn btn-spray btn-lg wide" @click="spades.nextTrick()">
-        {{ tricksPlayed >= HAND_SIZE ? 'Score the hand →' : 'Next book →' }}
+      <button v-if="game.phase === 'book_end'" v-ripple class="btn btn-spray btn-lg wide" @click="spades.nextBook()">
+        {{ booksPlayed >= HAND_SIZE ? 'Score the hand →' : 'Next book →' }}
       </button>
       <button v-else-if="game.phase === 'hand_over'" v-ripple class="btn btn-spray btn-lg wide" @click="spades.nextHand()">
         Deal hand {{ game.handNumber + 1 }} →
@@ -480,7 +480,7 @@ const sides = computed(() => {
       bags: g.bags[side] ?? 0,
       bid: allIn ? seats.reduce((sum, s) => sum + (g.bids[s] === 0 ? 0 : g.bids[s] ?? 0), 0) : null,
       nils: seats.filter(s => g.bids[s] === 0).length,
-      books: seats.reduce((sum, s) => sum + (g.tricksWon[s] ?? 0), 0),
+      books: seats.reduce((sum, s) => sum + (g.booksWon[s] ?? 0), 0),
       isTurn: seats.includes(g.turnIndex),
       setLabel: setStreak > 0 && rulesBite
         ? 'SET LAST HAND'
@@ -536,9 +536,9 @@ const sortedHand = computed(() =>
   sortHand(game.value?.hands[game.value.turnIndex] ?? [], sortPrefs.value)
 )
 const legalCount = computed(() => spades.legalForCurrent().length)
-const tricksPlayed = computed(() => game.value?.tricksWon.reduce((a, b) => a + b, 0) ?? 0)
+const booksPlayed = computed(() => game.value?.booksWon.reduce((a, b) => a + b, 0) ?? 0)
 const showFooter = computed(() =>
-  ['trick_end', 'hand_over', 'game_over'].includes(game.value?.phase ?? '')
+  ['book_end', 'hand_over', 'game_over'].includes(game.value?.phase ?? '')
 )
 
 /**
@@ -594,13 +594,13 @@ const cardWidth = computed(() => handFan.value.width)
 const fanLap = computed(() => `${handFan.value.lap}px`)
 
 /** The four cards on the table have no crowding problem, so they simply scale up. */
-const trickCardWidth = computed(() =>
+const bookCardWidth = computed(() =>
   sizeTier.value === 'desktop' ? 148 : sizeTier.value === 'tablet' ? 124 : 94
 )
 
-/** The suit that was actually led this trick, for the void tag. */
+/** The suit that was actually led this book, for the void tag. */
 const ledSuit = computed(() => {
-  const t = game.value?.currentTrick
+  const t = game.value?.currentBook
   return t && t.length > 0 ? effectiveSuit(t[0]!.card) : null
 })
 const ledSymbol = computed(() => (ledSuit.value ? SUIT_SYMBOL[ledSuit.value] : ''))
@@ -626,13 +626,13 @@ const seatViews = computed(() => {
   return SEAT_POS.map((pos, i) => {
     const seat = (g.turnIndex + 1 + i) % 4
     const p = g.players[seat]
-    const idx = g.currentTrick.findIndex(t => t.seat === seat)
-    const played = idx >= 0 ? g.currentTrick[idx]! : null
+    const idx = g.currentBook.findIndex(t => t.seat === seat)
+    const played = idx >= 0 ? g.currentBook[idx]! : null
     return {
       seat, pos,
       name: p?.name ?? '',
       color: p?.color ?? 'rgba(255,255,255,0.4)',
-      books: g.tricksWon[seat] ?? 0,
+      books: g.booksWon[seat] ?? 0,
       bid: g.bids[seat] ?? null,
       card: played?.card ?? null,
       isVoid: played ? offSuit(played, idx) : false,
@@ -640,7 +640,7 @@ const seatViews = computed(() => {
   })
 })
 
-const seatedBooks = computed(() => game.value?.tricksWon[game.value.turnIndex] ?? 0)
+const seatedBooks = computed(() => game.value?.booksWon[game.value.turnIndex] ?? 0)
 const seatedBid = computed(() => game.value?.bids[game.value.turnIndex] ?? null)
 /** A nil is a bid of zero, and reads as a word rather than a digit. */
 function bidLabel(bid: number | null): string {
@@ -689,7 +689,7 @@ function onCardTap(c: Card) {
   selectedId.value = cardId(c)
 }
 
-// A selection belongs to one turn. Passing the device or the trick moving on clears it.
+// A selection belongs to one turn. Passing the device or the book moving on clears it.
 watch(() => [game.value?.turnIndex, game.value?.phase] as const, () => { selectedId.value = null })
 
 function finish() {
@@ -955,7 +955,7 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
   background: var(--gold); padding: 2px 8px 1px; white-space: nowrap;
   box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
 }
-.trick-won {
+.book-won {
   font-family: var(--font-display); font-size: 26px; letter-spacing: 0.08em;
   color: var(--gold); margin: 0;
 }
@@ -1129,7 +1129,7 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
   .seat-left { left: 0; top: 50%; transform: translateY(-50%); flex-direction: row; }
   .seat-right { right: 0; top: 50%; transform: translateY(-50%); flex-direction: row-reverse; }
   .seat-you { left: 50%; bottom: 0; transform: translateX(-50%); flex-basis: auto; padding-top: 0; }
-  .trick-won { position: absolute; left: 0; bottom: 4px; }
+  .book-won { position: absolute; left: 0; bottom: 4px; }
   .seat-slot { width: 124px; height: 180px; }
 
   /* Room for the plate to be a plate again, beside its card rather than a tag under it. */
