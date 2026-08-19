@@ -59,43 +59,37 @@
           </div>
 
           <!--
-            How the image is fitted.
+            Placement.
 
-            The throw screen has always honoured these three — it sets background-size and
-            background-position from them, and draws a blurred copy behind a contained image
-            when Fill is Blur. Nothing could set them: this screen wrote null into all three
-            on every save, on both the create and update paths, so a photo could only ever be
-            cropped to fill. They are only worth showing once there is an image to fit.
+            This replaced Centre / Top / Bottom. Three stops rarely landed on the part of the
+            photo anyone meant, and the small preview beside them was always centre-cropped, so
+            the buttons changed nothing you could see. Here the preview IS the throw screen —
+            same shape, same furniture in the same corners — and the photo is dragged under it.
+            Only worth showing once there is an image to place.
           -->
           <div v-if="bgImagePreview" class="field">
-            <label class="label">Background Fit</label>
-            <p class="field-hint">Crop fills the screen and trims the edges. Fit shows the whole image and fills what is left over.</p>
-            <div class="bgfit-row">
+            <label class="label">Placement</label>
+            <p class="field-hint">This is the throw screen. Drag the photo until the part you want is clear of the score.</p>
+
+            <BackgroundPlacer
+              v-model:position="playerBackgroundPosition"
+              v-model:zoom="playerBackgroundZoom"
+              :image="bgImagePreview"
+              :name="name"
+              :size="playerBackgroundSize"
+              :fill="playerBackgroundFill"
+            />
+
+            <div class="bgfit-row" style="margin-top:12px">
               <button
                 v-for="opt in BG_SIZE_OPTS" :key="String(opt.value)" v-ripple
                 class="bgfit-btn" :class="{ active: playerBackgroundSize === opt.value }"
                 @click="playerBackgroundSize = opt.value"
               >{{ opt.label }}</button>
             </div>
-          </div>
 
-          <div v-if="bgImagePreview" class="field">
-            <label class="label">Background Position</label>
-            <p class="field-hint">Which part of the image to keep when it is cropped.</p>
-            <div class="bgfit-row">
-              <button
-                v-for="opt in BG_POSITION_OPTS" :key="String(opt.value)" v-ripple
-                class="bgfit-btn" :class="{ active: playerBackgroundPosition === opt.value }"
-                @click="playerBackgroundPosition = opt.value"
-              >{{ opt.label }}</button>
-            </div>
-          </div>
-
-          <!-- Only meaningful when the image is contained: cropping leaves nothing to fill. -->
-          <div v-if="bgImagePreview && playerBackgroundSize === 'contain'" class="field">
-            <label class="label">Background Fill</label>
-            <p class="field-hint">What sits behind the image in the space it does not cover.</p>
-            <div class="bgfit-row">
+            <!-- Only meaningful when the image is contained: cropping leaves nothing to fill. -->
+            <div v-if="isBgFitted" class="bgfit-row" style="margin-top:10px">
               <button
                 v-for="opt in BG_FILL_OPTS" :key="String(opt.value)" v-ripple
                 class="bgfit-btn" :class="{ active: playerBackgroundFill === opt.value }"
@@ -124,6 +118,18 @@
                 <button v-if="throwBackground" v-ripple class="btn btn-outline btn-sm" @click="throwBackground = null">Use default</button>
               </div>
             </div>
+            <!-- Only its own photo is placeable here. Falling back to the default means
+                 falling back to the default's framing too, which is set above. -->
+            <BackgroundPlacer
+              v-if="throwBackground"
+              v-model:position="throwBackgroundPosition"
+              v-model:zoom="throwBackgroundZoom"
+              :image="throwBackground"
+              :name="name"
+              :size="playerBackgroundSize"
+              :fill="playerBackgroundFill"
+              style="margin-top:12px"
+            />
           </div>
 
           <div class="field">
@@ -141,6 +147,17 @@
                 <button v-if="walkupBackground" v-ripple class="btn btn-outline btn-sm" @click="walkupBackground = null">Use default</button>
               </div>
             </div>
+            <BackgroundPlacer
+              v-if="walkupBackground"
+              v-model:position="walkupBackgroundPosition"
+              v-model:zoom="walkupBackgroundZoom"
+              :image="walkupBackground"
+              :name="name"
+              chrome="walkup"
+              :size="playerBackgroundSize"
+              :fill="playerBackgroundFill"
+              style="margin-top:12px"
+            />
           </div>
 
           <div class="field">
@@ -278,6 +295,26 @@
             </div>
           </div>
 
+          <!--
+            Three inks, all one tap away. A dropdown would hide two of them behind a click and
+            make the choice feel like a setting; it is closer to picking a pen.
+          -->
+          <div class="field">
+            <label class="label">Yahtzee Scorecard</label>
+            <p class="field-hint">Which card you keep score on.</p>
+            <div class="cardink-row">
+              <button
+                v-for="ink in CARD_INKS" :key="ink.value" v-ripple
+                class="cardink-btn" :class="[`cardink-${ink.value}`, { active: (yahtzeeCard ?? 'street') === ink.value }]"
+                @click="yahtzeeCard = ink.value"
+              >
+                <span class="cardink-swatch" />
+                <span class="cardink-name">{{ ink.label }}</span>
+                <span class="cardink-sub">{{ ink.blurb }}</span>
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -370,14 +407,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, type CSSProperties } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
+import BackgroundPlacer from '../components/BackgroundPlacer.vue'
 import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { goBack } from '../router/goBack'
 import { AVATAR_MAX_PX, BACKGROUND_MAX_PX, downscaleFile, downscaleVideoFrame } from '../lib/downscaleImage'
-import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, PIP_STYLES, TARGET_LABEL_COLORS, type Player, type DiceTheme, type PipStyle } from '../types/index'
+import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, PIP_STYLES, TARGET_LABEL_COLORS, type Player, type DiceTheme, type PipStyle, type YahtzeeCardSkin } from '../types/index'
 import { autoTargetColor as autoTargetColorFor } from '../lib/targetColor'
 import SyncWarning from '../components/SyncWarning.vue'
 
@@ -485,19 +523,28 @@ const BG_SIZE_OPTS = [
   { label: 'Crop to fill', value: null },
   { label: 'Fit whole image', value: 'contain' as const },
 ] as const
-const BG_POSITION_OPTS = [
-  { label: 'Centre', value: null },
-  { label: 'Top', value: 'top' as const },
-  { label: 'Bottom', value: 'bottom' as const },
-] as const
 const BG_FILL_OPTS = [
   { label: 'Black', value: null },
   { label: 'Blurred image', value: 'blur' as const },
 ] as const
 
 const playerBackgroundSize = ref<'cover' | 'contain' | null>(null)
-const playerBackgroundPosition = ref<'top' | 'center' | 'bottom' | null>(null)
 const playerBackgroundFill = ref<'black' | 'blur' | null>(null)
+
+/*
+ * Placement, one set per photo. The placer component owns the dragging and reports a CSS
+ * background-position pair, or null when that photo has never been moved — null is every
+ * screen's own default, so a player who never opens this is left exactly as they were.
+ */
+const playerBackgroundPosition = ref<string | null>(null)
+const playerBackgroundZoom = ref<number | null>(null)
+const throwBackgroundPosition = ref<string | null>(null)
+const throwBackgroundZoom = ref<number | null>(null)
+const walkupBackgroundPosition = ref<string | null>(null)
+const walkupBackgroundZoom = ref<number | null>(null)
+
+const isBgFitted = computed(() => playerBackgroundSize.value === 'contain')
+
 const bgImagePreview = ref<string | null>(null)
 /* Per-screen overrides. Null means "use the default above", which is the common case. */
 const throwBackground = ref<string | null>(null)
@@ -520,15 +567,31 @@ const selectedPipName = computed(() =>
   TARGET_LABEL_COLORS.find(c => c.value === pipColor.value)?.label ?? 'Default')
 const cricketTargetDisplay = ref<'show' | 'hide'>('show')
 const diceTheme = ref<DiceTheme | null>(null)
+const yahtzeeCard = ref<YahtzeeCardSkin | null>(null)
+
+/* Street first because it is the default, then the bright one, then the cold one. */
+const CARD_INKS: { value: YahtzeeCardSkin; label: string; blurb: string }[] = [
+  { value: 'street', label: 'Street Print', blurb: 'The app\u2019s own look' },
+  { value: 'paper',  label: 'Paper Card',   blurb: 'A printed scorepad' },
+  { value: 'board',  label: 'Board Flip',   blurb: 'A stadium scoreboard' },
+]
 
 const cricketTargetDisplayOpts: { value: 'show' | 'hide'; label: string; sub: string }[] = [
   { value: 'show',   label: 'Normal',  sub: 'Standard opacity' },
   { value: 'hide',   label: 'Hide',    sub: 'Remove tile' },
 ]
 
-const bgPreviewStyle = computed(() => {
+const bgPreviewStyle = computed((): CSSProperties => {
   if (bgImagePreview.value) {
-    return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundColor: '#000' }
+    // The thumbnail follows the placer rather than always centre-cropping, so the small
+    // preview and the big one cannot disagree about what is framed.
+    return {
+      backgroundImage: `url(${bgImagePreview.value})`,
+      backgroundSize: isBgFitted.value ? 'contain' : 'cover',
+      backgroundPosition: playerBackgroundPosition.value ?? 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundColor: '#000',
+    }
   }
   return { background: 'rgba(255,255,255,0.05)' }
 })
@@ -636,8 +699,11 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = '#ffffff'; avatarUrl.value = null
-  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; throwBackground.value = null; walkupBackground.value = null; bgMode.value = 'image'; targetLabelColor.value = null; pipColor.value = null; pipStyle.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false
-  playerBackgroundSize.value = null; playerBackgroundPosition.value = null; playerBackgroundFill.value = null
+  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; throwBackground.value = null; walkupBackground.value = null; bgMode.value = 'image'; targetLabelColor.value = null; pipColor.value = null; pipStyle.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; yahtzeeCard.value = null; saving.value = false
+  playerBackgroundSize.value = null; playerBackgroundFill.value = null
+  playerBackgroundPosition.value = null; playerBackgroundZoom.value = null
+  throwBackgroundPosition.value = null; throwBackgroundZoom.value = null
+  walkupBackgroundPosition.value = null; walkupBackgroundZoom.value = null
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
@@ -645,8 +711,13 @@ function loadPlayer(p: Player) {
   avatarUrl.value = photoPreview.value
   playerBackground.value = p.playerBackground ?? null
   playerBackgroundSize.value = p.playerBackgroundSize ?? null
-  playerBackgroundPosition.value = p.playerBackgroundPosition ?? null
   playerBackgroundFill.value = p.playerBackgroundFill ?? null
+  playerBackgroundPosition.value = p.playerBackgroundPosition ?? null
+  playerBackgroundZoom.value = p.playerBackgroundZoom ?? null
+  throwBackgroundPosition.value = p.throwBackgroundPosition ?? null
+  throwBackgroundZoom.value = p.throwBackgroundZoom ?? null
+  walkupBackgroundPosition.value = p.walkupBackgroundPosition ?? null
+  walkupBackgroundZoom.value = p.walkupBackgroundZoom ?? null
   throwBackground.value = p.throwBackground ?? null
   walkupBackground.value = p.walkupBackground ?? null
   if (p.playerBackground?.startsWith('data:')) { bgMode.value = 'image'; bgImagePreview.value = p.playerBackground }
@@ -657,6 +728,7 @@ function loadPlayer(p: Player) {
   pipStyle.value = p.pipStyle ?? null
   cricketTargetDisplay.value = p.cricketTargetDisplay ?? 'show'
   diceTheme.value = p.diceTheme ?? null
+  yahtzeeCard.value = p.yahtzeeCard ?? null
 }
 const saving = ref(false)
 function save() {
@@ -667,10 +739,10 @@ function save() {
   const tlc = targetLabelColor.value
   const ctd = cricketTargetDisplay.value
   if (editingId.value) {
-    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, targetLabelColor: tlc, pipColor: pipColor.value, pipStyle: pipStyle.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
+    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, playerBackgroundZoom: playerBackgroundZoom.value, throwBackgroundPosition: throwBackgroundPosition.value, throwBackgroundZoom: throwBackgroundZoom.value, walkupBackgroundPosition: walkupBackgroundPosition.value, walkupBackgroundZoom: walkupBackgroundZoom.value, targetLabelColor: tlc, pipColor: pipColor.value, pipStyle: pipStyle.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, yahtzeeCard: yahtzeeCard.value })
     editingId.value = null
   } else {
-    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, targetLabelColor: tlc, pipColor: pipColor.value, pipStyle: pipStyle.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, playerBackgroundZoom: playerBackgroundZoom.value, throwBackgroundPosition: throwBackgroundPosition.value, throwBackgroundZoom: throwBackgroundZoom.value, walkupBackgroundPosition: walkupBackgroundPosition.value, walkupBackgroundZoom: walkupBackgroundZoom.value, targetLabelColor: tlc, pipColor: pipColor.value, pipStyle: pipStyle.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, yahtzeeCard: yahtzeeCard.value, pinned: false })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
       resetForm()
@@ -897,7 +969,41 @@ function save() {
 .ct-player-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: var(--text-muted); text-transform: uppercase; text-align: center; line-height: 1.3; }
 .ct-player-btn.active .ct-player-label { color: var(--pink); }
 
-/* Background fit / position / fill — same shape as the closed-target buttons above. */
+/* The three scorecard inks, each swatch printed in its own stock so the button looks like
+   the card it picks rather than describing it. */
+.cardink-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.cardink-btn {
+  flex: 1; min-width: 132px; padding: 10px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  border: 2px solid rgba(255,255,255,0.25); background: transparent;
+  cursor: pointer; text-align: left; position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.cardink-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); }
+.cardink-swatch {
+  width: 100%; height: 30px; margin-bottom: 3px;
+  border: 2px solid var(--ink-edge);
+  background-color: var(--ink-stock);
+  background-image: var(--ink-texture);
+  background-size: var(--ink-texture-size, auto);
+}
+.cardink-name { font-family: var(--font-display); font-size: 16px; letter-spacing: 0.04em; color: #fff; }
+.cardink-sub { font-size: 12px; color: var(--text-muted); }
+.cardink-street {
+  --ink-stock: #101014; --ink-edge: #2a2a34;
+  --ink-texture: radial-gradient(rgba(255,255,255,0.14) 1px, transparent 1px);
+  --ink-texture-size: 5px 5px;
+}
+.cardink-paper {
+  --ink-stock: #f2e8d0; --ink-edge: #6b5a3a;
+  --ink-texture: repeating-linear-gradient(92deg, rgba(120,90,40,0.12) 0 2px, transparent 2px 5px);
+}
+.cardink-board {
+  --ink-stock: #0a0d10; --ink-edge: rgba(0,212,255,0.45);
+  --ink-texture: repeating-linear-gradient(180deg, rgba(0,212,255,0.18) 0 1px, transparent 1px 4px);
+}
+
+/* Background fit / fill — same shape as the closed-target buttons above. */
 .bgfit-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .bgfit-btn {
   flex: 1; min-width: 96px; padding: 12px 10px; 

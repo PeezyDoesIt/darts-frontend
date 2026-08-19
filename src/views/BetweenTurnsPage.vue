@@ -2,11 +2,12 @@
   <div class="between" :style="betweenStyle">
     <div class="drip-bar" style="position:absolute;top:0;left:0;right:0" />
 
-    <!-- Avatar watermark: always bottom-left, so it does not move between game types. -->
-    <div class="between-avatar-bg" aria-hidden="true">
-      <img v-if="isPhoto(nextPlayer.avatarUrl)" :src="nextPlayer.avatarUrl!" alt="" />
-      <span v-else-if="nextPlayer.avatarUrl">{{ nextPlayer.avatarUrl }}</span>
-    </div>
+    <!--
+      The photo on a layer of its own rather than as the page's background, so a zoom can
+      scale it without taking the name and the countdown up with it — a transform on the root
+      moves everything drawn inside it.
+    -->
+    <div v-if="walkupPhotoStyle" class="between-bg-photo" :style="walkupPhotoStyle" aria-hidden="true" />
 
     <!-- Cricket layout: name + timer circle + start button -->
     <div v-if="isCricket" class="between-inner cricket-layout">
@@ -115,7 +116,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, type CSSProperties } from 'vue'
 import { useRouter } from 'vue-router'
-import { isPhoto } from '../lib/playerDisplay'
 import { isCricketGame } from '../types/index'
 import { useGameStore } from '../stores/game'
 import { useSettingsStore } from '../stores/settings'
@@ -143,13 +143,46 @@ const isCricket = computed(() => isCricketGame(game.value?.gameType))
 /** The whole game is stopped, not just this screen's countdown. */
 const isHeld = computed(() => game.value?.heldSince != null)
 
-const betweenStyle = computed((): CSSProperties => {
-  // The walk-up pick wins, then the player's default. No game theme here: this screen is
-  // about whose turn it is, and the game's own backdrop belongs to the board they walk up to.
-  const bg = nextPlayer.value.walkupBackground ?? nextPlayer.value.playerBackground
-  if (bg && (bg.startsWith('data:') || bg.startsWith('http'))) {
-    return { backgroundImage: `url(${bg})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+/**
+ * The walk-up pick wins, then the player's default. No game theme here: this screen is about
+ * whose turn it is, and the game's own backdrop belongs to the board they walk up to.
+ */
+const walkupBg = computed(() => nextPlayer.value.walkupBackground ?? nextPlayer.value.playerBackground)
+const walkupIsPhoto = computed(() => {
+  const bg = walkupBg.value
+  return !!bg && (bg.startsWith('data:') || bg.startsWith('http'))
+})
+
+/**
+ * Which framing applies. A walk-up photo of its own is framed on its own terms; when the
+ * screen is falling back to the player's default photo it uses the default's framing, because
+ * that is the photo being shown.
+ */
+const walkupFraming = computed(() => {
+  const p = nextPlayer.value
+  return p.walkupBackground
+    ? { position: p.walkupBackgroundPosition, zoom: p.walkupBackgroundZoom }
+    : { position: p.playerBackgroundPosition, zoom: p.playerBackgroundZoom }
+})
+
+const walkupPhotoStyle = computed((): CSSProperties | null => {
+  if (!walkupIsPhoto.value) return null
+  const p = nextPlayer.value
+  const contained = p.playerBackgroundSize === 'contain'
+  const { position, zoom } = walkupFraming.value
+  const scale = contained ? 100 : Math.min(210, Math.max(100, zoom ?? 100))
+  return {
+    backgroundImage: `url(${walkupBg.value})`,
+    backgroundSize: contained ? 'contain' : 'cover',
+    backgroundPosition: position ?? 'center',
+    transform: scale === 100 ? undefined : `scale(${scale / 100})`,
   }
+})
+
+const betweenStyle = computed((): CSSProperties => {
+  const bg = walkupBg.value
+  // A photo is drawn on its own layer above; the page keeps only what sits behind it.
+  if (walkupIsPhoto.value) return { background: '#000' }
   if (bg) return { background: bg }
   return { background: `radial-gradient(ellipse at center, ${nextPlayer.value.color}50 0%, #0a0a0a 65%)` }
 })
@@ -468,39 +501,12 @@ function startTurn() { unlockAudio(); gameStore.startNextTurn(); router.push('/g
 .swap-enter-from { opacity: 0; transform: scale(0.94); }
 .swap-leave-to { opacity: 0; transform: scale(1.04); }
 
-/*
- * Bottom-left on every game type.
- *
- * It used to sit bottom-right and flip to the left only for some game types, dodging the
- * floating START button that those two render in that corner. Nothing else on this screen is
- * anchored bottom-left and both layouts centre their content, so the left corner is free
- * whatever the game is — and a watermark that changes sides between games reads as a bug.
- */
-/*
- * Solid, and behind the content rather than over it.
- *
- * The two changes go together. This used to be a 55% watermark sitting at z-index 3 — above
- * the name and the countdown — which is only safe because it was faded enough to see through.
- * At full opacity in that position it would black out whatever it overlapped, so it drops
- * below `.between-inner` (z-index 2) and above the screen's own scrim (0). Nothing here has a
- * background of its own, so the picture still shows between the letters.
- */
-.between-avatar-bg {
-  position: absolute; bottom: calc(14px + env(safe-area-inset-bottom)); left: 0;
-  pointer-events: none; user-select: none; z-index: 1;
-  display: flex; align-items: flex-end; justify-content: flex-start;
-}
-.between-avatar-bg img {
-  height: clamp(140px, 35vmin, 420px);
-  width: auto;
-  max-width: clamp(140px, 35vmin, 420px);
-  object-fit: contain;
-  /* Square against the screen edge it sits on, rounded on the side facing the content. */
-  
-}
-.between-avatar-bg span {
-  font-size: clamp(140px, 35vmin, 420px); line-height: 1;
-  filter: drop-shadow(0 0 32px rgba(0,0,0,0.5));
+/* The player's photo, on its own layer so a zoom scales it and nothing else. Below the
+   name and the countdown (z-index 2), above the screen's own backdrop. */
+.between-bg-photo {
+  position: absolute; inset: 0; z-index: 1;
+  background-repeat: no-repeat;
+  pointer-events: none;
 }
 
 /* Cricket START button — fixed bottom-right, solid red bubble */

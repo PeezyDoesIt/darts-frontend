@@ -190,133 +190,133 @@
         </span>
       </div>
 
-      <!-- SCORECARD -->
+      <!--
+        SCORECARD
+
+        Two panels rather than one continuous sheet, so iPad landscape can set them side by
+        side and the whole card fits 1194 x 834 without scrolling. Below the tablet band they
+        stack, which is the same markup in one column.
+
+        Everything about the anatomy is shared; the three inks differ only in colour, type and
+        shadow, so they are a token set on the root rather than three copies of the card.
+      -->
       <div class="scorecard-scroll" :style="scorecardBgStyle">
-        <div class="sc-paper" :class="scorecardTheme === 'light' ? 'sc-light' : 'sc-dark'">
-          <!-- UPPER HEADER -->
-          <div class="sc-header-row">
-            <div class="sc-col-name sc-section-title">UPPER SECTION</div>
-            <div class="sc-col-howto sc-howto-header">
-              HOW TO SCORE
-              <div class="sc-ipad-btns">
-                <button v-ripple class="header-sc-btn" :class="{ 'header-sc-btn-active': showDicePicker }" @click="showDicePicker = !showDicePicker" title="Dice style">🎲</button>
-                <button v-ripple class="header-sc-btn header-sc-btn-grey" :class="{ 'header-sc-btn-active': showSettings }" @click="showSettings = !showSettings" title="Settings">⚙</button>
-              </div>
-            </div>
-            <div class="sc-col-box sc-col-box-hdr">
-              <span>PTS</span>
-              <span class="sc-round-label">RD {{ currentRound }}/13</span>
-            </div>
-          </div>
+        <div class="sc-card" :class="`ink-${cardSkin}`">
 
-          <!-- UPPER CATEGORIES -->
-          <div
-            v-for="cat in upperCategories"
-            :key="cat.key"
-            class="sc-row"
-            :class="{
-              'sc-row-filled': viewedState?.scorecard[cat.key] !== null,
-              'sc-row-scoreable': isMyTurn && canScore && viewedState?.scorecard[cat.key] === null,
-              'sc-row-pending': pendingCategory === cat.key
-            }"
-            :style="pendingCategory === cat.key ? { '--pending-color': currentPlayer?.color } : {}"
-            @click="tryScore(cat.key)"
-          >
-            <div class="sc-col-name sc-name-inner">
-              <svg class="sc-die-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <rect x="1.5" y="1.5" width="21" height="21" rx="4" class="sc-die-bg" />
-                <circle
-                  v-for="(dot, di) in dotPositions[(cat.dieValue ?? 1) - 1]"
-                  :key="di"
-                  :cx="dot[0] * 0.667"
-                  :cy="dot[1] * 0.667"
-                  r="2"
-                  class="sc-die-pip"
-                />
-              </svg>
-              <span class="sc-cat-label">{{ cat.label }}</span>
+          <section class="sc-panel">
+            <span class="sc-tape">UPPER SECTION</span>
+            <div class="sc-headrow">
+              <span class="sc-h-name">CATEGORY</span>
+              <span class="sc-h-howto">
+                HOW TO SCORE
+                <span class="sc-ipad-btns">
+                  <button v-ripple class="header-sc-btn" :class="{ 'header-sc-btn-active': showDicePicker }" @click.stop="showDicePicker = !showDicePicker" title="Dice style">🎲</button>
+                  <button v-ripple class="header-sc-btn header-sc-btn-grey" :class="{ 'header-sc-btn-active': showSettings }" @click.stop="showSettings = !showSettings" title="Settings">⚙</button>
+                </span>
+              </span>
+              <span class="sc-h-pts">
+                PTS
+                <span class="sc-round-label">RD {{ currentRound }}/13</span>
+              </span>
             </div>
-            <div class="sc-col-howto sc-howto-text">{{ cat.howTo }}</div>
+
             <div
-              class="sc-col-box sc-score-val"
-              :class="{ 'sc-val-locked': viewedState?.scorecard[cat.key] !== null }"
-              :style="isMyTurn && canScore && viewedState?.scorecard[cat.key] === null ? { color: currentPlayer?.color } : {}"
-            >{{ scorecardDisplay(cat.key) }}</div>
-          </div>
-
-          <!-- UPPER TOTALS -->
-          <div class="sc-total-row">
-            <div class="sc-col-name sc-total-name"><span class="sc-arrows">▶▶</span> TOTAL SCORE</div>
-            <div class="sc-col-howto sc-total-sub">Add Only Upper Section</div>
-            <div class="sc-col-box sc-score-val sc-val-locked">{{ upperTotal(viewedState!.scorecard) }}</div>
-          </div>
-          <div class="sc-total-row">
-            <div class="sc-col-name sc-total-name"><span class="sc-arrows">▶▶</span> BONUS</div>
-            <div class="sc-col-howto sc-total-sub">Score 35 if ≥ 63</div>
-            <div class="sc-col-box sc-score-val sc-val-locked" :class="{ 'sc-val-bonus': upperBonus(viewedState!.scorecard) > 0 }">{{ upperBonusDisplay }}</div>
-          </div>
-          <div class="sc-total-row sc-section-total-row">
-            <div class="sc-col-name sc-total-name"><span class="sc-arrows">▶▶</span> UPPER TOTAL</div>
-            <div class="sc-col-howto sc-total-sub"></div>
-            <div class="sc-col-box sc-score-val sc-val-locked">{{ upperTotal(viewedState!.scorecard) + upperBonus(viewedState!.scorecard) }}</div>
-          </div>
-
-          <!-- LOWER SECTION HEADER -->
-          <div class="sc-lower-header">══ LOWER SECTION ══</div>
-
-          <!-- LOWER CATEGORIES -->
-          <div
-            v-for="cat in lowerCategories"
-            :key="cat.key"
-            class="sc-row"
-            :class="{
-              'sc-row-filled': viewedState?.scorecard[cat.key] !== null,
-              'sc-row-scoreable': isMyTurn && canScore && viewedState?.scorecard[cat.key] === null,
-              'sc-row-pending': pendingCategory === cat.key
-            }"
-            :style="pendingCategory === cat.key ? { '--pending-color': currentPlayer?.color } : {}"
-            @click="tryScore(cat.key)"
-          >
-            <div class="sc-col-name sc-name-inner sc-lower-name">
-              <span class="sc-cat-label" :class="{ 'sc-yahtzee-lbl': cat.key === 'yahtzee' }">{{ cat.label }}</span>
+              v-for="cat in upperCategories"
+              :key="cat.key"
+              class="sc-row"
+              :class="{
+                filled: viewedState?.scorecard[cat.key] !== null,
+                live: isMyTurn && canScore && viewedState?.scorecard[cat.key] === null,
+                pending: pendingCategory === cat.key,
+              }"
+              @click="tryScore(cat.key)"
+            >
+              <span class="sc-name">
+                <svg class="sc-die-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="1.5" y="1.5" width="21" height="21" class="sc-die-bg" />
+                  <circle
+                    v-for="(dot, di) in dotPositions[(cat.dieValue ?? 1) - 1]"
+                    :key="di"
+                    :cx="dot[0] * 0.667" :cy="dot[1] * 0.667" r="2"
+                    class="sc-die-pip"
+                  />
+                </svg>
+                <span class="sc-cat-label">{{ cat.label }}</span>
+              </span>
+              <span class="sc-howto">{{ cat.howTo }}</span>
+              <span class="sc-pts">{{ scorecardDisplay(cat.key) }}</span>
             </div>
-            <div class="sc-col-howto sc-howto-text">{{ cat.howTo }}</div>
+
+            <div class="sc-total">
+              <span class="sc-name">TOTAL SCORE</span>
+              <span class="sc-howto">Add Only Upper Section</span>
+              <span class="sc-pts">{{ upperTotal(viewedState!.scorecard) }}</span>
+            </div>
+            <div class="sc-total">
+              <span class="sc-name">BONUS</span>
+              <span class="sc-howto">Score 35 if ≥ 63</span>
+              <span class="sc-pts" :class="{ starred: upperBonus(viewedState!.scorecard) > 0 }">{{ upperBonusDisplay }}</span>
+            </div>
+            <div class="sc-total sc-total-key">
+              <span class="sc-name">UPPER TOTAL</span>
+              <span class="sc-howto"></span>
+              <span class="sc-pts">{{ upperTotal(viewedState!.scorecard) + upperBonus(viewedState!.scorecard) }}</span>
+            </div>
+          </section>
+
+          <section class="sc-panel">
+            <span class="sc-tape">LOWER SECTION</span>
+            <div class="sc-headrow">
+              <span class="sc-h-name">CATEGORY</span>
+              <span class="sc-h-howto">HOW TO SCORE</span>
+              <span class="sc-h-pts">PTS</span>
+            </div>
+
             <div
-              class="sc-col-box sc-score-val"
-              :class="{ 'sc-val-locked': viewedState?.scorecard[cat.key] !== null }"
-              :style="isMyTurn && canScore && viewedState?.scorecard[cat.key] === null ? { color: currentPlayer?.color } : {}"
-            >{{ scorecardDisplay(cat.key) }}</div>
-          </div>
+              v-for="cat in lowerCategories"
+              :key="cat.key"
+              class="sc-row"
+              :class="{
+                filled: viewedState?.scorecard[cat.key] !== null,
+                live: isMyTurn && canScore && viewedState?.scorecard[cat.key] === null,
+                pending: pendingCategory === cat.key,
+              }"
+              @click="tryScore(cat.key)"
+            >
+              <span class="sc-name">
+                <span class="sc-cat-label" :class="{ starred: cat.key === 'yahtzee' }">{{ cat.label }}</span>
+              </span>
+              <span class="sc-howto">{{ cat.howTo }}</span>
+              <span class="sc-pts">{{ scorecardDisplay(cat.key) }}</span>
+            </div>
 
-          <!-- YAHTZEE BONUS -->
-          <div class="sc-row sc-row-filled">
-            <div class="sc-col-name sc-name-inner sc-lower-name">
-              <span class="sc-cat-label">YAHTZEE BONUS</span>
+            <div class="sc-row filled">
+              <span class="sc-name"><span class="sc-cat-label">YAHTZEE BONUS</span></span>
+              <span class="sc-howto sc-bonus-checks">
+                <span v-for="n in 3" :key="n" class="sc-bonus-check" :class="{ on: viewedState!.scorecard.yahtzeeBonusCount >= n }">✓</span>
+              </span>
+              <span class="sc-pts" :class="{ starred: viewedState!.scorecard.yahtzeeBonusCount > 0 }">
+                {{ viewedState!.scorecard.yahtzeeBonusCount > 0 ? viewedState!.scorecard.yahtzeeBonusCount * 100 : '—' }}
+              </span>
             </div>
-            <div class="sc-col-howto sc-bonus-checks">
-              <span v-for="n in 3" :key="n" class="sc-bonus-check" :class="{ 'sc-check-on': viewedState!.scorecard.yahtzeeBonusCount >= n }">✓</span>
-            </div>
-            <div class="sc-col-box sc-score-val sc-val-locked" :class="{ 'sc-val-bonus': viewedState!.scorecard.yahtzeeBonusCount > 0 }">
-              {{ viewedState!.scorecard.yahtzeeBonusCount > 0 ? viewedState!.scorecard.yahtzeeBonusCount * 100 : '—' }}
-            </div>
-          </div>
 
-          <!-- LOWER TOTALS -->
-          <div class="sc-total-row">
-            <div class="sc-col-name sc-total-name"><span class="sc-arrows">▶▶</span> LOWER TOTAL</div>
-            <div class="sc-col-howto sc-total-sub"></div>
-            <div class="sc-col-box sc-score-val sc-val-locked">{{ lowerTotal(viewedState!.scorecard) }}</div>
-          </div>
-          <div class="sc-total-row">
-            <div class="sc-col-name sc-total-name"><span class="sc-arrows">▶▶</span> UPPER TOTAL</div>
-            <div class="sc-col-howto sc-total-sub"></div>
-            <div class="sc-col-box sc-score-val sc-val-locked">{{ upperTotal(viewedState!.scorecard) + upperBonus(viewedState!.scorecard) }}</div>
-          </div>
-          <div class="sc-total-row sc-grand-row">
-            <div class="sc-col-name sc-total-name sc-grand-label"><span class="sc-arrows">▶▶</span> GRAND TOTAL</div>
-            <div class="sc-col-howto sc-total-sub"></div>
-            <div class="sc-col-box sc-score-val sc-grand-val" :style="{ color: viewedState?.player.color }">{{ grandTotal(viewedState!.scorecard) }}</div>
-          </div>
+            <div class="sc-total">
+              <span class="sc-name">LOWER TOTAL</span>
+              <span class="sc-howto"></span>
+              <span class="sc-pts">{{ lowerTotal(viewedState!.scorecard) }}</span>
+            </div>
+            <div class="sc-total">
+              <span class="sc-name">UPPER TOTAL</span>
+              <span class="sc-howto"></span>
+              <span class="sc-pts">{{ upperTotal(viewedState!.scorecard) + upperBonus(viewedState!.scorecard) }}</span>
+            </div>
+            <div class="sc-total sc-total-key sc-grand">
+              <span class="sc-name">GRAND TOTAL</span>
+              <span class="sc-howto"></span>
+              <span class="sc-pts">{{ grandTotal(viewedState!.scorecard) }}</span>
+            </div>
+          </section>
+
         </div>
       </div>
     </template>
@@ -339,41 +339,14 @@
                 {{ showTabs ? 'ON' : 'OFF' }}
               </button>
             </div>
-            <div class="sc-settings-row">
-              <div class="sc-settings-info">
-                <span class="sc-settings-label">Hide Scored</span>
-                <span class="sc-settings-sub">Collapse filled rows</span>
-              </div>
-              <button class="sc-settings-toggle" :class="{ active: hideCompleted }" @click="hideCompleted = !hideCompleted">
-                {{ hideCompleted ? 'ON' : 'OFF' }}
-              </button>
-            </div>
-            <div class="sc-settings-row">
-              <div class="sc-settings-info">
-                <span class="sc-settings-label">Light Theme</span>
-                <span class="sc-settings-sub">Scorecard appearance</span>
-              </div>
-              <button class="sc-settings-toggle" :class="{ active: scorecardTheme === 'light' }" @click="scorecardTheme = scorecardTheme === 'dark' ? 'light' : 'dark'">
-                {{ scorecardTheme === 'light' ? 'ON' : 'OFF' }}
-              </button>
-            </div>
-            <!-- Walk-up screen setting -->
-            <div class="sc-settings-row">
-              <div class="sc-settings-info">
-                <span class="sc-settings-label">Walk-up Screen</span>
-                <span class="sc-settings-sub">Show between turns</span>
-              </div>
-              <button class="sc-settings-toggle" :class="{ active: walkupEnabled }" @click="walkupEnabled = !walkupEnabled">
-                {{ walkupEnabled ? 'ON' : 'OFF' }}
-              </button>
-            </div>
-            <div v-if="walkupEnabled" class="sc-settings-timer-row">
-              <span class="sc-settings-sub">Timer</span>
-              <div class="sc-settings-timer-btns">
-                <button v-ripple class="timer-ctrl-btn" :class="{ active: walkupDuration === 0 }" @click="walkupDuration = 0">Off</button>
-                <button v-for="t in [30, 60, 90]" :key="t" v-ripple class="timer-ctrl-btn" :class="{ active: walkupDuration === t }" @click="walkupDuration = t">{{ t }}s</button>
-              </div>
-            </div>
+            <!--
+              Hide Scored and Light Theme were both here.
+
+              Hide Scored is now how the card behaves rather than a switch: a scored row leaves
+              your own live card and stays on every other card. Light Theme was a second, worse
+              way of choosing a card's colours — the ink picker on the player's profile is the
+              first, and Paper Card is the light one.
+            -->
             <!-- Score timer setting -->
             <div class="sc-settings-row">
               <div class="sc-settings-info">
@@ -391,31 +364,6 @@
               </div>
             </div>
 
-            <div class="sc-settings-row">
-              <div class="sc-settings-info">
-                <span class="sc-settings-label">Add Player</span>
-                <span class="sc-settings-sub">Add a saved player to the game</span>
-              </div>
-              <button class="sc-settings-toggle" @click="showAddPlayer = !showAddPlayer">
-                {{ showAddPlayer ? 'HIDE' : 'ADD' }}
-              </button>
-            </div>
-            <div v-if="showAddPlayer" class="sc-add-player-list">
-              <div v-if="availablePlayers.length === 0" class="sc-add-player-empty">All saved players are already in this game.</div>
-              <button
-                v-for="p in availablePlayers" :key="p.id"
-                v-ripple
-                class="sc-add-player-row"
-                @click="addPlayer(p)"
-              >
-                <div class="sc-add-avatar" :style="{ background: p.color }">
-                  <img v-if="p.avatarUrl?.startsWith('data:') || p.avatarUrl?.startsWith('http')" :src="p.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
-                  <span v-else style="font-size:14px">{{ avatarGlyph(p) }}</span>
-                </div>
-                <span class="sc-add-name">{{ p.name }}</span>
-                <span class="sc-add-stats">{{ p.wins }}W / {{ p.gamesPlayed }}G</span>
-              </button>
-            </div>
             <!-- Bets -->
             <div class="sc-settings-divider">BETS</div>
             <div class="sc-settings-bet-section">
@@ -437,6 +385,32 @@
                 <button v-if="gameBetActive !== null" v-ripple class="bet-clear-btn" @click="gameBetActive = null; gameBetInput = ''">✕</button>
               </div>
               <div v-if="gameBetActive !== null" class="bet-active-badge">Active: <strong>${{ gameBetActive }}</strong></div>
+            </div>
+
+            <!--
+              Leaving, as opposed to quitting.
+
+              Quit Game ends it for the table. This takes one person out and lets the rest
+              carry on, which is the thing that actually happens: somebody has to go, and the
+              choice used to be play on for them or bin everyone's cards.
+            -->
+            <div v-if="canLeave" class="sc-settings-divider">LEAVE</div>
+            <div v-if="canLeave" class="sc-leave-list">
+              <p class="sc-leave-note">Their card goes with them. Everyone else keeps playing.</p>
+              <button
+                v-for="p in leavablePlayers" :key="p.id"
+                v-ripple
+                class="sc-leave-row"
+                :class="{ confirming: leavingId === p.id }"
+                @click="leavingId === p.id ? confirmLeave(p.id) : (leavingId = p.id)"
+              >
+                <div class="sc-add-avatar" :style="{ background: p.color }">
+                  <img v-if="p.avatarUrl?.startsWith('data:') || p.avatarUrl?.startsWith('http')" :src="p.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
+                  <span v-else style="font-size:14px">{{ avatarGlyph(p) }}</span>
+                </div>
+                <span class="sc-add-name">{{ p.name }}</span>
+                <span class="sc-leave-action">{{ leavingId === p.id ? 'TAP TO CONFIRM' : 'LEAVE' }}</span>
+              </button>
             </div>
 
             <div class="sc-settings-quit-row">
@@ -476,52 +450,13 @@
                 </button>
               </div>
             </div>
-            <!-- Dice color toggle -->
-            <div class="dp-anim-row">
-              <span class="dp-anim-label">Dice Color</span>
-              <button class="dp-anim-btn" :class="{ active: showColorPicker }" @click="showColorPicker = !showColorPicker">
-                {{ showColorPicker ? 'HIDE' : 'SHOW' }}
-              </button>
-            </div>
-            <div v-if="showColorPicker" class="dp-color-section">
-              <div class="dp-color-grid">
-                <button
-                  v-for="t in DICE_THEMES" :key="t.value"
-                  class="dp-color-btn"
-                  :class="{ active: dieTheme === t.value }"
-                  @click="setDiceTheme(t.value)"
-                >
-                  <span class="dp-color-swatch" :style="DIE_GRADIENTS[t.value] ? { background: DIE_GRADIENTS[t.value] } : { background: '#fff' }"></span>
-                  <span class="dp-color-name">{{ t.label }}</span>
-                </button>
-              </div>
-            </div>
+            <!--
+              The dice colour picker used to sit here — thirty-four swatches, mid-game, on the
+              screen you are throwing on. It belongs to the player, not to the throw: it is set
+              on the player screen and it is read from there, so having it here only meant a
+              panel of choices between you and the board.
+            -->
           </div>
-        </div>
-      </div>
-    </Transition>
-
-    <!-- WALK-UP OVERLAY -->
-    <Transition name="walkup-fade">
-      <div v-if="showWalkupOverlay" class="walkup-overlay" :style="walkupBgStyle">
-        <div class="walkup-avatar-bg" aria-hidden="true">
-          <img v-if="currentPlayer && (currentPlayer.avatarUrl?.startsWith('data:') || currentPlayer.avatarUrl?.startsWith('http'))" :src="currentPlayer.avatarUrl!" alt="" />
-          <span v-else-if="currentPlayer?.avatarUrl">{{ currentPlayer.avatarUrl }}</span>
-        </div>
-        <div class="walkup-inner">
-          <div class="walkup-name display" :style="{ color: walkupAlert ? '#ef4444' : currentPlayer?.color, filter: `drop-shadow(0 0 24px ${walkupAlert ? '#ef4444' : currentPlayer?.color})` }">
-            {{ currentPlayer?.name }}
-          </div>
-          <div class="walkup-bar" :style="{ background: walkupAlert ? '#ef4444' : currentPlayer?.color, boxShadow: `0 0 18px ${walkupAlert ? '#ef4444' : currentPlayer?.color}` }" />
-          <div v-if="walkupEnabled && walkupDuration > 0" class="walkup-timer-bar" :class="{ 'timer-alert': walkupAlert }" @click="walkupPaused = !walkupPaused">
-            <div class="walkup-timer-fill"
-              :class="{ urgent: walkupAlert, paused: walkupPaused }"
-              :style="{ width: `${(walkupTimeLeft / walkupDuration) * 100}%`, transition: walkupPaused ? 'none' : 'width 1s linear' }" />
-            <span class="walkup-timer-text display" :class="{ urgent: walkupAlert }">
-              {{ walkupPaused ? 'PAUSED' : walkupTimeLeft }}
-            </span>
-          </div>
-          <button v-ripple class="walkup-start-btn" @click="dismissWalkup">START</button>
         </div>
       </div>
     </Transition>
@@ -537,7 +472,7 @@ import { chooseCategory, chooseKeeps } from '../lib/yahtzeeBot'
 import { useYahtzeeStore, grandTotal, upperTotal, upperBonus, lowerTotal, calcScore, YAHTZEE_CATEGORIES } from '../stores/yahtzee'
 import { usePlayersStore } from '../stores/players'
 import type { YahtzeeCategory } from '../stores/yahtzee'
-import { DICE_THEMES, DIE_GRADIENTS, GRADIENT_DIE_THEMES, type DiceTheme } from '../types/index'
+import { DIE_GRADIENTS, GRADIENT_DIE_THEMES, type DiceTheme, type YahtzeeCardSkin } from '../types/index'
 import { useNarrator } from '../composables/useNarrator'
 import { recordGameResult } from '../api/gameResults'
 import DiceFace from '../components/DiceFace.vue'
@@ -549,8 +484,12 @@ const playersStore = usePlayersStore()
 const game = computed(() => yahtzeeStore.game)
 
 const viewingIndex = ref(0)
-const scorecardTheme = ref<'dark' | 'light'>('dark')
-const hideCompleted = ref(false)
+/*
+ * On by default. Thirteen rounds means the card is mostly spent lines by the end, and the
+ * three or four still open are the whole decision — leaving the filled ones in view puts the
+ * choice at the bottom of a list of things already done. The switch stays, so anyone who
+ * wants the full card back has it.
+ */
 const showTabs = ref(false)
 const yahtzeeFlash = ref(false)
 const yahtzeeAutoScored = ref(false)
@@ -613,9 +552,13 @@ function stopRoll() {
   })
 }
 
+/*
+ * The player's photo behind the card. Each ink paints its own opaque page colour over it, so
+ * this reads as a tint at the edges rather than as competition with the card itself.
+ */
 const scorecardBgStyle = computed(() => {
   const bg = viewedState.value?.player.playerBackground
-  if (!bg || scorecardTheme.value === 'light') return {}
+  if (!bg) return {}
   if (bg.startsWith('data:') || bg.startsWith('http')) {
     return { backgroundImage: `url(${bg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }
   }
@@ -709,17 +652,34 @@ const dotPositions: [number, number][][] = [
 
 const dieTheme = computed<DiceTheme>(() => currentPlayer.value?.diceTheme ?? 'casino')
 const showDicePicker = ref(false)
-const showColorPicker = ref(false)
 const showSettings = ref(false)
-const showAddPlayer = ref(false)
+/*
+ * Two taps to leave, on the row itself rather than through a modal.
+ *
+ * Removing a player mid-game is not undoable — their card is gone — but a confirm dialog for
+ * it would be the fourth overlay on this screen. Arming the row instead keeps the weight
+ * without the furniture, and it reads as what it is: you are pointing at a person.
+ */
+/*
+ * This panel lives outside the `v-if="game"` wrapper — it is an overlay, drawn over whatever
+ * is behind it — so the template has no narrowing here and `game.players` is a null deref
+ * waiting to happen. Reading it through computeds answers that once rather than at each of
+ * the three places the list is touched.
+ */
+const canLeave = computed(() => (game.value?.players.length ?? 0) > 1)
+const leavablePlayers = computed(() => game.value?.players ?? [])
 
-const availablePlayers = computed(() =>
-  playersStore.players.filter(p => !game.value?.players.some(gp => gp.id === p.id))
-)
-function addPlayer(player: typeof playersStore.players[0]) {
-  yahtzeeStore.addPlayerToGame(player)
-  showAddPlayer.value = false
+const leavingId = ref<string | null>(null)
+function confirmLeave(playerId: string) {
+  leavingId.value = null
+  stopScoresheetTimer()
+  yahtzeeStore.leaveGame(playerId)
+  // The turn may now belong to somebody else, so the clock starts again for them.
+  if (game.value?.status === 'playing' && scoresheetTimerEnabled.value) startScoresheetTimer()
 }
+// An armed row that is left alone should not still be armed the next time the panel opens.
+watch(() => showSettings.value, (open) => { if (!open) leavingId.value = null })
+
 const roundBetInput = ref('')
 const gameBetInput = ref('')
 const roundBetActive = ref<number | null>(null)
@@ -732,11 +692,6 @@ function setRoundBet() {
 function setGameBet() {
   const val = parseFloat(gameBetInput.value)
   if (!isNaN(val) && val > 0) { gameBetActive.value = val; gameBetInput.value = '' }
-}
-
-function setDiceTheme(theme: DiceTheme) {
-  if (!currentPlayer.value) return
-  playersStore.updatePlayer(currentPlayer.value.id, { diceTheme: theme })
 }
 
 function isGradient(theme: DiceTheme): boolean {
@@ -824,16 +779,46 @@ const ALL_LOWER_CATEGORIES: CatDef[] = [
   { key: 'yahtzee',       label: 'YAHTZEE',        howTo: 'Score 50' },
   { key: 'chance',        label: 'Chance',         howTo: 'Score Total of All 5 Dice' },
 ]
+/*
+ * A scored category leaves the card.
+ *
+ * Only while the card is a MENU, though — your own card, in a game still being played. Then
+ * the rows on screen are exactly the choices left, instead of three live ones at the bottom of
+ * ten spent lines. Totals, the bonus and RD x/13 all still count the scored ones; nothing is
+ * lost, it is just not in the way.
+ *
+ * The moment the card is a RECORD rather than a menu — another player's, or the game over —
+ * all thirteen come back, because then the question is what happened, not what is left.
+ *
+ * This replaced a Hide Scored setting that defaulted off and applied everywhere, including to
+ * cards nobody could score on.
+ */
+const cardIsLive = computed(() => isMyTurn.value && game.value?.status === 'playing')
 const upperCategories = computed(() =>
-  hideCompleted.value && viewedState.value
+  cardIsLive.value && viewedState.value
     ? ALL_UPPER_CATEGORIES.filter(cat => viewedState.value!.scorecard[cat.key] === null)
     : ALL_UPPER_CATEGORIES
 )
 const lowerCategories = computed(() =>
-  hideCompleted.value && viewedState.value
+  cardIsLive.value && viewedState.value
     ? ALL_LOWER_CATEGORIES.filter(cat => viewedState.value!.scorecard[cat.key] === null)
     : ALL_LOWER_CATEGORIES
 )
+
+/**
+ * Which ink this card is printed in.
+ *
+ * Read live from the roster rather than the game's snapshot, so changing it on the profile
+ * shows up in a game already running. Anything unrecognised — null, a value from a future
+ * build, a hand-edited localStorage — resolves to Street rather than falling through to
+ * nothing, because a card with no ink is a card with no colours at all.
+ */
+const cardSkin = computed<YahtzeeCardSkin>(() => {
+  const id = viewedState.value?.player.id
+  const live = id ? playersStore.players.find(p => p.id === id) : undefined
+  const chosen = (live ?? viewedState.value?.player)?.yahtzeeCard
+  return chosen === 'paper' || chosen === 'board' ? chosen : 'street'
+})
 
 const upperBonusDisplay = computed(() => {
   if (!viewedState.value) return '—'
@@ -865,47 +850,6 @@ function onDieTap(i: number) {
   } else {
     if (game.value.rollCount > 0) yahtzeeStore.toggleHold(i)
   }
-}
-
-// ── Walk-up screen ─────────────────────────────
-const walkupEnabled = ref(false)
-const walkupDuration = ref(60)
-const showWalkupOverlay = ref(false)
-const walkupTimeLeft = ref(0)
-const walkupPaused = ref(false)
-const walkupAlert = ref(false)
-let walkupInterval: ReturnType<typeof setInterval> | null = null
-
-const walkupBgStyle = computed(() => {
-  const p = currentPlayer.value
-  if (!p) return {}
-  const bg = p.playerBackground
-  if (bg && (bg.startsWith('data:') || bg.startsWith('http'))) return { backgroundImage: `url(${bg})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-  if (bg) return { background: bg }
-  return { background: `radial-gradient(ellipse at center, ${p.color}50 0%, #0a0a0a 65%)` }
-})
-
-function startWalkupTimer() {
-  if (walkupInterval) { clearInterval(walkupInterval); walkupInterval = null }
-  if (!walkupEnabled.value || walkupDuration.value <= 0) return
-  walkupTimeLeft.value = walkupDuration.value
-  walkupAlert.value = false
-  walkupPaused.value = false
-  walkupInterval = setInterval(() => {
-    if (walkupPaused.value) return
-    walkupTimeLeft.value--
-    if (walkupTimeLeft.value <= 10) walkupAlert.value = true
-    if (walkupTimeLeft.value <= 0) {
-      if (walkupInterval) { clearInterval(walkupInterval); walkupInterval = null }
-      dismissWalkup()
-    }
-  }, 1000)
-}
-
-function dismissWalkup() {
-  if (walkupInterval) { clearInterval(walkupInterval); walkupInterval = null }
-  showWalkupOverlay.value = false
-  if (scoresheetTimerEnabled.value) startScoresheetTimer()
 }
 
 // ── Scoresheet timer ────────────────────────────
@@ -1005,8 +949,6 @@ function botStep() {
 function scheduleBot() {
   if (botTimer !== null) { clearTimeout(botTimer); botTimer = null }
   if (!currentIsBot.value || game.value?.status !== 'playing') return
-  // Not while the walk-up overlay is up — it is covering the board being played on.
-  if (showWalkupOverlay.value) return
 
   botTimer = setTimeout(() => {
     botTimer = null
@@ -1015,26 +957,28 @@ function scheduleBot() {
   }, BOT_STEP_MS)
 }
 
-// Every one of these changes what the computer should do next: whose turn it is, how many
-// rolls are left, and whether the board is visible yet.
+// Both of these change what the computer should do next: whose turn it is, and how many
+// rolls are left.
 watch(
-  () => [game.value?.currentPlayerIndex, game.value?.rollCount, showWalkupOverlay.value] as const,
+  () => [game.value?.currentPlayerIndex, game.value?.rollCount] as const,
   () => scheduleBot(),
   { immediate: true },
 )
 
 onUnmounted(() => { if (botTimer !== null) clearTimeout(botTimer) })
 
-// Show walk-up overlay when turn advances
+/*
+ * A turn change restarts the clock on picking a category.
+ *
+ * There was a walk-up overlay between turns here, carried over from darts, where the device
+ * is handed to whoever is throwing. Yahtzee is played round one table with the card in front
+ * of everyone — the screen announced a player to the people already watching them, and cost
+ * a tap every turn to dismiss.
+ */
 watch(() => game.value?.currentPlayerIndex, () => {
   if (!game.value || game.value.status !== 'playing') return
   stopScoresheetTimer()
-  if (walkupEnabled.value) {
-    showWalkupOverlay.value = true
-    startWalkupTimer()
-  } else if (scoresheetTimerEnabled.value) {
-    startScoresheetTimer()
-  }
+  if (scoresheetTimerEnabled.value) startScoresheetTimer()
 })
 
 const pendingCategory = ref<YahtzeeCategory | null>(null)
@@ -1058,9 +1002,9 @@ function tryScore(category: YahtzeeCategory) {
 watch(() => game.value?.rollCount, () => { pendingCategory.value = null })
 
 
-function playAgain() { stopScoresheetTimer(); if (walkupInterval) clearInterval(walkupInterval); yahtzeeStore.endGame(); router.push('/yahtzee/setup') }
-function goHome() { stopScoresheetTimer(); if (walkupInterval) clearInterval(walkupInterval); yahtzeeStore.endGame(); router.push('/') }
-function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(walkupInterval); yahtzeeStore.endGame(); router.push('/') }
+function playAgain() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push('/yahtzee/setup') }
+function goHome() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push('/') }
+function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push('/') }
 </script>
 
 <style scoped>
@@ -1311,33 +1255,6 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 .dp-btn-icon { font-size: 20px; line-height: 1; }
 .dp-btn-label { font-size: 13px; font-weight: 800; font-family: system-ui, sans-serif; letter-spacing: 0.01em; color: #fff; white-space: nowrap; text-shadow: 0 1px 6px rgba(0,0,0,0.9); }
 
-/* Dice color pills */
-.dp-color-section { margin-top: 4px; }
-.dp-color-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.dp-color-btn {
-  display: flex; align-items: center; gap: 9px;
-  padding: 7px 16px 7px 10px;
-  border-radius: 20px;
-  border: 2px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.06);
-  cursor: pointer; transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.dp-color-btn:hover { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.1); }
-.dp-color-btn.active { border-color: #fff; background: rgba(255,255,255,0.14); box-shadow: 0 0 10px rgba(255,255,255,0.25); }
-.dp-color-swatch {
-  width: 18px; height: 18px; border-radius: 50%;
-  flex-shrink: 0;
-  border: 1.5px solid rgba(255,255,255,0.25);
-}
-.dp-color-name {
-  font-size: 13px; font-weight: 800;
-  font-family: system-ui, sans-serif;
-  letter-spacing: 0.01em;
-  color: #fff;
-  white-space: nowrap;
-}
-
 .dp-fade-enter-active, .dp-fade-leave-active { transition: opacity 0.2s; }
 .dp-fade-enter-from, .dp-fade-leave-to { opacity: 0; }
 .dp-fade-enter-active .dice-picker-panel, .dp-fade-leave-active .dice-picker-panel { transition: transform 0.25s; }
@@ -1525,26 +1442,12 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   color: var(--pink);
   box-shadow: 0 0 10px rgba(255,45,120,0.25);
 }
-.sc-add-player-list {
-  display: flex; flex-direction: column; gap: 4px;
-  padding: 4px 0 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-}
-.sc-add-player-empty { font-size: 12px; color: rgba(255,255,255,0.35); padding: 8px 0; text-align: center; }
-.sc-add-player-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px; border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03);
-  cursor: pointer; transition: background 0.12s; text-align: left;
-  -webkit-tap-highlight-color: transparent;
-}
-.sc-add-player-row:hover { background: rgba(255,255,255,0.08); }
+/* Kept from the removed add-player list: the leave rows show the same person the same way. */
 .sc-add-avatar {
   width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; overflow: hidden;
 }
 .sc-add-name { flex: 1; font-size: 14px; font-weight: 700; color: #fff; }
-.sc-add-stats { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600; }
 .sc-settings-quit-row {
   padding: 20px 0 8px;
   display: flex;
@@ -1604,188 +1507,257 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 /* YAHTZEE title — hidden on mobile/tablet, shown on laptop */
 .turn-header-title { display: none; }
 
-/* PAPER */
-.sc-paper { width: 100%; flex-shrink: 0; display: flex; flex-direction: column; }
+/* ── The card ────────────────────────────────────────────────────────────────
+ *
+ * One anatomy, three inks. Everything below is written against tokens; each ink sets the
+ * tokens and nothing else, so a change to the row rhythm lands in all three at once and an
+ * ink cannot quietly drift into being its own layout.
+ *
+ * `--sc-scale` is the only size knob. It is set once per breakpoint band at the bottom of
+ * this file — individual pieces are never sized per band, which is how the old card ended up
+ * with four media queries each re-tuning nine separate font sizes against each other.
+ */
+.sc-card {
+  --sc-scale: 1;
+  /* Row rhythm, scaled. Street sets its own larger type and pays for it in padding. */
+  --sc-cat: calc(23px * var(--sc-scale));
+  --sc-hint: calc(15px * var(--sc-scale));
+  --sc-pts: calc(26px * var(--sc-scale));
+  --sc-total-type: calc(24px * var(--sc-scale));
+  --sc-key-type: calc(29px * var(--sc-scale));
+  --sc-row-pad: calc(6px * var(--sc-scale)) calc(10px * var(--sc-scale));
+  --sc-total-pad: calc(5px * var(--sc-scale)) calc(10px * var(--sc-scale));
+  --sc-howto-w: calc(210px * var(--sc-scale));
+  --sc-pts-w: calc(76px * var(--sc-scale));
+  --sc-pts-h: calc(44px * var(--sc-scale));
 
-/* GRID */
-.sc-header-row,
-.sc-row,
-.sc-total-row {
+  display: flex;
+  gap: calc(14px * var(--sc-scale));
+  align-items: flex-start;
+  padding: calc(14px * var(--sc-scale));
+  background: var(--sc-page);
+  font-family: var(--font-body, Inter, system-ui, sans-serif);
+}
+/* Side by side from the desktop band, which is where iPad landscape lands. */
+.sc-card { flex-direction: column; }
+.sc-panel {
+  width: 100%;
+  background-color: var(--sc-stock);
+  background-image: var(--sc-texture);
+  background-size: var(--sc-texture-size);
+  border: 2px solid var(--sc-rule-hard);
+  box-shadow: var(--sc-panel-shadow);
+  padding: calc(10px * var(--sc-scale));
+  display: flex; flex-direction: column;
+}
+
+/* A taped label, or a printed block — the difference is the ink's, not the anatomy's. */
+.sc-tape {
+  align-self: flex-start;
+  margin-bottom: calc(8px * var(--sc-scale));
+  padding: calc(3px * var(--sc-scale)) calc(12px * var(--sc-scale)) calc(2px * var(--sc-scale));
+  background: var(--sc-label-bg);
+  color: var(--sc-label-ink);
+  font-family: var(--sc-display);
+  font-size: calc(19px * var(--sc-scale));
+  letter-spacing: 0.08em;
+  transform: rotate(var(--sc-label-tilt));
+  box-shadow: var(--sc-label-shadow);
+}
+
+/* Three columns, everywhere: name (flex) · how to score · PTS box. */
+.sc-headrow, .sc-row, .sc-total {
   display: grid;
-  grid-template-columns: 108px 1fr 74px;
-}
-.sc-total-row .sc-score-val { font-size: 14px; }
-/* Flex fill: header/total rows stay fixed, unfilled score rows expand to fill space */
-.sc-header-row,
-.sc-total-row { flex: none; }
-.sc-lower-header { flex: none; }
-.sc-row { flex: none; transition: background 0.12s; }
-.sc-row-filled { flex: none; }
-.sc-col-name {
-  padding: 7px 8px;
-  display: flex;
+  grid-template-columns: 1fr var(--sc-howto-w) var(--sc-pts-w);
   align-items: center;
-  overflow: hidden;
 }
-.sc-col-howto {
-  padding: 7px 6px;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
+.sc-headrow {
+  padding: 0 calc(10px * var(--sc-scale)) calc(4px * var(--sc-scale));
+  border-bottom: 2.5px solid var(--sc-accent);
+  font-size: calc(11px * var(--sc-scale));
+  font-weight: 900; letter-spacing: 0.12em;
+  color: var(--sc-faint);
 }
-.sc-col-box {
-  padding: 7px 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  overflow: hidden;
-  border-left: 2px solid rgba(255,255,255,0.12);
-}
-.sc-col-box-hdr { flex-direction: column; gap: 1px; }
-.sc-round-label { font-size: 7px; font-weight: 900; letter-spacing: 0.08em; opacity: 0.65; line-height: 1; }
+.sc-h-howto { display: flex; align-items: center; gap: calc(6px * var(--sc-scale)); }
+.sc-h-pts { display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.sc-round-label { font-size: calc(9px * var(--sc-scale)); opacity: 0.75; }
 
-/* NAME CELL */
-.sc-name-inner { gap: 7px; }
-.sc-die-icon { width: 28px; height: 28px; flex-shrink: 0; }
+.sc-row {
+  padding: var(--sc-row-pad);
+  border-bottom: 1.5px solid var(--sc-rule);
+  color: var(--sc-ink);
+  cursor: default;
+}
+.sc-name { display: flex; align-items: center; gap: calc(8px * var(--sc-scale)); min-width: 0; }
 .sc-cat-label {
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  flex: 1;
-  min-width: 0;
+  font-family: var(--sc-display);
+  font-size: var(--sc-cat);
+  font-weight: var(--sc-cat-weight);
+  letter-spacing: var(--sc-cat-tracking);
+  line-height: 1.05;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.sc-cat-eq { font-size: 10px; font-weight: 600; flex-shrink: 0; white-space: nowrap; }
-.sc-lower-name { padding-left: 12px; }
-.sc-yahtzee-lbl { font-weight: 900 !important; letter-spacing: 0.05em; }
-
-/* HOW-TO */
-.sc-howto-text { font-size: 11px; font-weight: 700; line-height: 1.3; }
-
-/* SCORE VALUE */
-.sc-score-val { font-size: 17px; font-weight: 900; font-family: var(--font-display); }
-
-/* TOTAL ROWS */
-.sc-total-name {
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  gap: 4px;
+.sc-howto { font-size: var(--sc-hint); color: var(--sc-faint); line-height: 1.25; }
+.sc-pts {
+  justify-self: end;
+  width: var(--sc-pts-w); height: var(--sc-pts-h);
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--sc-rule-hard);
+  font-family: var(--sc-display);
+  font-size: var(--sc-pts);
+  line-height: 1;
 }
-.sc-arrows { font-size: 7px; letter-spacing: -2px; flex-shrink: 0; }
-.sc-total-sub { font-size: 9px; line-height: 1.3; }
+/* The star colour is for the two things a scorer looks for: a YAHTZEE, and a bonus. */
+.starred { color: var(--sc-star); }
 
-/* GRAND TOTAL */
-.sc-grand-label { font-size: 11px !important; }
-.sc-grand-val { font-size: 20px !important; filter: drop-shadow(0 0 3px currentColor); }
+.sc-die-icon { width: calc(26px * var(--sc-scale)); height: calc(26px * var(--sc-scale)); flex-shrink: 0; }
+.sc-die-bg { fill: var(--sc-die-face); stroke: var(--sc-die-edge); stroke-width: 1.5; }
+.sc-die-pip { fill: var(--sc-die-pip); }
 
-/* LOWER SECTION HEADER */
-.sc-lower-header {
-  padding: 10px 0;
-  font-size: 12px;
-  font-weight: 900;
-  font-family: var(--font-display);
-  letter-spacing: 0.18em;
-  text-align: center;
-  text-transform: uppercase;
+.sc-bonus-checks { display: flex; gap: calc(9px * var(--sc-scale)); }
+.sc-bonus-check { font-size: calc(17px * var(--sc-scale)); color: var(--sc-rule); }
+.sc-bonus-check.on { color: var(--sc-star); }
+
+/*
+ * A row this throw can actually take. Border, tint and a solid PTS box — three signals rather
+ * than one, because on the Paper ink a tint alone is nearly invisible in a lit room, and on
+ * Board Flip a border alone gets lost among the hairlines.
+ */
+.sc-row.live {
+  cursor: pointer;
+  border: 2px solid var(--sc-live);
+  background: var(--sc-live-tint);
+  box-shadow: var(--sc-live-shadow);
+}
+.sc-row.live .sc-pts {
+  background: var(--sc-live);
+  border-color: var(--sc-live);
+  color: var(--sc-live-ink);
+}
+.sc-row.filled { color: var(--sc-faint); }
+.sc-row.filled .sc-pts { color: var(--sc-ink); }
+.sc-row.pending { outline: 2px dashed var(--sc-accent); outline-offset: -2px; }
+
+.sc-total {
+  padding: var(--sc-total-pad);
+  color: var(--sc-faint);
+  font-size: calc(13px * var(--sc-scale));
+  border-bottom: 1.5px solid var(--sc-rule);
+}
+.sc-total .sc-name { font-family: var(--sc-display); font-size: var(--sc-total-type); color: var(--sc-ink); letter-spacing: 0.04em; }
+.sc-total .sc-pts { font-size: var(--sc-total-type); }
+/* The two that define a section, rather than feed it. */
+.sc-total-key { background: var(--sc-accent-tint); border-bottom: none; }
+.sc-total-key .sc-name, .sc-total-key .sc-pts { color: var(--sc-accent); font-size: var(--sc-key-type); }
+.sc-grand .sc-pts { border-color: var(--sc-accent); }
+
+/* ── 2a · Street Print — the default ─────────────────────────────────────── */
+.ink-street {
+  --sc-display: var(--font-display, 'Bebas Neue', system-ui);
+  --sc-cat-weight: 400;
+  --sc-cat-tracking: 0.02em;
+  --sc-stock: #101014;
+  --sc-page: #0b0b0e;
+  --sc-texture: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  --sc-texture-size: 5px 5px;
+  --sc-ink: #ffffff;
+  --sc-faint: rgba(255,255,255,0.45);
+  --sc-rule: rgba(255,255,255,0.12);
+  --sc-rule-hard: #2a2a34;
+  --sc-accent: #ff2d78;
+  --sc-accent-tint: rgba(255,45,120,0.12);
+  --sc-live: #aaff00;
+  --sc-live-tint: rgba(170,255,0,0.10);
+  --sc-live-ink: #101014;
+  --sc-star: #ffd700;
+  --sc-panel-shadow: 8px 8px 0 rgba(0,0,0,0.6);
+  --sc-live-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+  --sc-label-bg: var(--pink, #ff2d78);
+  --sc-label-ink: #2b0010;
+  --sc-label-tilt: -0.8deg;
+  --sc-label-shadow: 3px 3px 0 rgba(0,0,0,0.5);
+  --sc-die-face: #ffffff;
+  --sc-die-edge: #222222;
+  --sc-die-pip: #101014;
+  /* Street sets its type larger than the other two, so its rows give the height back in
+     padding — without this the GRAND TOTAL row runs past the panel and gets sliced. */
+  --sc-cat: calc(25px * var(--sc-scale));
+  --sc-hint: calc(17px * var(--sc-scale));
+  --sc-row-pad: calc(4px * var(--sc-scale)) calc(10px * var(--sc-scale));
+  --sc-total-pad: calc(3px * var(--sc-scale)) calc(10px * var(--sc-scale));
 }
 
-/* PENDING SELECTION */
-@keyframes sc-pending-flash {
-  0%   { opacity: 1;   box-shadow: inset 0 0 0 3px var(--pending-color, var(--pink)), 0 0 32px var(--pending-color, var(--pink)), 0 0 8px var(--pending-color, var(--pink)); }
-  50%  { opacity: 0.2; box-shadow: inset 0 0 0 1px var(--pending-color, var(--pink)), 0 0 4px var(--pending-color, var(--pink)); }
-  100% { opacity: 1;   box-shadow: inset 0 0 0 3px var(--pending-color, var(--pink)), 0 0 32px var(--pending-color, var(--pink)), 0 0 8px var(--pending-color, var(--pink)); }
+/* ── 2b · Paper Card ─────────────────────────────────────────────────────── */
+/* The only bright one, and the one worth checking on the stand in a dim room. */
+.ink-paper {
+  --sc-display: Georgia, 'Times New Roman', serif;
+  --sc-cat-weight: 700;
+  --sc-cat-tracking: 0;
+  --sc-stock: #f2e8d0;
+  --sc-page: #2a231a;
+  --sc-texture: repeating-linear-gradient(92deg, rgba(120,90,40,0.05) 0 2px, transparent 2px 5px);
+  --sc-texture-size: auto;
+  --sc-ink: #20180e;
+  --sc-faint: rgba(40,28,14,0.6);
+  --sc-rule: rgba(40,28,14,0.28);
+  --sc-rule-hard: rgba(40,28,14,0.5);
+  --sc-accent: #b4232a;
+  --sc-accent-tint: rgba(180,35,42,0.10);
+  --sc-live: #1c6b3a;
+  --sc-live-tint: rgba(28,107,58,0.12);
+  --sc-live-ink: #f2e8d0;
+  --sc-star: #b4232a;
+  --sc-panel-shadow: 0 10px 26px rgba(0,0,0,0.55);
+  --sc-live-shadow: none;
+  --sc-label-bg: #b4232a;
+  --sc-label-ink: #f6efdd;
+  --sc-label-tilt: 0deg;
+  --sc-label-shadow: none;
+  --sc-die-face: #fffdf6;
+  --sc-die-edge: #6b5a3a;
+  --sc-die-pip: #20180e;
+  /* The serif sets wider, so it runs a size below Street. */
+  --sc-cat: calc(23px * var(--sc-scale));
+  --sc-row-pad: calc(7px * var(--sc-scale)) calc(10px * var(--sc-scale));
 }
 
-/* BONUS CHECKS */
-.sc-bonus-checks { gap: 10px; }
-.sc-bonus-check { font-size: 20px; font-weight: 900; transition: color 0.2s; }
-
-/* DARK THEME */
-.sc-dark { background: rgba(12,12,12,0.88); color: #f0f0f0; }
-.sc-dark .sc-header-row { background: #1c1c1c; border-bottom: 2px solid #3a3a3a; }
-.sc-dark .sc-header-row .sc-col-name,
-.sc-dark .sc-header-row .sc-col-howto,
-.sc-dark .sc-header-row .sc-col-box { font-size: 9px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.55); justify-content: center; }
-.sc-dark .sc-header-row .sc-col-name { justify-content: flex-start; }
-.sc-dark .sc-header-row .sc-col-howto { justify-content: flex-start; padding-left: 2px; }
-.sc-dark .sc-section-title { font-size: 14px; color: rgba(255,255,255,0.85); letter-spacing: 0.08em; }
-.sc-dark .sc-col-name { border-right: 1px solid rgba(255,255,255,0.09); }
-.sc-dark .sc-col-howto { border-right: 1px solid rgba(255,255,255,0.09); }
-.sc-dark .sc-col-box { border-left: 2px solid rgba(255,255,255,0.14); }
-.sc-dark .sc-row { border-bottom: 1px solid rgba(255,255,255,0.07); transition: background 0.12s; cursor: default; }
-.sc-dark .sc-row:nth-child(even) { background: rgba(255,255,255,0.02); }
-.sc-dark .sc-row-scoreable { cursor: pointer; }
-.sc-dark .sc-row-scoreable:hover { background: rgba(255,255,255,0.05) !important; }
-.sc-dark .sc-row-pending {
-  background: color-mix(in srgb, var(--pending-color, var(--pink)) 32%, transparent) !important;
-  border-left: 3px solid var(--pending-color, var(--pink)) !important;
-  transition: none !important;
-  animation: sc-pending-flash 0.45s ease-in-out infinite;
+/* ── 2d · Board Flip ─────────────────────────────────────────────────────── */
+/* A stadium scoreboard, not a sheet: one monospaced face and cyan hairlines. */
+.ink-board {
+  --sc-display: 'Share Tech Mono', ui-monospace, monospace;
+  --sc-cat-weight: 400;
+  --sc-cat-tracking: 0.04em;
+  --sc-stock: #0a0d10;
+  --sc-page: #05070a;
+  --sc-texture: repeating-linear-gradient(180deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 4px);
+  --sc-texture-size: auto;
+  --sc-ink: #e8f4ff;
+  --sc-faint: rgba(180,210,235,0.5);
+  --sc-rule: rgba(0,212,255,0.22);
+  --sc-rule-hard: rgba(0,212,255,0.35);
+  --sc-accent: #00d4ff;
+  --sc-accent-tint: rgba(0,212,255,0.10);
+  --sc-live: #aaff00;
+  --sc-live-tint: rgba(170,255,0,0.10);
+  --sc-live-ink: #05070a;
+  --sc-star: #ffb400;
+  --sc-panel-shadow: 0 0 0 1px rgba(0,212,255,0.25), 0 12px 30px rgba(0,0,0,0.7);
+  --sc-live-shadow: none;
+  --sc-label-bg: #00d4ff;
+  --sc-label-ink: #04141b;
+  --sc-label-tilt: 0deg;
+  --sc-label-shadow: none;
+  --sc-die-face: linear-gradient(135deg, #142c60 0%, #1a56cc 45%, #4b8bff 75%, #9ac8ff 100%);
+  --sc-die-edge: rgba(255,255,255,0.25);
+  --sc-die-pip: #e8f4ff;
 }
-.sc-dark .sc-row-filled { opacity: 0.72; }
-.sc-dark .sc-total-row { background: rgba(255,255,255,0.04); border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.06); }
-.sc-dark .sc-section-total-row { border-bottom: 2px solid rgba(255,255,255,0.15); }
-.sc-dark .sc-grand-row { background: rgba(255,255,255,0.07); border-top: 2px solid rgba(255,255,255,0.2); }
-.sc-dark .sc-lower-header { background: #1c1c1c; border-top: 2px solid rgba(255,255,255,0.15); border-bottom: 2px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.65); }
-.sc-dark .sc-die-bg { fill: rgba(255,255,255,0.08); stroke: rgba(255,255,255,0.35); stroke-width: 1; }
-.sc-dark .sc-die-pip { fill: #fff; }
-.sc-dark .sc-cat-label { color: #f0f0f0; }
-.sc-dark .sc-cat-eq { color: rgba(255,255,255,0.45); }
-.sc-dark .sc-howto-text { color: rgba(255,255,255,0.45); }
-.sc-dark .sc-total-name { color: rgba(255,255,255,0.75); }
-.sc-dark .sc-total-sub { color: rgba(255,255,255,0.4); }
-.sc-dark .sc-arrows { color: rgba(255,255,255,0.25); }
-.sc-dark .sc-val-locked { color: rgba(255,255,255,0.5); }
-.sc-dark .sc-val-bonus { color: #ffd400 !important; }
-.sc-dark .sc-yahtzee-lbl { color: #ffd400; }
-.sc-dark .sc-bonus-check { color: rgba(255,255,255,0.15); }
-.sc-dark .sc-check-on { color: #ffd400; }
+/* An SVG rect cannot take a gradient through `fill`, so the blue face is painted on the
+   element behind it and the rect is left clear. */
+.ink-board .sc-die-bg { fill: #1a56cc; }
 
-/* LIGHT THEME */
-.sc-light { background: rgba(245,240,232,0.95); color: #111; }
-.sc-light .sc-header-row { background: #e0d8c8; border-bottom: 2px solid #999; }
-.sc-light .sc-header-row .sc-col-name,
-.sc-light .sc-header-row .sc-col-howto,
-.sc-light .sc-header-row .sc-col-box { font-size: 9px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; color: #444; justify-content: center; }
-.sc-light .sc-header-row .sc-col-name { justify-content: flex-start; }
-.sc-light .sc-header-row .sc-col-howto { justify-content: flex-start; padding-left: 2px; }
-.sc-light .sc-section-title { font-size: 14px; color: #222; letter-spacing: 0.08em; }
-.sc-light .sc-col-name { border-right: 1px solid #bbb; }
-.sc-light .sc-col-howto { border-right: 1px solid #bbb; }
-.sc-light .sc-row { border-bottom: 1px solid #ccc; transition: background 0.12s; cursor: default; }
-.sc-light .sc-row:nth-child(even) { background: rgba(0,0,0,0.02); }
-.sc-light .sc-row-scoreable { cursor: pointer; }
-.sc-light .sc-row-scoreable:hover { background: rgba(0,0,0,0.05) !important; }
-.sc-light .sc-row-pending {
-  background: color-mix(in srgb, var(--pending-color, var(--pink)) 28%, transparent) !important;
-  border-left: 3px solid var(--pending-color, var(--pink)) !important;
-  transition: none !important;
-  animation: sc-pending-flash 0.45s ease-in-out infinite;
+@media (hover: hover) and (pointer: fine) {
+  .sc-row.live:hover { filter: brightness(1.08); }
 }
-.sc-light .sc-row-filled { opacity: 0.72; }
-.sc-light .sc-total-row { background: #ece6d8; border-top: 1px solid #aaa; border-bottom: 1px solid #bbb; }
-.sc-light .sc-section-total-row { border-bottom: 2px solid #999; }
-.sc-light .sc-grand-row { background: #e0d8c8; border-top: 2px solid #888; }
-.sc-light .sc-lower-header { background: #e0d8c8; border-top: 2px solid #aaa; border-bottom: 2px solid #aaa; color: #333; }
-.sc-light .sc-die-bg { fill: #fff; stroke: #333; stroke-width: 1.5; }
-.sc-light .sc-die-pip { fill: #111; }
-.sc-light .sc-cat-label { color: #111; }
-.sc-light .sc-cat-eq { color: #555; }
-.sc-light .sc-howto-text { color: #555; }
-.sc-light .sc-total-name { color: #222; }
-.sc-light .sc-total-sub { color: #666; }
-.sc-light .sc-arrows { color: #999; }
-.sc-light .sc-val-locked { color: #333; }
-.sc-light .sc-val-bonus { color: #b8860b !important; font-weight: 900; }
-.sc-light .sc-yahtzee-lbl { color: #b8860b; }
-.sc-light .sc-bonus-check { color: #ccc; }
-.sc-light .sc-check-on { color: #b8860b; }
 
 
 /* Phones: the dice row + side ROLL overflow their container (570px of content in a
@@ -1806,14 +1778,31 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   .roll-btn-side { flex: 1; min-height: 52px; font-size: 16px; }
 }
 
+/*
+ * The one size knob, set once per band.
+ *
+ * The old card re-tuned nine font sizes and three column widths in each of four media
+ * queries, so every band was a separate negotiation and changing a row meant changing it in
+ * four places that had already drifted apart. Everything is expressed against --sc-scale now;
+ * these three declarations are the whole responsive story.
+ */
+@media (max-width: 767px) {
+  .sc-card { --sc-scale: 0.62; }
+}
+@media (min-width: 768px) and (max-width: 1099px) {
+  .sc-card { --sc-scale: 0.78; }
+}
+/* iPad landscape and up: the two panels sit side by side and the card fits 1194 x 834
+   without scrolling, which is the whole reason the sections are separate panels. */
+@media (min-width: 1100px) {
+  .sc-card { --sc-scale: 1; flex-direction: row; }
+  .sc-panel { width: 50%; }
+  .scorecard-scroll { overflow: hidden; }
+}
+
 @media (max-width: 380px) {
   .die-wrap .die { --die-size: 48px; }
   .dice-row { gap: 10px; }
-  .sc-header-row,
-  .sc-row,
-  .sc-total-row { grid-template-columns: 96px 1fr 60px; }
-  .sc-cat-label { font-size: 11px; }
-  .sc-howto-text { font-size: 9.5px; }
 }
 
 /* Tablet/iPad: compact everything to maximise scorecard space */
@@ -1834,22 +1823,10 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   /* Hide hint text — saves a full line of height */
   .score-hint { display: none; }
   /* Scorecard rows as tight as possible */
-  .sc-col-name,
-  .sc-col-howto,
-  .sc-col-box { padding-top: 2px; padding-bottom: 2px; }
-  .sc-lower-header { padding: 4px 0; }
-  .sc-cat-label { font-size: 10px; }
-  .sc-howto-text { font-size: 9px; font-weight: 700; }
-  .sc-score-val { font-size: 13px; }
-  .sc-total-name { font-size: 9px; }
-  .sc-grand-label { font-size: 10px !important; }
-  .sc-grand-val { font-size: 17px !important; }
-  .sc-bonus-check { font-size: 15px; }
 }
 /* Tablet portrait: scorecard scrolls freely */
 @media (min-width: 768px) and (max-width: 1100px) and (orientation: portrait) {
   .scorecard-scroll { overflow-y: auto; }
-  .sc-lower-header { display: flex; align-items: center; justify-content: center; }
   /* Bigger dice on portrait tablet — scrolling means space isn't an issue */
   .die-wrap .die { --die-size: 96px; }
   /*
@@ -1862,31 +1839,9 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   .dice-row { gap: 22px; padding-left: 0; min-width: 0; }
   .roll-pip { width: 20px; height: 20px; }
   .roll-btn-side { padding: 14px 18px; font-size: 16px; min-width: 90px; }
-  /* Wider columns — PTS column widened ~half inch to the left */
-  .sc-header-row,
-  .sc-row,
-  .sc-total-row { grid-template-columns: 200px 1fr 146px; }
-  /* Scale fonts to fill the stretched rows — caps kept conservative to prevent overflow */
-  .sc-cat-label { font-size: clamp(13px, 1.7dvh, 18px); }
-  .sc-howto-text { font-size: clamp(10px, 1.3dvh, 14px); font-weight: 700; }
-  /* Larger PTS numbers — reduce vertical padding to keep box height unchanged */
-  .sc-col-box { padding-top: 2px; padding-bottom: 2px; }
-  .sc-score-val { font-size: clamp(24px, 3.4dvh, 38px); }
-  .sc-total-row .sc-score-val { font-size: clamp(20px, 2.8dvh, 30px); }
-  .sc-grand-val { font-size: clamp(26px, 3.8dvh, 44px) !important; }
-  .sc-total-name { font-size: clamp(11px, 1.5dvh, 16px); }
-  .sc-total-sub { font-size: clamp(8px, 1.1dvh, 12px); }
-  .sc-grand-label { font-size: clamp(13px, 1.7dvh, 18px) !important; }
-  .sc-lower-header { font-size: clamp(12px, 1.7dvh, 18px); padding: 0; }
-  .sc-bonus-check { font-size: clamp(14px, 2.1dvh, 22px); }
-  .sc-cat-eq { font-size: clamp(9px, 1.2dvh, 13px); }
-  .sc-arrows { font-size: clamp(6px, 0.8dvh, 9px); }
   /* Move dice/settings buttons into scorecard header, hide from turn-header */
   .sc-ipad-btns { display: flex; gap: 6px; flex-shrink: 0; }
   .bet-header-btn { margin-left: auto; }
-  .sc-header-row { position: sticky; top: 0; z-index: 2; }
-  .sc-dark .sc-header-row { background: #0a0a0a; }
-  .sc-light .sc-header-row { background: #e0d8c8; }
   .turn-header .header-sc-btn { display: none; }
   /* Larger avatar and player name using the freed space */
   .player-banner { padding: 14px 20px; min-height: 80px; gap: 16px; }
@@ -1897,7 +1852,6 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 /* Tablet landscape: scorecard fills page and scrolls if needed */
 @media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
   .scorecard-scroll { display: flex; flex-direction: column; overflow-y: auto; }
-  .sc-paper { flex: 1; }
 }
 
 /* Laptop / large desktop: scorecard fills the page without scrolling, larger text */
@@ -1935,40 +1889,6 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 
   /* Scorecard fills remaining height with no scroll */
   .scorecard-scroll { overflow: hidden; }
-  .sc-paper { height: 100%; display: flex; flex-direction: column; }
-  .sc-header-row,
-  .sc-row,
-  .sc-row-filled,
-  .sc-total-row,
-  .sc-lower-header { flex: 1; min-height: 0; }
-  /* Vertically center the lower-section header text */
-  .sc-lower-header { display: flex; align-items: center; justify-content: center; }
-  /* Widen PTS column and name column for readability and easier tapping */
-  .sc-header-row,
-  .sc-row,
-  .sc-total-row { grid-template-columns: 190px 1fr 90px; }
-  /* Zero out the iPad padding overrides */
-  .sc-col-name,
-  .sc-col-howto,
-  .sc-col-box { padding-top: 4px; padding-bottom: 4px; }
-  /* Larger, more readable fonts */
-  .sc-cat-label { font-size: clamp(16px, 2dvh, 24px); }
-  .sc-howto-text { font-size: clamp(12px, 1.6dvh, 19px); font-weight: 700; line-height: 1.3; }
-  .sc-score-val { font-size: clamp(20px, 3dvh, 34px); }
-  .sc-total-name { font-size: clamp(13px, 1.8dvh, 22px); }
-  .sc-total-sub { font-size: clamp(10px, 1.3dvh, 16px); }
-  .sc-grand-label { font-size: clamp(15px, 2dvh, 24px) !important; }
-  .sc-grand-val { font-size: clamp(26px, 3.8dvh, 44px) !important; }
-  .sc-lower-header { font-size: clamp(14px, 2dvh, 24px); padding: 0; }
-  .sc-bonus-check { font-size: clamp(20px, 2.8dvh, 32px); }
-  .sc-cat-eq { font-size: clamp(10px, 1.4dvh, 16px); }
-  /* Header row labels */
-  .sc-dark .sc-header-row .sc-col-box,
-  .sc-light .sc-header-row .sc-col-box,
-  .sc-dark .sc-header-row .sc-col-name,
-  .sc-light .sc-header-row .sc-col-name,
-  .sc-dark .sc-header-row .sc-col-howto,
-  .sc-light .sc-header-row .sc-col-howto { font-size: 11px; }
 }
 
 /*
@@ -2091,106 +2011,25 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 
 /* WALK-UP OVERLAY */
-.walkup-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #0a0a0a;
-}
-.walkup-avatar-bg {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  opacity: 0.15;
-}
-.walkup-avatar-bg img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.walkup-avatar-bg span {
-  font-size: 220px;
-  line-height: 1;
-}
-.walkup-inner {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  padding: 40px 24px;
-  width: 100%;
-  max-width: 420px;
-}
-.walkup-name {
-  font-size: clamp(48px, 12vw, 80px);
-  letter-spacing: 0.04em;
-  line-height: 1;
-  text-align: center;
-  word-break: break-word;
-}
-.walkup-bar {
-  width: 60%;
-  height: 3px;
-  border-radius: 2px;
-}
-.walkup-timer-bar {
-  width: 90%;
-  max-width: 320px;
-  position: relative;
-  height: 36px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 18px;
-  overflow: hidden;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.walkup-timer-fill {
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  background: rgba(255,255,255,0.2);
-  border-radius: 18px;
-  transition: width 1s linear;
-}
-.walkup-timer-fill.urgent { background: rgba(239,68,68,0.45); }
-.walkup-timer-fill.paused { background: rgba(255,200,0,0.25); }
-.walkup-timer-text {
-  position: relative;
-  z-index: 1;
-  font-size: 15px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  color: rgba(255,255,255,0.7);
-  font-family: var(--font-display);
-}
-.walkup-timer-text.urgent { color: #ef4444; }
-.walkup-start-btn {
-  margin-top: 8px;
-  padding: 14px 48px;
-  border-radius: 40px;
-  border: none;
-  background: var(--pink);
-  color: #fff;
-  font-size: 22px;
-  font-weight: 900;
-  font-family: var(--font-display);
-  letter-spacing: 0.15em;
-  cursor: pointer;
-  box-shadow: 0 0 30px rgba(255,45,120,0.4);
-  transition: opacity 0.15s;
-}
-.walkup-start-btn:active { opacity: 0.8; }
-
 /* SETTINGS BET SECTION */
+.sc-leave-list { display: flex; flex-direction: column; gap: 6px; padding: 4px 0 2px; }
+.sc-leave-note { margin: 0 0 4px; font-size: 12px; color: var(--text-muted); }
+.sc-leave-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; width: 100%;
+  border: 2px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
+  cursor: pointer; text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Armed. Red only at this point, so the list itself does not read as a danger zone. */
+.sc-leave-row.confirming { border-color: #ef4444; background: rgba(239,68,68,0.14); }
+.sc-leave-action {
+  margin-left: auto; flex-shrink: 0;
+  font-family: var(--font-display); font-size: 12px; letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+.sc-leave-row.confirming .sc-leave-action { color: #ef4444; }
+
 .sc-settings-divider {
   font-size: 10px;
   font-weight: 900;
@@ -2219,7 +2058,4 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 
 /* Walk-up transition */
-.walkup-fade-enter-active { transition: opacity 0.25s ease; }
-.walkup-fade-leave-active { transition: opacity 0.2s ease; }
-.walkup-fade-enter-from, .walkup-fade-leave-to { opacity: 0; }
 </style>

@@ -5,6 +5,7 @@
       <!-- Entry panel -->
       <div class="entry-panel" :style="entryPanelStyle">
         <div v-if="showBlurBg" class="entry-bg-blur" :style="entryBlurBgStyle" />
+        <div v-if="entryPhotoStyle" class="entry-bg-photo" :style="entryPhotoStyle" />
         <div class="turn-header" :class="{ 'turn-header-3btns': game.gameType === 'aroundTheClock' || isCricketGame(game.gameType) }" :style="{ '--player-color': currentPlayer.color }">
           <!-- Left: round pill centered in left space -->
           <div class="turn-left">
@@ -1230,13 +1231,60 @@ const entryPanelStyle = computed(() => {
   const bg = throwBg.value
   if (!bg) return {}
   if (bg.startsWith('data:') || bg.startsWith('http')) {
-    const size = isPlayerBg ? 'cover' : (game.value?.gameThemeSize ?? 'cover')
-    const position = isPlayerBg ? 'center' : (game.value?.gameThemePosition ?? 'center')
-    const fill = isPlayerBg ? null : game.value?.gameThemeFill
+    /*
+     * A player's photo is drawn on its own layer below (`entryPhotoStyle`), because zoom has
+     * to scale it and a panel background cannot be scaled — `transform` moves the whole
+     * element, furniture and all. The panel keeps only the colour behind it.
+     *
+     * A game theme still paints straight onto the panel. It has no zoom, so it needs no layer.
+     */
+    if (isPlayerBg) {
+      const fill = currentPlayer.value.playerBackgroundFill
+      const size = currentPlayer.value.playerBackgroundSize
+      return { backgroundColor: (fill === 'blur' && size === 'contain') ? 'transparent' : '#000' }
+    }
+    const size = game.value?.gameThemeSize ?? 'cover'
+    const position = game.value?.gameThemePosition ?? 'center'
+    const fill = game.value?.gameThemeFill
     const bgColor = (fill === 'blur' && size === 'contain') ? 'transparent' : '#000'
     return { backgroundImage: `url(${bg})`, backgroundSize: size, backgroundPosition: position, backgroundRepeat: 'no-repeat', backgroundColor: bgColor }
   }
   return { background: bg }
+})
+
+/*
+ * The player's photo, framed the way they left it on the player screen: their dragged spot as
+ * background-position, their zoom as a scale.
+ *
+ * Before the placer existed this screen hardcoded cover / centre and ignored every saved
+ * value, so nothing a player chose was ever visible here — which is the whole reason the
+ * three-stop control read as doing nothing.
+ *
+ * Zoom is ignored when the photo is set to contain: contain exists to show the whole image,
+ * and scaling it up is the one thing that undoes that.
+ */
+const entryPhotoStyle = computed(() => {
+  const bg = throwBg.value
+  if (!bg || !throwBgIsPlayers.value) return null
+  if (!(bg.startsWith('data:') || bg.startsWith('http'))) return null
+  const p = currentPlayer.value
+  const contained = p.playerBackgroundSize === 'contain'
+  /*
+   * A throw photo of its own is framed on its own terms. Falling back to the default photo
+   * means falling back to the default's framing too, because that is the picture on screen —
+   * borrowing the throw slot's framing for someone else's photo would frame it by numbers
+   * chosen against an image that is not being shown.
+   */
+  const own = !!p.throwBackground
+  const position = (own ? p.throwBackgroundPosition : p.playerBackgroundPosition) ?? 'center'
+  const saved = own ? p.throwBackgroundZoom : p.playerBackgroundZoom
+  const zoom = contained ? 100 : Math.min(210, Math.max(100, saved ?? 100))
+  return {
+    backgroundImage: `url(${bg})`,
+    backgroundSize: contained ? 'contain' : 'cover',
+    backgroundPosition: position,
+    transform: zoom === 100 ? undefined : `scale(${zoom / 100})`,
+  }
 })
 
 const showBlurBg = computed(() => {
@@ -1377,6 +1425,13 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .submit-float-btn:disabled { opacity: 0.4; }
 .scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; height: 64px; padding: 0 40px; font-size: clamp(52px, 7.8dvh, 76px); font-weight: 900; font-family: var(--font-display); letter-spacing: 0.04em;  }
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; position: relative; z-index: 1; }
+
+/* The player's photo, on its own layer so zoom can scale it without taking the score
+   furniture with it. Sits above the blur fill and below everything that is read. */
+.entry-bg-photo {
+  position: absolute; inset: 0; z-index: 0;
+  background-repeat: no-repeat;
+}
 
 .entry-bg-blur {
   position: absolute; inset: 0; z-index: 0;
@@ -1937,11 +1992,42 @@ watch(() => game.value?.currentPlayerIndex, () => {
   /* iPad: scores overlay marks — slightly larger than global since iPad has more space */
   .mini-pip { width: 20px; height: 20px; }
   .mini-label { font-size: 24px; }
+
+  /*
+   * The name takes its own row on an iPad too — the same fault as the phone, one band up.
+   *
+   * `.turn-name-wrap` is absolutely positioned across the whole header and centred at
+   * z-index 0, underneath the round pill and the buttons, which both paint opaque
+   * backgrounds. An 810px iPad portrait looks like it has room and does not: the pill alone
+   * is a clamp(50px, 6.8dvh, 74px) wordmark, so avatar plus pill runs past 300px, and a name
+   * centred across the full width starts around 105px — under it. "PEEZY F BABY" came out
+   * with "ROUND 1" stamped through the middle of it.
+   *
+   * The band previously capped the name at 48vw instead. That bounds how far the name
+   * reaches, which answers the right-hand collision and does nothing about the pill coming
+   * from the left, because the pill is drawn ON TOP rather than beside.
+   *
+   * Landscape is included deliberately: a 1024 x 768 iPad has more width but scales both the
+   * pill and the name off viewport height, so the clearance barely moves.
+   */
+  .turn-header { min-height: 0; flex-wrap: wrap; row-gap: 2px; padding-bottom: 6px; }
+  .turn-left { flex: 0 0 auto; order: 1; align-items: center; }
+  .turn-header-3btns .turn-left { align-items: center; padding-bottom: 0; }
+  .turn-right { flex: 1 1 auto; order: 2; justify-content: flex-end; padding-right: 8px; }
+  .turn-name-wrap {
+    position: static; order: 3;
+    flex: 0 0 100%; width: 100%;
+    align-items: center; justify-content: center; padding: 0 10px;
+  }
+  .turn-name {
+    display: block; max-width: 100%;
+    font-size: clamp(40px, 6.5vw, 68px); padding: 0 12px;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .turn-round-pill { font-size: clamp(26px, 3.4dvh, 38px); padding: 4px 14px; margin-left: 10px; }
 }
 
 @media (min-width: 768px) and (max-width: 1099px) and (orientation: portrait) {
-  /* Prevent player name from overlapping the right-side buttons in portrait */
-  .turn-name { max-width: 48vw; }
   /* Cricket: keep SCORES button sized at mid widths */
   .scores-btn.scores-btn-cricket { height: 48px; padding: 0 18px; font-size: 18px; margin: 0 4px 0 0; }
 }
