@@ -1937,11 +1937,42 @@ watch(() => game.value?.currentPlayerIndex, () => {
   /* iPad: scores overlay marks — slightly larger than global since iPad has more space */
   .mini-pip { width: 20px; height: 20px; }
   .mini-label { font-size: 24px; }
+
+  /*
+   * The name takes its own row on an iPad too — the same fault as the phone, one band up.
+   *
+   * `.turn-name-wrap` is absolutely positioned across the whole header and centred at
+   * z-index 0, underneath the round pill and the buttons, which both paint opaque
+   * backgrounds. An 810px iPad portrait looks like it has room and does not: the pill alone
+   * is a clamp(50px, 6.8dvh, 74px) wordmark, so avatar plus pill runs past 300px, and a name
+   * centred across the full width starts around 105px — under it. "PEEZY F BABY" came out
+   * with "ROUND 1" stamped through the middle of it.
+   *
+   * The band previously capped the name at 48vw instead. That bounds how far the name
+   * reaches, which answers the right-hand collision and does nothing about the pill coming
+   * from the left, because the pill is drawn ON TOP rather than beside.
+   *
+   * Landscape is included deliberately: a 1024 x 768 iPad has more width but scales both the
+   * pill and the name off viewport height, so the clearance barely moves.
+   */
+  .turn-header { min-height: 0; flex-wrap: wrap; row-gap: 2px; padding-bottom: 6px; }
+  .turn-left { flex: 0 0 auto; order: 1; align-items: center; }
+  .turn-header-3btns .turn-left { align-items: center; padding-bottom: 0; }
+  .turn-right { flex: 1 1 auto; order: 2; justify-content: flex-end; padding-right: 8px; }
+  .turn-name-wrap {
+    position: static; order: 3;
+    flex: 0 0 100%; width: 100%;
+    align-items: center; justify-content: center; padding: 0 10px;
+  }
+  .turn-name {
+    display: block; max-width: 100%;
+    font-size: clamp(40px, 6.5vw, 68px); padding: 0 12px;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .turn-round-pill { font-size: clamp(26px, 3.4dvh, 38px); padding: 4px 14px; margin-left: 10px; }
 }
 
 @media (min-width: 768px) and (max-width: 1099px) and (orientation: portrait) {
-  /* Prevent player name from overlapping the right-side buttons in portrait */
-  .turn-name { max-width: 48vw; }
   /* Cricket: keep SCORES button sized at mid widths */
   .scores-btn.scores-btn-cricket { height: 48px; padding: 0 18px; font-size: 18px; margin: 0 4px 0 0; }
 }
