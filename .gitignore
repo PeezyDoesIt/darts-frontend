@@ -42,3 +42,12 @@ npm-debug.log*
 .env.*
 .env.local
 .env.*.local
+
+# Handoff bundles are dropped in the repo root to be diffed against, not built — they are
+# deliberately partial and often written from an older snapshot. Kept out of git so they
+# cannot be swept into a commit by `git add .`, and out of eslint for the same reason.
+handoff-*/
+*.zip
+
+# Build output captured for reading, not keeping.
+build.txt
