@@ -5,6 +5,7 @@
       <!-- Entry panel -->
       <div class="entry-panel" :style="entryPanelStyle">
         <div v-if="showBlurBg" class="entry-bg-blur" :style="entryBlurBgStyle" />
+        <div v-if="entryPhotoStyle" class="entry-bg-photo" :style="entryPhotoStyle" />
         <div class="turn-header" :class="{ 'turn-header-3btns': game.gameType === 'aroundTheClock' || isCricketGame(game.gameType) }" :style="{ '--player-color': currentPlayer.color }">
           <!-- Left: round pill centered in left space -->
           <div class="turn-left">
@@ -1230,13 +1231,51 @@ const entryPanelStyle = computed(() => {
   const bg = throwBg.value
   if (!bg) return {}
   if (bg.startsWith('data:') || bg.startsWith('http')) {
-    const size = isPlayerBg ? 'cover' : (game.value?.gameThemeSize ?? 'cover')
-    const position = isPlayerBg ? 'center' : (game.value?.gameThemePosition ?? 'center')
-    const fill = isPlayerBg ? null : game.value?.gameThemeFill
+    /*
+     * A player's photo is drawn on its own layer below (`entryPhotoStyle`), because zoom has
+     * to scale it and a panel background cannot be scaled — `transform` moves the whole
+     * element, furniture and all. The panel keeps only the colour behind it.
+     *
+     * A game theme still paints straight onto the panel. It has no zoom, so it needs no layer.
+     */
+    if (isPlayerBg) {
+      const fill = currentPlayer.value.playerBackgroundFill
+      const size = currentPlayer.value.playerBackgroundSize
+      return { backgroundColor: (fill === 'blur' && size === 'contain') ? 'transparent' : '#000' }
+    }
+    const size = game.value?.gameThemeSize ?? 'cover'
+    const position = game.value?.gameThemePosition ?? 'center'
+    const fill = game.value?.gameThemeFill
     const bgColor = (fill === 'blur' && size === 'contain') ? 'transparent' : '#000'
     return { backgroundImage: `url(${bg})`, backgroundSize: size, backgroundPosition: position, backgroundRepeat: 'no-repeat', backgroundColor: bgColor }
   }
   return { background: bg }
+})
+
+/*
+ * The player's photo, framed the way they left it on the player screen: their dragged spot as
+ * background-position, their zoom as a scale.
+ *
+ * Before the placer existed this screen hardcoded cover / centre and ignored every saved
+ * value, so nothing a player chose was ever visible here — which is the whole reason the
+ * three-stop control read as doing nothing.
+ *
+ * Zoom is ignored when the photo is set to contain: contain exists to show the whole image,
+ * and scaling it up is the one thing that undoes that.
+ */
+const entryPhotoStyle = computed(() => {
+  const bg = throwBg.value
+  if (!bg || !throwBgIsPlayers.value) return null
+  if (!(bg.startsWith('data:') || bg.startsWith('http'))) return null
+  const p = currentPlayer.value
+  const contained = p.playerBackgroundSize === 'contain'
+  const zoom = contained ? 100 : Math.min(210, Math.max(100, p.playerBackgroundZoom ?? 100))
+  return {
+    backgroundImage: `url(${bg})`,
+    backgroundSize: contained ? 'contain' : 'cover',
+    backgroundPosition: p.playerBackgroundPosition ?? 'center',
+    transform: zoom === 100 ? undefined : `scale(${zoom / 100})`,
+  }
 })
 
 const showBlurBg = computed(() => {
@@ -1377,6 +1416,13 @@ watch(() => game.value?.currentPlayerIndex, () => {
 .submit-float-btn:disabled { opacity: 0.4; }
 .scores-btn { flex-shrink: 0; align-self: center; margin: 0 16px; height: 64px; padding: 0 40px; font-size: clamp(52px, 7.8dvh, 76px); font-weight: 900; font-family: var(--font-display); letter-spacing: 0.04em;  }
 .entry-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; position: relative; z-index: 1; }
+
+/* The player's photo, on its own layer so zoom can scale it without taking the score
+   furniture with it. Sits above the blur fill and below everything that is read. */
+.entry-bg-photo {
+  position: absolute; inset: 0; z-index: 0;
+  background-repeat: no-repeat;
+}
 
 .entry-bg-blur {
   position: absolute; inset: 0; z-index: 0;

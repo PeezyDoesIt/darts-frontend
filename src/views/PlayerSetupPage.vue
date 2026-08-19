@@ -59,48 +59,61 @@
           </div>
 
           <!--
-            How the image is fitted.
+            Placement.
 
-            The throw screen has always honoured these three — it sets background-size and
-            background-position from them, and draws a blurred copy behind a contained image
-            when Fill is Blur. Nothing could set them: this screen wrote null into all three
-            on every save, on both the create and update paths, so a photo could only ever be
-            cropped to fill. They are only worth showing once there is an image to fit.
+            This replaced Centre / Top / Bottom. Three stops rarely landed on the part of the
+            photo anyone meant, and the small preview beside them was always centre-cropped, so
+            the buttons changed nothing you could see. Here the preview IS the throw screen —
+            same shape, same furniture in the same corners — and the photo is dragged under it.
+            Only worth showing once there is an image to place.
           -->
           <div v-if="bgImagePreview" class="field">
-            <label class="label">Background Fit</label>
-            <p class="field-hint">Crop fills the screen and trims the edges. Fit shows the whole image and fills what is left over.</p>
-            <div class="bgfit-row">
+            <label class="label">Placement</label>
+            <p class="field-hint">This is the throw screen. Drag the photo until the part you want is clear of the score.</p>
+
+            <div
+              class="bgplace"
+              :class="{ dragging: bgDragging, fitted: isBgFitted }"
+              @pointerdown="startBgDrag"
+            >
+              <div v-if="showsBlurFill" class="bgplace-blur" :style="{ backgroundImage: `url(${bgImagePreview})` }" />
+              <div class="bgplace-photo" :style="bgPlaceStyle" />
+              <div class="bgplace-ui">
+                <span class="bgplace-name">{{ name.trim() || 'PLAYER' }}</span>
+                <span class="bgplace-score">301</span>
+                <span class="bgplace-darts"><i /><i /><i class="empty" /></span>
+              </div>
+              <div class="bgplace-grid" :class="{ show: bgDragging }"><i /><i /><b /><b /></div>
+              <span v-if="!bgPlaced && !isBgFitted" class="bgplace-hint">DRAG TO PLACE</span>
+            </div>
+
+            <div class="bgfit-row" style="margin-top:12px">
               <button
                 v-for="opt in BG_SIZE_OPTS" :key="String(opt.value)" v-ripple
                 class="bgfit-btn" :class="{ active: playerBackgroundSize === opt.value }"
                 @click="playerBackgroundSize = opt.value"
               >{{ opt.label }}</button>
             </div>
-          </div>
 
-          <div v-if="bgImagePreview" class="field">
-            <label class="label">Background Position</label>
-            <p class="field-hint">Which part of the image to keep when it is cropped.</p>
-            <div class="bgfit-row">
-              <button
-                v-for="opt in BG_POSITION_OPTS" :key="String(opt.value)" v-ripple
-                class="bgfit-btn" :class="{ active: playerBackgroundPosition === opt.value }"
-                @click="playerBackgroundPosition = opt.value"
-              >{{ opt.label }}</button>
+            <div v-if="!isBgFitted" class="bgzoom-row">
+              <span class="bgzoom-label">Zoom</span>
+              <button v-ripple class="bgzoom-btn" :disabled="bgZoom <= 100" @click="bumpBgZoom(-10)">–</button>
+              <div class="bgzoom-bar"><i :style="{ width: bgZoomPct }" /></div>
+              <button v-ripple class="bgzoom-btn" :disabled="bgZoom >= 210" @click="bumpBgZoom(10)">+</button>
             </div>
-          </div>
 
-          <!-- Only meaningful when the image is contained: cropping leaves nothing to fill. -->
-          <div v-if="bgImagePreview && playerBackgroundSize === 'contain'" class="field">
-            <label class="label">Background Fill</label>
-            <p class="field-hint">What sits behind the image in the space it does not cover.</p>
-            <div class="bgfit-row">
+            <!-- Only meaningful when the image is contained: cropping leaves nothing to fill. -->
+            <div v-if="isBgFitted" class="bgfit-row" style="margin-top:10px">
               <button
                 v-for="opt in BG_FILL_OPTS" :key="String(opt.value)" v-ripple
                 class="bgfit-btn" :class="{ active: playerBackgroundFill === opt.value }"
                 @click="playerBackgroundFill = opt.value"
               >{{ opt.label }}</button>
+            </div>
+
+            <div class="bgplace-foot">
+              <p class="field-hint">{{ bgPlacementReadout }}</p>
+              <button v-if="bgPlaced || bgZoom > 100" v-ripple class="btn btn-outline btn-sm" @click="resetBgPlacement">Reset placement</button>
             </div>
           </div>
 
@@ -370,7 +383,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, type CSSProperties } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { avatarGlyph, isPhoto } from '../lib/playerDisplay'
 import { usePlayersStore } from '../stores/players'
@@ -485,19 +498,109 @@ const BG_SIZE_OPTS = [
   { label: 'Crop to fill', value: null },
   { label: 'Fit whole image', value: 'contain' as const },
 ] as const
-const BG_POSITION_OPTS = [
-  { label: 'Centre', value: null },
-  { label: 'Top', value: 'top' as const },
-  { label: 'Bottom', value: 'bottom' as const },
-] as const
 const BG_FILL_OPTS = [
   { label: 'Black', value: null },
   { label: 'Blurred image', value: 'blur' as const },
 ] as const
 
 const playerBackgroundSize = ref<'cover' | 'contain' | null>(null)
-const playerBackgroundPosition = ref<'top' | 'center' | 'bottom' | null>(null)
 const playerBackgroundFill = ref<'black' | 'blur' | null>(null)
+
+/*
+ * Placement.
+ *
+ * The dragged spot is held as two numbers rather than a CSS string so the drag can do
+ * arithmetic on it; it becomes a background-position pair only on save. `bgPlaced` stays
+ * false until the photo is actually moved, which is what keeps a saved position of null for
+ * everyone who never touches it — null is the throw screen's own default, so a player who
+ * never opens this is left exactly as they were.
+ */
+const bgFocusX = ref(50)
+const bgFocusY = ref(50)
+const bgZoom = ref(100)
+const bgPlaced = ref(false)
+const bgDragging = ref(false)
+
+const isBgFitted = computed(() => playerBackgroundSize.value === 'contain')
+const showsBlurFill = computed(() => isBgFitted.value && playerBackgroundFill.value === 'blur')
+const bgZoomPct = computed(() => `${((bgZoom.value - 100) / 110) * 100}%`)
+
+const bgPlaceStyle = computed((): CSSProperties => ({
+  backgroundImage: bgImagePreview.value ? `url(${bgImagePreview.value})` : undefined,
+  backgroundSize: isBgFitted.value ? 'contain' : 'cover',
+  backgroundPosition: `${Math.round(bgFocusX.value)}% ${Math.round(bgFocusY.value)}%`,
+  transform: isBgFitted.value || bgZoom.value === 100 ? undefined : `scale(${bgZoom.value / 100})`,
+}))
+
+const bgPlacementReadout = computed(() => {
+  if (isBgFitted.value) {
+    return playerBackgroundFill.value === 'blur'
+      ? 'Whole photo, blurred edges.'
+      : 'Whole photo, black edges.'
+  }
+  const spot = `across ${Math.round(bgFocusX.value)}% · down ${Math.round(bgFocusY.value)}%`
+  return bgZoom.value === 100 ? `Keeping ${spot}.` : `Keeping ${spot}, zoomed ${bgZoom.value}%.`
+})
+
+/*
+ * Dragging moves the photo the way a finger expects: push left and the photo goes left, which
+ * means the kept spot moves right. 130 rather than 100 because a percentage of the box is not
+ * a percentage of the photo — only the overhang travels, so a straight 1:1 mapping feels
+ * stuck. Move and release are listened for on the window so the drag survives a finger
+ * sliding off the preview, which on an iPad it constantly does.
+ */
+function startBgDrag(e: PointerEvent) {
+  if (isBgFitted.value) return
+  const box = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  const startX = e.clientX, startY = e.clientY
+  const fromX = bgFocusX.value, fromY = bgFocusY.value
+  const clamp = (v: number) => Math.max(0, Math.min(100, v))
+  bgDragging.value = true
+  bgPlaced.value = true
+  const move = (ev: PointerEvent) => {
+    bgFocusX.value = clamp(fromX - ((ev.clientX - startX) / box.width) * 130)
+    bgFocusY.value = clamp(fromY - ((ev.clientY - startY) / box.height) * 130)
+  }
+  const up = () => {
+    window.removeEventListener('pointermove', move)
+    window.removeEventListener('pointerup', up)
+    window.removeEventListener('pointercancel', up)
+    bgDragging.value = false
+  }
+  window.addEventListener('pointermove', move)
+  window.addEventListener('pointerup', up)
+  window.addEventListener('pointercancel', up)
+}
+
+function bumpBgZoom(step: number) {
+  bgZoom.value = Math.max(100, Math.min(210, bgZoom.value + step))
+}
+function resetBgPlacement() {
+  bgFocusX.value = 50; bgFocusY.value = 50; bgZoom.value = 100; bgPlaced.value = false
+}
+
+/** What gets stored: the dragged pair, or null when the photo was never moved. */
+const savedBgPosition = () => (bgPlaced.value ? `${Math.round(bgFocusX.value)}% ${Math.round(bgFocusY.value)}%` : null)
+const savedBgZoom = () => (bgZoom.value === 100 || isBgFitted.value ? null : bgZoom.value)
+
+/**
+ * Reads whatever is stored back into the drag. A percentage pair is the placer's own format;
+ * 'top' / 'center' / 'bottom' are what players saved before it existed and still mean exactly
+ * what they meant, so they load as the same framing rather than being thrown away.
+ */
+function loadBgPlacement(stored: string | null, zoom: number | null) {
+  bgZoom.value = Math.max(100, Math.min(210, zoom ?? 100))
+  const pair = stored?.match(/^(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%$/)
+  if (pair) {
+    bgFocusX.value = Number(pair[1]); bgFocusY.value = Number(pair[2]); bgPlaced.value = true
+    return
+  }
+  const stops: Record<string, [number, number]> = { top: [50, 0], center: [50, 50], bottom: [50, 100] }
+  const stop = stored ? stops[stored] : undefined
+  bgFocusX.value = stop?.[0] ?? 50
+  bgFocusY.value = stop?.[1] ?? 50
+  bgPlaced.value = !!stop && stored !== 'center'
+}
 const bgImagePreview = ref<string | null>(null)
 /* Per-screen overrides. Null means "use the default above", which is the common case. */
 const throwBackground = ref<string | null>(null)
@@ -526,9 +629,17 @@ const cricketTargetDisplayOpts: { value: 'show' | 'hide'; label: string; sub: st
   { value: 'hide',   label: 'Hide',    sub: 'Remove tile' },
 ]
 
-const bgPreviewStyle = computed(() => {
+const bgPreviewStyle = computed((): CSSProperties => {
   if (bgImagePreview.value) {
-    return { backgroundImage: `url(${bgImagePreview.value})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundColor: '#000' }
+    // The thumbnail follows the placer rather than always centre-cropping, so the small
+    // preview and the big one cannot disagree about what is framed.
+    return {
+      backgroundImage: `url(${bgImagePreview.value})`,
+      backgroundSize: isBgFitted.value ? 'contain' : 'cover',
+      backgroundPosition: `${Math.round(bgFocusX.value)}% ${Math.round(bgFocusY.value)}%`,
+      backgroundRepeat: 'no-repeat',
+      backgroundColor: '#000',
+    }
   }
   return { background: 'rgba(255,255,255,0.05)' }
 })
@@ -637,7 +748,7 @@ function closeCamera() {
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = '#ffffff'; avatarUrl.value = null
   photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; throwBackground.value = null; walkupBackground.value = null; bgMode.value = 'image'; targetLabelColor.value = null; pipColor.value = null; pipStyle.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false
-  playerBackgroundSize.value = null; playerBackgroundPosition.value = null; playerBackgroundFill.value = null
+  playerBackgroundSize.value = null; playerBackgroundFill.value = null; resetBgPlacement()
 }
 function loadPlayer(p: Player) {
   editingId.value = p.id; name.value = p.name; color.value = p.color
@@ -645,8 +756,8 @@ function loadPlayer(p: Player) {
   avatarUrl.value = photoPreview.value
   playerBackground.value = p.playerBackground ?? null
   playerBackgroundSize.value = p.playerBackgroundSize ?? null
-  playerBackgroundPosition.value = p.playerBackgroundPosition ?? null
   playerBackgroundFill.value = p.playerBackgroundFill ?? null
+  loadBgPlacement(p.playerBackgroundPosition ?? null, p.playerBackgroundZoom ?? null)
   throwBackground.value = p.throwBackground ?? null
   walkupBackground.value = p.walkupBackground ?? null
   if (p.playerBackground?.startsWith('data:')) { bgMode.value = 'image'; bgImagePreview.value = p.playerBackground }
@@ -667,10 +778,10 @@ function save() {
   const tlc = targetLabelColor.value
   const ctd = cricketTargetDisplay.value
   if (editingId.value) {
-    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, targetLabelColor: tlc, pipColor: pipColor.value, pipStyle: pipStyle.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
+    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: savedBgPosition(), playerBackgroundFill: playerBackgroundFill.value, playerBackgroundZoom: savedBgZoom(), targetLabelColor: tlc, pipColor: pipColor.value, pipStyle: pipStyle.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
     editingId.value = null
   } else {
-    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, targetLabelColor: tlc, pipColor: pipColor.value, pipStyle: pipStyle.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: savedBgPosition(), playerBackgroundFill: playerBackgroundFill.value, playerBackgroundZoom: savedBgZoom(), targetLabelColor: tlc, pipColor: pipColor.value, pipStyle: pipStyle.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
       resetForm()
@@ -897,7 +1008,80 @@ function save() {
 .ct-player-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: var(--text-muted); text-transform: uppercase; text-align: center; line-height: 1.3; }
 .ct-player-btn.active .ct-player-label { color: var(--pink); }
 
-/* Background fit / position / fill — same shape as the closed-target buttons above. */
+/*
+ * The placement preview: the throw screen in miniature. It holds the real 1194 x 834 shape so
+ * what is framed here is what is framed there, and its furniture is sized in container units
+ * so the mock score stays in proportion at any column width.
+ */
+.bgplace {
+  position: relative; width: 100%; aspect-ratio: 1194 / 834;
+  container-type: size;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.18);
+  background: #000; cursor: grab; touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.bgplace.dragging { cursor: grabbing; border-color: var(--pink); }
+.bgplace.fitted { cursor: default; }
+.bgplace-photo, .bgplace-blur { position: absolute; inset: 0; background-repeat: no-repeat; }
+.bgplace-blur { background-size: cover; background-position: center; filter: blur(24px); transform: scale(1.12); }
+
+.bgplace-ui { position: absolute; inset: 0; pointer-events: none; }
+.bgplace-name {
+  position: absolute; left: 3cqw; top: 3cqw;
+  font-family: var(--font-display); font-size: 5cqw; letter-spacing: 0.08em;
+  color: #101014; background: #f6f4ee; padding: 0.6cqw 2cqw;
+  transform: rotate(-1.4deg); box-shadow: 0.8cqw 0.8cqw 0 rgba(0,0,0,0.6);
+}
+.bgplace-score {
+  position: absolute; right: 3.5cqw; top: 8cqw;
+  font-family: var(--font-display); font-size: 22cqw; line-height: 0.85;
+  color: #fff; text-shadow: 1cqw 1cqw 0 rgba(0,0,0,0.8);
+}
+.bgplace-darts { position: absolute; left: 3cqw; bottom: 3cqw; display: flex; gap: 1.6cqw; }
+.bgplace-darts i {
+  width: 11cqw; height: 11cqw; border: 0.5cqw solid #f6f4ee; background: #101014;
+  box-shadow: 0.7cqw 0.7cqw 0 rgba(0,0,0,0.6);
+}
+.bgplace-darts i.empty { background: rgba(16,16,20,0.45); border-style: dashed; box-shadow: none; }
+
+/* Thirds, shown only while dragging: enough to line a face up, gone once the finger lifts. */
+.bgplace-grid { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.15s; }
+.bgplace-grid.show { opacity: 1; }
+.bgplace-grid i, .bgplace-grid b { position: absolute; background: rgba(255,255,255,0.3); }
+.bgplace-grid i { top: 0; bottom: 0; width: 1px; }
+.bgplace-grid i:first-child { left: 33.33%; }
+.bgplace-grid i:nth-child(2) { left: 66.66%; }
+.bgplace-grid b { left: 0; right: 0; height: 1px; }
+.bgplace-grid b:nth-child(3) { top: 33.33%; }
+.bgplace-grid b:nth-child(4) { top: 66.66%; }
+
+.bgplace-hint {
+  position: absolute; left: 50%; bottom: 3cqw; transform: translateX(-50%) rotate(-0.8deg);
+  padding: 1cqw 2.6cqw; background: var(--pink); color: #38000f;
+  font-family: var(--font-display); font-size: 4cqw; letter-spacing: 0.1em;
+  box-shadow: 0.7cqw 0.7cqw 0 rgba(0,0,0,0.6); pointer-events: none;
+}
+
+.bgzoom-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.bgzoom-label { font-size: 15px; color: var(--text-muted); width: 52px; }
+.bgzoom-btn {
+  width: 48px; height: 48px; flex-shrink: 0;
+  border: 2px solid #ffffff; background: transparent; color: #fff;
+  font-size: 24px; line-height: 1; cursor: pointer; position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.bgzoom-btn:disabled { opacity: 0.3; cursor: default; }
+.bgzoom-bar { flex: 1; height: 8px; background: rgba(255,255,255,0.12); overflow: hidden; }
+.bgzoom-bar i { display: block; height: 100%; background: var(--pink); }
+.bgplace-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; }
+
+/* Hover belongs to a mouse: on the iPad these are touched, and a stuck hover reads as active. */
+@media (hover: hover) and (pointer: fine) {
+  .bgzoom-btn:hover:not(:disabled) { border-color: var(--pink); color: var(--pink); }
+}
+
+/* Background fit / fill — same shape as the closed-target buttons above. */
 .bgfit-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .bgfit-btn {
   flex: 1; min-width: 96px; padding: 12px 10px; 

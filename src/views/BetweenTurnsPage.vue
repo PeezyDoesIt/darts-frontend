@@ -148,7 +148,19 @@ const betweenStyle = computed((): CSSProperties => {
   // about whose turn it is, and the game's own backdrop belongs to the board they walk up to.
   const bg = nextPlayer.value.walkupBackground ?? nextPlayer.value.playerBackground
   if (bg && (bg.startsWith('data:') || bg.startsWith('http'))) {
-    return { backgroundImage: `url(${bg})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    // Framed where they dragged it, so a face that clears the score on the throw screen also
+    // clears it here rather than being re-centred behind their name.
+    //
+    // Zoom is left out on purpose: this style is on the page root, so scaling it would
+    // enlarge the name and the countdown along with the photo. Zoom belongs to the throw
+    // screen, which draws the photo on a layer of its own and can scale it alone.
+    const p = nextPlayer.value
+    return {
+      backgroundImage: `url(${bg})`,
+      backgroundSize: p.playerBackgroundSize === 'contain' ? 'contain' : 'cover',
+      backgroundPosition: p.playerBackgroundPosition ?? 'center',
+      backgroundRepeat: 'no-repeat',
+    }
   }
   if (bg) return { background: bg }
   return { background: `radial-gradient(ellipse at center, ${nextPlayer.value.color}50 0%, #0a0a0a 65%)` }

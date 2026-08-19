@@ -77,7 +77,15 @@ export type Player = {
   color: string
   playerBackground: string | null
   playerBackgroundSize: 'cover' | 'contain' | null
-  playerBackgroundPosition: 'top' | 'center' | 'bottom' | null
+  /**
+   * Where the photo sits when it is cropped, as a CSS background-position. The drag placer
+   * on the player screen writes a percentage pair ("38% 61%"). The old three stops — 'top',
+   * 'center', 'bottom' — are still valid CSS and still load, so a player saved before the
+   * placer keeps exactly the framing they had and no backfill is needed.
+   */
+  playerBackgroundPosition: string | null
+  /** How far in the photo is pushed, 100-210 percent. Null is 100, i.e. no zoom. */
+  playerBackgroundZoom: number | null
   playerBackgroundFill: 'black' | 'blur' | null
   /**
    * Per-screen overrides for the two places a player's background is actually seen.
