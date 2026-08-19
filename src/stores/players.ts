@@ -54,6 +54,58 @@ export const usePlayersStore = defineStore('players', () => {
    */
   const syncFailure = ref<{ what: string; message: string } | null>(null)
 
+  /**
+   * Ids this device has deleted, kept until the server confirms the row is gone.
+   *
+   * A delete is two halves: remove locally, then delete the cloud row. The cloud half opens
+   * with `if (!session) return` — so deleting while signed out, or before a session has
+   * restored on a cold load, or simply while offline, left the row sitting in Postgres with
+   * nothing anywhere recording that it was meant to go. `syncFromCloud` then reads a cloud
+   * row with no local match as "added on another device" and merges it back in. Every
+   * sign-in resurrected everyone ever deleted offline, and each one arrived carrying its
+   * inline photo, which is what pushed the roster past the localStorage quota and put the
+   * "Photos dropped" banner on the home screen.
+   *
+   * A tombstone is the missing record. It suppresses the row on merge and re-issues the
+   * delete, and is only dropped once the server agrees — so the retry survives a week
+   * offline. It does NOT propagate a delete to a second device that still holds the player;
+   * that needs a `deleted_at` column rather than a local list, and is a separate change.
+   */
+  const TOMBSTONE_KEY = 'darts_players_deleted_v1'
+  type Tombstone = { id: string; at: string }
+
+  function readTombstones(): Tombstone[] {
+    try {
+      const raw = localStorage.getItem(TOMBSTONE_KEY)
+      const parsed: unknown = raw ? JSON.parse(raw) : []
+      return Array.isArray(parsed) ? (parsed as Tombstone[]).filter(t => t && typeof t.id === 'string') : []
+    } catch {
+      // A corrupt list costs one resurrection; throwing here would cost the whole roster.
+      return []
+    }
+  }
+  const tombstones = ref<Tombstone[]>(readTombstones())
+
+  function writeTombstones() {
+    try {
+      localStorage.setItem(TOMBSTONE_KEY, JSON.stringify(tombstones.value))
+    } catch {
+      // Quota again. The roster matters more than the tombstone list, and the cost of
+      // losing one is a player coming back — not a player being lost.
+      console.warn('[players] could not record the delete')
+    }
+  }
+  function tombstone(id: string) {
+    if (tombstones.value.some(t => t.id === id)) return
+    tombstones.value.push({ id, at: new Date().toISOString() })
+    writeTombstones()
+  }
+  function forgetTombstone(id: string) {
+    const before = tombstones.value.length
+    tombstones.value = tombstones.value.filter(t => t.id !== id)
+    if (tombstones.value.length !== before) writeTombstones()
+  }
+
   function noteSyncOk() { syncFailure.value = null }
   function noteSyncFailed(what: string, e: unknown) {
     syncFailure.value = { what, message: describe(e) }
@@ -266,14 +318,21 @@ export const usePlayersStore = defineStore('players', () => {
   function deletePlayer(id: string) {
     const removed = players.value.find(p => p.id === id)
     players.value = players.value.filter(p => p.id !== id)
+    // Recorded BEFORE the write is attempted, not after it succeeds: the case this exists
+    // for is the write never happening at all.
+    tombstone(id)
     persist()
     fireWrite('deletePlayer', async () => {
       const { data: { session } } = await supabase.auth.getSession()
+      // No session, so the row stays up there for now. The tombstone holds the intent and
+      // syncFromCloud finishes the job on the next sign-in.
       if (!session) return { error: null }
       // Remove the image too, otherwise deleting a player leaves an orphaned object that
       // nothing will ever reference or clean up.
       if (removed?.avatarPath) await deleteAvatar(removed.avatarPath)
-      return await supabase.from('players').delete().eq('id', id)
+      const result = await supabase.from('players').delete().eq('id', id)
+      if (!result.error) forgetTombstone(id)
+      return result
     })
   }
 
@@ -354,6 +413,17 @@ export const usePlayersStore = defineStore('players', () => {
     const cloudById = new Map(cloudPlayers.map(p => [p.id, p]))
     const localById = new Map(players.value.map(p => [p.id, p]))
 
+    /*
+     * Rows this device deleted while it could not reach the server. They are pulled out
+     * before the merge runs, because the merge's last pass reads "in the cloud, not local"
+     * as "added on another device" — which is indistinguishable from "deleted here" unless
+     * the delete was written down. Deleting them is done after the merge, so a failed
+     * delete cannot stop the roster loading.
+     */
+    const buried = tombstones.value.map(t => t.id)
+    const toDelete = cloudPlayers.filter(p => buried.includes(p.id))
+    for (const p of toDelete) cloudById.delete(p.id)
+
     // Cloud used to win unconditionally for any player present on both sides. Play a night
     // on the tablet while signed in on a phone and whichever device wrote last silently
     // erased the other's games. Compare updated_at instead and keep the newer record; only
@@ -385,6 +455,27 @@ export const usePlayersStore = defineStore('players', () => {
       )
       persist()
     }
+
+    /*
+     * Finish the deletes this device could not send at the time. Failures are reported and
+     * the tombstone kept, so the next sync tries again rather than the row quietly coming
+     * back the moment the list is cleared.
+     */
+    for (const p of toDelete) {
+      if (p.avatarPath) await deleteAvatar(p.avatarPath)
+      const { error: delError } = await supabase.from('players').delete().eq('id', p.id)
+      if (delError) {
+        console.warn('[players] syncFromCloud delete failed for', p.name, delError)
+        noteSyncFailed(`removing ${p.name}`, delError)
+      } else forgetTombstone(p.id)
+    }
+    /*
+     * A tombstone whose row is not in the cloud at all has done its job — the delete landed,
+     * or never needed to. Dropping it stops the list growing without bound on a device that
+     * does a lot of roster tidying.
+     */
+    const cloudIds = new Set(cloudPlayers.map(p => p.id))
+    for (const t of tombstones.value.filter(t => !cloudIds.has(t.id))) forgetTombstone(t.id)
 
     // Push anything where local was newer, plus players the cloud has never seen
     let pushed = 0

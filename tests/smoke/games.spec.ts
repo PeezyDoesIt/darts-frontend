@@ -2,30 +2,63 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 import { pickBubble, seedRoster } from './helpers'
 
 /**
- * Play the first legal card in the hand.
+ * Play the first legal card in the hand, on either tap contract: one tap from 768 up,
+ * lift-then-play below it.
  *
- * Two things make this more than a click. The hand is a fan, so each card shows only a sliver
- * — about 24px on a phone — and the rest is under its neighbour: a click on the default
- * centre point lands on the wrong card, or is refused as intercepted. So the tap is aimed at
- * the left edge, which is the part actually showing.
+ * The tap is aimed at the card's left edge because the hand is a fan — each card shows only a
+ * sliver, about 24px on a phone, and the rest is under its neighbour, so the default centre
+ * point lands on the wrong card. Which contract is in force is a property of the viewport at
+ * the moment of the tap, not of the project, so a test that resized mid-run would change its
+ * own answer; reading the card back rather than branching on width stays right either way.
  *
- * And below 768 a tap LIFTS the card; a second one plays it. That is a property of the
- * viewport at the moment of the tap, not of the project, so a test that resizes mid-run would
- * change its own answer. Reading `.selected` back rather than branching on width stays right
- * either way: if the card rose, it is waiting for the second tap. On a wider screen the first
- * tap plays it and the element is gone, which the catch reads as "not lifted".
+ * Two more things here are deliberate and both were failures before.
+ *
+ * `force` — the fan overlaps each card down to a ~24px sliver, so Playwright's actionability
+ * check sees a neighbour covering the click point and refuses. Correct by its own rules, but
+ * that point IS reachable by a finger and is exactly what a player taps. Swallowing the
+ * refusal was worse than either outcome: the card never played, the caller's loop retried
+ * forever, and the run died on its budget with no failed assertion to read.
+ *
+ * The poll — the lift is a Vue render, so reading `.selected` immediately after the click can
+ * return false before the class lands. Skipping the second tap on that reading leaves the card
+ * in the hand and produces the same silent spin. So wait for the card to either rise or leave,
+ * and if it does neither, say so.
  */
 async function tapCard(card: Locator) {
-  await card.click({ position: { x: 10, y: 40 }, timeout: 5_000 }).catch(() => {})
-  const lifted = await card
-    .evaluate(el => el.classList.contains('selected'))
-    .catch(() => false)
-  if (lifted) await card.click({ position: { x: 10, y: 40 }, timeout: 5_000 }).catch(() => {})
+  const at = { position: { x: 10, y: 40 }, timeout: 5_000, force: true } as const
+  const label = await card.getAttribute('aria-label')
+  await card.click(at)
+
+  // Pin the same card by name: the caller's locator is `.first()` of whatever is legal, which
+  // silently becomes a DIFFERENT card the moment this one is played.
+  const same = label
+    ? card.page().locator(`.hand-row .card[aria-label="${label}"]`)
+    : card
+
+  for (let i = 0; i < 20; i++) {
+    if (await same.count() === 0) return  // one tap played it
+    const lifted = await same.evaluate(el => el.classList.contains('selected')).catch(() => false)
+    if (lifted) {
+      await same.click(at)                // phone: the second tap plays it
+      return
+    }
+    await card.page().waitForTimeout(50)
+  }
+  throw new Error(`tapping "${label ?? 'a card'}" neither lifted it nor played it`)
 }
 
-/** The first card that is legal to play right now, if there is one. */
+/**
+ * The first card that is legal to play right now, if there is one.
+ *
+ * `:not(.faceDown)` is load-bearing. While a bot is thinking the screen draws a decoy fan of
+ * face-down cards where the hand goes, so the table cannot read the bot's cards. Those decoys
+ * are not interactive, but `PlayingCard` defaults `playable` to true and only sets `disabled`
+ * when `interactive` is set — so they carry `.card.playable` with no `disabled`, and matched
+ * here. The loop then spent every turn tapping a bot's back-of-card, which does nothing, and
+ * never reached the "a bot is thinking" wait at all.
+ */
 function firstLegal(page: Page): Locator {
-  return page.locator('.hand-row .card.playable:not([disabled])').first()
+  return page.locator('.hand-row .card.playable:not(.faceDown):not([disabled])').first()
 }
 
 /**
@@ -126,7 +159,8 @@ test('spades: solo vs bots skips the pass-the-device screen', async ({ page }) =
   const card = firstLegal(page)
   await expect(card).toBeEnabled({ timeout: 15_000 })
   await tapCard(card)
-  await expect(page.locator('.book-card')).not.toHaveCount(0)
+  // A played card sits with the seat that played it now, not in a shared book strip.
+  await expect(page.locator('.seat-card .card')).not.toHaveCount(0)
 })
 
 test('spades: wild style bids the opening hand itself', async ({ page }) => {
@@ -136,7 +170,8 @@ test('spades: wild style bids the opening hand itself', async ({ page }) => {
   await expect(page).toHaveURL(/\/spades$/)
 
   // Bid chips are per side, not per seat — two in a partnership game, four in solo.
-  await expect(page.locator('.bid-chip').first()).toBeVisible()
+  // Each seat carries its own books-of-bid on its plate; the side strip is gone.
+  await expect(page.locator('.seat-plate').first()).toBeVisible()
   await expect(page.locator('.bid-grid')).toHaveCount(0)
 
   const bids = await page.evaluate(
@@ -173,7 +208,14 @@ test('spades: a shared table still gets the pass-the-device screen', async ({ pa
 // Thirteen books against three bots that each pause 700ms to be followable, so the hand
 // takes well over the default timeout to play out.
 test('spades: a finished hand can be read back book by book', async ({ page }) => {
-  test.setTimeout(150_000)
+  /*
+   * This plays a whole thirteen-book hand. On a phone every card takes two taps — one to lift
+   * it, one to play it — plus a read-back of `.selected` between them, so the run costs
+   * roughly double what it did when one tap played. 150s was enough then and is not now: the
+   * budget ran out mid-hand and Playwright tore the browser down, which surfaces as
+   * "Target page, context or browser has been closed" rather than as a failed assertion.
+   */
+  test.setTimeout(300_000)
 
   await page.goto('/spades/setup')
   await pickBubble(page, 'Peezy')
@@ -235,7 +277,7 @@ test('spades: computer seats can be renamed, and the name carries into the game'
   await expect(page).toHaveURL(/\/spades$/)
 
   await expect(page.locator('.teams')).toContainText('Big Mike')
-  await expect(page.locator('.bids-row')).toContainText('Big Mike')
+  await expect(page.locator('.table-area')).toContainText('Big Mike')
 })
 
 test('spades: a blank computer name falls back rather than leaving the seat nameless', async ({ page }) => {
@@ -251,15 +293,17 @@ test('spades: a blank computer name falls back rather than leaving the seat name
 })
 
 /**
- * Four sides do not fit one row on a phone. Wrapping a flex row left the fourth chip
- * stretched across the full width on its own — three narrow chips and one enormous — so the
- * bid row switches to a grid in solo, matching the score panels above it.
+ * The seats do not stack on a phone — the three you are not sitting in share one row under
+ * the cards they played. That row is the one that can wrap, and wrapping is where the defect
+ * lived: a flex row left the last item stretched across the full width on its own, three
+ * narrow and one enormous. The bid chips this guarded are gone, but the row is not, so the
+ * guard moves onto the plates rather than being deleted with them.
  */
-for (const [mode, label, expected] of [
-  ['partners', 'PARTNERS', 2],
-  ['solo', 'EVERY PLAYER FOR THEMSELVES', 4],
+for (const [mode, label] of [
+  ['partners', 'PARTNERS'],
+  ['solo', 'EVERY PLAYER FOR THEMSELVES'],
 ] as const) {
-  test(`spades: the ${mode} bid chips are evenly sized on a phone`, async ({ page }) => {
+  test(`spades: the ${mode} seat plates are evenly sized on a phone`, async ({ page }) => {
     test.setTimeout(90_000)
 
     // Deliberately no explicit viewport: this runs on both projects and it is the narrow
@@ -282,22 +326,25 @@ for (const [mode, label, expected] of [
 
     // Auto-bid is partnerships only, so a solo game asks this seat for a number first.
     // Chips only appear once bidding is done and play starts.
-    for (let i = 0; i < 40 && await page.locator('.bids-row').count() === 0; i++) {
+    for (let i = 0; i < 40 && await page.locator('.table-area').count() === 0; i++) {
       const bid = page.locator('.bid-btn:not([disabled])').nth(3)
       if (await bid.count() > 0) { await bid.click({ timeout: 5_000 }).catch(() => {}) }
       else await page.waitForTimeout(250)   // a computer seat is bidding
     }
-    await expect(page.locator('.bids-row')).toBeVisible({ timeout: 30_000 })
-    await expect(page.locator('.bid-chip')).toHaveCount(expected)
+    await expect(page.locator('.table-area')).toBeVisible({ timeout: 30_000 })
+    // The three other seats share one row under the cards they played; your own plate is on
+    // its own line above the hand, so it is not part of the row that can wrap.
+    const plates = page.locator('.seat:not(.seat-you) .seat-plate')
+    await expect(plates).toHaveCount(3)
 
-    const widths = await page.locator('.bid-chip').evaluateAll(
+    const widths = await plates.evaluateAll(
       els => els.map(e => Math.round(e.getBoundingClientRect().width)),
     )
-    // Every side has to read with the same weight. Comparing the widest against the narrowest
-    // rather than demanding they be identical: the defect was one chip three times the rest,
+    // Every seat has to read with the same weight. Comparing the widest against the narrowest
+    // rather than demanding they be identical: the defect was one plate three times the rest,
     // and a rounding difference of a pixel is not a bug.
     const ratio = Math.max(...widths) / Math.min(...widths)
-    expect(ratio, `chip widths were ${widths.join(', ')}`).toBeLessThan(1.5)
+    expect(ratio, `plate widths were ${widths.join(', ')}`).toBeLessThan(1.5)
 
     const overflows = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,

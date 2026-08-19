@@ -217,12 +217,16 @@
       <button v-if="game.phase === 'book_end'" v-ripple class="btn btn-spray btn-lg wide" @click="spades.nextBook()">
         {{ booksPlayed >= HAND_SIZE ? 'Score the hand →' : 'Next book →' }}
       </button>
-      <button v-else-if="game.phase === 'hand_over'" v-ripple class="btn btn-spray btn-lg wide" @click="spades.nextHand()">
-        Deal hand {{ game.handNumber + 1 }} →
-      </button>
-      <button v-else-if="game.phase === 'game_over'" v-ripple class="btn btn-spray btn-lg wide" @click="finish">
-        Done
-      </button>
+      <template v-else-if="game.phase === 'hand_over'">
+        <button v-ripple class="btn btn-outline btn-lg review-btn" @click="showReview = true">Review books</button>
+        <button v-ripple class="btn btn-spray btn-lg" @click="spades.nextHand()">
+          Deal hand {{ game.handNumber + 1 }} →
+        </button>
+      </template>
+      <template v-else-if="game.phase === 'game_over'">
+        <button v-ripple class="btn btn-outline btn-lg review-btn" @click="showReview = true">Review books</button>
+        <button v-ripple class="btn btn-spray btn-lg" @click="finish">Done</button>
+      </template>
     </footer>
 
     <div v-if="showDeck" class="overlay" @click.self="showDeck = false">
@@ -302,6 +306,50 @@
       </div>
     </div>
 
+    <!--
+      Reading the hand back. Books are otherwise discarded the moment the next one leads, so
+      once a hand is scored there is no way to see how it got there — which card gave a book
+      away, or where a side stopped making its bid.
+    -->
+    <div v-if="showReview" class="overlay" @click.self="showReview = false">
+      <div class="review-card street-panel">
+        <div class="review-head">
+          <h2 class="review-title display">HAND {{ game.handNumber }}</h2>
+          <button class="review-close" aria-label="Close" @click="showReview = false">✕</button>
+        </div>
+
+        <div v-if="game.bookLog.length === 0" class="review-empty">
+          No books were played in this hand.
+        </div>
+
+        <div v-for="b in game.bookLog" :key="b.number" class="review-book">
+          <div class="rb-head">
+            <span class="rb-num display">BOOK {{ b.number }}</span>
+            <span class="rb-note">{{ bookInsight(b) }}</span>
+          </div>
+          <div class="rb-cards">
+            <div
+              v-for="(c, i) in b.cards"
+              :key="c.seat"
+              class="rb-card"
+              :class="{ won: c.seat === b.winnerSeat }"
+            >
+              <PlayingCard :theme="deck.theme" :art-courts="deck.artCourts" :card="c.card" :width="46" />
+              <span class="rb-name" :style="{ color: game.players[c.seat]?.color }">
+                {{ game.players[c.seat]?.name }}
+              </span>
+              <!-- The two facts a learner needs: who led, and who was out of the suit. -->
+              <span v-if="i === 0" class="rb-tag">led</span>
+              <span v-else-if="couldNotFollow(b, c.seat)" class="rb-tag rb-tag-void">void</span>
+            </div>
+          </div>
+          <span class="rb-winner">{{ game.players[b.winnerSeat]?.name }} takes it</span>
+        </div>
+
+        <button v-ripple class="btn btn-spray wide" @click="showReview = false">Close</button>
+      </div>
+    </div>
+
     <div v-if="showRules" class="overlay" @click.self="showRules = false">
       <div class="rules-card street-panel">
         <h2 class="rules-title display">SPADES — {{ VARIANT_LABELS[game.variant].toUpperCase() }}</h2>
@@ -329,8 +377,8 @@ import PlayingCard, { ART_CAPABLE, type CardTheme } from '../components/PlayingC
 import { useSpadesStore } from '../stores/spades'
 import { usePlayersStore } from '../stores/players'
 import {
-  DEFAULT_HAND_SORT, BOARD, HAND_SIZE, SUIT_SYMBOL, VARIANT_LABELS, cardId,
-  effectiveSuit, rulesFor, sideCount, sideOf, sortHand, targetFor,
+  DEFAULT_HAND_SORT, BOARD, HAND_SIZE, SUIT_SYMBOL, VARIANT_LABELS, bookInsight, cardId,
+  couldNotFollow, effectiveSuit, rulesFor, sideCount, sideOf, sortHand, targetFor,
   type Card, type HandSortPrefs,
 } from '../lib/spades'
 import { recordGameResult } from '../api/gameResults'
@@ -342,6 +390,7 @@ const spades = useSpadesStore()
 const playersStore = usePlayersStore()
 const game = computed(() => spades.game)
 const showRules = ref(false)
+const showReview = ref(false)
 const showSort = ref(false)
 const showDeck = ref(false)
 
@@ -550,7 +599,11 @@ const showFooter = computed(() =>
  * on the client, and onUnmounted below is what matters for cleanup.
  */
 const viewportWidth = ref(window.innerWidth)
-function onViewportResize() { viewportWidth.value = window.innerWidth }
+const viewportHeight = ref(window.innerHeight)
+function onViewportResize() {
+  viewportWidth.value = window.innerWidth
+  viewportHeight.value = window.innerHeight
+}
 window.addEventListener('resize', onViewportResize)
 onUnmounted(() => window.removeEventListener('resize', onViewportResize))
 
@@ -568,6 +621,26 @@ const FAN_SWING = 150
 const MIN_SLICE = 30
 const TIGHTEN = 0.86
 
+/*
+ * Width alone decided card size before this, which is why a laptop got the BIGGEST cards in
+ * the shortest window — a 1149 x 860 browser counts as "desktop" and asked for 172px cards
+ * (~250px tall) on top of a 290px book area. Height scales them down: full size from 1000px
+ * of window up, never below 62%, so the hand always has somewhere to sit.
+ *
+ * This matters more now than it did, not less: `.sp-body.fit` sets `overflow-y: hidden`, so
+ * a hand that no longer fits is not scrolled to — it is simply cut off.
+ *
+ * Phones are left out on purpose. Their widths are pinned (see below) to keep a lifted card
+ * readable, and a phone is short by definition — scaling for height there would shrink every
+ * hand on every phone to chase a case the pin already answers.
+ */
+const heightFit = computed(() => {
+  const h = viewportHeight.value
+  if (h >= 1000) return 1
+  return Math.max(0.62, Math.min(1, 0.62 + ((h - 520) / 480) * 0.38))
+})
+const fitted = (px: number) => Math.round(px * heightFit.value)
+
 /**
  * Card width and overlap for the held fan.
  *
@@ -584,7 +657,7 @@ const handFan = computed(() => {
   const n = Math.max(1, sortedHand.value.length)
   const room = Math.max(300, viewportWidth.value - FAN_SWING)
   const crowded = n > 9
-  let w = sizeTier.value === 'desktop' ? (crowded ? 148 : 172) : (crowded ? 124 : 146)
+  let w = fitted(sizeTier.value === 'desktop' ? (crowded ? 148 : 172) : (crowded ? 124 : 146))
   const widestThatFits = room - (n - 1) * MIN_SLICE
   if (n > 1 && w > widestThatFits) w = Math.max(62, widestThatFits)
   const slice = n > 1 ? Math.min(w - 10, ((room - w) / (n - 1)) * TIGHTEN) : w
@@ -595,7 +668,7 @@ const fanLap = computed(() => `${handFan.value.lap}px`)
 
 /** The four cards on the table have no crowding problem, so they simply scale up. */
 const bookCardWidth = computed(() =>
-  sizeTier.value === 'desktop' ? 148 : sizeTier.value === 'tablet' ? 124 : 94
+  sizeTier.value === 'phone' ? 94 : fitted(sizeTier.value === 'desktop' ? 148 : 124)
 )
 
 /** The suit that was actually led this book, for the void tag. */
@@ -866,7 +939,18 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
      travels sideways as well as round, and without this it lands outside the row and gets
      clipped — the same "cannot see your hand" fault as before, by another route. */
   padding: 26px 62px 10px;
-  --fan-step: 1.8deg;
+  /*
+   * Phone value. The arc is shallow here and pivots at the card's own bottom edge, because a
+   * turned card travels SIDEWAYS as well as round and a phone has no room to lend it. At 393px
+   * thirteen cards at a 24px sliver are already 376px wide — 17px of slack in the whole row —
+   * while the full 1.8deg turn about a pivot below the row swings the outer cards 45px each
+   * way. The first card went off the left edge entirely: its whole exposed sliver sat at
+   * x = -36..-5, so the leftmost card in your hand could not be tapped at all. Measured at
+   * 393px, this keeps every sliver at ~24px and still reads as held. The full arc returns at
+   * 768, where the width exists to pay for it.
+   */
+  --fan-step: 0.8deg;
+  --fan-pivot: 100%;
 }
 
 /*
@@ -890,7 +974,7 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
  */
 .fan-slot {
   display: block; flex-shrink: 0;
-  transform-origin: 50% 190%;
+  transform-origin: 50% var(--fan-pivot, 190%);
   transform: rotate(calc((var(--i, 0) - (var(--n, 1) - 1) / 2) * var(--fan-step)));
 }
 
@@ -976,6 +1060,61 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
   position: fixed; inset: 0; z-index: 50; display: flex; align-items: center;
   justify-content: center; padding: 24px; background: rgba(0,0,0,0.88);
 }
+/* Two buttons share the footer once a hand is over: review keeps its natural width so the
+   label never truncates, and the primary action takes what is left. */
+.review-btn { flex-shrink: 0; min-height: 56px; padding: 0 16px; }
+.sp-footer .btn-spray { flex: 1; min-height: 56px; }
+
+/* ── Reading the hand back ── */
+/* Bounded and scrollable: thirteen books do not fit a phone, and an unbounded panel grows
+   past the viewport and takes its own close button off screen with it. */
+.review-card {
+  width: 100%; max-width: 620px; max-height: 86dvh; overflow-y: auto;
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 22px 20px 20px;
+  background-color: #101014;
+  background-image: radial-gradient(rgba(255,255,255,0.055) 0.7px, transparent 0.7px);
+  background-size: 5px 5px;
+  border: 2px solid #2a2a34; box-shadow: 8px 8px 0 rgba(0,0,0,0.6);
+}
+.review-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+/* Taped and laid off-true, the same as every other section heading on this screen. */
+.review-title {
+  transform: rotate(-1.5deg); margin: 0;
+  padding: 5px 14px 4px; background: var(--gold); color: #2b2200;
+  font-size: 28px; letter-spacing: 0.08em; box-shadow: 3px 3px 0 rgba(0,0,0,0.55);
+}
+.review-close {
+  background: none; border: none; color: var(--text-muted); font-size: 22px;
+  cursor: pointer; padding: 4px 8px; min-height: 44px; min-width: 44px; flex-shrink: 0;
+}
+.review-empty { font-size: 15px; color: var(--text-muted); text-align: center; padding: 20px 0; }
+
+.review-book {
+  display: flex; flex-direction: column; gap: 7px;
+  padding: 11px 13px;
+  background: rgba(255,255,255,0.04); border: 2px solid #24242e;
+}
+.rb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.rb-num { font-size: 15px; letter-spacing: 0.12em; color: rgba(255,255,255,0.8); }
+.rb-note { font-size: 12px; font-weight: 700; color: var(--text-muted); text-align: right; }
+
+/* Scrolls rather than wrapping, so four cards stay on one line on a narrow phone. */
+.rb-cards { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 2px; }
+.rb-card {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  flex-shrink: 0; padding: 4px; border: 2px solid transparent;
+}
+.rb-card.won { border-color: var(--gold); background: rgba(255,200,87,0.1); }
+.rb-name { font-size: 11px; font-weight: 700; max-width: 58px; text-align: center; overflow-wrap: anywhere; }
+.rb-tag {
+  font-size: 9px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+}
+.rb-tag-void { color: var(--pink); }
+.rb-winner { font-size: 13px; font-weight: 700; color: var(--gold); }
+
 /* Flat stock, square corners, hard shadow — and 620px rather than 420, because these are
    read at arm's length off a stand rather than in the hand. */
 .rules-card {
@@ -1119,6 +1258,9 @@ const seatedIsBot = computed(() => !!game.value?.players[game.value.turnIndex]?.
 /* iPad and desktop have the room for larger cards, so the rows that hold them grow too. */
 @media (min-width: 768px) {
   .hand-row { gap: 8px; padding: 16px 4px 18px; }
+  /* The full turn, about a pivot below the row where a thumb would be. From 768 up the fan's
+     own maths reserves FAN_SWING for exactly this, so the outer cards have somewhere to go. */
+  .hand-row.fanned { --fan-step: 1.8deg; --fan-pivot: 190%; }
   .team-score { font-size: 46px; }
 
   /* Each seat takes its real position: across the table, left, right, and you at the
