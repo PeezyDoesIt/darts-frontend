@@ -159,6 +159,7 @@ export const usePlayersStore = defineStore('players', () => {
           pipStyle: p.pipStyle ?? null,
           cricketTargetDisplay: p.cricketTargetDisplay ?? null,
           diceTheme: p.diceTheme ?? null,
+          yahtzeeCard: p.yahtzeeCard ?? null,
         }
         return {
           ...p,
@@ -182,6 +183,7 @@ export const usePlayersStore = defineStore('players', () => {
           pipColor: p.pipColor ?? null,
           pipStyle: p.pipStyle ?? null,
           diceTheme: p.diceTheme ?? null,
+          yahtzeeCard: p.yahtzeeCard ?? null,
         }
       })
       stripFabricatedBaseline()
@@ -244,6 +246,7 @@ export const usePlayersStore = defineStore('players', () => {
       pipColor: data.pipColor ?? null,
       pipStyle: data.pipStyle ?? null,
       cricketTargetDisplay: data.cricketTargetDisplay ?? null,
+      yahtzeeCard: data.yahtzeeCard ?? null,
       pinned: data.pinned ?? false,
       id: uuid(),
       wins: 0,
@@ -377,6 +380,7 @@ export const usePlayersStore = defineStore('players', () => {
       pip_style: p.pipStyle,
       cricket_target_display: p.cricketTargetDisplay,
       dice_theme: p.diceTheme,
+      yahtzee_card: p.yahtzeeCard ?? null,
       pinned: p.pinned,
       wins: p.wins,
       games_played: p.gamesPlayed,
@@ -408,6 +412,7 @@ export const usePlayersStore = defineStore('players', () => {
       pipStyle: (row.pip_style as Player['pipStyle']) ?? null,
       cricketTargetDisplay: (row.cricket_target_display as 'show' | 'hide' | null) ?? null,
       diceTheme: (row.dice_theme as import('../types/index').DiceTheme | null) ?? null,
+      yahtzeeCard: (row.yahtzee_card as import('../types/index').YahtzeeCardSkin | null) ?? null,
       pinned: (row.pinned as boolean) ?? false,
       wins: (row.wins as number) ?? 0,
       gamesPlayed: (row.games_played as number) ?? 0,

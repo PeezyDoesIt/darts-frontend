@@ -63,6 +63,18 @@ export const DIE_GRADIENTS: Record<string, string> = {
   walnut:    'linear-gradient(135deg, #0a0400 0%, #3d1a00 35%, #6b3a10 65%, #9a6030 100%)',
 }
 
+/**
+ * How a Yahtzee card is printed.
+ *
+ * Three inks, all shipping, chosen on the player's profile beside the dice theme. Street Print
+ * is the app's own look and the default; Paper Card is the real printed scorepad and the only
+ * bright one; Board Flip is a stadium scoreboard in one monospaced face.
+ *
+ * There is no "default" member: null already means that, and a named fourth value that meant
+ * the same as null is how the dice themes ended up with two ways to say the same thing.
+ */
+export type YahtzeeCardSkin = 'street' | 'paper' | 'board'
+
 export type Player = {
   id: string
   name: string
@@ -120,6 +132,8 @@ export type Player = {
   pipStyle: PipStyle | null
   cricketTargetDisplay: 'show' | 'hide' | null  // null = use game setting
   diceTheme: DiceTheme | null  // null = same as 'default'
+  /** Which ink this player's Yahtzee card is printed in. Null and anything unknown are Street. */
+  yahtzeeCard?: YahtzeeCardSkin | null
   pinned: boolean
   wins: number
   gamesPlayed: number

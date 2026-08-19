@@ -50,10 +50,11 @@ test('the computer plays its own turn with no help', async ({ page }) => {
   test.setTimeout(90_000)
   await startWithBots(page, 1)
 
-  // Hand the turn over: roll, then take whatever box is going.
+  // Hand the turn over: roll, then take whatever box is going. `.live` is a row this throw
+  // can actually take; tapping it arms the row, and the second tap commits it.
   await page.getByRole('button', { name: /^ROLL/ }).click()
-  await page.locator('.sc-row-scoreable').first().click()
-  await page.locator('.sc-row-pending').click()
+  await page.locator('.sc-row.live').first().click()
+  await page.locator('.sc-row.pending').click()
 
   await expect.poll(async () => (await state(page)).currentPlayerIndex, { timeout: 15_000 }).toBe(1)
 

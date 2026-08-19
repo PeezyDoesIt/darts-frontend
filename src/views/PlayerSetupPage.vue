@@ -295,6 +295,26 @@
             </div>
           </div>
 
+          <!--
+            Three inks, all one tap away. A dropdown would hide two of them behind a click and
+            make the choice feel like a setting; it is closer to picking a pen.
+          -->
+          <div class="field">
+            <label class="label">Yahtzee Scorecard</label>
+            <p class="field-hint">Which card you keep score on.</p>
+            <div class="cardink-row">
+              <button
+                v-for="ink in CARD_INKS" :key="ink.value" v-ripple
+                class="cardink-btn" :class="[`cardink-${ink.value}`, { active: (yahtzeeCard ?? 'street') === ink.value }]"
+                @click="yahtzeeCard = ink.value"
+              >
+                <span class="cardink-swatch" />
+                <span class="cardink-name">{{ ink.label }}</span>
+                <span class="cardink-sub">{{ ink.blurb }}</span>
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -395,7 +415,7 @@ import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { goBack } from '../router/goBack'
 import { AVATAR_MAX_PX, BACKGROUND_MAX_PX, downscaleFile, downscaleVideoFrame } from '../lib/downscaleImage'
-import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, PIP_STYLES, TARGET_LABEL_COLORS, type Player, type DiceTheme, type PipStyle } from '../types/index'
+import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, PIP_STYLES, TARGET_LABEL_COLORS, type Player, type DiceTheme, type PipStyle, type YahtzeeCardSkin } from '../types/index'
 import { autoTargetColor as autoTargetColorFor } from '../lib/targetColor'
 import SyncWarning from '../components/SyncWarning.vue'
 
@@ -547,6 +567,14 @@ const selectedPipName = computed(() =>
   TARGET_LABEL_COLORS.find(c => c.value === pipColor.value)?.label ?? 'Default')
 const cricketTargetDisplay = ref<'show' | 'hide'>('show')
 const diceTheme = ref<DiceTheme | null>(null)
+const yahtzeeCard = ref<YahtzeeCardSkin | null>(null)
+
+/* Street first because it is the default, then the bright one, then the cold one. */
+const CARD_INKS: { value: YahtzeeCardSkin; label: string; blurb: string }[] = [
+  { value: 'street', label: 'Street Print', blurb: 'The app\u2019s own look' },
+  { value: 'paper',  label: 'Paper Card',   blurb: 'A printed scorepad' },
+  { value: 'board',  label: 'Board Flip',   blurb: 'A stadium scoreboard' },
+]
 
 const cricketTargetDisplayOpts: { value: 'show' | 'hide'; label: string; sub: string }[] = [
   { value: 'show',   label: 'Normal',  sub: 'Standard opacity' },
@@ -671,7 +699,7 @@ function closeCamera() {
 }
 function resetForm() {
   editingId.value = null; name.value = ''; color.value = '#ffffff'; avatarUrl.value = null
-  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; throwBackground.value = null; walkupBackground.value = null; bgMode.value = 'image'; targetLabelColor.value = null; pipColor.value = null; pipStyle.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; saving.value = false
+  photoPreview.value = null; playerBackground.value = null; bgImagePreview.value = null; throwBackground.value = null; walkupBackground.value = null; bgMode.value = 'image'; targetLabelColor.value = null; pipColor.value = null; pipStyle.value = null; cricketTargetDisplay.value = 'show'; diceTheme.value = null; yahtzeeCard.value = null; saving.value = false
   playerBackgroundSize.value = null; playerBackgroundFill.value = null
   playerBackgroundPosition.value = null; playerBackgroundZoom.value = null
   throwBackgroundPosition.value = null; throwBackgroundZoom.value = null
@@ -700,6 +728,7 @@ function loadPlayer(p: Player) {
   pipStyle.value = p.pipStyle ?? null
   cricketTargetDisplay.value = p.cricketTargetDisplay ?? 'show'
   diceTheme.value = p.diceTheme ?? null
+  yahtzeeCard.value = p.yahtzeeCard ?? null
 }
 const saving = ref(false)
 function save() {
@@ -710,10 +739,10 @@ function save() {
   const tlc = targetLabelColor.value
   const ctd = cricketTargetDisplay.value
   if (editingId.value) {
-    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, playerBackgroundZoom: playerBackgroundZoom.value, throwBackgroundPosition: throwBackgroundPosition.value, throwBackgroundZoom: throwBackgroundZoom.value, walkupBackgroundPosition: walkupBackgroundPosition.value, walkupBackgroundZoom: walkupBackgroundZoom.value, targetLabelColor: tlc, pipColor: pipColor.value, pipStyle: pipStyle.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value })
+    playersStore.updatePlayer(editingId.value, { name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, playerBackgroundZoom: playerBackgroundZoom.value, throwBackgroundPosition: throwBackgroundPosition.value, throwBackgroundZoom: throwBackgroundZoom.value, walkupBackgroundPosition: walkupBackgroundPosition.value, walkupBackgroundZoom: walkupBackgroundZoom.value, targetLabelColor: tlc, pipColor: pipColor.value, pipStyle: pipStyle.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, yahtzeeCard: yahtzeeCard.value })
     editingId.value = null
   } else {
-    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, playerBackgroundZoom: playerBackgroundZoom.value, throwBackgroundPosition: throwBackgroundPosition.value, throwBackgroundZoom: throwBackgroundZoom.value, walkupBackgroundPosition: walkupBackgroundPosition.value, walkupBackgroundZoom: walkupBackgroundZoom.value, targetLabelColor: tlc, pipColor: pipColor.value, pipStyle: pipStyle.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, pinned: false })
+    const newPlayer = playersStore.addPlayer({ name: name.value.trim(), color: color.value, avatarUrl: finalAvatar, playerBackground: bg, throwBackground: throwBackground.value, walkupBackground: walkupBackground.value, playerBackgroundSize: playerBackgroundSize.value, playerBackgroundPosition: playerBackgroundPosition.value, playerBackgroundFill: playerBackgroundFill.value, playerBackgroundZoom: playerBackgroundZoom.value, throwBackgroundPosition: throwBackgroundPosition.value, throwBackgroundZoom: throwBackgroundZoom.value, walkupBackgroundPosition: walkupBackgroundPosition.value, walkupBackgroundZoom: walkupBackgroundZoom.value, targetLabelColor: tlc, pipColor: pipColor.value, pipStyle: pipStyle.value, cricketTargetDisplay: ctd, diceTheme: diceTheme.value, yahtzeeCard: yahtzeeCard.value, pinned: false })
     if (route.query.addToGame === 'true' && gameStore.game) {
       gameStore.addPlayerToGame(newPlayer)
       resetForm()
@@ -939,6 +968,40 @@ function save() {
 .ct-player-label { font-size: 14px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.06em; color: #fff; }
 .ct-player-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: var(--text-muted); text-transform: uppercase; text-align: center; line-height: 1.3; }
 .ct-player-btn.active .ct-player-label { color: var(--pink); }
+
+/* The three scorecard inks, each swatch printed in its own stock so the button looks like
+   the card it picks rather than describing it. */
+.cardink-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.cardink-btn {
+  flex: 1; min-width: 132px; padding: 10px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  border: 2px solid rgba(255,255,255,0.25); background: transparent;
+  cursor: pointer; text-align: left; position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.cardink-btn.active { border-color: var(--pink); background: rgba(255,45,120,0.12); }
+.cardink-swatch {
+  width: 100%; height: 30px; margin-bottom: 3px;
+  border: 2px solid var(--ink-edge);
+  background-color: var(--ink-stock);
+  background-image: var(--ink-texture);
+  background-size: var(--ink-texture-size, auto);
+}
+.cardink-name { font-family: var(--font-display); font-size: 16px; letter-spacing: 0.04em; color: #fff; }
+.cardink-sub { font-size: 12px; color: var(--text-muted); }
+.cardink-street {
+  --ink-stock: #101014; --ink-edge: #2a2a34;
+  --ink-texture: radial-gradient(rgba(255,255,255,0.14) 1px, transparent 1px);
+  --ink-texture-size: 5px 5px;
+}
+.cardink-paper {
+  --ink-stock: #f2e8d0; --ink-edge: #6b5a3a;
+  --ink-texture: repeating-linear-gradient(92deg, rgba(120,90,40,0.12) 0 2px, transparent 2px 5px);
+}
+.cardink-board {
+  --ink-stock: #0a0d10; --ink-edge: rgba(0,212,255,0.45);
+  --ink-texture: repeating-linear-gradient(180deg, rgba(0,212,255,0.18) 0 1px, transparent 1px 4px);
+}
 
 /* Background fit / fill — same shape as the closed-target buttons above. */
 .bgfit-row { display: flex; gap: 8px; flex-wrap: wrap; }
