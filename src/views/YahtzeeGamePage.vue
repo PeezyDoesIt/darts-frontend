@@ -51,7 +51,6 @@
         <button v-ripple class="btn btn-outline btn-sm header-quit-btn" @click="quitGame">← Quit</button>
         <span class="turn-header-title display">YAHTZEE</span>
         <button v-ripple class="header-sc-btn header-bets-btn" :class="{ 'header-sc-btn-active': showSettings }" @click="showSettings = !showSettings" title="Bets & Settings">BETS</button>
-        <button v-ripple class="header-sc-btn" :class="{ 'header-sc-btn-active': showDicePicker }" @click="showDicePicker = !showDicePicker" title="Dice style">🎲</button>
         <button v-ripple class="header-sc-btn header-sc-btn-grey" :class="{ 'header-sc-btn-active': showSettings }" @click="showSettings = !showSettings" title="Settings">⚙</button>
       </div>
 
@@ -210,7 +209,6 @@
               <span class="sc-h-howto">
                 HOW TO SCORE
                 <span class="sc-ipad-btns">
-                  <button v-ripple class="header-sc-btn" :class="{ 'header-sc-btn-active': showDicePicker }" @click.stop="showDicePicker = !showDicePicker" title="Dice style">🎲</button>
                   <button v-ripple class="header-sc-btn header-sc-btn-grey" :class="{ 'header-sc-btn-active': showSettings }" @click.stop="showSettings = !showSettings" title="Settings">⚙</button>
                 </span>
               </span>
@@ -226,7 +224,8 @@
               class="sc-row"
               :class="{
                 filled: viewedState?.scorecard[cat.key] !== null,
-                live: isMyTurn && canScore && viewedState?.scorecard[cat.key] === null,
+                takeable: isMyTurn && canScore && viewedState?.scorecard[cat.key] === null,
+                live: isMyTurn && wouldScore(cat.key),
                 pending: pendingCategory === cat.key,
               }"
               @click="tryScore(cat.key)"
@@ -278,7 +277,8 @@
               class="sc-row"
               :class="{
                 filled: viewedState?.scorecard[cat.key] !== null,
-                live: isMyTurn && canScore && viewedState?.scorecard[cat.key] === null,
+                takeable: isMyTurn && canScore && viewedState?.scorecard[cat.key] === null,
+                live: isMyTurn && wouldScore(cat.key),
                 pending: pendingCategory === cat.key,
               }"
               @click="tryScore(cat.key)"
@@ -340,13 +340,39 @@
               </button>
             </div>
             <!--
-              Hide Scored and Light Theme were both here.
+              How the roll ends, and how much of the card is on screen.
 
-              Hide Scored is now how the card behaves rather than a switch: a scored row leaves
-              your own live card and stays on every other card. Light Theme was a second, worse
-              way of choosing a card's colours — the ink picker on the player's profile is the
-              first, and Paper Card is the light one.
+              Rolling had an overlay of its own behind a second header button; two panels for
+              four switches is one panel too many, so every mid-game setting lives here now.
+
+              Light Theme used to sit here too and is gone for good — it was a second, worse way
+              of choosing a card's colours. The ink picker on the player's profile is the first,
+              and Paper Card is the light one.
             -->
+            <div class="sc-settings-row">
+              <div class="sc-settings-info">
+                <span class="sc-settings-label">Rolling</span>
+                <span class="sc-settings-sub">Whether the dice stop themselves</span>
+              </div>
+              <div class="sc-settings-seg">
+                <button
+                  v-for="opt in ROLL_STOP_MODES" :key="opt.value"
+                  v-ripple
+                  class="sc-settings-seg-btn"
+                  :class="{ active: rollStop === opt.value }"
+                  @click="rollStop = opt.value"
+                >{{ opt.icon }} {{ opt.label }}</button>
+              </div>
+            </div>
+            <div class="sc-settings-row">
+              <div class="sc-settings-info">
+                <span class="sc-settings-label">Show Scored</span>
+                <span class="sc-settings-sub">Keep filled rows on your own card</span>
+              </div>
+              <button class="sc-settings-toggle" :class="{ active: showScored }" @click="showScored = !showScored">
+                {{ showScored ? 'ON' : 'OFF' }}
+              </button>
+            </div>
             <!-- Score timer setting -->
             <div class="sc-settings-row">
               <div class="sc-settings-info">
@@ -416,46 +442,6 @@
             <div class="sc-settings-quit-row">
               <button v-ripple class="sc-settings-quit-btn" @click="quitGame">Quit Game</button>
             </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
-
-    <!-- DICE PICKER OVERLAY -->
-    <Transition name="dp-fade">
-      <div v-if="showDicePicker" class="dice-picker-overlay" @click.self="showDicePicker = false">
-        <div class="dice-picker-panel">
-          <div class="dice-picker-header">
-            <span class="dice-picker-title display">DICE STYLE</span>
-            <button class="dice-picker-close" @click="showDicePicker = false">✕</button>
-          </div>
-          <div class="dice-picker-scroll">
-            <!--
-              How the roll ends. The eight animation styles are gone: they were ways of moving a
-              flat square around, and the dice are real cubes now — there is one way a thrown die
-              behaves. What is left is the only choice that changes play: do the dice stop
-              themselves, or does the player stop them.
-            -->
-            <div class="dp-anim-row">
-              <span class="dp-anim-label">Rolling</span>
-              <div class="dp-group-grid">
-                <button
-                  v-for="opt in ROLL_STOP_MODES" :key="opt.value"
-                  class="dp-btn"
-                  :class="{ active: rollStop === opt.value }"
-                  @click="rollStop = opt.value"
-                >
-                  <span class="dp-btn-icon">{{ opt.icon }}</span>
-                  <span class="dp-btn-label">{{ opt.label }}</span>
-                </button>
-              </div>
-            </div>
-            <!--
-              The dice colour picker used to sit here — thirty-four swatches, mid-game, on the
-              screen you are throwing on. It belongs to the player, not to the throw: it is set
-              on the player screen and it is read from there, so having it here only meant a
-              panel of choices between you and the board.
-            -->
           </div>
         </div>
       </div>
@@ -651,7 +637,6 @@ const dotPositions: [number, number][][] = [
 ]
 
 const dieTheme = computed<DiceTheme>(() => currentPlayer.value?.diceTheme ?? 'casino')
-const showDicePicker = ref(false)
 const showSettings = ref(false)
 /*
  * Two taps to leave, on the row itself rather than through a modal.
@@ -793,7 +778,16 @@ const ALL_LOWER_CATEGORIES: CatDef[] = [
  * This replaced a Hide Scored setting that defaulted off and applied everywhere, including to
  * cards nobody could score on.
  */
-const cardIsLive = computed(() => isMyTurn.value && game.value?.status === 'playing')
+/*
+ * Off by default, so a scored row leaves your own live card. On, every row stays — which is
+ * what a player wants when they are working out what is left rather than picking from it.
+ *
+ * The spec deleted this switch outright. Keeping it is a deliberate departure: the ask was for
+ * the hiding to be the DEFAULT with a way back, not for the choice to disappear.
+ */
+const showScored = ref(false)
+const cardIsLive = computed(() =>
+  !showScored.value && isMyTurn.value && game.value?.status === 'playing')
 const upperCategories = computed(() =>
   cardIsLive.value && viewedState.value
     ? ALL_UPPER_CATEGORIES.filter(cat => viewedState.value!.scorecard[cat.key] === null)
@@ -831,6 +825,21 @@ const upperBonusDisplay = computed(() => {
   }
   return upperBonus(sc) > 0 ? '+35' : '0'
 })
+
+/**
+ * Would taking this category right now be worth anything?
+ *
+ * The live treatment used to light up every empty row, which is every row you are ALLOWED to
+ * take — not the same question. Most are worth zero on any given roll, so the card lit up like
+ * a menu with no prices and the two or three rows that actually pay were lost among them. A
+ * zero row stays tappable, because sacrificing a category is a real move; it just is not a
+ * possibility being offered.
+ */
+function wouldScore(key: YahtzeeCategory): boolean {
+  if (!game.value || !canScore.value) return false
+  if (viewedState.value?.scorecard[key] !== null) return false
+  return calcScore(key, game.value.dice) > 0
+}
 
 function scorecardDisplay(key: YahtzeeCategory): string | number {
   if (!viewedState.value) return '—'
@@ -1235,25 +1244,7 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
   display: flex; align-items: center; justify-content: center;
 }
 .dice-picker-scroll { flex: 1; overflow-y: auto; padding: 16px 20px 28px; -webkit-overflow-scrolling: touch; }
-.dp-group { margin-bottom: 20px; }
-.dp-group-label {
-  font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-  color: rgba(255,255,255,0.4); margin-bottom: 10px;
-}
 /* Animation style buttons */
-.dp-group-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.dp-btn {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 10px 14px; min-width: 80px;
-  border-radius: 10px; border: 2px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.05);
-  cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
-}
-.dp-btn:hover { border-color: rgba(255,255,255,0.3); transform: scale(1.04); }
-.dp-btn.active { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.3); transform: scale(1.06); }
-.dp-btn-icon { font-size: 20px; line-height: 1; }
-.dp-btn-label { font-size: 13px; font-weight: 800; font-family: system-ui, sans-serif; letter-spacing: 0.01em; color: #fff; white-space: nowrap; text-shadow: 0 1px 6px rgba(0,0,0,0.9); }
 
 .dp-fade-enter-active, .dp-fade-leave-active { transition: opacity 0.2s; }
 .dp-fade-enter-from, .dp-fade-leave-to { opacity: 0; }
@@ -1422,6 +1413,16 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
   color: rgba(255,255,255,0.35);
   letter-spacing: 0.03em;
 }
+.sc-settings-seg { display: flex; gap: 6px; flex-shrink: 0; }
+.sc-settings-seg-btn {
+  padding: 7px 12px;
+  border: 2px solid rgba(255,255,255,0.2); background: transparent; color: rgba(255,255,255,0.7);
+  font-family: var(--font-display); font-size: 13px; letter-spacing: 0.06em;
+  cursor: pointer; position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.sc-settings-seg-btn.active { border-color: var(--pink); color: var(--pink); background: rgba(255,45,120,0.12); }
+
 .sc-settings-toggle {
   flex-shrink: 0;
   padding: 7px 22px;
@@ -1534,6 +1535,13 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
   display: flex;
   gap: calc(14px * var(--sc-scale));
   align-items: flex-start;
+  /*
+   * Capped and centred. The category column is `1fr`, so without a ceiling it takes every
+   * spare pixel and pushes HOW TO SCORE and PTS out to the right edge, leaving a row that
+   * reads as three unrelated things rather than one line.
+   */
+  max-width: calc(1500px * var(--sc-scale));
+  margin: 0 auto;
   padding: calc(14px * var(--sc-scale));
   background: var(--sc-page);
   font-family: var(--font-body, Inter, system-ui, sans-serif);
@@ -1582,6 +1590,8 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 .sc-h-pts { display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
 .sc-round-label { font-size: calc(9px * var(--sc-scale)); opacity: 0.75; }
 
+/* Allowed to take, but worth nothing — still a move, just not an offer. */
+.sc-row.takeable { cursor: pointer; }
 .sc-row {
   padding: var(--sc-row-pad);
   border-bottom: 1.5px solid var(--sc-rule);
@@ -1624,7 +1634,6 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
  * Board Flip a border alone gets lost among the hairlines.
  */
 .sc-row.live {
-  cursor: pointer;
   border: 2px solid var(--sc-live);
   background: var(--sc-live-tint);
   box-shadow: var(--sc-live-shadow);
@@ -1792,10 +1801,22 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 @media (min-width: 768px) and (max-width: 1099px) {
   .sc-card { --sc-scale: 0.78; }
 }
-/* iPad landscape and up: the two panels sit side by side and the card fits 1194 x 834
-   without scrolling, which is the whole reason the sections are separate panels. */
 @media (min-width: 1100px) {
-  .sc-card { --sc-scale: 1; flex-direction: row; }
+  .sc-card { --sc-scale: 1; }
+}
+
+/*
+ * Side by side, which is the whole reason the sections are separate panels.
+ *
+ * Driven by ORIENTATION, not by a width threshold. The spec described the target as
+ * "1194 x 834" and this was written as `min-width: 1100px` — but that is one iPad's landscape
+ * width, not the shape being described. A 10.2in iPad is 810 x 1080, so its landscape is
+ * 1080 wide, missed the rule by 20px, and stacked the panels on the exact screen the layout
+ * exists for. Landscape plus a floor wide enough for two readable columns says what was meant;
+ * a phone on its side is 844 at most and stays stacked.
+ */
+@media (orientation: landscape) and (min-width: 900px) {
+  .sc-card { flex-direction: row; }
   .sc-panel { width: 50%; }
   .scorecard-scroll { overflow: hidden; }
 }
@@ -1902,47 +1923,6 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 .die-wrap.die-held .die { transform: scale(0.9); transition: transform 0.25s ease; }
 
 /* Animation toggle + style picker in dice picker */
-.dp-anim-styles {
-  padding: 12px 4px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  margin-bottom: 14px;
-}
-.dp-anim-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 4px 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  margin-bottom: 14px;
-}
-.dp-anim-label {
-  font-size: 13px;
-  font-weight: 800;
-  font-family: var(--font-display);
-  letter-spacing: 0.06em;
-  color: rgba(255,255,255,0.7);
-}
-.dp-anim-btn {
-  padding: 6px 20px;
-  border-radius: 20px;
-  border: 2px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.4);
-  font-size: 13px;
-  font-weight: 900;
-  font-family: var(--font-display);
-  letter-spacing: 0.08em;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.dp-anim-btn.active {
-  border-color: var(--pink);
-  background: rgba(255,45,120,0.18);
-  color: var(--pink);
-  box-shadow: 0 0 12px rgba(255,45,120,0.3);
-}
 
 /* SCORESHEET TIMER BAR */
 .sc-timer-bar {

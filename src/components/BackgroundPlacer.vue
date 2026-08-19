@@ -13,7 +13,6 @@
         <template v-if="chrome === 'throw'">
           <span class="bgplace-name">{{ displayName }}</span>
           <span class="bgplace-score">301</span>
-          <span class="bgplace-darts"><i /><i /><i class="empty" /></span>
         </template>
         <template v-else>
           <span class="bgplace-up">UP NEXT</span>
@@ -229,7 +228,15 @@ watch(isFitted, (fitted) => { if (fitted && zoomValue.value !== 100) { zoomValue
 
 .bgplace-ui { position: absolute; inset: 0; pointer-events: none; }
 
-/* Throw screen: taped name, score, three darts. */
+/*
+ * Throw screen: the taped name and the score.
+ *
+ * Three small squares stood for the darts of a turn down in the bottom-left corner. They were
+ * removed because nobody read them as darts — the first question anyone asked was what they
+ * were, which is the whole job of a mock failing. The corner is still busy on the real screen,
+ * so this preview understates it slightly; that is the better trade against furniture that
+ * reads as a defect in your photo.
+ */
 .bgplace-name {
   position: absolute; left: 3cqw; top: 3cqw;
   font-family: var(--font-display); font-size: 5cqw; letter-spacing: 0.08em;
@@ -241,13 +248,6 @@ watch(isFitted, (fitted) => { if (fitted && zoomValue.value !== 100) { zoomValue
   font-family: var(--font-display); font-size: 22cqw; line-height: 0.85;
   color: #fff; text-shadow: 1cqw 1cqw 0 rgba(0,0,0,0.8);
 }
-.bgplace-darts { position: absolute; left: 3cqw; bottom: 3cqw; display: flex; gap: 1.6cqw; }
-.bgplace-darts i {
-  width: 11cqw; height: 11cqw; border: 0.5cqw solid #f6f4ee; background: #101014;
-  box-shadow: 0.7cqw 0.7cqw 0 rgba(0,0,0,0.6);
-}
-.bgplace-darts i.empty { background: rgba(16,16,20,0.45); border-style: dashed; box-shadow: none; }
-
 /* Walk-up: the name is the screen, so the mock is centred and large. */
 .bgplace-up {
   position: absolute; left: 50%; top: 9cqw; transform: translateX(-50%) rotate(-1deg);
