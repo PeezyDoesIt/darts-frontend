@@ -357,23 +357,6 @@
                 {{ scorecardTheme === 'light' ? 'ON' : 'OFF' }}
               </button>
             </div>
-            <!-- Walk-up screen setting -->
-            <div class="sc-settings-row">
-              <div class="sc-settings-info">
-                <span class="sc-settings-label">Walk-up Screen</span>
-                <span class="sc-settings-sub">Show between turns</span>
-              </div>
-              <button class="sc-settings-toggle" :class="{ active: walkupEnabled }" @click="walkupEnabled = !walkupEnabled">
-                {{ walkupEnabled ? 'ON' : 'OFF' }}
-              </button>
-            </div>
-            <div v-if="walkupEnabled" class="sc-settings-timer-row">
-              <span class="sc-settings-sub">Timer</span>
-              <div class="sc-settings-timer-btns">
-                <button v-ripple class="timer-ctrl-btn" :class="{ active: walkupDuration === 0 }" @click="walkupDuration = 0">Off</button>
-                <button v-for="t in [30, 60, 90]" :key="t" v-ripple class="timer-ctrl-btn" :class="{ active: walkupDuration === t }" @click="walkupDuration = t">{{ t }}s</button>
-              </div>
-            </div>
             <!-- Score timer setting -->
             <div class="sc-settings-row">
               <div class="sc-settings-info">
@@ -391,31 +374,6 @@
               </div>
             </div>
 
-            <div class="sc-settings-row">
-              <div class="sc-settings-info">
-                <span class="sc-settings-label">Add Player</span>
-                <span class="sc-settings-sub">Add a saved player to the game</span>
-              </div>
-              <button class="sc-settings-toggle" @click="showAddPlayer = !showAddPlayer">
-                {{ showAddPlayer ? 'HIDE' : 'ADD' }}
-              </button>
-            </div>
-            <div v-if="showAddPlayer" class="sc-add-player-list">
-              <div v-if="availablePlayers.length === 0" class="sc-add-player-empty">All saved players are already in this game.</div>
-              <button
-                v-for="p in availablePlayers" :key="p.id"
-                v-ripple
-                class="sc-add-player-row"
-                @click="addPlayer(p)"
-              >
-                <div class="sc-add-avatar" :style="{ background: p.color }">
-                  <img v-if="p.avatarUrl?.startsWith('data:') || p.avatarUrl?.startsWith('http')" :src="p.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
-                  <span v-else style="font-size:14px">{{ avatarGlyph(p) }}</span>
-                </div>
-                <span class="sc-add-name">{{ p.name }}</span>
-                <span class="sc-add-stats">{{ p.wins }}W / {{ p.gamesPlayed }}G</span>
-              </button>
-            </div>
             <!-- Bets -->
             <div class="sc-settings-divider">BETS</div>
             <div class="sc-settings-bet-section">
@@ -437,6 +395,32 @@
                 <button v-if="gameBetActive !== null" v-ripple class="bet-clear-btn" @click="gameBetActive = null; gameBetInput = ''">✕</button>
               </div>
               <div v-if="gameBetActive !== null" class="bet-active-badge">Active: <strong>${{ gameBetActive }}</strong></div>
+            </div>
+
+            <!--
+              Leaving, as opposed to quitting.
+
+              Quit Game ends it for the table. This takes one person out and lets the rest
+              carry on, which is the thing that actually happens: somebody has to go, and the
+              choice used to be play on for them or bin everyone's cards.
+            -->
+            <div v-if="game.players.length > 1" class="sc-settings-divider">LEAVE</div>
+            <div v-if="game.players.length > 1" class="sc-leave-list">
+              <p class="sc-leave-note">Their card goes with them. Everyone else keeps playing.</p>
+              <button
+                v-for="p in game.players" :key="p.id"
+                v-ripple
+                class="sc-leave-row"
+                :class="{ confirming: leavingId === p.id }"
+                @click="leavingId === p.id ? confirmLeave(p.id) : (leavingId = p.id)"
+              >
+                <div class="sc-add-avatar" :style="{ background: p.color }">
+                  <img v-if="p.avatarUrl?.startsWith('data:') || p.avatarUrl?.startsWith('http')" :src="p.avatarUrl!" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />
+                  <span v-else style="font-size:14px">{{ avatarGlyph(p) }}</span>
+                </div>
+                <span class="sc-add-name">{{ p.name }}</span>
+                <span class="sc-leave-action">{{ leavingId === p.id ? 'TAP TO CONFIRM' : 'LEAVE' }}</span>
+              </button>
             </div>
 
             <div class="sc-settings-quit-row">
@@ -487,31 +471,6 @@
       </div>
     </Transition>
 
-    <!-- WALK-UP OVERLAY -->
-    <Transition name="walkup-fade">
-      <div v-if="showWalkupOverlay" class="walkup-overlay" :style="walkupBgStyle">
-        <div class="walkup-avatar-bg" aria-hidden="true">
-          <img v-if="currentPlayer && (currentPlayer.avatarUrl?.startsWith('data:') || currentPlayer.avatarUrl?.startsWith('http'))" :src="currentPlayer.avatarUrl!" alt="" />
-          <span v-else-if="currentPlayer?.avatarUrl">{{ currentPlayer.avatarUrl }}</span>
-        </div>
-        <div class="walkup-inner">
-          <div class="walkup-name display" :style="{ color: walkupAlert ? '#ef4444' : currentPlayer?.color, filter: `drop-shadow(0 0 24px ${walkupAlert ? '#ef4444' : currentPlayer?.color})` }">
-            {{ currentPlayer?.name }}
-          </div>
-          <div class="walkup-bar" :style="{ background: walkupAlert ? '#ef4444' : currentPlayer?.color, boxShadow: `0 0 18px ${walkupAlert ? '#ef4444' : currentPlayer?.color}` }" />
-          <div v-if="walkupEnabled && walkupDuration > 0" class="walkup-timer-bar" :class="{ 'timer-alert': walkupAlert }" @click="walkupPaused = !walkupPaused">
-            <div class="walkup-timer-fill"
-              :class="{ urgent: walkupAlert, paused: walkupPaused }"
-              :style="{ width: `${(walkupTimeLeft / walkupDuration) * 100}%`, transition: walkupPaused ? 'none' : 'width 1s linear' }" />
-            <span class="walkup-timer-text display" :class="{ urgent: walkupAlert }">
-              {{ walkupPaused ? 'PAUSED' : walkupTimeLeft }}
-            </span>
-          </div>
-          <button v-ripple class="walkup-start-btn" @click="dismissWalkup">START</button>
-        </div>
-      </div>
-    </Transition>
-
   </div>
 </template>
 
@@ -536,7 +495,13 @@ const game = computed(() => yahtzeeStore.game)
 
 const viewingIndex = ref(0)
 const scorecardTheme = ref<'dark' | 'light'>('dark')
-const hideCompleted = ref(false)
+/*
+ * On by default. Thirteen rounds means the card is mostly spent lines by the end, and the
+ * three or four still open are the whole decision — leaving the filled ones in view puts the
+ * choice at the bottom of a list of things already done. The switch stays, so anyone who
+ * wants the full card back has it.
+ */
+const hideCompleted = ref(true)
 const showTabs = ref(false)
 const yahtzeeFlash = ref(false)
 const yahtzeeAutoScored = ref(false)
@@ -696,15 +661,24 @@ const dotPositions: [number, number][][] = [
 const dieTheme = computed<DiceTheme>(() => currentPlayer.value?.diceTheme ?? 'casino')
 const showDicePicker = ref(false)
 const showSettings = ref(false)
-const showAddPlayer = ref(false)
-
-const availablePlayers = computed(() =>
-  playersStore.players.filter(p => !game.value?.players.some(gp => gp.id === p.id))
-)
-function addPlayer(player: typeof playersStore.players[0]) {
-  yahtzeeStore.addPlayerToGame(player)
-  showAddPlayer.value = false
+/*
+ * Two taps to leave, on the row itself rather than through a modal.
+ *
+ * Removing a player mid-game is not undoable — their card is gone — but a confirm dialog for
+ * it would be the fourth overlay on this screen. Arming the row instead keeps the weight
+ * without the furniture, and it reads as what it is: you are pointing at a person.
+ */
+const leavingId = ref<string | null>(null)
+function confirmLeave(playerId: string) {
+  leavingId.value = null
+  stopScoresheetTimer()
+  yahtzeeStore.leaveGame(playerId)
+  // The turn may now belong to somebody else, so the clock starts again for them.
+  if (game.value?.status === 'playing' && scoresheetTimerEnabled.value) startScoresheetTimer()
 }
+// An armed row that is left alone should not still be armed the next time the panel opens.
+watch(() => showSettings.value, (open) => { if (!open) leavingId.value = null })
+
 const roundBetInput = ref('')
 const gameBetInput = ref('')
 const roundBetActive = ref<number | null>(null)
@@ -847,47 +821,6 @@ function onDieTap(i: number) {
   }
 }
 
-// ── Walk-up screen ─────────────────────────────
-const walkupEnabled = ref(false)
-const walkupDuration = ref(60)
-const showWalkupOverlay = ref(false)
-const walkupTimeLeft = ref(0)
-const walkupPaused = ref(false)
-const walkupAlert = ref(false)
-let walkupInterval: ReturnType<typeof setInterval> | null = null
-
-const walkupBgStyle = computed(() => {
-  const p = currentPlayer.value
-  if (!p) return {}
-  const bg = p.playerBackground
-  if (bg && (bg.startsWith('data:') || bg.startsWith('http'))) return { backgroundImage: `url(${bg})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-  if (bg) return { background: bg }
-  return { background: `radial-gradient(ellipse at center, ${p.color}50 0%, #0a0a0a 65%)` }
-})
-
-function startWalkupTimer() {
-  if (walkupInterval) { clearInterval(walkupInterval); walkupInterval = null }
-  if (!walkupEnabled.value || walkupDuration.value <= 0) return
-  walkupTimeLeft.value = walkupDuration.value
-  walkupAlert.value = false
-  walkupPaused.value = false
-  walkupInterval = setInterval(() => {
-    if (walkupPaused.value) return
-    walkupTimeLeft.value--
-    if (walkupTimeLeft.value <= 10) walkupAlert.value = true
-    if (walkupTimeLeft.value <= 0) {
-      if (walkupInterval) { clearInterval(walkupInterval); walkupInterval = null }
-      dismissWalkup()
-    }
-  }, 1000)
-}
-
-function dismissWalkup() {
-  if (walkupInterval) { clearInterval(walkupInterval); walkupInterval = null }
-  showWalkupOverlay.value = false
-  if (scoresheetTimerEnabled.value) startScoresheetTimer()
-}
-
 // ── Scoresheet timer ────────────────────────────
 const scoresheetTimerEnabled = ref(false)
 const scoresheetTimerDuration = ref(60)
@@ -985,8 +918,6 @@ function botStep() {
 function scheduleBot() {
   if (botTimer !== null) { clearTimeout(botTimer); botTimer = null }
   if (!currentIsBot.value || game.value?.status !== 'playing') return
-  // Not while the walk-up overlay is up — it is covering the board being played on.
-  if (showWalkupOverlay.value) return
 
   botTimer = setTimeout(() => {
     botTimer = null
@@ -995,26 +926,28 @@ function scheduleBot() {
   }, BOT_STEP_MS)
 }
 
-// Every one of these changes what the computer should do next: whose turn it is, how many
-// rolls are left, and whether the board is visible yet.
+// Both of these change what the computer should do next: whose turn it is, and how many
+// rolls are left.
 watch(
-  () => [game.value?.currentPlayerIndex, game.value?.rollCount, showWalkupOverlay.value] as const,
+  () => [game.value?.currentPlayerIndex, game.value?.rollCount] as const,
   () => scheduleBot(),
   { immediate: true },
 )
 
 onUnmounted(() => { if (botTimer !== null) clearTimeout(botTimer) })
 
-// Show walk-up overlay when turn advances
+/*
+ * A turn change restarts the clock on picking a category.
+ *
+ * There was a walk-up overlay between turns here, carried over from darts, where the device
+ * is handed to whoever is throwing. Yahtzee is played round one table with the card in front
+ * of everyone — the screen announced a player to the people already watching them, and cost
+ * a tap every turn to dismiss.
+ */
 watch(() => game.value?.currentPlayerIndex, () => {
   if (!game.value || game.value.status !== 'playing') return
   stopScoresheetTimer()
-  if (walkupEnabled.value) {
-    showWalkupOverlay.value = true
-    startWalkupTimer()
-  } else if (scoresheetTimerEnabled.value) {
-    startScoresheetTimer()
-  }
+  if (scoresheetTimerEnabled.value) startScoresheetTimer()
 })
 
 const pendingCategory = ref<YahtzeeCategory | null>(null)
@@ -1038,9 +971,9 @@ function tryScore(category: YahtzeeCategory) {
 watch(() => game.value?.rollCount, () => { pendingCategory.value = null })
 
 
-function playAgain() { stopScoresheetTimer(); if (walkupInterval) clearInterval(walkupInterval); yahtzeeStore.endGame(); router.push('/yahtzee/setup') }
-function goHome() { stopScoresheetTimer(); if (walkupInterval) clearInterval(walkupInterval); yahtzeeStore.endGame(); router.push('/') }
-function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(walkupInterval); yahtzeeStore.endGame(); router.push('/') }
+function playAgain() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push('/yahtzee/setup') }
+function goHome() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push('/') }
+function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push('/') }
 </script>
 
 <style scoped>
@@ -1478,26 +1411,12 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
   color: var(--pink);
   box-shadow: 0 0 10px rgba(255,45,120,0.25);
 }
-.sc-add-player-list {
-  display: flex; flex-direction: column; gap: 4px;
-  padding: 4px 0 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-}
-.sc-add-player-empty { font-size: 12px; color: rgba(255,255,255,0.35); padding: 8px 0; text-align: center; }
-.sc-add-player-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px; border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03);
-  cursor: pointer; transition: background 0.12s; text-align: left;
-  -webkit-tap-highlight-color: transparent;
-}
-.sc-add-player-row:hover { background: rgba(255,255,255,0.08); }
+/* Kept from the removed add-player list: the leave rows show the same person the same way. */
 .sc-add-avatar {
   width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; overflow: hidden;
 }
 .sc-add-name { flex: 1; font-size: 14px; font-weight: 700; color: #fff; }
-.sc-add-stats { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600; }
 .sc-settings-quit-row {
   padding: 20px 0 8px;
   display: flex;
@@ -2044,106 +1963,25 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 
 /* WALK-UP OVERLAY */
-.walkup-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #0a0a0a;
-}
-.walkup-avatar-bg {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  opacity: 0.15;
-}
-.walkup-avatar-bg img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.walkup-avatar-bg span {
-  font-size: 220px;
-  line-height: 1;
-}
-.walkup-inner {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  padding: 40px 24px;
-  width: 100%;
-  max-width: 420px;
-}
-.walkup-name {
-  font-size: clamp(48px, 12vw, 80px);
-  letter-spacing: 0.04em;
-  line-height: 1;
-  text-align: center;
-  word-break: break-word;
-}
-.walkup-bar {
-  width: 60%;
-  height: 3px;
-  border-radius: 2px;
-}
-.walkup-timer-bar {
-  width: 90%;
-  max-width: 320px;
-  position: relative;
-  height: 36px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 18px;
-  overflow: hidden;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.walkup-timer-fill {
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  background: rgba(255,255,255,0.2);
-  border-radius: 18px;
-  transition: width 1s linear;
-}
-.walkup-timer-fill.urgent { background: rgba(239,68,68,0.45); }
-.walkup-timer-fill.paused { background: rgba(255,200,0,0.25); }
-.walkup-timer-text {
-  position: relative;
-  z-index: 1;
-  font-size: 15px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  color: rgba(255,255,255,0.7);
-  font-family: var(--font-display);
-}
-.walkup-timer-text.urgent { color: #ef4444; }
-.walkup-start-btn {
-  margin-top: 8px;
-  padding: 14px 48px;
-  border-radius: 40px;
-  border: none;
-  background: var(--pink);
-  color: #fff;
-  font-size: 22px;
-  font-weight: 900;
-  font-family: var(--font-display);
-  letter-spacing: 0.15em;
-  cursor: pointer;
-  box-shadow: 0 0 30px rgba(255,45,120,0.4);
-  transition: opacity 0.15s;
-}
-.walkup-start-btn:active { opacity: 0.8; }
-
 /* SETTINGS BET SECTION */
+.sc-leave-list { display: flex; flex-direction: column; gap: 6px; padding: 4px 0 2px; }
+.sc-leave-note { margin: 0 0 4px; font-size: 12px; color: var(--text-muted); }
+.sc-leave-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; width: 100%;
+  border: 2px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
+  cursor: pointer; text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Armed. Red only at this point, so the list itself does not read as a danger zone. */
+.sc-leave-row.confirming { border-color: #ef4444; background: rgba(239,68,68,0.14); }
+.sc-leave-action {
+  margin-left: auto; flex-shrink: 0;
+  font-family: var(--font-display); font-size: 12px; letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+.sc-leave-row.confirming .sc-leave-action { color: #ef4444; }
+
 .sc-settings-divider {
   font-size: 10px;
   font-weight: 900;
@@ -2172,7 +2010,4 @@ function quitGame() { stopScoresheetTimer(); if (walkupInterval) clearInterval(w
 }
 
 /* Walk-up transition */
-.walkup-fade-enter-active { transition: opacity 0.25s ease; }
-.walkup-fade-leave-active { transition: opacity 0.2s ease; }
-.walkup-fade-enter-from, .walkup-fade-leave-to { opacity: 0; }
 </style>

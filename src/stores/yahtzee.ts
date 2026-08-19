@@ -307,10 +307,58 @@ export const useYahtzeeStore = defineStore('yahtzee', () => {
     persist()
   }
 
+  /**
+   * One player walks away; the rest carry on.
+   *
+   * Their scorecard goes with them rather than sitting on the final board as an abandoned
+   * column — a card stopped at round four is not a result, and ranking it against finished
+   * ones invents a loser out of somebody who simply left.
+   *
+   * Three things have to be right, and each was a way to break the game:
+   *
+   * - `currentPlayerIndex` is a position in an array that just got shorter. Leaving it alone
+   *   would silently hand the turn to whoever slid into that slot, or point past the end.
+   *   Removing someone BEFORE the current player shifts everyone down by one, so the index
+   *   has to come down too; removing the current player means the turn passes to whoever is
+   *   now at that index, which is the next player round, and wrapping covers the last seat.
+   * - The dice on the table belong to the turn that was in progress. If that turn was the
+   *   leaver's, the next player must not inherit a part-used roll, so the throw resets.
+   * - Everyone left may already be finished — the leaver could have been the only one with
+   *   rounds to go. `finishIfComplete` is what notices, and without this call the game would
+   *   sit unfinishable with nobody able to score.
+   *
+   * The last player is allowed to stay. Yahtzee is playable alone: they keep the score they
+   * were building and finish their thirteen rounds rather than having the game taken away.
+   */
+  function leaveGame(playerId: string) {
+    const g = game.value
+    if (!g || g.status !== 'playing') return
+    const idx = g.players.findIndex(p => p.id === playerId)
+    if (idx === -1) return
+    // The last player standing has nobody to hand the game to, so this is where it stops.
+    if (g.players.length <= 1) return
+
+    const wasTheirTurn = idx === g.currentPlayerIndex
+    g.players.splice(idx, 1)
+    g.playerStates.splice(idx, 1)
+
+    if (idx < g.currentPlayerIndex) g.currentPlayerIndex--
+    g.currentPlayerIndex = g.currentPlayerIndex % g.players.length
+
+    if (wasTheirTurn) {
+      g.dice = [1, 1, 1, 1, 1]
+      g.held = [false, false, false, false, false]
+      g.rollCount = 0
+    }
+
+    if (finishIfComplete()) return
+    persist()
+  }
+
   function endGame() {
     game.value = null
     persist()
   }
 
-  return { game, startGame, rollDice, toggleHold, setHolds, setDie, setPhysicalRollCount, autoScoreYahtzee, scoreCategory, addPlayerToGame, endGame, finishIfComplete }
+  return { game, startGame, rollDice, toggleHold, setHolds, setDie, setPhysicalRollCount, autoScoreYahtzee, scoreCategory, addPlayerToGame, leaveGame, endGame, finishIfComplete }
 })
