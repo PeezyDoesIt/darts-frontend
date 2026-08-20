@@ -27,6 +27,11 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # A cap, because a hung step otherwise runs until GitHub's own six-hour limit.
+    # `playwright install --with-deps` hung on apt for 4h56m and the job simply kept spinning:
+    # no failure, no location, nothing to read. Twenty minutes is roughly triple a healthy run,
+    # so a genuine slowdown still passes while a hang fails fast and names the step it died on.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -66,7 +71,35 @@ jobs:
 
       # The unit suite covers scoring and bot logic as pure functions. These are the only
       # tests that check a game still boots and can be played in a browser.
-      - run: npx playwright install --with-deps chromium
+
+      # The browser binary, cached on the Playwright version.
+      #
+      # Keyed on the version rather than the lockfile hash: the download only changes when
+      # Playwright does, so keying it any tighter would miss the cache on every unrelated
+      # dependency bump and re-download ~150MB for nothing.
+      - name: Read the Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        id: pw-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
+      # `--with-deps` is deliberately NOT used.
+      #
+      # It switches to root and apt-installs system libraries, and that is what hung: one run
+      # sat in `playwright install --with-deps chromium` for nearly five hours on an apt
+      # mirror that never answered. The ubuntu-latest image already ships the libraries
+      # Chromium needs, so the apt pass was buying nothing on this runner and could only cost.
+      #
+      # If a future image drops one, this fails in seconds with the missing library named,
+      # which is a better failure than an unbounded wait — and the fix is then to install that
+      # one package rather than to re-enter apt for all of them.
+      - run: npx playwright install chromium
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+
       - run: npm run test:e2e
 
       - name: Upload Playwright report on failure
