@@ -38,6 +38,18 @@ html, body, #app {
   position: fixed;
   top: 0;
   left: 0;
+  /*
+   * Text autosizing off.
+   *
+   * iOS Safari defaults this to `auto`, which quietly inflates text in some blocks — the same
+   * markup measures wider on an iPad than it does in any desktop browser at the same width.
+   * Every layout here is a nowrap flex row sized against its own type, so an inflated label
+   * does not reflow, it pushes the last child past the edge; with `overflow: hidden` on the
+   * root there is no scrollbar to reveal it and the control is simply gone until you pinch out.
+   * That is what hid Save Changes on the player screen while every measurement said it fit.
+   */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /* Quasar dark mode override */
