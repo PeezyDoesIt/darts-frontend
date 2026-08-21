@@ -1541,6 +1541,18 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
    * reads as three unrelated things rather than one line.
    */
   max-width: calc(1500px * var(--sc-scale));
+  /*
+   * `width: 100%` is load-bearing, not belt-and-braces.
+   *
+   * On iPad landscape `.scorecard-scroll` becomes a column flex container (see the band at the
+   * bottom of this file), which makes this card a flex item. `margin: 0 auto` on a flex item's
+   * cross axis overrides `align-items: stretch` — the item drops to its content width and the
+   * auto margins eat the rest. Measured at 1080 wide that left 467px of bare page showing on
+   * each side of a card that should have filled the screen, with the two panels shrunk to
+   * match. Pinning the width leaves the auto margins nothing to absorb, so they only do
+   * anything once max-width actually bites on a wide desktop, which is what they were for.
+   */
+  width: 100%;
   margin: 0 auto;
   padding: calc(14px * var(--sc-scale));
   background: var(--sc-page);
