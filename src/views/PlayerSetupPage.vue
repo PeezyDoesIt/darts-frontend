@@ -765,13 +765,36 @@ function save() {
 .name-input { width: 100%; background: #1c1c22; border: 2px solid rgba(255,255,255,0.2);  padding: 12px 16px; color: #fff; font-size: 20px; font-family: inherit; outline: none; box-sizing: border-box; -webkit-appearance: none; }
 .name-input:focus { border-color: var(--pink); }
 .name-input::placeholder { color: rgba(255,255,255,0.35); }
+/*
+ * Back · title · + New Player · Save Changes, on one line.
+ *
+ * The measurements say this fits at every iPad width with room to spare, and it does — in a
+ * desktop browser. On the device it did not, because iOS was inflating the type (see the
+ * text-size-adjust note in style.css). That is fixed at the root now, but the header should
+ * not have depended on the type measuring exactly what it measures on a laptop: this is a
+ * nowrap row whose last child is the only way to save, so anything that widens a sibling
+ * pushes Save off the edge and `overflow: hidden` on the root swallows it silently.
+ *
+ * So the row is now told what to give up. The title is the flexible one — it is a label for a
+ * screen you are already looking at, so it can lose characters. The four controls never
+ * shrink; they are touch targets and one of them is the point of the screen.
+ */
 .page-header {
-  display: flex; align-items: center; justify-content: space-between; padding: 18px 32px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 18px 32px;
   padding-top: calc(18px + env(safe-area-inset-top));
   border-bottom: 2px solid rgba(255,255,255,0.08);
   background: #141419; flex-shrink: 0;
 }
-.page-title { font-size: 26px; letter-spacing: 0.1em; background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.page-header > .btn { flex-shrink: 0; white-space: nowrap; }
+.page-title {
+  font-size: 26px; letter-spacing: 0.1em;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  /* min-width: 0 is what actually lets it shrink — a flex item's floor is its content otherwise. */
+  flex: 0 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 
 .setup-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
 .setup-form-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; border-right: 2px solid rgba(255,255,255,0.06); }
@@ -1096,7 +1119,10 @@ function save() {
   .setup-form-scroll { scrollbar-width: none; }
   .setup-form-scroll::-webkit-scrollbar { display: none; }
   .setup-form { padding: 18px 24px; gap: 16px; }
-  .page-header { padding: 12px 24px; padding-top: calc(12px + env(safe-area-inset-top)); }
+  /* Narrower gutters and a smaller title buy back ~50px for the controls in the band where
+     the row is tightest — the 768px end of it is the worst case. */
+  .page-header { padding: 12px 16px; padding-top: calc(12px + env(safe-area-inset-top)); gap: 10px; }
+  .page-title { font-size: 22px; letter-spacing: 0.08em; }
   .field { gap: 7px; }
   .color-wheel-svg { max-width: 220px; }
   /*
