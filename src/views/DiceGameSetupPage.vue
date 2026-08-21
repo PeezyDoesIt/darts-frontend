@@ -38,7 +38,7 @@
         </div>
       </section>
 
-      <section class="ng-section">
+      <section v-if="config.targets.length" class="ng-section">
         <span class="label">{{ config.targetLabel }}</span>
         <div class="target-btns">
           <button
@@ -49,6 +49,44 @@
             :class="{ active: target === t }"
             @click="target = t"
           >{{ t }}</button>
+        </div>
+      </section>
+
+      <section v-if="config.houseRules" class="ng-section">
+        <span class="label">HOUSE RULES</span>
+        <!--
+          Every option here is a point houses genuinely disagree on. A table that plays 7 to
+          the left is not playing it wrong, so these are settings rather than an argument.
+        -->
+        <div class="house-rows">
+          <div class="house-row">
+            <span class="hr-name">Counting</span>
+            <div class="target-btns">
+              <button v-ripple class="target-btn" :class="{ active: unit === 'sips' }" @click="unit = 'sips'">Sips</button>
+              <button v-ripple class="target-btn" :class="{ active: unit === 'points' }" @click="unit = 'points'">Points</button>
+            </div>
+          </div>
+          <div class="house-row">
+            <span class="hr-name">7 goes</span>
+            <div class="target-btns">
+              <button v-ripple class="target-btn" :class="{ active: house.sevenGoes === 'left' }" @click="house.sevenGoes = 'left'">Left</button>
+              <button v-ripple class="target-btn" :class="{ active: house.sevenGoes === 'right' }" @click="house.sevenGoes = 'right'">Right</button>
+            </div>
+          </div>
+          <div class="house-row">
+            <span class="hr-name">9 is a social</span>
+            <div class="target-btns">
+              <button v-ripple class="target-btn" :class="{ active: !house.nineIsSocial }" @click="house.nineIsSocial = false">No</button>
+              <button v-ripple class="target-btn" :class="{ active: house.nineIsSocial }" @click="house.nineIsSocial = true">Yes</button>
+            </div>
+          </div>
+          <div class="house-row">
+            <span class="hr-name">Doubles roll again</span>
+            <div class="target-btns">
+              <button v-ripple class="target-btn" :class="{ active: !house.doublesRollAgain }" @click="house.doublesRollAgain = false">No</button>
+              <button v-ripple class="target-btn" :class="{ active: house.doublesRollAgain }" @click="house.doublesRollAgain = true">Yes</button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -84,6 +122,8 @@ import { usePlayersStore } from '../stores/players'
 import { useFarkleStore } from '../stores/farkle'
 import { useSCCStore } from '../stores/shipCaptainCrew'
 import { usePigStore, PIG_RULES } from '../stores/pig'
+import { useThreeManStore, THREE_MAN_RULES, DEFAULT_HOUSE_RULES } from '../stores/threeMan'
+import type { HouseRules, SipUnit } from '../stores/threeMan'
 import { RULES as FARKLE_RULES, FARKLE_TARGET } from '../lib/farkle'
 import { RULES as SCC_RULES } from '../lib/shipCaptainCrew'
 import { goBack } from '../router/goBack'
@@ -94,16 +134,23 @@ import type { Player } from '../types/index'
  * text, so three near-identical copies of this page would be three places for the player
  * list and ordering controls to drift apart.
  */
-type Variant = 'farkle' | 'scc' | 'pig'
+type Variant = 'farkle' | 'scc' | 'pig' | 'threeman'
 
 interface VariantConfig {
   title: string
   minPlayers: number
   targetLabel: string
+  /**
+   * Empty means the game has no target, and the whole section is left out. Three Man has no
+   * win condition — it ends when the room decides — so offering it a number to play to would
+   * be inventing a rule the game does not have.
+   */
   targets: number[]
   defaultTarget: number
   rules: string[]
   route: string
+  /** Games with table-specific rules worth settling before the first roll. */
+  houseRules?: boolean
 }
 
 const CONFIG: Record<Variant, VariantConfig> = {
@@ -134,6 +181,18 @@ const CONFIG: Record<Variant, VariantConfig> = {
     rules: PIG_RULES,
     route: '/dice/pig',
   },
+  threeman: {
+    title: 'THREE MAN',
+    // Two players works but the 7 and 11 rules both point at the same person, which is a
+    // duller game than the one people mean. Three is where it starts behaving.
+    minPlayers: 3,
+    targetLabel: '',
+    targets: [],
+    defaultTarget: 0,
+    rules: THREE_MAN_RULES,
+    route: '/dice/threeman',
+    houseRules: true,
+  },
 }
 
 const route = useRoute()
@@ -142,6 +201,7 @@ const playersStore = usePlayersStore()
 const farkleStore = useFarkleStore()
 const sccStore = useSCCStore()
 const pigStore = usePigStore()
+const threeManStore = useThreeManStore()
 
 const variant = computed<Variant>(() => {
   const v = String(route.params.variant ?? '')
@@ -151,6 +211,13 @@ const config = computed(() => CONFIG[variant.value])
 
 const selectedPlayers = ref<Player[]>([])
 const target = ref<number>(CONFIG[variant.value].defaultTarget)
+
+/*
+ * Three Man's house rules. Kept here rather than in the store because they are a decision the
+ * table makes before the game exists — the store receives them at startGame and never asks.
+ */
+const unit = ref<SipUnit>('sips')
+const house = ref<HouseRules>({ ...DEFAULT_HOUSE_RULES })
 
 function isSelected(id: string) { return selectedPlayers.value.some(p => p.id === id) }
 function togglePlayer(p: Player) { if (!isSelected(p.id)) selectedPlayers.value.push(p) }
@@ -171,12 +238,16 @@ function start() {
   if (players.length < config.value.minPlayers) return
   if (variant.value === 'farkle') farkleStore.startGame(players, target.value)
   else if (variant.value === 'scc') sccStore.startGame(players, target.value)
+  else if (variant.value === 'threeman') threeManStore.startGame(players, { unit: unit.value, house: house.value })
   else pigStore.startGame(players, target.value)
   router.push(config.value.route)
 }
 </script>
 
 <style scoped>
+.house-rows { display: flex; flex-direction: column; gap: 10px; }
+.house-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.hr-name { font-size: 13px; color: var(--text-muted); font-weight: 600; }
 .setup-page {
   display: flex; flex-direction: column; width: 100vw; height: 100dvh;
   overflow: hidden; background: #0a0a0a;

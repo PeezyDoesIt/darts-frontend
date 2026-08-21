@@ -15,6 +15,7 @@ import DiceGameSetupPage from '../views/DiceGameSetupPage.vue'
 import FarkleGamePage from '../views/FarkleGamePage.vue'
 import SCCGamePage from '../views/SCCGamePage.vue'
 import PigGamePage from '../views/PigGamePage.vue'
+import ThreeManGamePage from '../views/ThreeManGamePage.vue'
 import SpadesSetupPage from '../views/SpadesSetupPage.vue'
 import SpadesGamePage from '../views/SpadesGamePage.vue'
 import BlackjackSetupPage from '../views/BlackjackSetupPage.vue'
@@ -40,6 +41,7 @@ const router = createRouter({
     { path: '/dice/farkle',   name: 'FarkleGame',    component: FarkleGamePage },
     { path: '/dice/scc',      name: 'SCCGame',       component: SCCGamePage },
     { path: '/dice/pig',      name: 'PigGame',       component: PigGamePage },
+    { path: '/dice/threeman', name: 'ThreeManGame',  component: ThreeManGamePage },
     { path: '/spades/setup',  name: 'SpadesSetup',   component: SpadesSetupPage },
     { path: '/spades',        name: 'SpadesGame',    component: SpadesGamePage },
     { path: '/blackjack/setup', name: 'BlackjackSetup', component: BlackjackSetupPage },

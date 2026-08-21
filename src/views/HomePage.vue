@@ -155,9 +155,13 @@
                 <span class="mode-title chip-name display">SHIP CAPTAIN CREW</span>
                 <span class="chip-sub">6, 5, 4 in order</span>
               </button>
-              <button v-ripple class="mode chip chip-pink chip-wide" @click="goGame('/dice/pig/setup')">
+              <button v-ripple class="mode chip chip-pink" @click="goGame('/dice/pig/setup')">
                 <span class="mode-title chip-name display">PIG</span>
                 <span class="chip-sub">Roll a 1, lose it all</span>
+              </button>
+              <button v-ripple class="mode chip chip-gold" @click="goGame('/dice/threeman/setup')">
+                <span class="mode-title chip-name display">THREE MAN</span>
+                <span class="chip-sub">Two dice, one unlucky</span>
               </button>
             </div>
           </div>
