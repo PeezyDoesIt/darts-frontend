@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { v4 as uuid } from 'uuid'
+import { normalizeDiceTheme } from '../types/index'
 import type { Player } from '../types/index'
 import { supabase } from '../lib/supabase'
 import {
@@ -158,7 +159,7 @@ export const usePlayersStore = defineStore('players', () => {
           pipColor: p.pipColor ?? null,
           pipStyle: p.pipStyle ?? null,
           cricketTargetDisplay: p.cricketTargetDisplay ?? null,
-          diceTheme: p.diceTheme ?? null,
+          diceTheme: normalizeDiceTheme(p.diceTheme),
           yahtzeeCard: p.yahtzeeCard ?? null,
         }
         return {
@@ -182,7 +183,7 @@ export const usePlayersStore = defineStore('players', () => {
           targetLabelColor: p.targetLabelColor ?? null,
           pipColor: p.pipColor ?? null,
           pipStyle: p.pipStyle ?? null,
-          diceTheme: p.diceTheme ?? null,
+          diceTheme: normalizeDiceTheme(p.diceTheme),
           yahtzeeCard: p.yahtzeeCard ?? null,
         }
       })
@@ -479,7 +480,8 @@ export const usePlayersStore = defineStore('players', () => {
       pipColor: (row.pip_color as string | null) ?? null,
       pipStyle: (row.pip_style as Player['pipStyle']) ?? null,
       cricketTargetDisplay: (row.cricket_target_display as 'show' | 'hide' | null) ?? null,
-      diceTheme: (row.dice_theme as import('../types/index').DiceTheme | null) ?? null,
+      // A row written by a device that has not upgraded still carries a retired name.
+      diceTheme: normalizeDiceTheme(row.dice_theme as string | null),
       yahtzeeCard: (row.yahtzee_card as import('../types/index').YahtzeeCardSkin | null) ?? null,
       pinned: (row.pinned as boolean) ?? false,
       wins: (row.wins as number) ?? 0,
