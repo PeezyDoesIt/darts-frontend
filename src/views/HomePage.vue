@@ -49,7 +49,7 @@
           </div>
 
           <span class="hero-eyebrow">EST. TONIGHT</span>
-          <h1 class="hero-wordmark">
+          <h1 class="tape-title hero-wordmark">
             <span class="wm-line">PEEZY</span>
             <span class="wm-line">DOES IT</span>
           </h1>
@@ -1010,14 +1010,25 @@ function previewBullseyeSound(value: string) {
 }
 /* the app's name, at the size a name deserves — stacked so it can go big
    without running out of column */
+/*
+ * The wordmark wears the tape, at the wordmark's size.
+ *
+ * `.tape-title` carries the treatment; everything overridden here is a fact about this being
+ * a hero rather than a page title. It keeps its own scale, because 46px is the size of a
+ * title and this is the largest thing in the app — flattening it would halve the hero and
+ * turn it into a label. It keeps `flex-direction: column`, because it is two lines and the
+ * tape has to cover both as one strip rather than boxing each line separately. And it keeps
+ * its tighter tracking, which is what large display type wants.
+ *
+ * The pink drop-shadow glow is gone: a soft halo around a hard-shadowed strip is two
+ * different shadow languages on one element, and the tape already carries its own.
+ */
 .hero-wordmark {
-  position: relative; margin: 0; display: flex; flex-direction: column;
-  font-family: var(--font-display);
-  font-size: clamp(46px, 7.4dvh, 104px);
+  --tape-size: clamp(46px, 7.4dvh, 104px);
+  position: relative; margin: 0;
+  display: flex; flex-direction: column; align-self: flex-start;
   line-height: 0.82; letter-spacing: 0.02em;
-  background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 44%, var(--blue) 88%);
-  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 44px rgba(255,45,120,0.35));
+  padding: 8px 20px 6px;
 }
 .wm-line { display: block; }
 .wm-line:last-child { letter-spacing: 0.055em; }
@@ -1254,11 +1265,11 @@ function previewBullseyeSound(value: string) {
 .board { display: flex; flex-direction: column; gap: clamp(10px, 1.3dvh, 16px); padding: clamp(16px, 2.2dvh, 26px) 26px clamp(14px, 1.8dvh, 22px);  }
 .board-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 .board-links { display: flex; align-items: baseline; gap: 14px; flex-shrink: 0; }
-.board-title {
-  font-size: 24px; letter-spacing: 0.14em;
-  background: linear-gradient(135deg, var(--gold), var(--orange));
-  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-}
+/*
+ * `.board-title` was deleted rather than taped: the rule was here but nothing in the template
+ * carried the class, so it styled nothing. Taping it would have been a treatment applied to
+ * an element that does not exist.
+ */
 .board-link {
   background: none; border: none; cursor: pointer;
   font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;

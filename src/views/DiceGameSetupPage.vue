@@ -4,7 +4,7 @@
 
     <div class="setup-header">
       <button v-ripple class="btn btn-outline btn-sm header-back" @click="goBack(router, '/')">← Back</button>
-      <h1 class="setup-title display">{{ config.title }}</h1>
+      <h1 class="tape-title">{{ config.title }}</h1>
       <div class="header-spacer" />
     </div>
 
@@ -258,11 +258,7 @@ function start() {
   border-bottom: 2px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.6); flex-shrink: 0;
 }
 .header-back, .header-spacer { min-width: 72px; }
-.setup-title {
-  font-size: 24px; letter-spacing: 0.12em; margin: 0; text-align: center;
-  background: linear-gradient(135deg, var(--gold), var(--orange));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
+/* The title is `.tape-title` now — one treatment, defined in style.css. */
 /* Owns its own scroll — the app shell is fixed and overflow:hidden, so a page that
    relies on the document scrolling silently clips everything below the fold. */
 .setup-body {
