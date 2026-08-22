@@ -230,3 +230,44 @@ html, body, #app {
   opacity: 0.5;
 }
 .card > *, .glass-strong > * { position: relative; z-index: 1; }
+
+/* ── The taped title ────────────────────────────────────────────────────────────────────
+ *
+ * One place, because there were about to be five.
+ *
+ * Every screen had its own gradient-clipped heading — a different gradient each time, a
+ * different size each time, and `-webkit-text-fill-color: transparent` on all of them, which
+ * is a hack that fails to a blank heading rather than to a plain one. This is the settled
+ * treatment: a strip of pink tape with dark text, knocked slightly off square.
+ *
+ * SIZE COMES FROM THE TYPEFACE, NOT THE SCREEN.
+ *
+ * A condensed display face, a serif and a monospace do not set the same word to the same
+ * width at the same size, so one flat number fits on one screen and overruns its tape on the
+ * next. `--tape-size` is set by the face, and the face and the size are declared together —
+ * change one and the other comes with it.
+ */
+.tape-title {
+  --tape-size: 46px;
+  display: inline-block;
+  margin: 0;
+  font-family: var(--font-display, 'Bebas Neue', sans-serif);
+  font-size: var(--tape-size);
+  line-height: 1;
+  letter-spacing: 0.07em;
+  color: #101014;
+  background: var(--pink, #ff2d78);
+  padding: 5px 16px 3px;
+  transform: rotate(-0.8deg);
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.55);
+}
+/* The two other faces in the app, each with the size that suits it. */
+.tape-title-serif { --tape-size: 33px; font-family: Georgia, 'Times New Roman', serif; }
+.tape-title-mono  { --tape-size: 40px; font-family: 'Share Tech Mono', ui-monospace, monospace; }
+
+/* A phone is not a different typeface, so the tape scales rather than being re-tuned. */
+@media (max-width: 767px) {
+  .tape-title { --tape-size: 28px; padding: 4px 11px 2px; }
+  .tape-title-serif { --tape-size: 21px; }
+  .tape-title-mono  { --tape-size: 25px; }
+}

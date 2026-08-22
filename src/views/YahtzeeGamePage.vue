@@ -1066,7 +1066,7 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 .rank-row {
   display: flex; align-items: center; gap: 12px;
   padding: 12px 16px; background: rgba(255,255,255,0.05);
-  border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
+  border: 2px solid rgba(255,255,255,0.1);
 }
 .rank-row.rank-winner { border-width: 2px; }
 .rank-place { font-size: 22px; width: 28px; text-align: center; color: rgba(255,255,255,0.4); }
@@ -1096,7 +1096,7 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
   align-items: center;
   gap: 16px;
   padding: 14px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 2px solid rgba(255,255,255,0.08);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.15s;
@@ -1126,7 +1126,7 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
   -webkit-overflow-scrolling: touch;
   flex-shrink: 0;
   background: rgba(0,0,0,0.5);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 2px solid rgba(255,255,255,0.06);
   scrollbar-width: none;
 }
 .player-tabs::-webkit-scrollbar { display: none; }
@@ -1167,7 +1167,7 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
   flex-shrink: 0;
   padding: 24px 16px 20px;
   background: rgba(255,255,255,0.02);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 2px solid rgba(255,255,255,0.06);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1241,25 +1241,26 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 /* ===== DICE PICKER OVERLAY ===== */
 .dice-picker-overlay {
   position: fixed; inset: 0; z-index: 999;
-  background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  /* Scrim, no blur: frosted glass is the language this screen was moved out of, and the
+     dark ground already does the separating. */
+  background: rgba(0,0,0,0.86);
   display: flex; align-items: flex-end; justify-content: center;
 }
 .dice-picker-panel {
   width: 100%; max-width: 680px; max-height: 80dvh;
-  background: #111; border-top: 1px solid rgba(255,255,255,0.12);
-  border-radius: 20px 20px 0 0;
+  background: #111; border-top: 2px solid rgba(255,255,255,0.12);
   display: flex; flex-direction: column; overflow: hidden;
 }
 .dice-picker-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 24px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 2px solid rgba(255,255,255,0.08);
   flex-shrink: 0;
 }
 .dice-picker-title { font-size: 20px; letter-spacing: 0.12em; color: #fff; }
 .dice-picker-close {
-  width: 32px; height: 32px; border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
+  width: 32px; height: 32px;
+  border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.7); font-size: 14px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
 }
@@ -1278,7 +1279,6 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
   justify-content: center;
   gap: 10px;
   padding: 8px 16px;
-  border-radius: 10px;
   border: 2px solid;
   background: rgba(0,0,0,0.5);
   animation: yf-pulse 0.6s ease-in-out infinite alternate;
@@ -1325,7 +1325,6 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 }
 .physical-step-btn {
   padding: 8px 16px;
-  border-radius: 8px;
   border: 2px solid rgba(255,255,255,0.15);
   background: rgba(255,255,255,0.04);
   color: rgba(255,255,255,0.5);
@@ -1346,7 +1345,7 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
   justify-content: space-between;
   padding: 10px 16px;
   background: rgba(255,212,0,0.08);
-  border-bottom: 1px solid rgba(255,212,0,0.2);
+  border-bottom: 2px solid rgba(255,212,0,0.2);
   font-size: 13px;
   color: rgba(255,255,255,0.7);
   gap: 12px;
@@ -1358,8 +1357,8 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 .sc-ipad-btns { display: none; }
 .bet-header-btn {
   margin-left: auto; flex-shrink: 0;
-  padding: 2px 6px; border-radius: 4px;
-  border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
+  padding: 2px 6px;
+  border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.65); font-size: 8px; font-weight: 900;
   letter-spacing: 0.06em; cursor: pointer; transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
@@ -1373,22 +1372,22 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 .bet-input-row { display: flex; align-items: center; gap: 8px; }
 .bet-dollar { font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.5); }
 .bet-input {
-  flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 18px; font-weight: 700;
+  flex: 1; background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.15);
+  padding: 10px 14px; color: #fff; font-size: 18px; font-weight: 700;
   outline: none; min-width: 0;
 }
 .bet-input:focus { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
 .bet-input::placeholder { color: rgba(255,255,255,0.2); }
 .bet-set-btn {
-  padding: 10px 18px; border-radius: 8px; border: none;
+  padding: 10px 18px; border: none;
   background: #f59e0b; color: #000; font-size: 13px; font-weight: 900;
   letter-spacing: 0.08em; cursor: pointer; flex-shrink: 0; transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 .bet-set-btn:hover { background: #fbbf24; }
 .bet-clear-btn {
-  padding: 10px 12px; border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06);
+  padding: 10px 12px;
+  border: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.5); font-size: 14px; cursor: pointer; flex-shrink: 0;
   transition: all 0.15s; -webkit-tap-highlight-color: transparent;
 }
@@ -1412,7 +1411,7 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
   justify-content: space-between;
   gap: 16px;
   padding: 16px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 2px solid rgba(255,255,255,0.07);
 }
 .sc-settings-row:last-child { border-bottom: none; }
 .sc-settings-info {
@@ -1446,7 +1445,6 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 .sc-settings-toggle {
   flex-shrink: 0;
   padding: 7px 22px;
-  border-radius: 20px;
   border: 2px solid rgba(255,255,255,0.18);
   background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.35);
@@ -1476,7 +1474,6 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 }
 .sc-settings-quit-btn {
   padding: 11px 40px;
-  border-radius: 8px;
   border: 2px solid rgba(255, 80, 80, 0.5);
   background: rgba(255, 60, 60, 0.12);
   color: #ff5555;
@@ -1509,8 +1506,7 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 
 .header-sc-btn {
   background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 6px;
+  border: 2px solid rgba(255,255,255,0.15);
   padding: 3px 7px;
   font-size: 14px;
   cursor: pointer;
@@ -1940,7 +1936,7 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
   }
   /* Taller player banner on laptop */
   .player-banner { padding: 16px 24px; min-height: 90px; gap: 20px; }
-  .banner-avatar { width: 130px; height: 82px; border-radius: 14px; font-size: 42px; }
+  .banner-avatar { width: 130px; height: 82px; font-size: 42px; }
   .banner-name { font-size: clamp(36px, 5dvh, 64px); }
   .banner-total { font-size: 36px; }
   .banner-pts { font-size: 10px; }
@@ -1978,7 +1974,7 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
   position: relative;
   height: 28px;
   background: rgba(255,255,255,0.06);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 2px solid rgba(255,255,255,0.08);
   cursor: pointer;
   overflow: hidden;
   display: flex;
@@ -2021,7 +2017,6 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 }
 .timer-ctrl-btn {
   padding: 5px 12px;
-  border-radius: 16px;
   border: 2px solid rgba(255,255,255,0.15);
   background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.4);
@@ -2065,7 +2060,7 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
   color: rgba(255,255,255,0.3);
   padding: 10px 16px 4px;
   text-transform: uppercase;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 2px solid rgba(255,255,255,0.08);
   margin-top: 4px;
 }
 .sc-settings-bet-section {

@@ -4,7 +4,7 @@
 
     <div class="setup-header">
       <button v-ripple class="btn btn-outline btn-sm header-back" @click="router.push('/')">← Back</button>
-      <h1 class="setup-title display">YAHTZEE</h1>
+      <h1 class="tape-title">YAHTZEE</h1>
       <div class="header-spacer" />
     </div>
 
@@ -207,15 +207,7 @@ function startGame() {
 }
 .header-back { min-width: 72px; }
 .header-spacer { min-width: 72px; }
-.setup-title {
-  font-size: 28px;
-  letter-spacing: 0.15em;
-  background: linear-gradient(135deg, var(--pink), var(--purple), var(--blue));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
-}
+/* The title is `.tape-title` now — one treatment, defined in style.css. */
 
 .setup-body {
   flex: 1;
@@ -319,7 +311,6 @@ function startGame() {
  * picked, so anything positional reshuffles the moment you tap someone.
  */
 @media (min-width: 1100px) {
-  .setup-title { font-size: 52px; font-weight: 900; letter-spacing: 0.18em; }
   .setup-body {
     display: grid;
     grid-template-columns: 1.15fr 1fr;

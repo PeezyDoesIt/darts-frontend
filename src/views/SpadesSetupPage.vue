@@ -4,7 +4,7 @@
 
     <div class="setup-header">
       <button v-ripple class="btn btn-outline btn-sm header-back" @click="goBack(router, '/')">← Back</button>
-      <h1 class="setup-title display">SPADES</h1>
+      <h1 class="tape-title">SPADES</h1>
       <div class="header-spacer" />
     </div>
 
@@ -217,11 +217,7 @@ function start() {
   background: rgba(0,0,0,0.6); flex-shrink: 0;
 }
 .header-back, .header-spacer { min-width: 72px; }
-.setup-title {
-  font-size: 26px; letter-spacing: 0.14em; margin: 0;
-  background: linear-gradient(135deg, #cfd4ff, #8f7bff);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
+/* The title is `.tape-title` now — one treatment, defined in style.css. */
 .setup-body {
   flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain; padding: 20px 16px; display: flex; flex-direction: column; gap: 22px;
