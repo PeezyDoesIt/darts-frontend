@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid'
 import type { Player } from '../types/index'
 import { supabase } from '../lib/supabase'
 import {
-  deleteAvatar, isDataUrl, isRemoteUrl, signAvatars, uploadAvatar,
+  deleteAvatar, isDataUrl, isRemoteUrl, signAvatars, uploadPlayerImage,
 } from '../api/avatarStorage'
 
 // The old seed shipped 'brannon-default' with a fabricated 100 wins / 100 games.
@@ -276,28 +276,58 @@ export const usePlayersStore = defineStore('players', () => {
    * nothing when signed out or when there is no data URL to move, so an offline player
    * keeps their picture locally and gets it uploaded the next time they sign in.
    */
+  /**
+   * The four images a player can have, as (what to show, where it lives) pairs.
+   *
+   * A table rather than four copies of the same twelve lines. The avatar had this logic and
+   * the three backgrounds had none of it, which is the whole bug: backgrounds are the large
+   * images — an avatar is a thumbnail, a background is full screen — and they were the ones
+   * still being carried inline as base64, in localStorage and in Postgres at once.
+   */
+  const IMAGE_FIELDS = [
+    { url: 'avatarUrl', path: 'avatarPath', kind: 'avatar' },
+    { url: 'playerBackground', path: 'playerBackgroundPath', kind: 'playerBackground' },
+    { url: 'throwBackground', path: 'throwBackgroundPath', kind: 'throwBackground' },
+    { url: 'walkupBackground', path: 'walkupBackgroundPath', kind: 'walkupBackground' },
+  ] as const
+
+  /** Remove every stored image for a player. Best effort; an orphan beats a blocked delete. */
+  async function deleteAllImages(p: Player): Promise<void> {
+    for (const f of IMAGE_FIELDS) {
+      const path = p[f.path] as string | null | undefined
+      if (path) await deleteAvatar(path)
+    }
+  }
+
   async function offloadPhoto(id: string): Promise<void> {
     const player = players.value.find(p => p.id === id)
-    if (!player || !isDataUrl(player.avatarUrl)) return
+    if (!player) return
 
-    const result = await uploadAvatar(player.id, player.avatarUrl!)
-    if (!result) return
+    for (const field of IMAGE_FIELDS) {
+      const value = player[field.url] as string | null | undefined
+      if (!isDataUrl(value)) continue
 
-    const idx = players.value.findIndex(p => p.id === id)
-    if (idx === -1) return
-    players.value[idx] = {
-      ...players.value[idx]!,
-      avatarPath: result.path,
-      // Only drop the data URL once a signed URL replaces it — otherwise a signing failure
-      // would leave the player with no picture at all.
-      avatarUrl: result.signedUrl ?? players.value[idx]!.avatarUrl,
+      const result = await uploadPlayerImage(player.id, value!, field.kind)
+      if (!result) continue
+
+      const idx = players.value.findIndex(p => p.id === id)
+      if (idx === -1) return
+      const patch = {
+        [field.path]: result.path,
+        // Only drop the data URL once a signed URL replaces it — otherwise a signing failure
+        // would leave the player with no picture at all.
+        [field.url]: result.signedUrl ?? (players.value[idx]![field.url] as string | null),
+      } as Partial<Player>
+      players.value[idx] = { ...players.value[idx]!, ...patch }
     }
     persist()
   }
 
   /** Upload any photo still held inline. Runs after sign-in, when uploads become possible. */
   async function offloadPendingPhotos(): Promise<void> {
-    const pending = players.value.filter(p => isDataUrl(p.avatarUrl)).map(p => p.id)
+    const pending = players.value
+      .filter(p => IMAGE_FIELDS.some(f => isDataUrl(p[f.url] as string | null | undefined)))
+      .map(p => p.id)
     for (const id of pending) await offloadPhoto(id)
   }
 
@@ -347,11 +377,27 @@ export const usePlayersStore = defineStore('players', () => {
       if (!session) return { error: null }
       // Remove the image too, otherwise deleting a player leaves an orphaned object that
       // nothing will ever reference or clean up.
-      if (removed?.avatarPath) await deleteAvatar(removed.avatarPath)
+      // Every image, not just the avatar — a background left behind is an orphan nothing
+      // will ever reference again, and it still counts against the bucket.
+      if (removed) await deleteAllImages(removed)
       const result = await supabase.from('players').delete().eq('id', id)
       if (!result.error) forgetTombstone(id)
       return result
     })
+  }
+
+  /**
+   * What belongs in an image column: a stable URL, or nothing.
+   *
+   * A signed URL expires and must never be written. A data URL is dropped once the image is
+   * safely in Storage, and deliberately kept until then — so a failed upload leaves the only
+   * copy where it was rather than clearing it on the assumption the upload worked.
+   */
+  function storedImage(value: string | null | undefined, path: string | null | undefined): string | null {
+    if (!value) return null
+    if (isRemoteUrl(value)) return null
+    if (isDataUrl(value)) return path ? null : value
+    return value
   }
 
   function playerToDb(p: Player, userId: string) {
@@ -360,19 +406,38 @@ export const usePlayersStore = defineStore('players', () => {
       user_id: userId,
       name: p.name,
       color: p.color,
-      // A signed URL is short-lived, so never persist one — it would be dead by the time
-      // another device read it. Only stable values go to the column.
-      avatar_url: isRemoteUrl(p.avatarUrl) || isDataUrl(p.avatarUrl) ? null : p.avatarUrl,
+      /*
+       * Was: null whenever this held a data URL, path or no path. That quietly traded a
+       * working photo for an empty column whenever an upload had not happened yet — the
+       * local copy survived, so it was recoverable, but the cloud row lost the only copy it
+       * had. `storedImage` keeps it until the path proves the image is somewhere safer.
+       */
+      avatar_url: storedImage(p.avatarUrl, p.avatarPath),
       avatar_path: p.avatarPath ?? null,
-      player_background: p.playerBackground,
+      /*
+       * The image columns carry a reference, never the image.
+       *
+       * A signed URL is short-lived, so persisting one would store something dead by the
+       * time another device read it. A data URL is worse: base64 in a text column is the
+       * original file at ~133% of its size, sent up and pulled back down on every sync.
+       *
+       * `storedImage` keeps the inline copy ONLY while there is no path yet. That is the
+       * difference from `avatar_url` below, which nulls a data URL unconditionally: if the
+       * upload has not happened, clearing this column would trade a working photo for an
+       * empty one, and these are the images a player cannot regenerate.
+       */
+      player_background: storedImage(p.playerBackground, p.playerBackgroundPath),
+      player_background_path: p.playerBackgroundPath ?? null,
       player_background_size: p.playerBackgroundSize,
       player_background_position: p.playerBackgroundPosition,
       player_background_fill: p.playerBackgroundFill,
       player_background_zoom: p.playerBackgroundZoom,
-      throw_background: p.throwBackground,
+      throw_background: storedImage(p.throwBackground, p.throwBackgroundPath),
+      throw_background_path: p.throwBackgroundPath ?? null,
       throw_background_position: p.throwBackgroundPosition ?? null,
       throw_background_zoom: p.throwBackgroundZoom ?? null,
-      walkup_background: p.walkupBackground,
+      walkup_background: storedImage(p.walkupBackground, p.walkupBackgroundPath),
+      walkup_background_path: p.walkupBackgroundPath ?? null,
       walkup_background_position: p.walkupBackgroundPosition ?? null,
       walkup_background_zoom: p.walkupBackgroundZoom ?? null,
       target_label_color: p.targetLabelColor,
@@ -407,6 +472,9 @@ export const usePlayersStore = defineStore('players', () => {
       walkupBackground: (row.walkup_background as string | null) ?? null,
       walkupBackgroundPosition: (row.walkup_background_position as string | null) ?? null,
       walkupBackgroundZoom: (row.walkup_background_zoom as number | null) ?? null,
+      playerBackgroundPath: (row.player_background_path as string | null) ?? null,
+      throwBackgroundPath: (row.throw_background_path as string | null) ?? null,
+      walkupBackgroundPath: (row.walkup_background_path as string | null) ?? null,
       targetLabelColor: (row.target_label_color as string | null) ?? null,
       pipColor: (row.pip_color as string | null) ?? null,
       pipStyle: (row.pip_style as Player['pipStyle']) ?? null,
@@ -477,12 +545,21 @@ export const usePlayersStore = defineStore('players', () => {
     // Turn stored paths into URLs an <img> can actually render. Signed URLs expire, so this
     // has to happen on every sync rather than relying on whatever was saved last time.
     // Batched into one request so a table of players is not one round trip each.
-    const toSign = merged.filter(p => p.avatarPath).map(p => p.avatarPath!)
+    const toSign = merged.flatMap(p =>
+      IMAGE_FIELDS.map(f => p[f.path] as string | null | undefined).filter(Boolean) as string[]
+    )
     if (toSign.length > 0) {
       const signed = await signAvatars(toSign)
-      players.value = players.value.map(p =>
-        p.avatarPath && signed[p.avatarPath] ? { ...p, avatarUrl: signed[p.avatarPath]! } : p
-      )
+      players.value = players.value.map(p => {
+        let next = p
+        for (const f of IMAGE_FIELDS) {
+          const path = p[f.path] as string | null | undefined
+          // A path that failed to sign is left showing whatever it had. One dead object must
+          // not blank out the other three images this player does have.
+          if (path && signed[path]) next = { ...next, ...({ [f.url]: signed[path]! } as Partial<Player>) }
+        }
+        return next
+      })
       persist()
     }
 
@@ -492,7 +569,7 @@ export const usePlayersStore = defineStore('players', () => {
      * back the moment the list is cleared.
      */
     for (const p of toDelete) {
-      if (p.avatarPath) await deleteAvatar(p.avatarPath)
+      await deleteAllImages(p)
       const { error: delError } = await supabase.from('players').delete().eq('id', p.id)
       if (delError) {
         console.warn('[players] syncFromCloud delete failed for', p.name, delError)
