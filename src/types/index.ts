@@ -125,6 +125,16 @@ export type Player = {
   walkupBackground: string | null
   walkupBackgroundPosition?: string | null
   walkupBackgroundZoom?: number | null
+  /*
+   * Where each background lives in Storage, mirroring `avatarPath`.
+   *
+   * The three fields above hold what to render right now — a data URL while the photo is
+   * still inline, a signed URL once it has been uploaded. Signed URLs expire, so these
+   * paths are the durable reference; the image itself is never the row's job to carry.
+   */
+  playerBackgroundPath?: string | null
+  throwBackgroundPath?: string | null
+  walkupBackgroundPath?: string | null
   targetLabelColor: string | null
   /** Colour of the cricket mark pips. Null keeps the app's pink, which is what they were. */
   pipColor: string | null

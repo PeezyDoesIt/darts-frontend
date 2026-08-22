@@ -15,6 +15,23 @@ const BUCKET = 'player-avatars'
 /** How long a signed URL stays valid. Long enough for a session, short enough to matter. */
 const SIGNED_URL_TTL_SECONDS = 60 * 60 * 12
 
+/**
+ * The images a player can have, and the suffix each one takes in the bucket.
+ *
+ * `avatar` is deliberately the empty string. Avatars have been stored at
+ * `<user>/<player>.jpg` since before backgrounds were in Storage at all, and changing that
+ * would strand every photo already uploaded behind a path nothing looks for. So the existing
+ * shape is the avatar's, and the three new ones take suffixes around it.
+ */
+export type PlayerImageKind = 'avatar' | 'playerBackground' | 'throwBackground' | 'walkupBackground'
+
+const SUFFIX: Record<PlayerImageKind, string> = {
+  avatar: '',
+  playerBackground: '-bg',
+  throwBackground: '-throw',
+  walkupBackground: '-walkup',
+}
+
 export function isDataUrl(value: string | null | undefined): boolean {
   return !!value && value.startsWith('data:')
 }
@@ -23,9 +40,14 @@ export function isRemoteUrl(value: string | null | undefined): boolean {
   return !!value && (value.startsWith('http://') || value.startsWith('https://'))
 }
 
-/** `<user_id>/<player_id>.jpg` — the first segment is what the storage policies check. */
+/** `<user_id>/<player_id><suffix>.jpg` — the first segment is what the storage policies check. */
+export function imagePathFor(userId: string, playerId: string, kind: PlayerImageKind): string {
+  return `${userId}/${playerId}${SUFFIX[kind]}.jpg`
+}
+
+/** The avatar's path, unchanged. Kept so existing callers and stored paths keep working. */
 export function avatarPathFor(userId: string, playerId: string): string {
-  return `${userId}/${playerId}.jpg`
+  return imagePathFor(userId, playerId, 'avatar')
 }
 
 async function currentUserId(): Promise<string | null> {
@@ -59,7 +81,11 @@ export type UploadResult = { path: string; signedUrl: string | null } | null
  * not a data URL, or on any failure — in every one of those cases the caller keeps what it
  * had rather than losing the picture.
  */
-export async function uploadAvatar(playerId: string, dataUrl: string): Promise<UploadResult> {
+export async function uploadPlayerImage(
+  playerId: string,
+  dataUrl: string,
+  kind: PlayerImageKind = 'avatar',
+): Promise<UploadResult> {
   if (!isDataUrl(dataUrl)) return null
   const userId = await currentUserId()
   if (!userId) return null
@@ -67,7 +93,7 @@ export async function uploadAvatar(playerId: string, dataUrl: string): Promise<U
   const blob = dataUrlToBlob(dataUrl)
   if (!blob) return null
 
-  const path = avatarPathFor(userId, playerId)
+  const path = imagePathFor(userId, playerId, kind)
   try {
     const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
       contentType: blob.type || 'image/jpeg',
@@ -76,15 +102,20 @@ export async function uploadAvatar(playerId: string, dataUrl: string): Promise<U
       upsert: true,
     })
     if (error) {
-      console.warn('[avatars] upload failed', error)
+      console.warn(`[images] upload failed (${kind})`, error)
       return null
     }
   } catch (e) {
-    console.warn('[avatars] upload threw', e)
+    console.warn('[images] upload threw', e)
     return null
   }
 
   return { path, signedUrl: await signAvatar(path) }
+}
+
+/** The original single-image entry point, now one kind among four. */
+export function uploadAvatar(playerId: string, dataUrl: string): Promise<UploadResult> {
+  return uploadPlayerImage(playerId, dataUrl, 'avatar')
 }
 
 /** A short-lived URL an <img> can render. Null when signed out or the object is gone. */
