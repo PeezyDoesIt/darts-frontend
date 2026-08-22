@@ -271,7 +271,7 @@
             <p class="field-hint">How your dice look when it's your turn in Yahtzee.</p>
             <div class="color-dropdown-wrap">
               <button class="color-dropdown-btn dice-dropdown-btn" @click="showDiceDropdown = !showDiceDropdown">
-                <span class="dice-dropdown-item-swatch" :style="swatchStyle(diceTheme ?? 'default')" />
+                <span class="dice-dropdown-item-swatch" :style="swatchStyle(diceTheme ?? 'casino')" />
                 <span class="color-dropdown-label">{{ selectedDiceTheme?.label ?? 'Default' }}</span>
                 <span class="color-dropdown-arrow">{{ showDiceDropdown ? '▲' : '▼' }}</span>
               </button>
@@ -279,7 +279,7 @@
                 <button
                   v-for="t in DICE_THEMES" :key="t.value"
                   class="dice-dropdown-item"
-                  :class="{ active: (diceTheme ?? 'default') === t.value }"
+                  :class="{ active: normalizeDiceTheme(diceTheme) === t.value }"
                   @click="diceTheme = t.value; showDiceDropdown = false"
                 >
                   <!--
@@ -415,7 +415,7 @@ import { usePlayersStore } from '../stores/players'
 import { useGameStore } from '../stores/game'
 import { goBack } from '../router/goBack'
 import { AVATAR_MAX_PX, BACKGROUND_MAX_PX, downscaleFile, downscaleVideoFrame } from '../lib/downscaleImage'
-import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, PIP_STYLES, TARGET_LABEL_COLORS, type Player, type DiceTheme, type PipStyle, type YahtzeeCardSkin } from '../types/index'
+import { DICE_THEMES, DIE_GRADIENTS, DIE_SOLID_FACES, PIP_STYLES, TARGET_LABEL_COLORS, type Player, type DiceTheme, type PipStyle, type YahtzeeCardSkin, normalizeDiceTheme } from '../types/index'
 import { autoTargetColor as autoTargetColorFor } from '../lib/targetColor'
 import SyncWarning from '../components/SyncWarning.vue'
 
@@ -451,12 +451,18 @@ const showDiceDropdown = ref(false)
  * changes as you change their colour above — which is exactly what the die will do.
  */
 function swatchStyle(theme: DiceTheme | null) {
-  const t = theme ?? 'default'
-  return { background: DIE_GRADIENTS[t] ?? DIE_SOLID_FACES[t] ?? `${color.value}55` }
+  /*
+   * `default` was the fallback here and it is gone. It meant "tint with this player's colour",
+   * which is why the swatch used to change as you changed their colour — a nice touch, but it
+   * was also the name every unset player carried, so it doubled as "no choice made". Casino is
+   * the honest replacement: a real die, the one they will actually get.
+   */
+  const t = normalizeDiceTheme(theme)
+  return { background: DIE_GRADIENTS[t] ?? DIE_SOLID_FACES[t] ?? '#ffffff' }
 }
 
 const selectedDiceTheme = computed(() =>
-  DICE_THEMES.find(t => t.value === (diceTheme.value ?? 'default'))
+  DICE_THEMES.find(t => t.value === normalizeDiceTheme(diceTheme.value))
 )
 
 const router = useRouter()
@@ -727,7 +733,12 @@ function loadPlayer(p: Player) {
   pipColor.value = p.pipColor ?? null
   pipStyle.value = p.pipStyle ?? null
   cricketTargetDisplay.value = p.cricketTargetDisplay ?? 'show'
-  diceTheme.value = p.diceTheme ?? null
+  /*
+   * Resolved on open, not on save. A profile holding a retired name would otherwise show
+   * nothing selected in the picker — every swatch unlit, as if the player had never chosen —
+   * and the first save would then write null, quietly turning their choice into Casino.
+   */
+  diceTheme.value = normalizeDiceTheme(p.diceTheme)
   yahtzeeCard.value = p.yahtzeeCard ?? null
 }
 const saving = ref(false)

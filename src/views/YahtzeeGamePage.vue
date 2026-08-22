@@ -466,7 +466,10 @@ import { chooseCategory, chooseKeeps } from '../lib/yahtzeeBot'
 import { useYahtzeeStore, grandTotal, upperTotal, upperBonus, lowerTotal, calcScore, YAHTZEE_CATEGORIES } from '../stores/yahtzee'
 import { usePlayersStore } from '../stores/players'
 import type { YahtzeeCategory } from '../stores/yahtzee'
-import { DIE_GRADIENTS, GRADIENT_DIE_THEMES, type DiceTheme, type YahtzeeCardSkin } from '../types/index'
+import {
+  DIE_GRADIENTS, GRADIENT_DIE_THEMES, WHITE_PIP_DICE_THEMES, ONYX_PIP, ONYX_EDGE,
+  normalizeDiceTheme, type DiceTheme, type YahtzeeCardSkin,
+} from '../types/index'
 import { useNarrator } from '../composables/useNarrator'
 import { recordGameResult } from '../api/gameResults'
 import DiceFace from '../components/DiceFace.vue'
@@ -644,7 +647,12 @@ const dotPositions: [number, number][][] = [
   [[12, 10], [12, 18], [12, 26], [24, 10], [24, 18], [24, 26]],
 ]
 
-const dieTheme = computed<DiceTheme>(() => currentPlayer.value?.diceTheme ?? 'casino')
+/*
+ * Resolved, not read raw. A game in progress across the upgrade still holds whatever its
+ * players chose before the change, so the table is one of the three places a retired name
+ * arrives — the other two being roster load and the profile screen.
+ */
+const dieTheme = computed<DiceTheme>(() => normalizeDiceTheme(currentPlayer.value?.diceTheme))
 const showSettings = ref(false)
 /*
  * Two taps to leave, on the row itself rather than through a modal.
@@ -691,67 +699,52 @@ function isGradient(theme: DiceTheme): boolean {
   return GRADIENT_DIE_THEMES.has(theme)
 }
 
+/**
+ * The die's stock, its edge and its beads, for the ten themes that survived.
+ *
+ * These used to switch across thirty-four names with a `default:` branch that tinted with the
+ * player's colour — which is how a theme could be retired and still quietly render, because
+ * nothing here ever asked whether the name was one the app still offered. `dieTheme` is now
+ * resolved through `normalizeDiceTheme`, so by the time it reaches these it is always one of
+ * the ten, and the switches only have to describe dice that exist.
+ *
+ * Nine of the ten are gradients. Casino is the only flat stock left.
+ */
 function dieFaceFill(held: boolean): string {
   if (isGradient(dieTheme.value)) return 'transparent'
-  const p = currentPlayer.value?.color ?? '#ff2d78'
-  switch (dieTheme.value) {
-    case 'casino':   return held ? '#e4e4e4' : '#ffffff'
-    case 'neon':     return held ? '#141414' : '#080808'
-    case 'metallic': return held ? '#b0b0c0' : '#888898'
-    case 'wooden':   return held ? '#8b5e2c' : '#a0742e'
-    case 'vintage':  return held ? '#d8d0b8' : '#f0e8d0'
-    default:         return held ? (p + '55') : (p + '18')
-  }
+  // Casino, and nothing else.
+  return held ? '#e4e4e4' : '#ffffff'
 }
+
 function dieFaceStroke(held: boolean): string {
+  /*
+   * Onyx carries a printed edge rather than the white hairline the other gradients use. On a
+   * near-black stock that hairline is the brightest thing on the die, which puts the eye on
+   * the outline instead of the pips.
+   */
+  if (dieTheme.value === 'onyx') return ONYX_EDGE
   if (isGradient(dieTheme.value)) return held ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)'
-  const p = currentPlayer.value?.color ?? '#ff2d78'
-  switch (dieTheme.value) {
-    case 'casino':   return '#222'
-    case 'neon':     return held ? p : (p + '66')
-    case 'metallic': return held ? '#aaa' : '#666'
-    case 'wooden':   return '#5a2e08'
-    case 'vintage':  return '#b0a070'
-    default:         return 'transparent'
-  }
+  return '#222'
 }
-/*
- * One background for the cube's faces, covering all thirty-four themes. The gradients pass
- * straight through; metallic's three-stop sheen and wooden's grain lines were SVG before and are
- * plain CSS backgrounds now, so nothing about the picker or the theme list had to change.
- * Corner radius is gone from here — the cube's pillow corner belongs to the die, not the theme.
- */
+
+/** One background for the cube's faces. Held tilts the gradient rather than recolouring it. */
 function dieCubeFace(held: boolean): string {
-  if (isGradient(dieTheme.value)) {
-    const grad = DIE_GRADIENTS[dieTheme.value]
-    if (grad) return held ? grad.replace('135deg', '155deg') : grad
-  }
-  if (dieTheme.value === 'metallic') {
-    return held
-      ? 'linear-gradient(135deg, #dcdce8, #9090a4 50%, #404050)'
-      : 'linear-gradient(135deg, #c8c8d8, #787890 50%, #383848)'
-  }
-  if (dieTheme.value === 'wooden') {
-    const stock = held ? '#8b5e2c' : '#a0742e'
-    return `repeating-linear-gradient(180deg, rgba(74,32,8,0.30) 0 1px, transparent 1px 17%), ${stock}`
-  }
-  if (dieTheme.value === 'vintage') {
-    const stock = held ? '#d8d0b8' : '#f0e8d0'
-    return `linear-gradient(0deg, rgba(192,168,112,0.55), rgba(192,168,112,0.55)) padding-box, ${stock}`
-  }
+  const grad = DIE_GRADIENTS[dieTheme.value]
+  if (grad) return held ? grad.replace('135deg', '155deg') : grad
   return dieFaceFill(held)
 }
+
+/**
+ * Onyx is the one die with white beads, and the only place the bead shading flips.
+ *
+ * Everywhere else the bead is dark and pools its highlight underneath. On near-black stock a
+ * dark bead disappears, and the pips are the only part of a die that carries information — so
+ * this one is lit from the top instead, white into bone rather than bone into black.
+ */
 function diePipFill(held: boolean): string {
+  if (WHITE_PIP_DICE_THEMES.has(dieTheme.value)) return ONYX_PIP
   if (isGradient(dieTheme.value)) return held ? '#ffffff' : 'rgba(255,255,255,0.85)'
-  const p = currentPlayer.value?.color ?? '#ff2d78'
-  switch (dieTheme.value) {
-    case 'casino':   return '#111'
-    case 'neon':     return p
-    case 'metallic': return held ? '#111' : '#222'
-    case 'wooden':   return held ? '#f0d888' : '#2e0e00'
-    case 'vintage':  return '#6c4218'
-    default:         return held ? p : '#ffffff'
-  }
+  return '#111'
 }
 
 interface CatDef { key: YahtzeeCategory; label: string; dieValue?: number; howTo: string }

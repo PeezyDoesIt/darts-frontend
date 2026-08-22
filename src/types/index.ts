@@ -1,17 +1,66 @@
+/**
+ * The ten dice a player can choose from.
+ *
+ * There were thirty-four. Most were a gradient nobody could tell apart from the one above it
+ * in a list that long, and a picker that big is a wall rather than a choice. Twenty-five were
+ * retired; `RETIRED_DICE_THEMES` below carries every one of them to its nearest survivor, so
+ * a player who chose Copper lands on a warm die rather than being reset to white.
+ */
 export type DiceTheme =
-  | 'default' | 'casino' | 'neon' | 'metallic' | 'wooden' | 'vintage'
-  | 'deepsea' | 'oilslick' | 'aurora' | 'toxic'
-  | 'magma' | 'flamingo' | 'candy' | 'synthwave' | 'nebula' | 'storm' | 'cyber' | 'coffee'
-  | 'crystal' | 'fire'
-  | 'rosegold' | 'arctic' | 'gold' | 'midnight' | 'lavender' | 'slate'
-  | 'silver' | 'copper' | 'sapphire' | 'citrus' | 'sunset' | 'mint' | 'peach' | 'walnut'
+  | 'casino' | 'onyx' | 'midnight'
+  | 'gold' | 'candy' | 'fire' | 'synthwave'
+  | 'arctic' | 'sapphire' | 'oilslick'
+
+/**
+ * Where each retired theme goes.
+ *
+ * Nearest survivor, not a blanket reset. Neon was a near-black die, so it lands on Onyx;
+ * Copper was warm metal, so it lands on Gold. Dumping all twenty-five on Casino would have
+ * turned every one of those players' choices into the same white die, which reads as the app
+ * having forgotten rather than having changed.
+ *
+ * Casino is only for a value that is missing or unrecognised — the honest default when there
+ * is nothing to infer from.
+ */
+export const RETIRED_DICE_THEMES: Record<string, DiceTheme> = {
+  // plain stock
+  default: 'casino', silver: 'casino', vintage: 'casino',
+  // black and metal
+  neon: 'onyx', metallic: 'onyx', slate: 'onyx',
+  // warm metal and wood
+  wooden: 'gold', walnut: 'gold', coffee: 'gold',
+  copper: 'gold', rosegold: 'gold', citrus: 'gold',
+  // hot
+  magma: 'fire', sunset: 'fire', peach: 'fire',
+  flamingo: 'candy',
+  lavender: 'synthwave', nebula: 'synthwave',
+  // cool
+  storm: 'sapphire',
+  crystal: 'arctic', mint: 'arctic', cyber: 'arctic',
+  aurora: 'oilslick', toxic: 'oilslick', deepsea: 'oilslick',
+}
+
+const LIVE_DICE_THEMES = new Set<string>([
+  'casino', 'onyx', 'midnight', 'gold', 'candy', 'fire', 'synthwave',
+  'arctic', 'sapphire', 'oilslick',
+])
+
+/**
+ * Whatever is stored, resolved to a die that exists.
+ *
+ * Runs wherever a stored theme is read — roster load, profile edit, and at the table — because
+ * a retired name can arrive from any of the three: an old row synced from another device, a
+ * profile saved before the change, or a game already in progress across the upgrade. Missing
+ * or unrecognised resolves to Casino; a retired name resolves to its nearest survivor.
+ */
+export function normalizeDiceTheme(value: string | null | undefined): DiceTheme {
+  if (!value) return 'casino'
+  if (LIVE_DICE_THEMES.has(value)) return value as DiceTheme
+  return RETIRED_DICE_THEMES[value] ?? 'casino'
+}
 
 export const GRADIENT_DIE_THEMES = new Set<DiceTheme>([
-  'deepsea','oilslick','aurora','toxic',
-  'magma','flamingo','candy','synthwave','nebula','storm','cyber','coffee',
-  'crystal','fire',
-  'rosegold','arctic','gold','midnight','lavender','slate',
-  'silver','copper','sapphire','citrus','sunset','mint','peach','walnut',
+  'gold', 'candy', 'fire', 'synthwave', 'arctic', 'sapphire', 'oilslick', 'midnight',
 ])
 
 /**
@@ -25,43 +74,48 @@ export const GRADIENT_DIE_THEMES = new Set<DiceTheme>([
  * to supply that rather than read a constant.
  */
 export const DIE_SOLID_FACES: Record<string, string> = {
-  casino:   '#ffffff',
-  neon:     '#080808',
-  metallic: '#888898',
-  wooden:   '#a0742e',
-  vintage:  '#f0e8d0',
+  casino: '#ffffff',
 }
 
 export const DIE_GRADIENTS: Record<string, string> = {
-  deepsea:   'linear-gradient(135deg, #001a33 0%, #006666 60%, #00aa88 100%)',
-  oilslick:  'linear-gradient(135deg, #200040 0%, #001a4d 33%, #004040 66%, #001200 100%)',
-  aurora:    'linear-gradient(135deg, #003322 0%, #00aa66 60%, #44ffcc 100%)',
-  toxic:     'linear-gradient(135deg, #143300 0%, #44cc00 60%, #aaff00 100%)',
-  magma:     'linear-gradient(135deg, #1a0500 0%, #8b2500 50%, #ff4500 100%)',
-  flamingo:  'linear-gradient(135deg, #12000a 0%, #880044 50%, #ee4488 100%)',
+  /* Black lifted off the table rather than flat black — a flat one reads as a hole. */
+  onyx:      'linear-gradient(135deg, #2a2a33 0%, #14141a 45%, #0a0a0d 100%)',
+  midnight:  'linear-gradient(135deg, #05060f 0%, #101832 55%, #1e2a55 100%)',
+  gold:      'linear-gradient(135deg, #2a1e00 0%, #a8820a 45%, #ffd700 75%, #fff3b0 100%)',
   candy:     'linear-gradient(135deg, #220020 0%, #880055 50%, #cc00cc 100%)',
-  synthwave: 'linear-gradient(135deg, #0d0020 0%, #5500bb 40%, #cc00ff 70%, #ff0066 100%)',
-  nebula:    'linear-gradient(135deg, #0a0030 0%, #440099 50%, #9933dd 100%)',
-  storm:     'linear-gradient(135deg, #050520 0%, #1a1a99 50%, #3355ff 100%)',
-  cyber:     'linear-gradient(135deg, #001428 0%, #0088dd 60%, #00ffcc 100%)',
-  coffee:    'linear-gradient(135deg, #1c0a00 0%, #4a2200 50%, #7a4010 100%)',
-  crystal:   'linear-gradient(135deg, #0a1f3a 0%, #0066aa 50%, #44ccff 80%, #aaeeff 100%)',
   fire:      'linear-gradient(135deg, #1a0000 0%, #cc2200 35%, #ff6600 70%, #ffcc00 100%)',
-  rosegold:  'linear-gradient(135deg, #2a0a12 0%, #7a2535 40%, #c07060 70%, #e8a888 100%)',
-  arctic:    'linear-gradient(135deg, #d8f0ff 0%, #a0d4ff 30%, #68b8ff 65%, #3399ee 100%)',
-  gold:      'linear-gradient(135deg, #150e00 0%, #604000 35%, #b87c00 65%, #f0c800 85%, #ffe066 100%)',
-  midnight:  'linear-gradient(135deg, #000003 0%, #08002a 40%, #180055 70%, #2c0088 100%)',
-  lavender:  'linear-gradient(135deg, #120018 0%, #440088 50%, #8844cc 78%, #cc88ff 100%)',
-  slate:     'linear-gradient(135deg, #080810 0%, #181828 40%, #28324a 68%, #384860 100%)',
-  silver:    'linear-gradient(135deg, #909090 0%, #d8d8d8 30%, #f4f4f4 55%, #c8c8c8 75%, #e8e8e8 100%)',
-  copper:    'linear-gradient(135deg, #1a0800 0%, #7a3010 40%, #c06030 68%, #e09060 100%)',
-  sapphire:  'linear-gradient(135deg, #000820 0%, #0033aa 45%, #1166ff 75%, #4499ff 100%)',
-  citrus:    'linear-gradient(135deg, #1a1a00 0%, #888800 40%, #ddcc00 70%, #ffee00 100%)',
-  sunset:    'linear-gradient(135deg, #0a0015 0%, #660033 30%, #cc3300 60%, #ff8800 85%, #ffcc44 100%)',
-  mint:      'linear-gradient(135deg, #001a10 0%, #008855 45%, #44ddaa 75%, #aaffd8 100%)',
-  peach:     'linear-gradient(135deg, #1a0800 0%, #883310 40%, #dd7744 70%, #ffbb88 100%)',
-  walnut:    'linear-gradient(135deg, #0a0400 0%, #3d1a00 35%, #6b3a10 65%, #9a6030 100%)',
+  synthwave: 'linear-gradient(135deg, #0d0020 0%, #5500bb 40%, #cc00ff 70%, #ff0066 100%)',
+  arctic:    'linear-gradient(135deg, #0a1f3a 0%, #0066aa 50%, #44ccff 80%, #aaeeff 100%)',
+  sapphire:  'linear-gradient(135deg, #00082a 0%, #0b3aa8 50%, #3f7dff 100%)',
+  oilslick:  'linear-gradient(135deg, #200040 0%, #001a4d 33%, #004040 66%, #001200 100%)',
 }
+
+/**
+ * Onyx is the one die with white beads.
+ *
+ * Every other face here is light enough, or bright enough, that a black bead is what reads
+ * from across a room. Onyx is near-black, so a black pip disappears into it — the pips are the
+ * only thing on a die that carries information, so this one flips: white bead, and the shading
+ * flipped with it, lit from the top rather than pooled underneath.
+ */
+export const WHITE_PIP_DICE_THEMES = new Set<DiceTheme>(['onyx'])
+
+/*
+ * The bead's base colour, not a finished gradient.
+ *
+ * `DiceFace` builds the bead itself — `radial-gradient(circle at 33% 27%,
+ * color-mix(pipColor 68%, #fff), pipColor 62%)` — so it wants a colour, not a background.
+ * Handing it the gradient the mockup draws would interpolate a gradient inside `color-mix()`,
+ * which is invalid CSS and renders a pip with no background at all.
+ *
+ * Bone rather than pure white on purpose: the component lightens toward white for the
+ * highlight, so a pure-white base has nothing left to lighten and the bead goes flat. This
+ * value put through that formula produces the white-into-bone bead the spec describes, lit
+ * from the top left — the flip that a near-black stock needs.
+ */
+export const ONYX_PIP = '#cfcabd'
+export const ONYX_EDGE = '#3a3a46'
+
 
 /**
  * How a Yahtzee card is printed.
@@ -141,7 +195,8 @@ export type Player = {
   /** Shape of the cricket mark pips. Null keeps the filled blocks they have always been. */
   pipStyle: PipStyle | null
   cricketTargetDisplay: 'show' | 'hide' | null  // null = use game setting
-  diceTheme: DiceTheme | null  // null = same as 'default'
+  /** Null, or a retired name from an old row, resolves through `normalizeDiceTheme`. */
+  diceTheme: DiceTheme | null
   /** Which ink this player's Yahtzee card is printed in. Null and anything unknown are Street. */
   yahtzeeCard?: YahtzeeCardSkin | null
   pinned: boolean
@@ -171,47 +226,34 @@ export const PIP_STYLES: { value: PipStyle; label: string; sub: string }[] = [
   { value: 'outline', label: 'Outline', sub: 'Hollow, coloured edge only' },
 ]
 
-export const DICE_THEMES: { value: DiceTheme; label: string; icon: string; group: string }[] = [
-  // Classics & Neutrals
-  { value: 'casino',    label: 'Casino',    icon: '🎰', group: '' },
-  { value: 'vintage',   label: 'Vintage',   icon: '📜', group: '' },
-  { value: 'silver',    label: 'Silver',    icon: '🪙', group: '' },
-  { value: 'slate',     label: 'Slate',     icon: '🔲', group: '' },
-  { value: 'coffee',    label: 'Coffee',    icon: '☕', group: '' },
-  { value: 'walnut',    label: 'Walnut',    icon: '🪵', group: '' },
-  // Pastels & Soft
-  { value: 'arctic',    label: 'Arctic',    icon: '🧊', group: '' },
-  { value: 'rosegold',  label: 'Rose Gold', icon: '🌸', group: '' },
-  { value: 'lavender',  label: 'Lavender',  icon: '💜', group: '' },
-  { value: 'candy',     label: 'Candy',     icon: '🍬', group: '' },
-  { value: 'peach',     label: 'Peach',     icon: '🍑', group: '' },
-  // Darks & Purples
-  { value: 'midnight',  label: 'Midnight',  icon: '🌑', group: '' },
-  { value: 'nebula',    label: 'Nebula',    icon: '🔮', group: '' },
-  { value: 'synthwave', label: 'Synthwave', icon: '🌆', group: '' },
-  { value: 'oilslick',  label: 'Oil Slick', icon: '🫧', group: '' },
-  // Blues & Greens
-  { value: 'sapphire',  label: 'Sapphire',  icon: '💙', group: '' },
-  { value: 'deepsea',   label: 'Deep Sea',  icon: '🌊', group: '' },
-  { value: 'crystal',   label: 'Crystal',   icon: '💎', group: '' },
-  { value: 'storm',     label: 'Storm',     icon: '⛈️', group: '' },
-  { value: 'cyber',     label: 'Cyber',     icon: '🤖', group: '' },
-  { value: 'mint',      label: 'Mint',      icon: '🌱', group: '' },
-  { value: 'aurora',    label: 'Aurora',    icon: '🌿', group: '' },
-  { value: 'toxic',     label: 'Toxic',     icon: '☢️', group: '' },
-  { value: 'citrus',    label: 'Citrus',    icon: '🍋', group: '' },
-  // Reds & Warm
-  { value: 'magma',     label: 'Magma',     icon: '🌋', group: '' },
-  { value: 'fire',      label: 'Fire',      icon: '🔥', group: '' },
-  { value: 'sunset',    label: 'Sunset',    icon: '🌅', group: '' },
-  { value: 'flamingo',  label: 'Flamingo',  icon: '🦩', group: '' },
-  { value: 'copper',    label: 'Copper',    icon: '🔶', group: '' },
-  { value: 'gold',      label: 'Gold',      icon: '🥇', group: '' },
-  // Special
-  { value: 'neon',      label: 'Neon',      icon: '⚡', group: '' },
-  { value: 'metallic',  label: 'Metallic',  icon: '🔩', group: '' },
-  { value: 'wooden',    label: 'Wooden',    icon: '🪵', group: '' },
-  { value: 'default',   label: 'Default',   icon: '🎲', group: '' },
+/**
+ * The picker, in three families.
+ *
+ * `group` was an empty string on every entry — the comments above them were the only grouping,
+ * which meant the picker could not draw one. Ten dice in three named families is a choice you
+ * can take in at a glance; thirty-four in one ungrouped list was a scroll.
+ */
+export type DiceFamily = 'plain' | 'warm' | 'cool'
+
+export const DICE_FAMILIES: { key: DiceFamily; label: string; accent: string }[] = [
+  { key: 'plain', label: 'PLAIN STOCK', accent: '#e8e2d0' },
+  { key: 'warm',  label: 'WARM',        accent: '#ffd700' },
+  { key: 'cool',  label: 'COOL',        accent: '#00d4ff' },
+]
+
+export const DICE_THEMES: { value: DiceTheme; label: string; icon: string; group: DiceFamily }[] = [
+  { value: 'casino',    label: 'Casino',    icon: '🎲', group: 'plain' },
+  { value: 'onyx',      label: 'Onyx',      icon: '⬛', group: 'plain' },
+  { value: 'midnight',  label: 'Midnight',  icon: '🌑', group: 'plain' },
+
+  { value: 'gold',      label: 'Gold',      icon: '🥇', group: 'warm' },
+  { value: 'candy',     label: 'Candy',     icon: '🍬', group: 'warm' },
+  { value: 'fire',      label: 'Fire',      icon: '🔥', group: 'warm' },
+  { value: 'synthwave', label: 'Synthwave', icon: '🌆', group: 'warm' },
+
+  { value: 'arctic',    label: 'Arctic',    icon: '🧊', group: 'cool' },
+  { value: 'sapphire',  label: 'Sapphire',  icon: '💙', group: 'cool' },
+  { value: 'oilslick',  label: 'Oil Slick', icon: '🫧', group: 'cool' },
 ]
 
 export const TARGET_LABEL_COLORS = [

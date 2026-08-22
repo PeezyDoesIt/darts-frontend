@@ -163,6 +163,10 @@
                 <span class="mode-title chip-name display">THREE MAN</span>
                 <span class="chip-sub">Two dice, one unlucky</span>
               </button>
+              <button v-ripple class="mode chip chip-pink chip-wide" @click="goGame('/nhie/setup')">
+                <span class="mode-title chip-name display">NEVER HAVE I EVER</span>
+                <span class="chip-sub">No dice. Just questions.</span>
+              </button>
             </div>
           </div>
 
