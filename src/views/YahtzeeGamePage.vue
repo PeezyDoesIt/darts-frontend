@@ -1,5 +1,13 @@
 <template>
-  <div class="game-page">
+  <!--
+    The ink is declared on the page, not on the card.
+    The card was the only thing that needed the tokens until the held-die ring did. The dice
+    sit outside the card, so a token defined on `.sc-card` could not reach them — which is how
+    the ring ended up carrying the player's colour instead of the ink's. Declaring the ink here
+    lets everything on the screen speak the same one; `.ink-*` blocks are custom properties
+    only, so nothing else changes by moving them up.
+  -->
+  <div class="game-page" :class="`ink-${cardSkin}`">
     <div class="drip-bar" />
 
     <!-- FINISHED OVERLAY -->
@@ -114,7 +122,6 @@
               :key="i"
               class="die-wrap"
               :class="{ 'die-held': game.held[i], [`die-theme-${dieTheme}`]: true }"
-              :style="{ '--held-color': currentPlayer?.color ?? 'var(--pink)' }"
               @click="onDieTap(i)"
             >
               <DiceFace
@@ -126,7 +133,8 @@
                 :rolling="diceRolling && !game.held[i]"
               />
               <span v-if="game.diceMode === 'physical'" class="die-tap-hint">tap to cycle</span>
-              <span v-if="game.held[i]" class="held-label" :style="{ color: currentPlayer?.color }">HELD</span>
+              <!-- Same ink as the ring above it: the two are one signal, not two. -->
+              <span v-if="game.held[i]" class="held-label">HELD</span>
             </div>
           </div>
 
@@ -1213,9 +1221,28 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 /* The cube takes its size from here, so it can grow at every breakpoint below. */
 .die-wrap .die { --die-size: 62px; }
 /* Held is a light on the die, not a change to the theme's own face. */
-.die-held .die { filter: drop-shadow(0 0 10px var(--held-color, var(--pink))); }
-.die-theme-neon.die-held .die { filter: drop-shadow(0 0 14px var(--held-color, var(--pink))); }
-.held-label { font-size: 9px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.08em; }
+/*
+ * Held reads in the card's ink, not the player's colour.
+ *
+ * Holding a die is a fact about this card's language — the same green that lights a takeable
+ * row is what says a die is being kept — and the player's colour is already carried by the
+ * banner and the name. Hardcoding lime here would also have been wrong in Paper, whose live
+ * is a dark green on cream and would have been shouted over by it.
+ */
+/*
+ * No literal fallback on purpose. `--sc-live` is declared by the ink on the page root, so it
+ * is always there — and a lime fallback is precisely the value that would be wrong in Paper,
+ * whose live is a dark green on cream. If the token ever did go missing the filter is simply
+ * invalid and the die loses its glow, which is a visible absence rather than a confident lie.
+ */
+.die-held .die { filter: drop-shadow(0 0 10px var(--sc-live)); }
+.die-theme-neon.die-held .die { filter: drop-shadow(0 0 14px var(--sc-live)); }
+.held-label {
+  font-size: 9px; font-weight: 900; font-family: var(--font-display); letter-spacing: 0.08em;
+  /* Reads the ink, like the ring. A player-coloured word under a live-coloured glow looked
+     like one of the two had been missed. */
+  color: var(--sc-live);
+}
 .die-tap-hint { font-size: 8px; color: rgba(255,255,255,0.3); letter-spacing: 0.05em; }
 
 /* ===== DICE PICKER OVERLAY ===== */
@@ -1579,7 +1606,16 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
   background: var(--sc-label-bg);
   color: var(--sc-label-ink);
   font-family: var(--sc-display);
-  font-size: calc(19px * var(--sc-scale));
+  /*
+   * Sized by the typeface, not by which ink it is.
+   *
+   * 19px was Bebas's number. A condensed display face, a serif and a monospace do not set the
+   * same words to the same width at the same size, so a single figure meant the label fitted
+   * in one ink and crowded its panel in another. `--sc-label-size` is declared beside
+   * `--sc-display` in each block so the two travel together: change the typeface and the size
+   * that suits it comes with it, rather than being re-tuned here by ink name.
+   */
+  font-size: calc(var(--sc-label-size, 19px) * var(--sc-scale));
   letter-spacing: 0.08em;
   transform: rotate(var(--sc-label-tilt));
   box-shadow: var(--sc-label-shadow);
@@ -1675,6 +1711,8 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 /* ── 2a · Street Print — the default ─────────────────────────────────────── */
 .ink-street {
   --sc-display: var(--font-display, 'Bebas Neue', system-ui);
+  /* Bebas is condensed: it takes the space and stays inside the panel. */
+  --sc-label-size: 19px;
   --sc-cat-weight: 400;
   --sc-cat-tracking: 0.02em;
   --sc-stock: #101014;
@@ -1712,6 +1750,8 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 /* The only bright one, and the one worth checking on the stand in a dim room. */
 .ink-paper {
   --sc-display: Georgia, 'Times New Roman', serif;
+  /* A serif sets wider than Bebas at the same size, so the label comes down to fit. */
+  --sc-label-size: 16px;
   --sc-cat-weight: 700;
   --sc-cat-tracking: 0;
   --sc-stock: #f2e8d0;
@@ -1746,6 +1786,9 @@ function quitGame() { stopScoresheetTimer(); yahtzeeStore.endGame(); router.push
 /* A stadium scoreboard, not a sheet: one monospaced face and cyan hairlines. */
 .ink-board {
   --sc-display: 'Share Tech Mono', ui-monospace, monospace;
+  /* Mono sets every glyph to one width and the label already carries 0.08em, so it comes
+     down furthest of the three to keep the block from running the width of the panel. */
+  --sc-label-size: 15px;
   --sc-cat-weight: 400;
   --sc-cat-tracking: 0.04em;
   --sc-stock: #0a0d10;
