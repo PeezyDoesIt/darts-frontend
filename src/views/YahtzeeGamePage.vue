@@ -747,11 +747,6 @@ function diePipFill(held: boolean): string {
   return '#111'
 }
 
-/** True where the beads are light, so the die can shade them the right way up. */
-function dieHasWhitePips(): boolean {
-  return WHITE_PIP_DICE_THEMES.has(dieTheme.value)
-}
-
 interface CatDef { key: YahtzeeCategory; label: string; dieValue?: number; howTo: string }
 const ALL_UPPER_CATEGORIES: CatDef[] = [
   { key: 'aces',   label: 'Aces',   dieValue: 1, howTo: 'Count and Add Only Aces' },

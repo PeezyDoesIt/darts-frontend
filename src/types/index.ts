@@ -100,7 +100,20 @@ export const DIE_GRADIENTS: Record<string, string> = {
  */
 export const WHITE_PIP_DICE_THEMES = new Set<DiceTheme>(['onyx'])
 
-export const ONYX_PIP = 'radial-gradient(circle at 34% 28%, #ffffff, #cfcabd 68%)'
+/*
+ * The bead's base colour, not a finished gradient.
+ *
+ * `DiceFace` builds the bead itself — `radial-gradient(circle at 33% 27%,
+ * color-mix(pipColor 68%, #fff), pipColor 62%)` — so it wants a colour, not a background.
+ * Handing it the gradient the mockup draws would interpolate a gradient inside `color-mix()`,
+ * which is invalid CSS and renders a pip with no background at all.
+ *
+ * Bone rather than pure white on purpose: the component lightens toward white for the
+ * highlight, so a pure-white base has nothing left to lighten and the bead goes flat. This
+ * value put through that formula produces the white-into-bone bead the spec describes, lit
+ * from the top left — the flip that a near-black stock needs.
+ */
+export const ONYX_PIP = '#cfcabd'
 export const ONYX_EDGE = '#3a3a46'
 
 
